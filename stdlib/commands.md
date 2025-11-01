@@ -41,17 +41,26 @@ cd ~/lux/stdlib/ \
 && lux deploy releases $NEXUS_USERNAME $NEXUS_PASSWORD
 
 LUX_PROJECT=stdlib && \
-LUX_VERSION=0.8.0 && \
+LUX_VERSION=0.9.0 && \
 cd ~/lux/$LUX_PROJECT/ && \
+mkdir RELEASE && \
+mkdir RELEASE/com && \
+mkdir RELEASE/com/github && \
+mkdir RELEASE/com/github/luxlang && \
+mkdir RELEASE/com/github/luxlang/$LUX_PROJECT && \
+mkdir RELEASE/com/github/luxlang/$LUX_PROJECT/$LUX_VERSION && \
 lux pom && \
-mv pom.xml RELEASE/$LUX_PROJECT-$LUX_VERSION.pom && \
-cd RELEASE && \
+mv pom.xml RELEASE/com/github/luxlang/$LUX_PROJECT/$LUX_VERSION/$LUX_PROJECT-$LUX_VERSION.pom && \
+cp ~/.m2/repository/com/github/luxlang/$LUX_PROJECT/$LUX_VERSION/$LUX_PROJECT-$LUX_VERSION.tar RELEASE/com/github/luxlang/$LUX_PROJECT/$LUX_VERSION/$LUX_PROJECT-$LUX_VERSION.tar && \
+cd RELEASE/com/github/luxlang/$LUX_PROJECT/$LUX_VERSION && \
 touch README.md && \
 zip $LUX_PROJECT-$LUX_VERSION-sources.jar README.md && \
 zip $LUX_PROJECT-$LUX_VERSION-javadoc.jar README.md && \
-zip $LUX_PROJECT-$LUX_VERSION.jar README.md && \
 rm README.md && \
-for file in *.*; do gpg -ab $file; done
+for file in *.tar *.jar *.pom; do md5sum $file | awk '{ print $1 }' > $file.md5; done && \
+for file in *.tar *.jar *.pom; do sha1sum $file | awk '{ print $1 }' > $file.sha1; done && \
+for file in *.*; do gpg -ab $file; done && \
+cd ../../../../.. && zip release.zip com/github/luxlang/$LUX_PROJECT/$LUX_VERSION/*
 ```
 
 # Generate documentation

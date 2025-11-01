@@ -1,10 +1,3 @@
-# Test
-
-```
-cd ~/lux/lux-ruby/ && lein lux auto test
-cd ~/lux/lux-ruby/ && lein clean && lein lux auto test
-```
-
 # Build
 
 ```
@@ -19,7 +12,7 @@ cd ~/lux/lux-ruby/ \
 ```
 ## Compile Lux's Standard Library's tests using a JVM-based compiler.
 cd ~/lux/stdlib/ \
-&& lein clean \
+&& lux clean \
 && java -jar ~/lux/lux-ruby/target/program.jar build --source ~/lux/stdlib/source --target ~/lux/stdlib/target --module test/lux --program _ \
 && RUBY_THREAD_VM_STACK_SIZE=15700000 ruby ~/lux/stdlib/target/program/main.rb
 ```
@@ -43,16 +36,25 @@ cd ~/lux/lux-ruby/ && mvn deploy:deploy-file \
 
 ```
 LUX_PROJECT=lux-ruby && \
-LUX_VERSION=0.8.0 && \
+LUX_VERSION=0.9.0 && \
 cd ~/lux/$LUX_PROJECT/ && \
+mkdir RELEASE && \
+mkdir RELEASE/com && \
+mkdir RELEASE/com/github && \
+mkdir RELEASE/com/github/luxlang && \
+mkdir RELEASE/com/github/luxlang/$LUX_PROJECT && \
+mkdir RELEASE/com/github/luxlang/$LUX_PROJECT/$LUX_VERSION && \
 lux pom && \
-mv pom.xml RELEASE/$LUX_PROJECT-$LUX_VERSION.pom && \
-mv target/program.jar RELEASE/$LUX_PROJECT-$LUX_VERSION.jar && \
-cd RELEASE && \
+mv pom.xml RELEASE/com/github/luxlang/$LUX_PROJECT/$LUX_VERSION/$LUX_PROJECT-$LUX_VERSION.pom && \
+cp target/program.jar RELEASE/com/github/luxlang/$LUX_PROJECT/$LUX_VERSION/$LUX_PROJECT-$LUX_VERSION.jar && \
+cd RELEASE/com/github/luxlang/$LUX_PROJECT/$LUX_VERSION && \
 touch README.md && \
 zip $LUX_PROJECT-$LUX_VERSION-sources.jar README.md && \
 zip $LUX_PROJECT-$LUX_VERSION-javadoc.jar README.md && \
 rm README.md && \
-for file in *.*; do gpg -ab $file; done
+for file in *.jar *.pom; do md5sum $file | awk '{ print $1 }' > $file.md5; done && \
+for file in *.jar *.pom; do sha1sum $file | awk '{ print $1 }' > $file.sha1; done && \
+for file in *.*; do gpg -ab $file; done && \
+cd ../../../../.. && zip release.zip com/github/luxlang/$LUX_PROJECT/$LUX_VERSION/*
 ```
 

@@ -1,5 +1,6 @@
 # Reference
 
+0. [The Little Book of Linear Algebra](https://little-book-of.github.io/linear-algebra/)
 0. [NHR PerfLab Seminar: The Linear Algebra Mapping Problem and how programming languages solve it](https://www.youtube.com/watch?v=PDAcuw1oQNs)
 0. [Array Algebra](https://arrayalgebra.info/)
 0. [The Science of Programming Matrix Computations](https://www.cs.utexas.edu/users/rvdg/tmp/TSoPMC.pdf)

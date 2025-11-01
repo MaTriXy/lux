@@ -1,5 +1,6 @@
 # Reference
 
+0. [Free for Open Source](https://github.com/cloudcommunity/Free-for-Open-Source)
 0. [a16z Podcast | An Open Source Business Model That Works](https://youtu.be/y93sPJ0XYKQ)
 0. [Collective Code Construction Contract](https://rfc.zeromq.org/spec/42/)
 0. [Source Code Is Not Enough: The fine print in FOSS promises](https://fuzzypixelz.com/blog/source-code-is-not-enough/)

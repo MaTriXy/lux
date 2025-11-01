@@ -1,5 +1,6 @@
 # Reference
 
+0. [The Little Book of Calculus](https://github.com/little-book-of/calculus)
 0. [What is Jacobian? | The right way of thinking derivatives and integrals](https://www.youtube.com/watch?v=wCZ1VEmVjVo)
 0. [The Fractional Derivative, what is it? | Introduction to Fractional Calculus](https://www.youtube.com/watch?v=A4sTAKN6yFA)
 0. [Calculus on Manifolds](http://strangebeautiful.com/other-texts/spivak-calc-manifolds.pdf)

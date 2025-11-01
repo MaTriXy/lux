@@ -198,11 +198,11 @@
       (Operation Any))
   (monad.let phase.monad
     [class (phase.of_try (reflection!.load class_loader name))]
-    (phase.assertion ..deprecated_class [name]
-                     (|> class
-                         (java/lang/Class:getDeclaredAnnotations [])
-                         reflection!.deprecated?
-                         not))))
+    (phase.warning ..deprecated_class [name]
+                   (|> class
+                       (java/lang/Class:getDeclaredAnnotations [])
+                       reflection!.deprecated?
+                       not))))
 
 (the reflection
   (for_any (_ category)
@@ -1088,8 +1088,8 @@
                                        (monad.let try.monad
                                          [class (reflection!.load class_loader class)]
                                          (reflection!.static_field field class)))
-         _ (phase.assertion ..deprecated_field [class field]
-                            (not deprecated?))
+         _ (phase.warning ..deprecated_field [class field]
+                          (not deprecated?))
          fieldT (reflection_type luxT.fresh fieldJT)
          _ (typeA.inference fieldT)
          @ analysis.provenance]
@@ -1111,8 +1111,8 @@
                                        (monad.let try.monad
                                          [class (reflection!.load class_loader class)]
                                          (reflection!.static_field field class)))
-         _ (phase.assertion ..deprecated_field [class field]
-                            (not deprecated?))
+         _ (phase.warning ..deprecated_field [class field]
+                          (not deprecated?))
          ... _ (phase.assertion ..cannot_set_a_final_field [class field]
          ...                    (not final?))
          fieldT (reflection_type luxT.fresh fieldJT)
@@ -1141,8 +1141,8 @@
                                            [final? deprecated? fieldJT] (reflection!.virtual_field field class)
                                            mapping (reflection!.correspond class objectT)]
                                           (pure [deprecated? mapping fieldJT])))
-         _ (phase.assertion ..deprecated_field [class field]
-                            (not deprecated?))
+         _ (phase.warning ..deprecated_field [class field]
+                          (not deprecated?))
          fieldT (reflection_type mapping fieldJT)
          _ (typeA.inference fieldT)
          @ analysis.provenance]
@@ -1169,8 +1169,8 @@
                                                   [final? deprecated? fieldJT] (reflection!.virtual_field field class)
                                                   mapping (reflection!.correspond class objectT)]
                                                  (pure [final? deprecated? mapping fieldJT])))
-         _ (phase.assertion ..deprecated_field [class field]
-                            (not deprecated?))
+         _ (phase.warning ..deprecated_field [class field]
+                          (not deprecated?))
          _ (phase.assertion ..cannot_set_a_final_field [class field]
                             (not final?))
          fieldT (reflection_type mapping fieldJT)
@@ -1621,8 +1621,8 @@
          .let [argsT (list:each product.left argsTC)]
          method_candidate (..method_candidate false class_loader class_tvars class method_tvars method {:Static} argsT)
          .let [method_type (its :method method_candidate)]
-         _ (phase.assertion ..deprecated_method [class method method_type]
-                            (not (its :deprecated? method_candidate)))
+         _ (phase.warning ..deprecated_method [class method method_type]
+                          (not (its :deprecated? method_candidate)))
          [outputT argsA] (inference.general archive analyse method_type (view.as list.stack (list:each product.right argsTC)))
          outputJT (check_return outputT)
          @ analysis.provenance]
@@ -1643,8 +1643,8 @@
          .let [argsT (list:each product.left argsTC)]
          method_candidate (..method_candidate true class_loader class_tvars class method_tvars method {:Virtual} argsT)
          .let [method_type (its :method method_candidate)]
-         _ (phase.assertion ..deprecated_method [class method method_type]
-                            (not (its :deprecated? method_candidate)))
+         _ (phase.warning ..deprecated_method [class method method_type]
+                          (not (its :deprecated? method_candidate)))
          [outputT allA] (inference.general archive analyse method_type (stack.partial objectC (view.as list.stack (list:each product.right argsTC))))
          .let [[objectA argsA] (when allA
                                  {.:Top objectA argsA}
@@ -1672,8 +1672,8 @@
          .let [argsT (list:each product.left argsTC)]
          method_candidate (..method_candidate false class_loader class_tvars class method_tvars method {:Special} argsT)
          .let [method_type (its :method method_candidate)]
-         _ (phase.assertion ..deprecated_method [class method method_type]
-                            (not (its :deprecated? method_candidate)))
+         _ (phase.warning ..deprecated_method [class method method_type]
+                          (not (its :deprecated? method_candidate)))
          [outputT allA] (inference.general archive analyse method_type (stack.partial objectC (view.as list.stack (list:each product.right argsTC))))
          .let [[objectA argsA] (when allA
                                  {.:Top objectA argsA}
@@ -1707,8 +1707,8 @@
                                 ffi.of_boolean))
          method_candidate (..method_candidate true class_loader class_tvars class_name method_tvars method {:Interface} argsT)
          .let [method_type (its :method method_candidate)]
-         _ (phase.assertion ..deprecated_method [class_name method method_type]
-                            (not (its :deprecated? method_candidate)))
+         _ (phase.warning ..deprecated_method [class_name method method_type]
+                          (not (its :deprecated? method_candidate)))
          [outputT allA] (inference.general archive analyse method_type (stack.partial objectC (view.as list.stack (list:each product.right argsTC))))
          .let [[objectA argsA] (when allA
                                  {.:Top objectA argsA}
@@ -1736,8 +1736,8 @@
          .let [argsT (list:each product.left argsTC)]
          method_candidate (..constructor_candidate class_loader class_tvars class method_tvars argsT)
          .let [method_type (its :method method_candidate)]
-         _ (phase.assertion ..deprecated_method [class ..constructor_method method_type]
-                            (not (its :deprecated? method_candidate)))
+         _ (phase.warning ..deprecated_method [class ..constructor_method method_type]
+                          (not (its :deprecated? method_candidate)))
          [outputT argsA] (inference.general archive analyse method_type (view.as list.stack (list:each product.right argsTC)))
          @ analysis.provenance]
         (pure {@type.:Extension @ [.prelude (extension.synthesis extension_name)]

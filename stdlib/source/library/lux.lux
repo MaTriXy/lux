@@ -1019,11 +1019,6 @@
                                 (failure ""))))
        ..public)
 
-(the' .public comment
-      Macro
-      (macro (_ tokens)
-        (meta:pure (list))))
-
 (the' .private (stack:mix f init xs)
       ... (for_any (_ a b) (-> (-> b a a) a (Stack b) a))
       {:Quantification .universal {:Empty}
@@ -1069,6 +1064,16 @@
       (stack:mix (function' (_ head tail)
                             {:Top head tail})
                  {:Empty}))
+
+(the' .public comment
+      Macro
+      (macro (_ it)
+        (.when# (stack:in_reverse (list:as_stack it))
+                {:Top it _}
+                (meta:pure (list it))
+
+                else
+                (failure ""))))
 
 (the' .private (list:mix' mix complete partial)
       ... (for_any (_ a b) (-> (-> Natural b a a) a (List b) a))

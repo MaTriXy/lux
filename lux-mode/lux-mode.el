@@ -682,7 +682,6 @@ This function also returns nil meaning don't specify the indentation."
   ("translation" 'defun)
   ("declaration" 'defun)
 
-  ("comment" 'defun)
   ("definition" 'defun)
 
   ("sharing" 'defun)

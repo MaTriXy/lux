@@ -3,7 +3,7 @@
 
 (.using
  [library
-  [lux (.except global local when function with type)
+  [lux (.except global local if when function with type)
    [abstract
     ["?" projection (.use "[1]:[0]" monad)]
     ["[0]" monad]]
@@ -99,17 +99,17 @@
   (let [num_expected (list.size inputsT+)]
     (.function (_ analysis archive args)
       (let [num_actual (list.size args)]
-        (if (n.= num_expected num_actual)
-            (monad.let [! phase.monad]
-              [_ (typeA.inference outputT)
-               argsA (list.each' !
-                                 (.function (_ [argT argC])
-                                   (<| (typeA.with argT)
-                                       (analysis archive argC)))
-                                 (list.zipped_2 inputsT+ args))
-               @ analysis.provenance]
-              (pure {@type.:Extension @ (..synthesis extension_name) argsA}))
-            (analysis.except ..incorrect_arity [num_expected num_actual]))))))
+        (.if (n.= num_expected num_actual)
+             (monad.let [! phase.monad]
+               [_ (typeA.inference outputT)
+                argsA (list.each' !
+                                  (.function (_ [argT argC])
+                                    (<| (typeA.with argT)
+                                        (analysis archive argC)))
+                                  (list.zipped_2 inputsT+ args))
+                @ analysis.provenance]
+               (pure {@type.:Extension @ (..synthesis extension_name) argsA}))
+             (analysis.except ..incorrect_arity [num_expected num_actual]))))))
 
 (the .public (nullary valueT)
   (-> Type
@@ -281,35 +281,35 @@
            current phase.name_of_current_module
            .let [expected (..expected_module current quoted_module)]
            imported! (phase.imported_by? :module expected)]
-          (if (let [in_the_same_module? (text.= expected :module)
-                    can_access_export? (and exported? imported!)]
-                (or validated_access?
-                    in_the_same_module?
-                    can_access_export?))
-              (.when constant
-                {@type.:Alias real_def_name}
-                (de_aliased true real_def_name)
-                
-                {@type.:Definition [type expression _]}
-                (.when type
-                  (@type.Default type)
-                  ... It may seem odd that type-checking is done just prior to raising an exception.
-                  ... It would be a completely useless labor...
-                  ... Except for that fact that, under certain circumstances, the compiler needs to access defaults.
-                  ... And it only needs to forbid access in every other situation.
-                  ... What this does is make sure that any code which does need to access defaults can just catch
-                  ... the exception, and know that the default it was looking for has the correct type, because
-                  ... the exception is only ever raised _after_ the inference.
-                  (monad.let !
-                    [_ (typeA.inference (@type.old type))]
-                    (analysis.except ///.defaults_cannot_be_referenced [def_name]))
+          (.if (let [in_the_same_module? (text.= expected :module)
+                     can_access_export? (and exported? imported!)]
+                 (or validated_access?
+                     in_the_same_module?
+                     can_access_export?))
+               (.when constant
+                 {@type.:Alias real_def_name}
+                 (de_aliased true real_def_name)
+                 
+                 {@type.:Definition [type expression _]}
+                 (.when type
+                   (@type.Default type)
+                   ... It may seem odd that type-checking is done just prior to raising an exception.
+                   ... It would be a completely useless labor...
+                   ... Except for that fact that, under certain circumstances, the compiler needs to access defaults.
+                   ... And it only needs to forbid access in every other situation.
+                   ... What this does is make sure that any code which does need to access defaults can just catch
+                   ... the exception, and know that the default it was looking for has the correct type, because
+                   ... the exception is only ever raised _after_ the inference.
+                   (monad.let !
+                     [_ (typeA.inference (@type.old type))]
+                     (analysis.except ///.defaults_cannot_be_referenced [def_name]))
 
-                  else
-                  (monad.let !
-                    [_ (typeA.inference (@type.old type))
-                     @ analysis.provenance]
-                    (pure (analysis.constant @ def_name)))))
-              (analysis.except ..cannot_access_global [expected def_name])))))]))
+                   else
+                   (monad.let !
+                     [_ (typeA.inference (@type.old type))
+                      @ analysis.provenance]
+                     (pure (analysis.constant @ def_name)))))
+               (analysis.except ..cannot_access_global [expected def_name])))))]))
 
 (exception.the .public (unknown_local name)
   (Exception Text)
@@ -342,6 +342,29 @@
         [_ (typeA.inference @type.Natural)
          @ analysis.provenance]
         (pure (analysis.natural @ (n.% 10 (++ (.universe#)))))))]))
+
+(the if
+  Handler
+  (..custom
+   [(all ?.and
+         ?list.any
+         ?list.any
+         ?list.any)
+    (.function (_ extension_name analysis archive [this then else])
+      (<| typeA.with_var (.function (_ [_ type]))
+          (monad.let phase.monad
+            [this (<| (typeA.with @type.Bit)
+                      (analysis archive)
+                      this)
+             _ (typeA.inference type)
+             then (<| (typeA.with type)
+                      (analysis archive)
+                      then)
+             else (<| (typeA.with type)
+                      (analysis archive)
+                      else)
+             @ analysis.provenance]
+            (pure {@type.:Extension @ [.prelude (extension.analysis extension_name)] (list this then else)}))))]))
 
 (the when
   Handler
@@ -415,6 +438,7 @@
        (with extension/lux.local ..local)
        (with extension/lux.global ..global)
        (with extension/lux.universe ..universe)
+       (with extension/lux.if ..if)
        (with extension/lux.when ..when)
        (with extension/lux.function ..function)
        (with extension/lux.constant ..constant)
@@ -480,20 +504,20 @@
   (..custom
    [(?.some ?list.any)
     (.function (_ extension_name analysis archive elements)
-      (if (list.empty? elements)
-          (monad.let [! phase.monad]
-            [_ (typeA.inference @type.List)
-             @ analysis.provenance]
-            (pure {@type.:Extension @ (..synthesis extension_name) (list)}))
-          (<| typeA.with_var (.function (_ [_ it]))
-              (monad.let [! phase.monad]
-                [_ (typeA.inference (.type (@type.List it)))
-                 elements (list.each' ! (|>> (analysis archive)
-                                             (typeA.with it))
-                                      elements)
-                 @ analysis.provenance]
-                (pure (|> elements
-                          {@type.:Extension @ (..synthesis extension_name)}))))))]))
+      (.if (list.empty? elements)
+           (monad.let [! phase.monad]
+             [_ (typeA.inference @type.List)
+              @ analysis.provenance]
+             (pure {@type.:Extension @ (..synthesis extension_name) (list)}))
+           (<| typeA.with_var (.function (_ [_ it]))
+               (monad.let [! phase.monad]
+                 [_ (typeA.inference (.type (@type.List it)))
+                  elements (list.each' ! (|>> (analysis archive)
+                                              (typeA.with it))
+                                       elements)
+                  @ analysis.provenance]
+                 (pure (|> elements
+                           {@type.:Extension @ (..synthesis extension_name)}))))))]))
 
 (the lux:list_size
   Handler

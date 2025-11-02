@@ -3,13 +3,17 @@
 
 (.using
  [library
-  [lux (.except with)
+  [lux (.except if with)
    [abstract
+    ["?" projection]
     ["[0]" monad]]
+   [error
+    ["[0]" try]]
    [data
     [collection
-     ["[0]" list (.use "[1]:[0]" monad)]
-     ["[0]" dictionary]]]
+     ["[0]" dictionary]
+     ["[0]" list (.use "[1]:[0]" monad)
+      ["?[1]" \\projection]]]]
    [macro
     ["[0]" template]]
    [meta
@@ -18,33 +22,70 @@
  ["[0]" /// (.only)
   [///
    ["[0]" phase]
-   ["[0]" synthesis (.only Handler Bundle)]
+   ["[0]" analysis
+    ["?[1]" \\projection]]
+   ["[0]" synthesis (.only Operation Phase Bundle)
+    ["[0]" path]]
    [///
+    [meta
+     [archive (.only Archive)]]
     ["[0]" extension (.only)
      ["[1]/[0]" lux]]]]])
 
+(every Handler
+  (-> extension.Name
+      synthesis.Handler))
+
 (the .public (with name anonymous)
-  (-> extension.Name (-> extension.Name Handler)
-      (-> Bundle Bundle))
+  (-> extension.Name Handler
+      (Change Bundle))
   (dictionary.has (extension.analysis name) (anonymous name)))
 
+(the .public (custom [syntax handler]
+                     extension_name)
+  (for_any (_ it)
+    (-> [(?analysis.Projection it)
+         (-> extension.Name Phase Archive it (Operation synthesis.Term))]
+        Handler))
+  (.function (_ synthesis archive args)
+    (.when (?list.value args syntax)
+      {try.:Success inputs}
+      (handler extension_name synthesis archive inputs)
+
+      {try.:Failure error}
+      (phase.failure error))))
+
+(the if
+  Handler
+  (..custom
+   [(all ?.and ?list.any ?list.any ?list.any)
+    (function (_ name synthesis archive [this then else])
+      (monad.let phase.monad
+        [this (synthesis archive this)
+         then (synthesis archive then)
+         else (synthesis archive else)]
+        (pure (<| [provenance.dummy]
+                  {synthesis.:Control}
+                  {synthesis.:When}
+                  [synthesis.:input this
+                   synthesis.:output {path.:Bit_Fork .true {path.:Then then} {.:Some {path.:Then else}}}]))))]))
+
 (the (flat_text_composite expected)
-  (-> Name (List synthesis.Term)
-      (List synthesis.Term))
+  (-> Name
+      (Change (List synthesis.Term)))
   (|>> (list:each (function (_ it)
                     (when it
                       [@ {synthesis.:Extension actual parameters}]
-                      (if (name.= expected actual)
-                          parameters
-                          (list it))
+                      (.if (name.= expected actual)
+                           parameters
+                           (list it))
 
                       _
                       (list it))))
        list:conjoint))
 
 (the (text_composite name)
-  (-> extension.Name
-      Handler)
+  Handler
   (let [name [.prelude (extension.synthesis name)]]
     (function (_ synthesis archive parts)
       (monad.let [! phase.monad]
@@ -58,5 +99,6 @@
                 [(..with (template.name [extension/lux._] [,name])
                    (template.name [.._] [,name]))]
 
-                [[..text_composite]]
+                [[..if]
+                 [..text_composite]]
                 )))))

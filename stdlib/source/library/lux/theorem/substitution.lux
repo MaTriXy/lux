@@ -3,7 +3,7 @@
 
 (.using
  [library
-  [lux (.except and pattern function when list)
+  [lux (.except and pattern function if when list)
    [abstract
     ["[0]" monad]]
    [error
@@ -22,13 +22,15 @@
       ["[0]" natural]]]]
    [meta
     ["[0]" name]
-    ["[0]" provenance]]
+    ["[0]" provenance]
+    ["[0]" static]]
    [macro
     ["^" pattern]
     ["[0]" template]]
    [compiler
     ["@[0]" type]
-    ["[0]" extension]
+    ["[0]" extension (.only)
+     ["[1]/[0]" lux]]
     [language
      [lux
       ["[0]" analysis]]]]]]
@@ -129,6 +131,23 @@
   (-> it
       Rule))
 
+(the .public (if by_this by_then by_else
+                 context it)
+  (-> Rule Rule Rule
+      Rule)
+  (.when it
+    {@type.:Extension @ [.prelude (static.text (extension.analysis extension/lux.if))]
+                      (.list this then else)}
+    (monad.let [! try.monad]
+      [this (by_this context this)
+       then (by_then context then)
+       else (by_else context else)]
+      (pure {@type.:Extension @ [.prelude (static.text (extension.analysis extension/lux.if))]
+                              (.list this then else)}))
+
+    else
+    (exception.except ..not_valid [(name ..if) it])))
+
 (the .public (when by_reality
                [by_head by_tail]
                context it)
@@ -137,18 +156,18 @@
       Rule)
   (.when it
     {@type.:When @ reality [[pattern_of_head body_of_head] tail]}
-    (if (natural.= (list.size by_tail)
-                   (list.size tail))
-        (monad.let [! try.monad]
-          [reality (by_reality context reality)
-           body_of_head (by_head (lemma pattern_of_head reality) context body_of_head)
-           tail (list.each' ! (.function (_ [of [pattern body]])
-                                (monad.let !
-                                  [body (of (lemma pattern reality) context body)]
-                                  (pure [pattern body])))
-                            (list.zipped_2 by_tail tail))]
-          (pure {@type.:When @ reality [[pattern_of_head body_of_head] tail]}))
-        (exception.except ..not_valid [(name ..when) it]))
+    (.if (natural.= (list.size by_tail)
+                    (list.size tail))
+         (monad.let [! try.monad]
+           [reality (by_reality context reality)
+            body_of_head (by_head (lemma pattern_of_head reality) context body_of_head)
+            tail (list.each' ! (.function (_ [of [pattern body]])
+                                 (monad.let !
+                                   [body (of (lemma pattern reality) context body)]
+                                   (pure [pattern body])))
+                             (list.zipped_2 by_tail tail))]
+           (pure {@type.:When @ reality [[pattern_of_head body_of_head] tail]}))
+         (exception.except ..not_valid [(name ..when) it]))
 
     else
     (exception.except ..not_valid [(name ..when) it])))
@@ -161,11 +180,11 @@
     {try.:Success [left right]}
 
     (analysis.tuple _ tuple)
-    (if (natural.> 2 (list.size tuple))
-        (let [[left right] (list.split 1 tuple)]
-          {try.:Success [(.list_item# 0 left)
-                         (analysis.tuple _ right)]})
-        (exception.except ..not_valid [(name ..as_pair) it]))
+    (.if (natural.> 2 (list.size tuple))
+         (let [[left right] (list.split 1 tuple)]
+           {try.:Success [(.list_item# 0 left)
+                          (analysis.tuple _ right)]})
+         (exception.except ..not_valid [(name ..as_pair) it]))
 
     else
     (exception.except ..not_valid [(name ..as_pair) it])))
@@ -218,11 +237,11 @@
     {@type.:Abstraction @ closure' body}
     (.when (closure closure' 0 context)
       {try.:Success [every_foreign_read closure]}
-      (if (natural.= (list.size closure') every_foreign_read)
-          (monad.let try.monad
-            [body ((by_body closure) context body)]
-            (pure {@type.:Abstraction @ (.list) body}))
-          (exception.except ..not_valid [(name ..function) it]))
+      (.if (natural.= (list.size closure') every_foreign_read)
+           (monad.let try.monad
+             [body ((by_body closure) context body)]
+             (pure {@type.:Abstraction @ (.list) body}))
+           (exception.except ..not_valid [(name ..function) it]))
 
       else
       (exception.except ..not_valid [(name ..function) it]))
@@ -237,15 +256,15 @@
         Rule))
   (.when it
     {@type.:Extension @ reality parameter/*}
-    (if (.and (name.= expectation reality)
-              (natural.= (list.size by_parameter/*)
-                         (list.size parameter/*)))
-        (monad.let [! try.monad]
-          [parameter/* (list.each' ! (.function (_ [by_parameter parameter])
-                                       (by_parameter context parameter))
-                                   (list.zipped_2 by_parameter/* parameter/*))]
-          (pure {@type.:Extension @ reality parameter/*}))
-        (exception.except ..not_valid [(name ..extension) it]))
+    (.if (.and (name.= expectation reality)
+               (natural.= (list.size by_parameter/*)
+                          (list.size parameter/*)))
+         (monad.let [! try.monad]
+           [parameter/* (list.each' ! (.function (_ [by_parameter parameter])
+                                        (by_parameter context parameter))
+                                    (list.zipped_2 by_parameter/* parameter/*))]
+           (pure {@type.:Extension @ reality parameter/*}))
+         (exception.except ..not_valid [(name ..extension) it]))
 
     else
     (exception.except ..not_valid [(name ..extension) it])))

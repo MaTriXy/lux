@@ -36,27 +36,15 @@
  [\\library
   ["[0]" /]])
 
-(the intact_branch
-  in.Case
-  (function.constant in.any))
-
-(the intact_when
-  [in.Case
-   (List in.Case)]
-  [..intact_branch
-   (list ..intact_branch)])
-
 (the .public (or this that)
   (-> in.Rule in.Rule
       in.Rule)
-  (in.when this [..intact_branch
-                 (list (function.constant that))]))
+  (in.if this in.any that))
 
 (the .public (and this that)
   (-> in.Rule in.Rule
       in.Rule)
-  (in.when this [(function.constant that)
-                 (list ..intact_branch)]))
+  (in.if this that in.any))
 
 (the (if cause effect)
   (-> in.Rule in.Rule
@@ -75,9 +63,7 @@
   (all by.and
        (by.application by.definition it)
        by.reification
-       (by.when in.any
-         (function (_ _)
-           in.any))))
+       (by.if in.any in.any)))
 
 (the by_true
   (all by.and
@@ -112,9 +98,7 @@
               then
               else)
          then))
-  (!.= (by.when by_true
-         (function (_ _)
-           in.any))
+  (!.= (by.if by_true in.any)
        in.any))
 
 (_.the .public if_false
@@ -125,9 +109,7 @@
               then
               else)
          else))
-  (!.= (by.when by.definition
-         (function (_ _)
-           in.any))
+  (!.= (by.if by.definition in.any)
        in.any))
 
 (_.the .public true
@@ -164,14 +146,10 @@
        (?.= (,composition it it)
             it))
      (induction.bit (function (_ ==)
-                      (!.= (by.when (by.= ==)
-                             (function (_ _)
-                               ,if_false))
+                      (!.= (by.if (by.= ==) ,if_false)
                            (by.= ==)))
                     (function (_ ==)
-                      (!.= (by.when (by.= ==)
-                             (function (_ _)
-                               ,if_true))
+                      (!.= (by.if (by.= ==) ,if_true)
                            (by.= ==)))))]
 
   [[idempotence_of_or .or (by.= ==) in.any]
@@ -182,9 +160,7 @@
      (?.let [it Bit]
        (?.= (,composition ,identity it)
             it))
-     (!.= (by.when ,value
-            (function (_ _)
-              in.any))
+     (!.= (by.if ,value in.any)
           in.any))]
 
   [[identity_of_or .or .false by.definition]
@@ -195,9 +171,7 @@
      (?.let [it Bit]
        (?.= (,composition ,identity it)
             ,identity))
-     (!.= (by.when ,value
-            (function (_ _)
-              in.any))
+     (!.= (by.if ,value in.any)
           ,value))]
 
   [[annihilation_of_or .or .true by_true]
@@ -214,40 +188,40 @@
                      (induction.bit (function (_ that_=_false)
                                       (let [that_=_false (by.and (by.= that_=_false) (by.= @false))]
                                         (!.= (all by.and
-                                                  (in.when this_=_false ..intact_when)
+                                                  (in.if this_=_false in.any in.any)
                                                   (by.= ..identity_of_or)
                                                   that_=_false)
                                              (all by.and
-                                                  (in.when that_=_false ..intact_when)
+                                                  (in.if this_=_false in.any in.any)
                                                   (by.= ..identity_of_or)
                                                   this_=_false))))
                                     (function (_ that_=_true)
                                       (let [that_=_true (by.and (by.= that_=_true) (by.= @true))]
                                         (!.= (all by.and
-                                                  (in.when this_=_false ..intact_when)
+                                                  (in.if this_=_false in.any in.any)
                                                   (by.= ..identity_of_or)
                                                   that_=_true)
                                              (all by.and
-                                                  (in.when that_=_true ..intact_when)
+                                                  (in.if that_=_true in.any in.any)
                                                   (by.= ..annihilation_of_or))))))))
                  (function (_ this_=_true)
                    (let [this_=_true (by.and (by.= this_=_true) (by.= @true))]
                      (induction.bit (function (_ that_=_false)
                                       (let [that_=_false (by.and (by.= that_=_false) (by.= @false))]
                                         (!.= (all by.and
-                                                  (in.when this_=_true ..intact_when)
+                                                  (in.if this_=_true in.any in.any)
                                                   (by.= ..annihilation_of_or))
                                              (all by.and
-                                                  (in.when that_=_false ..intact_when)
+                                                  (in.if that_=_false in.any in.any)
                                                   (by.= ..identity_of_or)
                                                   this_=_true))))
                                     (function (_ that_=_true)
                                       (let [that_=_true (by.and (by.= that_=_true) (by.= @true))]
                                         (!.= (all by.and
-                                                  (in.when this_=_true ..intact_when)
+                                                  (in.if this_=_true in.any in.any)
                                                   (by.= ..annihilation_of_or))
                                              (all by.and
-                                                  (in.when that_=_true ..intact_when)
+                                                  (in.if that_=_true in.any in.any)
                                                   (by.= ..annihilation_of_or))))))))))
 
 (_.the .public commutativity_of_and
@@ -260,18 +234,18 @@
                      (induction.bit (function (_ =that)
                                       (let [=that (by.and (by.= =that) (by.= @false))]
                                         (!.= (all by.and
-                                                  (in.when =this ..intact_when)
+                                                  (in.if =this in.any in.any)
                                                   (by.= ..annihilation_of_and))
                                              (all by.and
-                                                  (in.when =that ..intact_when)
+                                                  (in.if =that in.any in.any)
                                                   (by.= ..annihilation_of_and)))))
                                     (function (_ =that)
                                       (let [=that (by.and (by.= =that) (by.= @true))]
                                         (!.= (all by.and
-                                                  (in.when =this ..intact_when)
+                                                  (in.if =this in.any in.any)
                                                   (by.= ..annihilation_of_and))
                                              (all by.and
-                                                  (in.when =that ..intact_when)
+                                                  (in.if =that in.any in.any)
                                                   (by.= ..identity_of_and)
                                                   =this)))))))
                  (function (_ =this)
@@ -279,20 +253,20 @@
                      (induction.bit (function (_ =that)
                                       (let [=that (by.and (by.= =that) (by.= @false))]
                                         (!.= (all by.and
-                                                  (in.when =this ..intact_when)
+                                                  (in.if =this in.any in.any)
                                                   (by.= ..identity_of_and)
                                                   =that)
                                              (all by.and
-                                                  (in.when =that ..intact_when)
+                                                  (in.if =that in.any in.any)
                                                   (by.= ..annihilation_of_and)))))
                                     (function (_ =that)
                                       (let [=that (by.and (by.= =that) (by.= @true))]
                                         (!.= (all by.and
-                                                  (in.when =this ..intact_when)
+                                                  (in.if =this in.any in.any)
                                                   (by.= ..identity_of_and)
                                                   =that)
                                              (all by.and
-                                                  (in.when =that ..intact_when)
+                                                  (in.if =that in.any in.any)
                                                   (by.= ..identity_of_and)
                                                   =this)))))))))
 
@@ -305,14 +279,14 @@
   (induction.bit (function (_ =_false)
                    (let [=_false (by.and (by.= =_false) (by.= @false))]
                      (!.= (all by.and
-                               (in.when =_false ..intact_when)
+                               (in.if =_false in.any in.any)
                                (by.= identity_of_or)
                                (by.application in.any =_false))
                           by.definition)))
                  (function (_ =_true)
                    (let [=_true (by.and (by.= =_true) (by.= @true))]
                      (!.= (all by.and
-                               (in.when =_true ..intact_when)
+                               (in.if =_true in.any in.any)
                                (by.= annihilation_of_or))
                           in.any)))))
 
@@ -324,13 +298,13 @@
   (induction.bit (function (_ =it)
                    (let [=it (by.and (by.= =it) (by.= @false))]
                      (!.= (all by.and
-                               (in.when =it ..intact_when)
+                               (in.if =it in.any in.any)
                                (by.= annihilation_of_and))
                           in.any)))
                  (function (_ =it)
                    (let [=it (by.and (by.= =it) (by.= @true))]
                      (!.= (all by.and
-                               (in.when =it ..intact_when)
+                               (in.if =it in.any in.any)
                                (by.= identity_of_and)
                                (by.application in.any =it)
                                (by.= ..false))
@@ -348,41 +322,41 @@
                      (induction.bit (function (_ $1_=_false)
                                       (let [$1_=_false (by.and (by.= $1_=_false) (by.= @false))]
                                         (!.= (all by.and
-                                                  (in.when $0_=_false ..intact_when)
+                                                  (in.if $0_=_false in.any in.any)
                                                   (by.= identity_of_or)
-                                                  (in.when $1_=_false ..intact_when)
+                                                  (in.if $1_=_false in.any in.any)
                                                   (by.= identity_of_or))
                                              (all by.and
-                                                  (in.when (all by.and
-                                                                (in.when $0_=_false ..intact_when)
-                                                                (by.= identity_of_or)
-                                                                $1_=_false)
-                                                    ..intact_when)
+                                                  (in.if (all by.and
+                                                              (in.if $0_=_false in.any in.any)
+                                                              (by.= identity_of_or)
+                                                              $1_=_false)
+                                                         in.any in.any)
                                                   (by.= identity_of_or)))))
                                     (function (_ $1_=_true)
                                       (let [$1_=_true (by.and (by.= $1_=_true) (by.= @true))]
                                         (!.= (all by.and
-                                                  (in.when $0_=_false ..intact_when)
+                                                  (in.if $0_=_false in.any in.any)
                                                   (by.= identity_of_or)
-                                                  (in.when $1_=_true ..intact_when)
+                                                  (in.if $1_=_true in.any in.any)
                                                   (by.= annihilation_of_or))
                                              (all by.and
-                                                  (in.when (all by.and
-                                                                (in.when $0_=_false ..intact_when)
-                                                                (by.= identity_of_or)
-                                                                $1_=_true)
-                                                    ..intact_when)
+                                                  (in.if (all by.and
+                                                              (in.if $0_=_false in.any in.any)
+                                                              (by.= identity_of_or)
+                                                              $1_=_true)
+                                                         in.any in.any)
                                                   (by.= annihilation_of_or))))))))
                  (function (_ $0_=_true)
                    (let [$0_=_true (by.and (by.= $0_=_true) (by.= @true))]
                      (!.= (all by.and
-                               (in.when $0_=_true ..intact_when)
+                               (in.if $0_=_true in.any in.any)
                                (by.= annihilation_of_or))
                           (all by.and
-                               (in.when (all by.and
-                                             (in.when $0_=_true ..intact_when)
-                                             (by.= annihilation_of_or))
-                                 ..intact_when)
+                               (in.if (all by.and
+                                           (in.if $0_=_true in.any in.any)
+                                           (by.= annihilation_of_or))
+                                      in.any in.any)
                                (by.= annihilation_of_or)))))))
 
 (_.the .public associativity_of_and
@@ -394,43 +368,43 @@
   (induction.bit (function (_ =0)
                    (let [=0 (by.and (by.= =0) (by.= @false))]
                      (!.= (all by.and
-                               (in.when =0 ..intact_when)
+                               (in.if =0 in.any in.any)
                                (by.= annihilation_of_and))
                           (all by.and
-                               (in.when (all by.and
-                                             (in.when =0 ..intact_when)
-                                             (by.= annihilation_of_and))
-                                 ..intact_when)
+                               (in.if (all by.and
+                                           (in.if =0 in.any in.any)
+                                           (by.= annihilation_of_and))
+                                      in.any in.any)
                                (by.= annihilation_of_and)))))
                  (function (_ =0)
                    (let [=0 (by.and (by.= =0) (by.= @true))]
                      (induction.bit (function (_ =1)
                                       (let [=1 (by.and (by.= =1) (by.= @false))]
                                         (!.= (all by.and
-                                                  (in.when =0 ..intact_when)
+                                                  (in.if =0 in.any in.any)
                                                   (by.= identity_of_and)
-                                                  (in.when =1 ..intact_when)
+                                                  (in.if =1 in.any in.any)
                                                   (by.= annihilation_of_and))
                                              (all by.and
-                                                  (in.when (all by.and
-                                                                (in.when =0 ..intact_when)
-                                                                (by.= identity_of_and)
-                                                                =1)
-                                                    ..intact_when)
+                                                  (in.if (all by.and
+                                                              (in.if =0 in.any in.any)
+                                                              (by.= identity_of_and)
+                                                              =1)
+                                                         in.any in.any)
                                                   (by.= annihilation_of_and)))))
                                     (function (_ =1)
                                       (let [=1 (by.and (by.= =1) (by.= @true))]
                                         (!.= (all by.and
-                                                  (in.when =0 ..intact_when)
+                                                  (in.if =0 in.any in.any)
                                                   (by.= identity_of_and)
-                                                  (in.when =1 ..intact_when)
+                                                  (in.if =1 in.any in.any)
                                                   (by.= identity_of_and))
                                              (all by.and
-                                                  (in.when (all by.and
-                                                                (in.when =0 ..intact_when)
-                                                                (by.= identity_of_and)
-                                                                =1)
-                                                    ..intact_when)
+                                                  (in.if (all by.and
+                                                              (in.if =0 in.any in.any)
+                                                              (by.= identity_of_and)
+                                                              =1)
+                                                         in.any in.any)
                                                   (by.= identity_of_and))))))))))
 
 ... https://en.wikipedia.org/wiki/Distributive_property
@@ -443,21 +417,17 @@
   (induction.bit (function (_ =_false)
                    (let [=_false (by.and (by.= =_false) (by.= @false))
                          $or_false (all by.and
-                                        (in.when =_false ..intact_when)
+                                        (in.if =_false in.any in.any)
                                         (by.= identity_of_or))]
-                     (!.= (in.when $or_false
-                            [(function.constant $or_false)
-                             (list ..intact_branch)])
+                     (!.= (in.if $or_false $or_false in.any)
                           $or_false)))
                  (function (_ =_true)
                    (let [=_true (by.and (by.= =_true) (by.= @true))
                          $or_true (all by.and
-                                       (in.when =_true ..intact_when)
+                                       (in.if =_true in.any in.any)
                                        (by.= annihilation_of_or))]
                      (!.= (all by.and
-                               (in.when $or_true
-                                 [(function.constant $or_true)
-                                  (list ..intact_branch)])
+                               (in.if $or_true $or_true in.any)
                                (by.= identity_of_and))
                           $or_true))
                    )))
@@ -471,22 +441,18 @@
   (induction.bit (function (_ =0)
                    (let [=0 (by.and (by.= =0) (by.= @false))
                          annihilation (all by.and
-                                           (in.when =0 ..intact_when)
+                                           (in.if =0 in.any in.any)
                                            (by.= annihilation_of_and))]
                      (!.= (all by.and
-                               (in.when annihilation
-                                 [..intact_branch
-                                  (list (function.constant annihilation))])
+                               (in.if annihilation in.any annihilation)
                                (by.= identity_of_or))
                           annihilation)))
                  (function (_ =0)
                    (let [=0 (by.and (by.= =0) (by.= @true))
                          identity (all by.and
-                                       (in.when =0 ..intact_when)
+                                       (in.if =0 in.any in.any)
                                        (by.= identity_of_and))]
-                     (!.= (in.when identity
-                            [..intact_branch
-                             (list (function.constant identity))])
+                     (!.= (in.if identity in.any identity)
                           identity))
                    )))
 
@@ -499,27 +465,27 @@
   (induction.bit (function (_ =this)
                    (let [=this (by.and (by.= =this) (by.= @false))]
                      (!.= (all by.and
-                               (in.when (all by.and
-                                             (by.application in.any =this)
-                                             (by.= ..true))
-                                 ..intact_when)
+                               (in.if (all by.and
+                                           (by.application in.any =this)
+                                           (by.= ..true))
+                                      in.any in.any)
                                (by.= identity_of_and))
                           (by.application in.any
                                           (all by.and
-                                               (in.when =this ..intact_when)
+                                               (in.if =this in.any in.any)
                                                (by.= identity_of_or))))))
                  (function (_ =this)
                    (let [=this (by.and (by.= =this) (by.= @true))]
                      (!.= (all by.and
-                               (in.when (all by.and
-                                             (by.application in.any =this)
-                                             (by.= ..false))
-                                 ..intact_when)
+                               (in.if (all by.and
+                                           (by.application in.any =this)
+                                           (by.= ..false))
+                                      in.any in.any)
                                (by.= annihilation_of_and))
                           (all by.and
                                (by.application in.any
                                                (all by.and
-                                                    (in.when =this ..intact_when)
+                                                    (in.if =this in.any in.any)
                                                     (by.= annihilation_of_or)))
                                (by.= ..false)))))))
 
@@ -531,28 +497,28 @@
   (induction.bit (function (_ =this)
                    (let [=this (by.and (by.= =this) (by.= @false))]
                      (!.= (all by.and
-                               (in.when (all by.and
-                                             (by.application in.any =this)
-                                             (by.= ..true))
-                                 ..intact_when)
+                               (in.if (all by.and
+                                           (by.application in.any =this)
+                                           (by.= ..true))
+                                      in.any in.any)
                                (by.= annihilation_of_or))
                           (all by.and
                                (by.application in.any
                                                (all by.and
-                                                    (in.when =this ..intact_when)
+                                                    (in.if =this in.any in.any)
                                                     (by.= annihilation_of_and)))
                                (by.= ..true)))))
                  (function (_ =this)
                    (let [=this (by.and (by.= =this) (by.= @true))]
                      (!.= (all by.and
-                               (in.when (all by.and
-                                             (by.application in.any =this)
-                                             (by.= ..false))
-                                 ..intact_when)
+                               (in.if (all by.and
+                                           (by.application in.any =this)
+                                           (by.= ..false))
+                                      in.any in.any)
                                (by.= identity_of_or))
                           (by.application in.any
                                           (all by.and
-                                               (in.when =this ..intact_when)
+                                               (in.if =this in.any in.any)
                                                (by.= identity_of_and))))))))
 
 (_.the .public absorption_of_or
@@ -563,15 +529,15 @@
   (induction.bit (function (_ =this)
                    (let [=this (by.and (by.= =this) (by.= @false))]
                      (!.= (all by.and
-                               (in.when =this ..intact_when)
+                               (in.if =this in.any in.any)
                                (by.= identity_of_or)
-                               (in.when =this ..intact_when)
+                               (in.if =this in.any in.any)
                                (by.= annihilation_of_and))
                           =this)))
                  (function (_ =this)
                    (let [=this (by.and (by.= =this) (by.= @true))]
                      (!.= (all by.and
-                               (in.when =this ..intact_when)
+                               (in.if =this in.any in.any)
                                (by.= annihilation_of_or))
                           =this)))))
 
@@ -583,15 +549,15 @@
   (induction.bit (function (_ =this)
                    (let [=this (by.and (by.= =this) (by.= @false))]
                      (!.= (all by.and
-                               (in.when =this ..intact_when)
+                               (in.if =this in.any in.any)
                                (by.= annihilation_of_and))
                           =this)))
                  (function (_ =this)
                    (let [=this (by.and (by.= =this) (by.= @true))]
                      (!.= (all by.and
-                               (in.when =this ..intact_when)
+                               (in.if =this in.any in.any)
                                (by.= identity_of_and)
-                               (in.when =this ..intact_when)
+                               (in.if =this in.any in.any)
                                (by.= annihilation_of_or))
                           =this)))))
 
@@ -609,24 +575,24 @@
   (induction.bit (function (_ =this)
                    (let [=this (by.and (by.= =this) (by.= @false))]
                      (!.= (all by.and
-                               (in.when (all by.and
-                                             (by.application in.any =this)
-                                             (by.= ..true))
-                                 ..intact_when)
+                               (in.if (all by.and
+                                           (by.application in.any =this)
+                                           (by.= ..true))
+                                      in.any in.any)
                                (by.= if_true))
                           (all by.and
-                               (in.when =this ..intact_when)
+                               (in.if =this in.any in.any)
                                (by.= if_false)))))
                  (function (_ =this)
                    (let [=this (by.and (by.= =this) (by.= @true))]
                      (!.= (all by.and
-                               (in.when (all by.and
-                                             (by.application in.any =this)
-                                             (by.= ..false))
-                                 ..intact_when)
+                               (in.if (all by.and
+                                           (by.application in.any =this)
+                                           (by.= ..false))
+                                      in.any in.any)
                                (by.= if_false))
                           (all by.and
-                               (in.when =this ..intact_when)
+                               (in.if =this in.any in.any)
                                (by.= if_true)))))))
 
 ... https://en.wikipedia.org/wiki/Exclusive_or#Properties
@@ -636,7 +602,7 @@
          it))
   (!.= (all by.and
             (of/1 (of/1 by.definition by.definition) in.any)
-            (by.when in.any ..intact_branch))
+            (by.if in.any in.any))
        in.any))
 
 (_.the .public negation_by_xor
@@ -645,7 +611,7 @@
          (.not it)))
   (!.= (all by.and
             (of/1 (of/1 by.definition by_true) in.any)
-            (by.when in.any ..intact_branch))
+            (by.if in.any in.any))
        in.any))
 
 (_.the .public non_idempotence_of_xor
@@ -655,13 +621,13 @@
   (induction.bit (function (_ =it)
                    (!.= (all by.and
                              (of/1 (of/1 by.definition (by.= =it)) (by.= =it))
-                             (by.when in.any ..intact_branch))
+                             (by.if in.any in.any))
                         by.definition))
                  (function (_ =it')
                    (let [=it (by.and (by.= =it') (by.= @true))]
                      (!.= (all by.and
                                (of/1 (of/1 by.definition (by.= =it')) =it)
-                               (by.when in.any ..intact_branch)
+                               (by.if in.any in.any)
                                (by.= ..false))
                           in.any)))))
 
@@ -675,7 +641,7 @@
                      (!.= (all by.and
                                (of/1 (of/1 by.definition (by.= =it'))
                                      (by.application in.any =it))
-                               (by.when in.any ..intact_branch)
+                               (by.if in.any in.any)
                                (by.= ..true))
                           in.any)))
                  (function (_ =it')
@@ -683,7 +649,7 @@
                      (!.= (all by.and
                                (of/1 (of/1 by.definition (by.= =it'))
                                      (by.application in.any =it))
-                               (by.when in.any ..intact_branch)
+                               (by.if in.any in.any)
                                (by.= double_negation))
                           in.any)))))
 
@@ -703,10 +669,10 @@
                                       (let [=that (by.and (by.= =that') (by.= @true))]
                                         (!.= (all by.and
                                                   (of/1 (of/1 by.definition (by.= =this')) =that)
-                                                  (by.when in.any ..intact_branch))
+                                                  (by.if in.any in.any))
                                              (all by.and
                                                   (of/1 (of/1 by.definition (by.= =that')) =this)
-                                                  (by.when in.any ..intact_branch)
+                                                  (by.if in.any in.any)
                                                   (by.= ..true))))))))
                  (function (_ =this')
                    (let [=this (by.and (by.= =this') (by.= @true))]
@@ -714,11 +680,11 @@
                                       (let [=that (by.and (by.= =that') (by.= @false))]
                                         (!.= (all by.and
                                                   (of/1 (of/1 by.definition (by.= =this')) =that)
-                                                  (by.when in.any ..intact_branch)
+                                                  (by.if in.any in.any)
                                                   (by.= ..true))
                                              (all by.and
                                                   (of/1 (of/1 by.definition (by.= =that')) =this)
-                                                  (by.when in.any ..intact_branch)))))
+                                                  (by.if in.any in.any)))))
                                     (function (_ =that)
                                       (let [=that (by.and (by.= =that) (by.= @true))]
                                         (!.= (by.application (by.application in.any =this) =that)
@@ -810,7 +776,7 @@
                    (let [=0 (by.and (by.= =0) (by.= @false))
 
                          annihilation_of_and (all by.and
-                                                  (in.when =0 ..intact_when)
+                                                  (in.if =0 in.any in.any)
                                                   (by.= ..annihilation_of_and))]
                      (!.= (all by.and
                                (by.application (by.application in.any annihilation_of_and)
@@ -821,7 +787,7 @@
                    (let [=0 (by.and (by.= =0) (by.= @true))
 
                          identity_of_and (all by.and
-                                              (in.when =0 ..intact_when)
+                                              (in.if =0 in.any in.any)
                                               (by.= ..identity_of_and))]
                      (!.= (by.application (by.application in.any identity_of_and)
                                           identity_of_and)
@@ -839,7 +805,7 @@
                                  by.reification)
                             in.any)
             by.reification
-            (by.when in.any intact_branch))
+            (by.if in.any in.any))
        in.any))
 
 (_.the .public identity_of_if
@@ -852,7 +818,7 @@
                                  by.reification)
                             in.any)
             by.reification
-            (by.when in.any intact_branch))
+            (by.if in.any in.any))
        in.any))
 
 ... https://en.wikipedia.org/wiki/Reflexive_relation
@@ -874,7 +840,7 @@
                                                     by.reification)
                                                =it)
                                by.reification
-                               (by.when by_true intact_branch))
+                               (by.if by_true in.any))
                           in.any)))))
 
 ... https://en.wikipedia.org/wiki/Connected_relation
@@ -1193,9 +1159,7 @@
                (function (_ it_=_0b|1b)
                  (!.= (all by.and
                            (by.of by.definition (list (by.= it_=_0b|1b) (|not| (by.= it_=_0b|1b))))
-                           (by.when in.any
-                             (function (_ _)
-                               by_then)))
+                           (by.if in.any by_then))
                       by.definition)))]
     (induction.bit (case (|not| in.any))
                    (case in.any))))
@@ -1251,9 +1215,7 @@
                        (let [deduction (all by.and
                                             (!.=' (all by.and
                                                        (by.of by.definition (list (by.= reference_=_0b) in.any))
-                                                       (by.when in.any
-                                                         (function (_ _)
-                                                           in.any)))
+                                                       (by.if in.any in.any))
                                                   in.any)
                                             (inference.by 'not)
                                             (!.=' (by.= ..double_negation)
@@ -1269,9 +1231,7 @@
                      (function (_ reference_=_1b)
                        (let [deduction (!.=' (all by.and
                                                   (by.of by.definition (list (by.= reference_=_1b) in.any))
-                                                  (by.when in.any
-                                                    (function (_ _)
-                                                      in.any)))
+                                                  (by.if in.any in.any))
                                              in.any)]
                          (<| ((!.let [reference_=_this deduction]))
                              (function (_ this_=_true))
@@ -1311,9 +1271,7 @@
                   (function (_ @constant if_constant)
                     (function (_ =_test)
                       (let [=_test (by.and (by.= =_test) (by.= @constant))
-                            if' (by.and (in.when =_test
-                                          [..intact_branch
-                                           (list ..intact_branch)])
+                            if' (by.and (in.if =_test in.any in.any)
                                         (by.= if_constant))]
                         (!.= if'
                              (by.application in.any if'))))))]
@@ -1333,9 +1291,7 @@
                   (function (_ @constant if_constant)
                     (function (_ =_test)
                       (let [=_test (by.and (by.= =_test) (by.= @constant))
-                            if' (by.and (in.when =_test
-                                          [..intact_branch
-                                           (list ..intact_branch)])
+                            if' (by.and (in.if =_test in.any in.any)
                                         (by.= if_constant))]
                         (!.= if'
                              in.any)))))]
@@ -1482,9 +1438,8 @@
                                  (|this_<_that|
                                   (!.= (all by.and
                                             (by.of by.definition (list (by.= that_=_true) (by.= this_=_false)))
-                                            (by.when (by.= (?.in_reverse @true))
-                                              (function (_ _)
-                                                (by.= ..true))))
+                                            (by.if (by.= (?.in_reverse @true))
+                                                   (by.= ..true)))
                                        in.any)))))
                             (function (_ this_=_true_&&_that_=_false)
                               ((!.let_pair {try.:Success this_=_true_&&_that_=_false})
@@ -1492,9 +1447,8 @@
                                  (|that_<_this|
                                   (!.= (all by.and
                                             (by.of by.definition (list (by.= this_=_true) (by.= that_=_false)))
-                                            (by.when (by.= (?.in_reverse @true))
-                                              (function (_ _)
-                                                (by.= ..true))))
+                                            (by.if (by.= (?.in_reverse @true))
+                                                   (by.= ..true)))
                                        in.any))))))))))
 
 (_.the .public disjunction

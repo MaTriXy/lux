@@ -3,7 +3,7 @@
 
 (.using
  [library
-  [lux (.except and when local by)
+  [lux (.except and if when local by)
    [abstract
     ["[0]" monad]]
    [error
@@ -31,7 +31,8 @@
     ["[0]" expansion]]
    [compiler
     ["@[0]" type]
-    ["[0]" extension]
+    ["[0]" extension (.only)
+     ["[1]/[0]" lux]]
     ["[0]" reference (.only)
      ["[0]" variable]]
     [language
@@ -174,8 +175,28 @@
     else
     (exception.except in.not_valid [(name ..definition) it])))
 
-(the .public (when by_reality
-               by_case
+(the .public (if by_reality by_case
+                 environment it)
+  (-> Rule Rule
+      Rule)
+  (.when it
+    {@type.:Extension @ [.prelude (static.text (extension.analysis extension/lux.if))]
+                      (list this then else)}
+    (monad.let [! try.monad]
+      [this (by_reality environment this)]
+      (.when this
+        {@type.:Simple @ {@type.:Simple_Bit this}}
+        (by_case environment (.if this
+                                  then
+                                  else))
+
+        else
+        (exception.except in.not_valid [(name ..if) it])))
+
+    else
+    (exception.except in.not_valid [(name ..if) it])))
+
+(the .public (when by_reality by_case
                environment it)
   (-> Rule (Case ?.Proposition)
       Rule)
@@ -211,30 +232,30 @@
                @type.:then body_for_then]
               (list [@type.:when bit_if_else
                      @type.:then body_for_else])]]
-            (if (bit.= expectation_for_then reality)
-                ((by_case (in.lemma bit_if_then
-                                    bit_if_reality))
-                 environment
-                 body_for_then)
-                ((by_case (in.lemma bit_if_else
-                                    bit_if_reality))
-                 environment
-                 body_for_else))
+            (.if (bit.= expectation_for_then reality)
+                 ((by_case (in.lemma bit_if_then
+                                     bit_if_reality))
+                  environment
+                  body_for_then)
+                 ((by_case (in.lemma bit_if_else
+                                     bit_if_reality))
+                  environment
+                  body_for_else))
 
             [variant_if_reality
              [[@type.:when variant_if_then
                @type.:then body_for_then]
               (list [@type.:when variant_if_else
                      @type.:then body_for_else])]]
-            (if (bit.= right?_of_then right?)
-                ((by_case (in.lemma (local binding_of_then)
-                                    reality))
-                 environment
-                 body_for_then)
-                ((by_case (in.lemma (local binding_of_else)
-                                    reality))
-                 environment
-                 body_for_else))
+            (.if (bit.= right?_of_then right?)
+                 ((by_case (in.lemma (local binding_of_then)
+                                     reality))
+                  environment
+                  body_for_then)
+                 ((by_case (in.lemma (local binding_of_else)
+                                     reality))
+                  environment
+                  body_for_else))
 
             (^.or [variant_if_reality
                    [[@type.:when variant_maybe_some
@@ -246,14 +267,14 @@
                      @type.:then body_for_none]
                     (list [@type.:when variant_maybe_some
                            @type.:then body_for_some])]])
-            (if (bit.= 1b right?)
-                ((by_case (in.lemma (local binding_of_some)
-                                    reality))
-                 environment
-                 body_for_some)
-                ((by_case (in.lemma pattern_of_unit reality))
-                 environment
-                 body_for_none))
+            (.if (bit.= 1b right?)
+                 ((by_case (in.lemma (local binding_of_some)
+                                     reality))
+                  environment
+                  body_for_some)
+                 ((by_case (in.lemma pattern_of_unit reality))
+                  environment
+                  body_for_none))
             
             [input [head (list)]]
             ((by_case (in.lemma (its @type.:when head)
@@ -360,45 +381,45 @@
                   it it])
     (.when [expected actual]
       [(?.example _ expected') (?.example _ actual')]
-      (if (natural.= expected' actual')
-          {try.:Success it}
-          (exception.except ..contradiction [original_expected original_actual]))
+      (.if (natural.= expected' actual')
+           {try.:Success it}
+           (exception.except ..contradiction [original_expected original_actual]))
 
       [(?.variable _ @) _]
       (.when (dictionary.value @ it)
         {try.:Success expected}
-        (if (.with analysis.equality
-              (= expected actual))
-            {try.:Success it}
-            (exception.except ..contradiction [original_expected original_actual]))
+        (.if (.with analysis.equality
+               (= expected actual))
+             {try.:Success it}
+             (exception.except ..contradiction [original_expected original_actual]))
 
         not_known!
         {try.:Success (dictionary.has @ actual it)})
       
       [{@type.:Simple _ expected'} {@type.:Simple _ actual'}]
-      (if (.with simple.equality
-            (= expected' actual'))
-          {try.:Success it}
-          (exception.except ..cannot_extract_context [original_expected original_actual]))
+      (.if (.with simple.equality
+             (= expected' actual'))
+           {try.:Success it}
+           (exception.except ..cannot_extract_context [original_expected original_actual]))
       
       [{@type.:Complex _ {@type.:Complex_Variant [expected_lefts expected_right? expected_choice]}}
        {@type.:Complex _ {@type.:Complex_Variant [actual_lefts actual_right? actual_choice]}}]
-      (if (.and (natural.= expected_lefts actual_lefts)
-                (bit.= expected_right? actual_right?))
-          (context expected_choice actual_choice it)
-          (exception.except ..cannot_extract_context [original_expected original_actual]))
+      (.if (.and (natural.= expected_lefts actual_lefts)
+                 (bit.= expected_right? actual_right?))
+           (context expected_choice actual_choice it)
+           (exception.except ..cannot_extract_context [original_expected original_actual]))
 
       [{@type.:Complex _ {@type.:Complex_Tuple expected'}}
        {@type.:Complex _ {@type.:Complex_Tuple actual'}}]
-      (if (natural.= (list.size expected') (list.size actual'))
-          (list.mix' try.monad (function.uncurried context) it (list.zipped_2 expected' actual'))
-          (exception.except ..cannot_extract_context [original_expected original_actual]))
+      (.if (natural.= (list.size expected') (list.size actual'))
+           (list.mix' try.monad (function.uncurried context) it (list.zipped_2 expected' actual'))
+           (exception.except ..cannot_extract_context [original_expected original_actual]))
       
       [{@type.:Reference _ expected'} {@type.:Reference _ actual'}]
-      (if (.with reference.equality
-            (= expected' actual'))
-          {try.:Success it}
-          (exception.except ..cannot_extract_context [original_expected original_actual]))
+      (.if (.with reference.equality
+             (= expected' actual'))
+           {try.:Success it}
+           (exception.except ..cannot_extract_context [original_expected original_actual]))
       
       [{@type.:When _ expected_input
                     [[expected_output_head_pattern expected_output_head]
@@ -406,24 +427,24 @@
        {@type.:When _ actual_input
                     [[actual_output_head_pattern actual_output_head]
                      actual_output_tail]}]
-      (if (.and (natural.= (list.size expected_output_tail)
-                           (list.size actual_output_tail))
-                (pattern.= expected_output_head_pattern
-                           actual_output_head_pattern))
-          (monad.let [! try.monad]
-            [it (context expected_input actual_input it)
-             it (context expected_output_head actual_output_head it)]
-            (list.mix' !
-                       (.function (_ [[expected_output_tail_pattern expected_output_tail]
-                                      [actual_output_tail_pattern actual_output_tail]]
-                                     it)
-                         (if (pattern.= expected_output_tail_pattern
-                                        actual_output_tail_pattern)
-                             (context expected_output_tail actual_output_tail it)
-                             (exception.except ..cannot_extract_context [original_expected original_actual])))
-                       it
-                       (list.zipped_2 expected_output_tail actual_output_tail)))
-          (exception.except ..cannot_extract_context [original_expected original_actual]))
+      (.if (.and (natural.= (list.size expected_output_tail)
+                            (list.size actual_output_tail))
+                 (pattern.= expected_output_head_pattern
+                            actual_output_head_pattern))
+           (monad.let [! try.monad]
+             [it (context expected_input actual_input it)
+              it (context expected_output_head actual_output_head it)]
+             (list.mix' !
+                        (.function (_ [[expected_output_tail_pattern expected_output_tail]
+                                       [actual_output_tail_pattern actual_output_tail]]
+                                      it)
+                          (.if (pattern.= expected_output_tail_pattern
+                                          actual_output_tail_pattern)
+                               (context expected_output_tail actual_output_tail it)
+                               (exception.except ..cannot_extract_context [original_expected original_actual])))
+                        it
+                        (list.zipped_2 expected_output_tail actual_output_tail)))
+           (exception.except ..cannot_extract_context [original_expected original_actual]))
       
       [{@type.:Abstraction _ expected_environment expected_body}
        {@type.:Abstraction _ actual_environment actual_body}]
@@ -440,15 +461,15 @@
       
       [{@type.:Extension _ expected_name expected_parameters}
        {@type.:Extension _ actual_name actual_parameters}]
-      (if (.and (name.= expected_name actual_name)
-                (natural.= (list.size expected_parameters)
-                           (list.size actual_parameters)))
-          (list.mix' try.monad
-                     (function (_ [expected_parameter actual_parameter])
-                       (context expected_parameter actual_parameter))
-                     it
-                     (list.zipped_2 expected_parameters actual_parameters))
-          (exception.except ..cannot_extract_context [original_expected original_actual]))
+      (.if (.and (name.= expected_name actual_name)
+                 (natural.= (list.size expected_parameters)
+                            (list.size actual_parameters)))
+           (list.mix' try.monad
+                      (function (_ [expected_parameter actual_parameter])
+                        (context expected_parameter actual_parameter))
+                      it
+                      (list.zipped_2 expected_parameters actual_parameters))
+           (exception.except ..cannot_extract_context [original_expected original_actual]))
 
       else
       (exception.except ..cannot_extract_context [original_expected original_actual]))))
@@ -549,20 +570,19 @@
     (substitution context fast)))
 
 (template.with [,name ,extension ,function]
-  [(expansion.let [,extension' (static.text (extension.synthesis (name.proper (name ,extension))))]
-     (the .public ,name
-       Rule
-       (function (_ environment it)
-         (.when it
-           {@type.:Extension @ [.prelude ,extension']
-                             (list (analysis.integer _ this)
-                                   (analysis.integer _ that))}
-           {try.:Success (analysis.integer @ (,function this that))}
+  [(the .public ,name
+     Rule
+     (function (_ environment it)
+       (.when it
+         {@type.:Extension @ [.prelude (static.text (extension.synthesis (name.proper (name ,extension))))]
+                           (list (analysis.integer _ this)
+                                 (analysis.integer _ that))}
+         {try.:Success (analysis.integer @ (,function this that))}
 
-           else
-           (exception.except in.not_valid [[(name.module (name .._))
-                                            (name.proper (name ,name))]
-                                           it])))))]
+         else
+         (exception.except in.not_valid [[(name.module (name .._))
+                                          (name.proper (name ,name))]
+                                         it]))))]
 
   [[+ .i64_+# integer.+]
    [- .i64_-# integer.-]

@@ -11,9 +11,12 @@
     ["[0]" exception (.only Exception)]]
    [meta
     ["[0]" provenance]
-    ["[0]" code]]
+    ["[0]" code]
+    ["[0]" static]]
    [compiler
     ["@[0]" type]
+    ["[0]" extension (.only)
+     ["[1]/[0]" lux]]
     [language
      [lux
       ["[0]" analysis]]]]]]
@@ -37,22 +40,17 @@
   (monad.let [! try.monad]
     [[slow fast] (?.identity identity)]
     (when slow
-      {@type.:When @ reality [[@type.:when {@type.:Simple_Pattern {@type.:Simple_Bit if_then}}
-                               @type.:then body_for_then]
-                              (list [@type.:when {@type.:Simple_Pattern {@type.:Simple_Bit if_else}}
-                                     @type.:then body_for_else])]}
-      (let [[body_for_then body_for_else] (.if if_then
-                                               [body_for_then body_for_else]
-                                               [body_for_else body_for_then])]
-        (monad.let !
-          [then (then {?.:Identity [?.:slow reality ?.:fast (analysis.bit provenance.dummy true)]}
-                      {?.:Identity [?.:slow body_for_then ?.:fast fast]}
-                      context
-                      proposition)]
-          (else {?.:Identity [?.:slow reality ?.:fast (analysis.bit provenance.dummy false)]}
-                {?.:Identity [?.:slow body_for_else ?.:fast fast]}
-                context
-                proposition)))
+      {@type.:Extension @ [.prelude (static.text (extension.analysis extension/lux.if))]
+                        (.list reality body_for_then body_for_else)}
+      (monad.let !
+        [then (then {?.:Identity [?.:slow reality ?.:fast (analysis.bit provenance.dummy true)]}
+                    {?.:Identity [?.:slow body_for_then ?.:fast fast]}
+                    context
+                    proposition)]
+        (else {?.:Identity [?.:slow reality ?.:fast (analysis.bit provenance.dummy false)]}
+              {?.:Identity [?.:slow body_for_else ?.:fast fast]}
+              context
+              proposition))
 
       else
       (exception.except ..not_valid [identity]))))

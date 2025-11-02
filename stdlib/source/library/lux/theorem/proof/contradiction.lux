@@ -19,11 +19,12 @@
       ["[0]" revolution]]]]
    [meta
     ["[0]" name]
-    ["[0]" code]]
-   [macro
-    ["[0]" expansion]]
+    ["[0]" code]
+    ["[0]" static]]
    [compiler
     ["@[0]" type]
+    ["[0]" extension (.only)
+     ["[1]/[0]" lux]]
     [language
      [lux
       ["[0]" analysis]]]]
@@ -83,23 +84,18 @@
       (in.Fact ?.Proposition [?.Proposition ?.Proposition]))
   (monad.let [! try.monad]
     [[slow fast] (?.identity it)]
-    (expansion.let [if_reality {@type.:Simple @ {@type.:Simple_Bit reality}}
-                    if_then {@type.:Simple_Pattern {@type.:Simple_Bit expectation_for_then}}
-                    if_else {@type.:Simple_Pattern {@type.:Simple_Bit expectation_for_else}}]
-      (when slow
-        {@type.:When @ reality [[@type.:when if_then
-                                 @type.:then body_for_then]
-                                (list [@type.:when if_else
-                                       @type.:then body_for_else])]}
-        (monad.let !
-          [else (else context {?.:Identity [?.:slow body_for_else
-                                            ?.:fast fast]})]
-          (if (contradiction? else)
-              (pure [{?.:Identity [?.:slow reality
-                                   ?.:fast (analysis.bit @ expectation_for_then)]}
-                     {?.:Identity [?.:slow body_for_then
-                                   ?.:fast fast]}])
-              (exception.except ..not_valid [(name ..then) else])))
+    (when slow
+      {@type.:Extension @ [.prelude (static.text (extension.analysis extension/lux.if))]
+                        (.list reality body_for_then body_for_else)}
+      (monad.let !
+        [else (else context {?.:Identity [?.:slow body_for_else
+                                          ?.:fast fast]})]
+        (if (contradiction? else)
+            (pure [{?.:Identity [?.:slow reality
+                                 ?.:fast (analysis.bit @ true)]}
+                   {?.:Identity [?.:slow body_for_then
+                                 ?.:fast fast]}])
+            (exception.except ..not_valid [(name ..then) else])))
 
-        else
-        (exception.except ..not_valid [(name ..then) it])))))
+      else
+      (exception.except ..not_valid [(name ..then) it]))))

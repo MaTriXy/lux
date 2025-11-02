@@ -521,10 +521,9 @@
 (.def# 'list
        (.is# (Function {:Reification Code List}
                        Code)
-             (.when# ('prelude "list#")
-                     'list#
-                     (.function# _ tokens
-                                 (code:form (.list_composite# (.list# 'list#) tokens)))))
+             (.let# 'list# ('prelude "list#")
+                    (.function# _ tokens
+                                (code:form (.list_composite# (.list# 'list#) tokens)))))
        ..private)
 
 (.def# Definition
@@ -833,11 +832,10 @@
                                                         (.function# _ value
                                                                     (.when# remaining
                                                                             0 value
-                                                                            _ (.when# (.i64_-# 1 remaining)
-                                                                                      address
-                                                                                      (next it address
-                                                                                            {:Top (.list_item# address it)
-                                                                                                  value})))))))
+                                                                            _ (.let# address (.i64_-# 1 remaining)
+                                                                                     (next it address
+                                                                                           {:Top (.list_item# address it)
+                                                                                                 value})))))))
                           it
                           (.list_size# it)
                           {:Empty})))
@@ -850,20 +848,19 @@
 
 (.def# 'function
        (.is# (Function Code (Function {:Reification Code Stack} (Function Code Code)))
-             (.when# ('prelude "function#")
-                     'extension
-                     (.function# 'function self
-                                 (.function# _ inputs
-                                             (.function# _ output
-                                                         (.when# inputs
-                                                                 {:Empty}
-                                                                 output
+             (.let# 'extension ('prelude "function#")
+                    (.function# 'function self
+                                (.function# _ inputs
+                                            (.function# _ output
+                                                        (.when# inputs
+                                                                {:Empty}
+                                                                output
 
-                                                                 {:Top head tail}
-                                                                 (code:form (list 'extension
-                                                                                  self
-                                                                                  head
-                                                                                  ('function (code:name ["" ""]) tail output)))))))))
+                                                                {:Top head tail}
+                                                                (code:form (list 'extension
+                                                                                 self
+                                                                                 head
+                                                                                 ('function (code:name ["" ""]) tail output)))))))))
        ..private)
 
 (.def# function'
@@ -883,12 +880,21 @@
                                  (failure ""))))
        ..private)
 
-(.def# 'let
+(.def# 'when
        (.is# (Function Code (Function Code (Function Code Code)))
              (function' (_ binding value body)
                         (code:form (list ('prelude "when#")
                                          value
                                          binding
+                                         body))))
+       .private)
+
+(.def# 'let
+       (.is# (Function Code (Function Code (Function Code Code)))
+             (function' (_ binding value body)
+                        (code:form (list ('prelude "let#")
+                                         binding
+                                         value
                                          body))))
        .private)
 
@@ -903,12 +909,11 @@
 
 (.def# code:is
        (.is# (Function Code (Function Code Code))
-             (.when# ('prelude "is#")
-                     'is#
-                     (function' (_ type value)
-                                (code:form (list 'is#
-                                                 type
-                                                 value)))))
+             (.let# 'is# ('prelude "is#")
+                    (function' (_ type value)
+                               (code:form (list 'is#
+                                                type
+                                                value)))))
        ..private)
 
 (.def# the'
@@ -1077,28 +1082,27 @@
                                                   (Function {:Parameter ..argument 1}
                                                             (Function {:Reification {:Parameter ..argument 0} List}
                                                                       {:Parameter ..argument 1})))}}
-      (.when# (.list_size# partial)
-              limit
-              ((.is# {:Quantification .universal {:Empty}
-                                      {:Quantification .universal {:Empty}
-                                                       (Function Natural
-                                                                 (Function (Function Natural
-                                                                                     (Function {:Parameter ..argument 0}
-                                                                                               ($ Change {:Parameter ..argument 1})))
-                                                                           (Function {:Parameter ..argument 1}
-                                                                                     (Function {:Reification {:Parameter ..argument 0} List}
-                                                                                               {:Parameter ..argument 1}))))}}
-                     (function' (list:mix' item mix complete partial)
-                                (.if# (.int_<# (.as# (Function Natural Integer) limit)
-                                               (.as# (Function Natural Integer) item))
-                                      (list:mix' (.i64_+# 1 item)
-                                                 mix
-                                                 (mix item
-                                                      (.list_item# item partial)
-                                                      complete)
-                                                 partial)
-                                      complete)))
-               0 mix complete partial)))
+      (.let# limit (.list_size# partial)
+             ((.is# {:Quantification .universal {:Empty}
+                                     {:Quantification .universal {:Empty}
+                                                      (Function Natural
+                                                                (Function (Function Natural
+                                                                                    (Function {:Parameter ..argument 0}
+                                                                                              ($ Change {:Parameter ..argument 1})))
+                                                                          (Function {:Parameter ..argument 1}
+                                                                                    (Function {:Reification {:Parameter ..argument 0} List}
+                                                                                              {:Parameter ..argument 1}))))}}
+                    (function' (list:mix' item mix complete partial)
+                               (.if# (.int_<# (.as# (Function Natural Integer) limit)
+                                              (.as# (Function Natural Integer) item))
+                                     (list:mix' (.i64_+# 1 item)
+                                                mix
+                                                (mix item
+                                                     (.list_item# item partial)
+                                                     complete)
+                                                partial)
+                                     complete)))
+              0 mix complete partial)))
 
 (the' .private (list:mix mix complete partial)
       ... (for_any (_ a b) (-> (-> b a a) a (List b) a))
@@ -1152,41 +1156,39 @@
 
 (the' .private list:of_array
       Macro
-      (.when# (code:variant (list ':Parameter
-                                  (code:bit ..argument)
-                                  (code:natural 0)))
-              'argument_0
-              (macro (_ tokens)
-                (.when# tokens
-                        (.list# 'it)
-                        (meta:pure (list ('as# (code:variant (list ':Quantification
-                                                                   (code:bit .universal)
-                                                                   ':Empty
-                                                                   ('Function ('Array 'argument_0)
-                                                                              ('List 'argument_0))))
-                                               'it)))
+      (.let# 'argument_0 (code:variant (list ':Parameter
+                                             (code:bit ..argument)
+                                             (code:natural 0)))
+             (macro (_ tokens)
+               (.when# tokens
+                       (.list# 'it)
+                       (meta:pure (list ('as# (code:variant (list ':Quantification
+                                                                  (code:bit .universal)
+                                                                  ':Empty
+                                                                  ('Function ('Array 'argument_0)
+                                                                             ('List 'argument_0))))
+                                              'it)))
 
-                        _
-                        (failure "")))))
+                       _
+                       (failure "")))))
 
 (the' .private list:as_array
       Macro
-      (.when# (code:variant (list ':Parameter
-                                  (code:bit ..argument)
-                                  (code:natural 0)))
-              'argument_0
-              (macro (_ tokens)
-                (.when# tokens
-                        (.list# 'it)
-                        (meta:pure (list ('as# (code:variant (list ':Quantification
-                                                                   (code:bit .universal)
-                                                                   ':Empty
-                                                                   ('Function ('List 'argument_0)
-                                                                              ('Array 'argument_0))))
-                                               'it)))
+      (.let# 'argument_0 (code:variant (list ':Parameter
+                                             (code:bit ..argument)
+                                             (code:natural 0)))
+             (macro (_ tokens)
+               (.when# tokens
+                       (.list# 'it)
+                       (meta:pure (list ('as# (code:variant (list ':Quantification
+                                                                  (code:bit .universal)
+                                                                  ':Empty
+                                                                  ('Function ('List 'argument_0)
+                                                                             ('Array 'argument_0))))
+                                              'it)))
 
-                        _
-                        (failure "")))))
+                       _
+                       (failure "")))))
 
 (the' .private (array:clone it)
       {:Quantification .universal {:Empty}
@@ -1222,72 +1224,67 @@
 (the' .private (list:in_reverse it)
       {:Quantification .universal {:Empty}
                        ($ Change ($ List {:Parameter ..argument 0}))}
-      (list:of_array (.when# (.list_size# it)
-                             size
-                             (.when# (.i64_-# 1 size)
-                                     last
-                                     (list:mix' (function' (_ address item output)
-                                                           (.array_has# (.i64_-# address last) item output))
-                                                (.array# size)
-                                                it)))))
+      (list:of_array (.let# size (.list_size# it)
+                            (.let# last (.i64_-# 1 size)
+                                   (list:mix' (function' (_ address item output)
+                                                         (.array_has# (.i64_-# address last) item output))
+                                              (.array# size)
+                                              it)))))
 
 (the' .private (list:first to_retain it)
       {:Quantification .universal {:Empty}
                        (Function Natural
                                  ($ Change ($ List {:Parameter ..argument 0})))}
-      (.when# (.list_size# it)
-              available
-              (.if# (.int_<# (.as# (Function Natural Integer) available)
-                             (.as# (Function Natural Integer) to_retain))
-                    ((.is# {:Quantification .universal {:Empty}
-                                            (Function {:Reification {:Parameter ..argument 0} List}
-                                                      (Function Natural
-                                                                (Function {:Reification {:Parameter ..argument 0} Array}
-                                                                          {:Reification {:Parameter ..argument 0} List})))}
-                           (function' (_ input)
-                                      (function' (list:first address output)
-                                                 (.if# (.int_<# (.as# (Function Natural Integer) to_retain)
-                                                                (.as# (Function Natural Integer) address))
-                                                       (list:first (.i64_+# 1 address)
-                                                                   (.array_has# address
-                                                                                (.list_item# address input)
-                                                                                output))
-                                                       (.as# {:Quantification .universal {:Empty}
-                                                                              (Function ($ Array {:Parameter ..argument 0})
-                                                                                        ($ List {:Parameter ..argument 0}))}
-                                                             output)))))
-                     it 0 (.array# to_retain))
-                    it)))
+      (.let# available (.list_size# it)
+             (.if# (.int_<# (.as# (Function Natural Integer) available)
+                            (.as# (Function Natural Integer) to_retain))
+                   ((.is# {:Quantification .universal {:Empty}
+                                           (Function {:Reification {:Parameter ..argument 0} List}
+                                                     (Function Natural
+                                                               (Function {:Reification {:Parameter ..argument 0} Array}
+                                                                         {:Reification {:Parameter ..argument 0} List})))}
+                          (function' (_ input)
+                                     (function' (list:first address output)
+                                                (.if# (.int_<# (.as# (Function Natural Integer) to_retain)
+                                                               (.as# (Function Natural Integer) address))
+                                                      (list:first (.i64_+# 1 address)
+                                                                  (.array_has# address
+                                                                               (.list_item# address input)
+                                                                               output))
+                                                      (.as# {:Quantification .universal {:Empty}
+                                                                             (Function ($ Array {:Parameter ..argument 0})
+                                                                                       ($ List {:Parameter ..argument 0}))}
+                                                            output)))))
+                    it 0 (.array# to_retain))
+                   it)))
 
 (the' .private (list:after to_remove it)
       {:Quantification .universal {:Empty}
                        (Function Natural
                                  ($ Change ($ List {:Parameter ..argument 0})))}
-      (.when# (.list_size# it)
-              available
-              (.if# (.int_<# (.as# (Function Natural Integer) available)
-                             (.as# (Function Natural Integer) to_remove))
-                    (.when# (.i64_-# to_remove available)
-                            to_retain
-                            ((.is# {:Quantification .universal {:Empty}
-                                                    (Function {:Reification {:Parameter ..argument 0} List}
-                                                              (Function Natural
-                                                                        (Function {:Reification {:Parameter ..argument 0} Array}
-                                                                                  {:Reification {:Parameter ..argument 0} List})))}
-                                   (function' (_ input)
-                                              (function' (list:after address output)
-                                                         (.if# (.int_<# (.as# (Function Natural Integer) to_retain)
-                                                                        (.as# (Function Natural Integer) address))
-                                                               (list:after (.i64_+# 1 address)
-                                                                           (.array_has# address
-                                                                                        (.list_item# (.i64_+# to_remove address) input)
-                                                                                        output))
-                                                               (.as# {:Quantification .universal {:Empty}
-                                                                                      (Function ($ Array {:Parameter ..argument 0})
-                                                                                                ($ List {:Parameter ..argument 0}))}
-                                                                     output)))))
-                             it 0 (.array# to_retain)))
-                    (.list#))))
+      (.let# available (.list_size# it)
+             (.if# (.int_<# (.as# (Function Natural Integer) available)
+                            (.as# (Function Natural Integer) to_remove))
+                   (.let# to_retain (.i64_-# to_remove available)
+                          ((.is# {:Quantification .universal {:Empty}
+                                                  (Function {:Reification {:Parameter ..argument 0} List}
+                                                            (Function Natural
+                                                                      (Function {:Reification {:Parameter ..argument 0} Array}
+                                                                                {:Reification {:Parameter ..argument 0} List})))}
+                                 (function' (_ input)
+                                            (function' (list:after address output)
+                                                       (.if# (.int_<# (.as# (Function Natural Integer) to_retain)
+                                                                      (.as# (Function Natural Integer) address))
+                                                             (list:after (.i64_+# 1 address)
+                                                                         (.array_has# address
+                                                                                      (.list_item# (.i64_+# to_remove address) input)
+                                                                                      output))
+                                                             (.as# {:Quantification .universal {:Empty}
+                                                                                    (Function ($ Array {:Parameter ..argument 0})
+                                                                                              ($ List {:Parameter ..argument 0}))}
+                                                                   output)))))
+                           it 0 (.array# to_retain)))
+                   (.list#))))
 
 (the' .private (list:split cut_off it)
       {:Quantification .universal {:Empty}
@@ -1368,9 +1365,8 @@
               (.when# type
                       ... Jackpot!
                       {:Parameter parameter id}
-                      (.when# (.i64_-# (.i64_-# depth id) 0)
-                              id'
-                              {:Parameter parameter (.i64_-# 1 id')})
+                      (.let# id' (.i64_-# (.i64_-# depth id) 0)
+                             {:Parameter parameter (.i64_-# 1 id')})
                       
                       ... Recur
                       {:Nominal name parameters}
@@ -1405,13 +1401,12 @@
 
 (the' .private (with_quantification depth body)
       (Function Natural ($ Change Code))
-      (.when# (code:local ..quantification_level)
-              'quantification_level
-              ('let 'quantification_level
-                    (code:form (list 'i64_+#
-                                     (code:natural depth)
-                                     'quantification_level))
-                    body)))
+      (.let# 'quantification_level (code:local ..quantification_level)
+             ('let 'quantification_level
+                   (code:form (list 'i64_+#
+                                    (code:natural depth)
+                                    'quantification_level))
+                   body)))
 
 (the' .private (initialized_quantification? lux)
       (Predicate Lux)
@@ -1446,28 +1441,27 @@
                 (.when# (list:as_stack self_name,args)
                         {:Top self_name args}
                         {:Right [lux
-                                 (.list# (.when# (.when# args
-                                                         {:Empty}
-                                                         body
+                                 (.list# (.let# raw (.when# args
+                                                            {:Empty}
+                                                            body
 
-                                                         {:Top head tail}
-                                                         (with_correct_quantification
-                                                           ('let self_name (quantified_abstraction 0)
-                                                                 (.when# (stack:mix (function' (_ parameter offset,body')
-                                                                                               (.when# offset,body'
-                                                                                                       [offset body']
-                                                                                                       [(.i64_+# 1 offset)
-                                                                                                        ('let parameter (quantified_argument offset)
-                                                                                                              (code:universal_quantification body'))]))
-                                                                                    [0 (with_quantification (stack:size args)
-                                                                                         body)]
-                                                                                    args)
-                                                                         [_ raw]
-                                                                         raw))))
-                                                 raw
-                                                 (.if# (initialized_quantification? lux)
-                                                       raw
-                                                       (..quantified raw))))]}
+                                                            {:Top head tail}
+                                                            (with_correct_quantification
+                                                              ('let self_name (quantified_abstraction 0)
+                                                                    (.when# (stack:mix (function' (_ parameter offset,body')
+                                                                                                  (.when# offset,body'
+                                                                                                          [offset body']
+                                                                                                          [(.i64_+# 1 offset)
+                                                                                                           ('let parameter (quantified_argument offset)
+                                                                                                                 (code:universal_quantification body'))]))
+                                                                                       [0 (with_quantification (stack:size args)
+                                                                                            body)]
+                                                                                       args)
+                                                                            [_ raw]
+                                                                            raw))))
+                                                (.if# (initialized_quantification? lux)
+                                                      raw
+                                                      (..quantified raw))))]}
 
                         else
                         {:Left ""})
@@ -1602,7 +1596,7 @@
                                                           (function' (_ binding body)
                                                                      (.when# binding
                                                                              [label value]
-                                                                             ('let label value body))))
+                                                                             ('when label value body))))
                                                     body
                                                     (stack:in_reverse bindings))))
                         
@@ -1762,7 +1756,7 @@
                                                                                                 value))))))
                                                 body
                                                 (stack:in_reverse bindings))]
-                              (meta:pure (list ('let (code:tuple (list 'pure 'then)) monad body'))))
+                              (meta:pure (list ('when (code:tuple (list 'pure 'then)) monad body'))))
                         
                         {:None}
                         (failure ""))
@@ -1954,23 +1948,22 @@
       (for_any (_ input output)
         (-> (-> input ($ Maybe output))
             (-> ($ List input) ($ Maybe output))))
-      (.when# (.list_size# it)
-              limit
-              ((.is# (for_any (_ input output)
-                       (-> (-> input ($ Maybe output)) ($ List input)
-                           (-> Natural ($ Maybe output))))
-                     (function' (_ choice it)
-                                (function' (list:one item)
-                                           (if (.int_<# (.as# (-> Natural Integer) limit)
-                                                        (.as# (-> Natural Integer) item))
-                                               (.when# (choice (.list_item# item it))
-                                                       {:None}
-                                                       (list:one (.i64_+# 1 item))
+      (.let# limit (.list_size# it)
+             ((.is# (for_any (_ input output)
+                      (-> (-> input ($ Maybe output)) ($ List input)
+                          (-> Natural ($ Maybe output))))
+                    (function' (_ choice it)
+                               (function' (list:one item)
+                                          (if (.int_<# (.as# (-> Natural Integer) limit)
+                                                       (.as# (-> Natural Integer) item))
+                                              (.when# (choice (.list_item# item it))
+                                                      {:None}
+                                                      (list:one (.i64_+# 1 item))
 
-                                                       choice
-                                                       choice)
-                                               {:None}))))
-               choice it 0)))
+                                                      choice
+                                                      choice)
+                                              {:None}))))
+              choice it 0)))
 
 (the' .private list:conjoint
       (for_any (_ it)
@@ -2141,21 +2134,20 @@
       (for_any (_ left right)
         (-> ($ List left) ($ List right)
             ($ List (Tuple left right))))
-      (.when# (natural:minor (.list_size# left) (.list_size# right))
-              limit
-              ((.is# (for_any (_ left right)
-                       (-> ($ List left) ($ List right)
-                           (-> Natural ($ Change ($ List (Tuple left right))))))
-                     (function' (_ left right)
-                                (function' (list:zipped_2 item output)
-                                           (if (.int_<# (.as# (-> Natural Integer) limit)
-                                                        (.as# (-> Natural Integer) item))
-                                               (list:zipped_2 (.i64_+# 1 item)
-                                                              (.list_composite# output
-                                                                                (list [(.list_item# item left)
-                                                                                       (.list_item# item right)])))
-                                               output))))
-               left right 0 (list))))
+      (.let# limit (natural:minor (.list_size# left) (.list_size# right))
+             ((.is# (for_any (_ left right)
+                      (-> ($ List left) ($ List right)
+                          (-> Natural ($ Change ($ List (Tuple left right))))))
+                    (function' (_ left right)
+                               (function' (list:zipped_2 item output)
+                                          (if (.int_<# (.as# (-> Natural Integer) limit)
+                                                       (.as# (-> Natural Integer) item))
+                                              (list:zipped_2 (.i64_+# 1 item)
+                                                             (.list_composite# output
+                                                                               (list [(.list_item# item left)
+                                                                                      (.list_item# item right)])))
+                                              output))))
+              left right 0 (list))))
 
 (the' .private (stack:every? ?)
       (for_any (_ it)
@@ -3367,6 +3359,16 @@
                                expression)}
               (meta:pure expression)
 
+              {:Form @form (.list# {:Name @name ["library/lux" "let#"]}
+                                   binding
+                                   value
+                                   body)}
+              (<| (function' (_ lux))
+                  (meta:return lux {:Form @form (list {:Name @name ["library/lux" "let#"]}
+                                                      binding
+                                                      value
+                                                      (` (..type (, body))))}))
+
               {:Form @form (.list# {:Name @name ["library/lux" "when#"]}
                                    value
                                    binding
@@ -3886,6 +3888,9 @@
                                       (.list# {:Bit _ 0b} 'else
                                               {:Bit _ 1b} 'then)
                                       ('if value 'then 'else)
+
+                                      (.list# {:Name _ ["" variable]} 'body)
+                                      ('let {:Name _ ["" variable]} value 'body)
 
                                       else
                                       (` (.when# (, value)

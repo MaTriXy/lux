@@ -3,7 +3,7 @@
 
 (.using
  [library
-  [lux (.except if with)
+  [lux (.except let if with)
    [abstract
     ["?" projection]
     ["[0]" monad]]
@@ -55,6 +55,18 @@
       {try.:Failure error}
       (phase.failure error))))
 
+(the let
+  Handler
+  (..custom
+   [(all ?.and ?list.any ?list.any)
+    (function (_ name synthesis archive [value body])
+      (monad.let phase.monad
+        [value (synthesis archive value)
+         body (synthesis.with_new_local
+                (synthesis archive body))
+         register synthesis.locals]
+        (pure (synthesis.let provenance.dummy register value body))))]))
+
 (the if
   Handler
   (..custom
@@ -86,7 +98,7 @@
 
 (the (text_composite name)
   Handler
-  (let [name [.prelude (extension.synthesis name)]]
+  (.let [name [.prelude (extension.synthesis name)]]
     (function (_ synthesis archive parts)
       (monad.let [! phase.monad]
         [parts (list.each' ! (synthesis archive) parts)]
@@ -99,6 +111,7 @@
                 [(..with (template.name [extension/lux._] [,name])
                    (template.name [.._] [,name]))]
 
-                [[..if]
+                [[..let]
+                 [..if]
                  [..text_composite]]
                 )))))

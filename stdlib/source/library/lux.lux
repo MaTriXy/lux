@@ -3284,24 +3284,6 @@
               _
               (meta:pure (list token))))
 
-(the' .public exec
-      Macro
-      (macro (_ tokens)
-        (.when# (?:value (list:in_reverse tokens)
-                         (?:and ?:any ?:rest))
-                {:Some [value actions]}
-                (let' [dummy (code:local "")]
-                      (meta:pure (list (list:mix (.is# (-> Code ($ Change Code))
-                                                       (function' (_ pre post)
-                                                                  (` (.when# (, pre)
-                                                                             (, dummy)
-                                                                             (, post)))))
-                                                 value
-                                                 actions))))
-
-                else
-                (failure ""))))
-
 (the' .private (type_reification abstraction parameters)
       (-> Code ($ List Code)
           Code)
@@ -3570,6 +3552,19 @@
                        ..:scopes   scopes   ..:type_context   types ..:seed   (.i64_+# 1 seed)
                        ..:expected expected ..:provenance provenance ..:eval _eval]
                       (code:local (text "__gensym__" prefix (natural:as seed)))}))
+
+(the' .public exec
+      Macro
+      (macro (_ tokens)
+        (.when# (?:value (list:in_reverse tokens)
+                         (?:and ?:any ?:rest))
+                {:Some [value actions]}
+                (with_monad meta:monad
+                  ['_ (generated_name "_")]
+                  (pure (list (list:mix ('let '_) value actions))))
+
+                else
+                (failure ""))))
 
 (the' .private (flat_reification it)
       (type (-> Type

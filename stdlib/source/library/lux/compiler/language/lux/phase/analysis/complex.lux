@@ -53,7 +53,9 @@
    [///
     [meta
      [archive (.only Archive)]]
-    ["@[0]" type]]]])
+    ["@[0]" type]
+    ["[0]" extension (.only)
+     ["[1]/[0]" lux]]]]])
 
 (exception.the .public (not_a_quantified_type type)
   (Exception Type)
@@ -215,12 +217,28 @@
         (/.with_exception ..cannot_analyse_variant [here else tag valueC]
           (..sum lefts right? analyse archive valueC))))))
 
+(the (tuple_as_pair @ every_member)
+  (-> Provenance (Stack /.Term)
+      /.Term)
+  (when (stack.in_reverse every_member)
+    (stack)
+    (/.unit @)
+    
+    (stack singleton)
+    singleton
+    
+    (stack.partial right every_left)
+    (stack.mix (function (_ left right)
+                 {@type.:Extension @ [.prelude (extension.analysis extension/lux.pair)] (list left right)})
+               right
+               every_left)))
+
 (the (typed_product analyse expectedT archive members)
   (-> Phase Type Archive (List @type.Code)
       (Operation /.Term))
   (<| (monad.let [! phase.monad]
         [@ /.provenance])
-      (by ! each (|>> (view.of list.stack) (/.tuple @)))
+      (by ! each (tuple_as_pair @))
       (is (Operation (Stack /.Term)))
       (loop (of [membersT+ (view.as list.stack (type.flat_tuple expectedT))
                  membersC+ (view.as list.stack members)])
@@ -275,8 +293,8 @@
             (<| (/type.with expectedT')
                 (product analyse archive membersC))
 
-            _
             ... Must infer...
+            _
             (monad.let !
               [membersTA (list.each' ! (|>> (analyse archive)
                                             /type.inferring)
@@ -284,7 +302,10 @@
                _ (/type.check (check.check expectedT
                                            (type.tuple (list:each product.left membersTA))))
                @ /.provenance]
-              (pure (/.tuple @ (list:each product.right membersTA))))))
+              (pure (|> membersTA
+                        (list:each product.right)
+                        (view.as list.stack)
+                        (tuple_as_pair @))))))
 
         {.:Quantification .universal _}
         (monad.let !
@@ -461,6 +482,22 @@
       _
       (order' head_k record))))
 
+(the (record_as_pair every_member)
+  (-> (List Code)
+      Code)
+  (when (view.as list.stack (list.in_reverse every_member))
+    (stack)
+    (` [])
+
+    (stack singleton)
+    singleton
+
+    (stack.partial right every_left)
+    (stack.mix (function (_ left right)
+                 (` (.pair# (, left) (, right))))
+               right
+               every_left)))
+
 (the .public (record analyse archive members)
   (-> Phase Archive (List @type.Code)
       (Operation /.Term))
@@ -482,10 +519,14 @@
           (analyse archive singletonC)
           
           _
-          (..product analyse archive members))
+          (..product analyse archive members)
+          ... (analyse archive (..record_as_pair members))
+          )
 
         _
-        (..product analyse archive members)))
+        (..product analyse archive members)
+        ... (analyse archive (..record_as_pair members))
+        ))
 
     _
     (monad.let [! phase.monad]
@@ -493,6 +534,7 @@
       (when ?members
         {.:None}
         (..product analyse archive members)
+        ... (analyse archive (..record_as_pair members))
 
         {.:Some slots}
         (monad.let !
@@ -500,6 +542,7 @@
           (when record_size,membersC,recordT
             {.:None}
             (..product analyse archive members)
+            ... (analyse archive (..record_as_pair members))
 
             {.:Some [record_size membersC recordT]}
             (monad.let !
@@ -511,7 +554,9 @@
                   [inferenceT (/inference.record record_size recordT)
                    [inferredT membersA] (/inference.general archive analyse inferenceT membersC)
                    @ /.provenance]
-                  (pure (/.tuple @ (view.of list.stack membersA))))
+                  (pure (tuple_as_pair @ membersA)))
 
                 _
-                (..product analyse archive (view.of list.stack membersC))))))))))
+                (..product analyse archive (view.of list.stack membersC))
+                ... (analyse archive (..record_as_pair (view.of list.stack membersC)))
+                ))))))))

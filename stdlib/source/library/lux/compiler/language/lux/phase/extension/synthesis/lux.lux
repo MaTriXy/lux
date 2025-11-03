@@ -13,14 +13,16 @@
     ["[0]" maybe (.use "[1]:[0]" functor)]
     [collection
      ["[0]" dictionary]
-     ["[0]" list (.use "[1]:[0]" monad)
+     ["[0]" list (.use "[1]:[0]" monad monoid)
       ["?[1]" \\projection]]]]
    [macro
     ["^" pattern]
-    ["[0]" template]]
+    ["[0]" template]
+    ["[0]" expansion]]
    [meta
     ["[0]" provenance]
-    ["[0]" name]]
+    ["[0]" name]
+    ["[0]" static]]
    [math
     [number
      [/64
@@ -239,6 +241,24 @@
                   [synthesis.:input this
                    synthesis.:output {path.:Bit_Fork .true {path.:Then then} {.:Some {path.:Then else}}}]))))]))
 
+(the pair
+  Handler
+  (..custom
+   [(all ?.and ?list.any ?list.any)
+    (function (_ name synthesis archive [left right])
+      (expansion.let [,extension (static.text (extension.synthesis extension/lux.pair))]
+        (template.let [(flat_pair ,left ,right)
+                       [(when ,right
+                          [@ {synthesis.:Extension [.prelude ,extension] tail}]
+                          [@ {synthesis.:Extension [.prelude ,extension] (list:composite (list ,left) tail)}]
+
+                          else
+                          [provenance.dummy {synthesis.:Extension [.prelude ,extension] (list ,left ,right)}])]]
+          (monad.let phase.monad
+            [left (synthesis archive left)
+             right (synthesis archive right)]
+            (pure (flat_pair left right))))))]))
+
 (the (flat_text_composite expected)
   (-> Name
       (Change (List synthesis.Term)))
@@ -270,5 +290,6 @@
 
                 [[..let]
                  [..if]
+                 [..pair]
                  [..text_composite]]
                 )))))

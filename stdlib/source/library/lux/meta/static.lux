@@ -40,15 +40,14 @@
 (the pcg_32_magic_inc
   (number.base_16 "FEDCBA9876543210"))
 
-(expansion.let [<type> (for_some (_ a)
-                         [(-> a Code)
-                          a])]
+(expansion.let [<type> [(-> it Code)
+                        it]]
   (syntax.the .public (literal [injection ?list.any
                                 expression ?list.any])
     (monad.let meta.monad
-      [pair (meta.eval (type <type>)
+      [pair (meta.eval (type (for_some (_ it) <type>))
                        (` [(, injection) (, expression)]))
-       .let [[as_code expression] (as (-> Any <type>) pair)]]
+       .let [[as_code expression] (as (for_some (_ it) (-> Any <type>)) pair)]]
       (pure (list (as_code expression))))))
 
 (expansion.let [<type> (Meta (List Code))]
@@ -57,15 +56,14 @@
       [expression (meta.eval (type <type>) expression)]
       (as (-> Any <type>) expression))))
 
-(expansion.let [<type> (for_some (_ a)
-                         [(-> a Code)
-                          (List a)])]
+(expansion.let [<type> [(-> it Code)
+                        (List it)]]
   (syntax.the .public (literals [injection ?list.any
                                  expression ?list.any])
     (monad.let meta.monad
-      [pair (meta.eval (type <type>)
+      [pair (meta.eval (type (for_some (_ it) <type>))
                        (` [(, injection) (, expression)]))
-       .let [[injection expression] (as (-> Any <type>) pair)]]
+       .let [[injection expression] (as (for_some (_ it) (-> Any <type>)) pair)]]
       (pure (list:each injection expression)))))
 
 (syntax.the .public (seed [])
@@ -88,15 +86,14 @@
    [random_revolution random.revolution code.revolution]
    [random_decimal random.decimal code.decimal]])
 
-(expansion.let [<type> (for_some (_ a)
-                         [(-> a Code)
-                          (Random a)])]
+(expansion.let [<type> [(-> it Code)
+                        (Random it)]]
   (syntax.the .public (random [injection ?list.any
                                random ?list.any])
     (monad.let meta.monad
-      [pair (meta.eval (type <type>)
+      [pair (meta.eval (type (for_some (_ it) <type>))
                        (` [(, injection) (, random)]))
-       .let [[injection random] (as (-> Any <type>) pair)]
+       .let [[injection random] (as (for_some (_ it) (-> Any <type>)) pair)]
        seed meta.seed
        .let [[_ value] (random.value random.pcg_32
                                      [random.:increase ..pcg_32_magic_inc
@@ -104,15 +101,14 @@
                                      random)]]
       (pure (list (injection value))))))
 
-(expansion.let [<type> (for_some (_ a)
-                         [(-> a Code)
-                          (Random (List a))])]
+(expansion.let [<type> [(-> it Code)
+                        (Random (List it))]]
   (syntax.the .public (randoms [injection ?list.any
                                 random ?list.any])
     (monad.let meta.monad
-      [pair (meta.eval (type <type>)
+      [pair (meta.eval (type (for_some (_ it) <type>))
                        (` [(, injection) (, random)]))
-       .let [[injection random] (as (-> Any <type>) pair)]
+       .let [[injection random] (as (for_some (_ it) (-> Any <type>)) pair)]
        seed meta.seed
        .let [[_ value] (random.value random.pcg_32
                                      [random.:increase ..pcg_32_magic_inc

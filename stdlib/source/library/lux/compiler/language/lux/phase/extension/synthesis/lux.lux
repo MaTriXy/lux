@@ -221,10 +221,10 @@
          register synthesis.locals]
         (pure (when (as_exec register body)
                 {.:Some body}
-                (synthesis.exec provenance.dummy value body)
+                (synthesis.exec (synthesis.provenance value) value body)
 
                 else
-                (synthesis.let provenance.dummy register value body)))))]))
+                (synthesis.let (synthesis.provenance value) register value body)))))]))
 
 (the if
   Handler
@@ -235,7 +235,7 @@
         [this (synthesis archive this)
          then (synthesis archive then)
          else (synthesis archive else)]
-        (pure (<| [provenance.dummy]
+        (pure (<| [(synthesis.provenance this)]
                   {synthesis.:Control}
                   {synthesis.:When}
                   [synthesis.:input this
@@ -253,11 +253,39 @@
                           [@ {synthesis.:Extension [.prelude ,extension] (list:composite (list ,left) tail)}]
 
                           else
-                          [provenance.dummy {synthesis.:Extension [.prelude ,extension] (list ,left ,right)}])]]
+                          [(synthesis.provenance ,left) {synthesis.:Extension [.prelude ,extension] (list ,left ,right)}])]]
           (monad.let phase.monad
             [left (synthesis archive left)
              right (synthesis archive right)]
             (pure (flat_pair left right))))))]))
+
+(the side
+  Handler
+  (..custom
+   [(all ?.and ?analysis.bit ?list.any)
+    (function (_ name synthesis archive [right? pair])
+      (expansion.let [,extension (static.text (extension.synthesis extension/lux.side))]
+        (template.let [(flat_side ,right? ,pair)
+                       [(is synthesis.Term
+                            (when ,pair
+                              [@ {synthesis.:Extension [.prelude ,extension]
+                                                       (list (synthesis.i64 @every_left every_left)
+                                                             (synthesis.bit @side .true)
+                                                             pair')}]
+                              [@ {synthesis.:Extension [.prelude ,extension]
+                                                       (list (synthesis.i64 @every_left (++ every_left))
+                                                             (synthesis.bit @side ,right?)
+                                                             pair')}]
+
+                              else
+                              (.let [@ (synthesis.provenance ,pair)]
+                                [@ {synthesis.:Extension [.prelude ,extension]
+                                                         (list (synthesis.i64 @ (.i64 0))
+                                                               (synthesis.bit @ ,right?)
+                                                               ,pair)}])))]]
+          (monad.let phase.monad
+            [pair (synthesis archive pair)]
+            (pure (flat_side right? pair))))))]))
 
 (the (flat_text_composite expected)
   (-> Name
@@ -291,5 +319,6 @@
                 [[..let]
                  [..if]
                  [..pair]
+                 [..side]
                  [..text_composite]]
                 )))))

@@ -1324,13 +1324,13 @@
         (meta:pure (list (code:form (.list_composite# (list ('prelude "text_composite#"))
                                                       tokens))))))
 
-(the' .private quantification_level
+(the' .private level_of_quantification
       Text
-      (text \'' "quantification_level" \''))
+      (text \'' "level_of_quantification" \''))
 
 (the' .private quantified
       ($ Change Code)
-      ('let (code:local ..quantification_level) (code:natural 0)))
+      ('let (code:local ..level_of_quantification) (code:natural 0)))
 
 (the' .private 'i64_+#
       Code
@@ -1342,7 +1342,7 @@
       (code:variant (list ':Parameter
                           (code:bit ..abstraction)
                           (code:form (list 'i64_+#
-                                           (code:local ..quantification_level)
+                                           (code:local ..level_of_quantification)
                                            (code:natural idx))))))
 
 (the' .private (quantified_argument idx)
@@ -1351,7 +1351,7 @@
       (code:variant (list ':Parameter
                           (code:bit ..argument)
                           (code:form (list 'i64_+#
-                                           (code:local ..quantification_level)
+                                           (code:local ..level_of_quantification)
                                            (code:natural idx))))))
 
 (the' .private (next_level depth)
@@ -1395,17 +1395,17 @@
 (the' .private (with_correct_quantification body)
       ($ Change Code)
       (code:form (list (code:name [prelude "__adjusted_quantified_type__"])
-                       (code:local ..quantification_level)
+                       (code:local ..level_of_quantification)
                        (code:natural 0)
                        body)))
 
 (the' .private (with_quantification depth body)
       (Function Natural ($ Change Code))
-      (.let# 'quantification_level (code:local ..quantification_level)
-             ('let 'quantification_level
+      (.let# 'level_of_quantification (code:local ..level_of_quantification)
+             ('let 'level_of_quantification
                    (code:form (list 'i64_+#
                                     (code:natural depth)
-                                    'quantification_level))
+                                    'level_of_quantification))
                    body)))
 
 (the' .private (initialized_quantification? lux)
@@ -1426,7 +1426,7 @@
                                                                                 [local _]
                                                                                 (.if# verdict
                                                                                       1b
-                                                                                      (.text_=# ..quantification_level local))))
+                                                                                      (.text_=# ..level_of_quantification local))))
                                                              0b
                                                              locals))))
                          0b
@@ -3451,7 +3451,7 @@
                            ..:current_module current_module/pre
                            ..:modules modules/pre
                            ..:scopes {:Top [:locals [:counter 0
-                                                     :mappings (list [..quantification_level [.Natural (.as# (-> Integer Natural) -1)]])]
+                                                     :mappings (list [..level_of_quantification [.Natural (.as# (-> Integer Natural) -1)]])]
                                             :captured [:counter 0
                                                        :mappings (list)]]
                                            scopes/pre}
@@ -3894,6 +3894,58 @@
                 else
                 (failure ""))))
 
+(the' .private list:enumeration
+      (type (for_any (_ it)
+              (-> (List it)
+                  (List [Natural it]))))
+      (list:each' (function' (_ address it)
+                             [address it])))
+
+(with_template [,side ,name]
+  [(the' .private (,name every_left 'pair)
+         (type (-> Natural
+                   (Change Code)))
+         (when every_left
+           0 (` (.side# ,side (, 'pair)))
+           else (,name (.i64_-# 1 every_left) (` (.side# 1b (, 'pair))))))]
+
+  [[0b left_of_tuple]
+   [1b right_of_tuple]])
+
+(the' .private (side_of_tuple every_left last_right 'pair)
+      (type (-> Natural Natural
+                (Change Code)))
+      (if (.i64_=# every_left last_right)
+          (right_of_tuple (.i64_-# 1 every_left) 'pair)
+          (left_of_tuple every_left 'pair)))
+
+(the' .private ?:member
+      (type (Projection Text))
+      (?:either ?:local
+                (?:tuple ?:local)))
+
+(the' .private Bundle
+      Type
+      (type (for_any (Bundle _)
+              (Or Text
+                  [(Bundle _) (List (Bundle _))]))))
+
+(the' .private (?:bundle tape)
+      (type (Projection Bundle))
+      ((?:or ?:member
+             (?:tuple (?:and ?:bundle (?:many ?:bundle))))
+       tape))
+
+(the' .private (code:bundle it)
+      (-> Bundle
+          Code)
+      (when it
+        {:Left it}
+        (code:local it)
+        
+        {:Right [head tail]}
+        (code:tuple (.list_composite# (list (code:bundle head)) (list:each code:bundle tail)))))
+
 (the' .public let
       Macro
       (macro (_ tokens)
@@ -3901,15 +3953,36 @@
                          ?:any)
                   (?:value tokens))
           {:Some [bindings body]}
-          (|>  bindings
-               list:in_reverse
-               (list:mix (is (-> [Code Code] (Change Code))
-                             (function' (_ lr body')
-                                        (let' [[l r] lr]
-                                              (` (when (, r) (, l) (, body'))))))
-                         body)
-               list
-               meta:pure)
+          (with_monad meta:monad
+            ['_ (generated_name "'_")]
+            (|>  bindings
+                 list:in_reverse
+                 (list:mix (is (-> [Code Code]
+                                   (Change Code))
+                               (function' (_ variable,value body')
+                                          (let' [[pattern value] variable,value]
+                                                (when (|> ?:bundle
+                                                          (?:value (list pattern)))
+                                                  {:Some variable|tuple}
+                                                  (when variable|tuple
+                                                    {:Left variable}
+                                                    (` (.let# (, (code:local variable)) (, value) (, body')))
+                                                    
+                                                    {:Right [head tail]}
+                                                    (.let# last_right (.list_size# tail)
+                                                           (` (..let [(, '_) (, value)
+                                                                      (,* (|> (.list_composite# (list head) tail)
+                                                                              (list:each' (function' (_ every_left member)
+                                                                                                     (list (code:bundle member)
+                                                                                                           (side_of_tuple every_left last_right '_))))
+                                                                              list:conjoint))]
+                                                                (, body')))))
+                                                  
+                                                  {:None}
+                                                  (` (when (, value) (, pattern) (, body')))))))
+                           body)
+                 list
+                 pure))
 
           else
           (failure ""))))
@@ -4400,13 +4473,6 @@
     else
     (meta:pure [it {:None}])))
 
-(the enumeration
-  (for_any (_ it)
-    (-> (List it)
-        (List [Natural it])))
-  (list:each' (function (_ address it)
-                [address it])))
-
 (the (complex:right? arity label)
   (-> Natural
       (Predicate Natural))
@@ -4442,7 +4508,7 @@
                                                      (, (code:bit (complex:right? arity label)))
                                                      (, family)]}]
                                             (, associated_type)))))
-                                 (enumeration labels))))))))
+                                 (list:enumeration labels))))))))
 
 ... https://en.wikipedia.org/wiki/List_of_English_determiners
 (the .public every
@@ -5136,7 +5202,7 @@
              .let [idx (if right?
                            (is Natural (.i64_+# 1 lefts))
                            lefts)
-                   pattern (|> (enumeration family)
+                   pattern (|> (list:enumeration family)
                                (list:each (is (-> [Natural Name] (List Code))
                                               (function (_ [r_idx slot])
                                                 (list (code:name slot)
@@ -5169,7 +5235,7 @@
      '_ (..generated_name "'_")
      .let ['output (code:local proper)
            pattern (|> tags
-                       enumeration
+                       list:enumeration
                        (list:each (function (_ [tag_idx tag])
                                     (if (.i64_=# my_tag_index tag_idx)
                                         'output
@@ -5184,7 +5250,7 @@
                                     (Meta (List Code)))
                                 (function (_ [sub_tag_index sname stype])
                                   (open_declaration imported_module alias tags' sub_tag_index sname source+ stype)))
-                            (enumeration (list:zipped_2 tags' members')))]
+                            (list:enumeration (list:zipped_2 tags' members')))]
         (pure (list:conjoint decls')))
 
       _
@@ -5207,7 +5273,7 @@
                                           (Meta (List Code)))
                                       (function (_ [index slot_label slot_type])
                                         (open_declaration imported_module alias slots index slot_label 'implementation slot_type)))
-                                  (enumeration (list:zipped_2 slots terms)))]
+                                  (list:enumeration (list:zipped_2 slots terms)))]
         (pure (list:conjoint declarations)))
 
       _
@@ -5352,7 +5418,7 @@
                                         (with_monad meta:monad
                                           ['slot (..generated_name "")]
                                           (pure [r_slot_name r_idx 'slot]))))
-                                  (enumeration family))
+                                  (list:enumeration family))
              .let [pattern (|> pattern'
                                (list:each (is (-> [Name Natural Code]
                                                   (List Code))
@@ -5447,7 +5513,7 @@
                                         (with_monad meta:monad
                                           ['slot (..generated_name "")]
                                           (pure [r_slot_name r_idx 'slot]))))
-                                  (enumeration family))
+                                  (list:enumeration family))
              .let [pattern (|> pattern'
                                (list:each (is (-> [Name Natural Code]
                                                   (List Code))

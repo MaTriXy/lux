@@ -40,6 +40,7 @@
     ["[1][0]" value]
     ["[1][0]" complex]
     ["[1][0]" runtime (.only Operation Phase Bundle Handler)]
+    ["[1][0]" when]
     ["[1][0]" function
      ["[1]" abstract]]]]
   [//
@@ -174,12 +175,25 @@
       [(<>.at_least 2 ?list.any)]
       ///complex.tuple))
 
+(the side
+  (<| ..custom
+      [(all <>.and ?synthesis.i64 ?synthesis.bit ?list.any)]
+      (function (_ translation archive [every_left right? pair])
+        (monad.let phase.monad
+          [pair (translation archive pair)]
+          (pure (all _.composite
+                     pair
+                     (if right?
+                         (///when.right_of_tuple (.natural every_left))
+                         (///when.left_of_tuple (.natural every_left)))))))))
+
 (the with_basic
   (Change Bundle)
   (|>> (with extension/lux.when_char ..lux:syntax_char_case!)
        (with extension/lux.is? (binary ..lux:is))
        (with extension/lux.try (unary ..lux:try))
-       (with extension/lux.pair ..pair)))
+       (with extension/lux.pair ..pair)
+       (with extension/lux.side ..side)))
 
 (template.with [<name> <op>]
   [(the (<name> [maskG inputG])

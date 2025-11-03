@@ -388,6 +388,24 @@
     (.function (_ extension_name analysis archive [left right])
       (complex.product analysis archive (list left right)))]))
 
+(the side
+  Handler
+  (..custom
+   [(all ?.and
+         ?code.bit
+         ?list.any)
+    (.function (_ extension_name analysis archive [right? pair])
+      (<| typeA.with_var (.function (_ [_ type_of_left]))
+          typeA.with_var (.function (_ [_ type_of_right]))
+          (monad.let phase.monad
+            [pair (typeA.with (And type_of_left type_of_right)
+                    (analysis archive pair))
+             _ (typeA.inference (.if right?
+                                     type_of_right
+                                     type_of_left))
+             @ analysis.provenance]
+            (pure {@type.:Extension @ [.prelude (extension.analysis extension_name)] (list (analysis.bit @ right?) pair)}))))]))
+
 (the when
   Handler
   (..custom
@@ -463,6 +481,7 @@
        (with extension/lux.let ..let)
        (with extension/lux.if ..if)
        (with extension/lux.pair ..pair)
+       (with extension/lux.side ..side)
        (with extension/lux.when ..when)
        (with extension/lux.function ..function)
        (with extension/lux.constant ..constant)

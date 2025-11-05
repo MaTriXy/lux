@@ -1,6 +1,3 @@
-... This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
-... If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
-
 (.using
  [library
   [lux (.except let if with)
@@ -15,6 +12,8 @@
      ["[0]" dictionary]
      ["[0]" list (.use "[1]:[0]" monad monoid)
       ["?[1]" \\projection]]]]
+   [function
+    [predicate (.only Predicate)]]
    [macro
     ["^" pattern]
     ["[0]" template]
@@ -209,6 +208,79 @@
         [every_argument (list.each' ! as_exec every_argument)]
         (pure [@ {synthesis.:Extension name every_argument}])))))
 
+(the (pure?' pure?
+             it)
+  (-> (Predicate synthesis.Term)
+      (Predicate (path.Path synthesis.Term)))
+  (`` (when it
+        (^.or {path.:Pop}
+              {path.:Access _}
+              {path.:List _}
+              {path.:Bind _})
+        true
+        
+        {path.:Bit_Fork when then else}
+        (and (pure?' pure? then)
+             (maybe.else true (maybe:each (pure?' pure?) else)))
+        
+        (,, (template.with [,tag]
+              [{,tag [head tail]}
+               (and (pure?' pure? (its path.:then head))
+                    (list.every? (|>> (its path.:then) (pure?' pure?)) tail))]
+
+              [[path.:I64_Fork]
+               [path.:F64_Fork]
+               [path.:Text_Fork]]))
+
+        (,, (template.with [,tag]
+              [{,tag this that}
+               (and (pure?' pure? this)
+                    (pure?' pure? that))]
+
+              [[path.:Or]
+               [path.:And]]))
+
+        {path.:Then it}
+        (pure? it))))
+
+(the (pure? it)
+  (Predicate synthesis.Term)
+  (`` (when it
+        (^.or [@ {synthesis.:Simple _}]
+              [@ {synthesis.:Reference _}]
+              [@ {synthesis.:Control {synthesis.:Function {synthesis.:Abstraction _}}}])
+        true
+
+        [@ {synthesis.:Structure {@type.:Complex_Variant it}}]
+        (pure? (its @type.:choice it))
+
+        [@ {synthesis.:Control {synthesis.:When [input path]}}]
+        (and (pure? input)
+             (pure?' pure? path))
+
+        [@ {synthesis.:Control {synthesis.:Loop {synthesis.:Tail_Recursion [start inits iteration]}}}]
+        (and (list.every? pure? inits)
+             (pure? iteration))
+
+        (,, (template.with [,extension]
+              [[@ {synthesis.:Extension [.prelude (static.text (extension.synthesis ,extension))]
+                                        it}]
+               (list.every? pure? it)]
+
+              [[extension/lux.text_composite]
+               [extension/lux.pair]
+               [extension/lux.list]
+
+               [extension/lux.i64_+]
+               [extension/lux.list_composite]]))
+
+        [@ {synthesis.:Extension [.prelude (static.text (extension.synthesis extension/lux.side))]
+                                 (list lefts right? it)}]
+        (pure? it)
+
+        else
+        false)))
+
 (the let
   Handler
   (..custom
@@ -221,7 +293,12 @@
          register synthesis.locals]
         (pure (when (as_exec register body)
                 {.:Some body}
-                (synthesis.exec (synthesis.provenance value) value body)
+                (.if (pure? value)
+                     body
+                     (exec
+                       ... (.log!# (text "[!] exec"
+                       ...               " " (synthesis.as_text value)))
+                       (synthesis.exec (synthesis.provenance value) value body)))
 
                 else
                 (synthesis.let (synthesis.provenance value) register value body)))))]))

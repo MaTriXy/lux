@@ -1,6 +1,3 @@
-... This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
-... If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
-
 (.using
  [library
   [lux (.except :Reification
@@ -36,7 +33,8 @@
     ["[0]" expansion]
     ["[0]" template]]
    [meta
-    ["[0]" provenance]]]]
+    ["[0]" provenance]
+    ["[0]" static]]]]
  ["[0]" /
   ["[1][0]" path]
   ["[1][0]" simple (.only Simple)]
@@ -44,15 +42,16 @@
    ["[2][0]" side (.only Side)]
    ["[2][0]" member (.only Member)]]
   [//
-   ["[0]" analysis (.only)
-    ["[1]/[0]" complex]]
+   ["[0]" analysis]
    ["[0]" phase (.only)
-    ["[0]" extension]]
+    ["[1]/[0]" extension]]
    [///
     [arity (.only Arity)]
-    ["@[0]" type (.only Complex Register Variable Reference Environment Extension)]
+    ["@[0]" type (.only Register Variable Reference Environment Extension)]
     ["[0]" reference (.only)
-     ["[0]" variable]]]]])
+     ["[0]" variable]]
+    ["[0]" extension (.only)
+     ["[1]/[0]" lux]]]]])
 
 (every .public State
   (Record
@@ -110,7 +109,6 @@
 (expansion.let [@ ($ (Term' $))]
   (every .public (Term' $)
     (Variant {:Simple Simple}
-             {:Structure (Complex @)}
              {:Reference Reference}
              {:Control (Control @)}
              {:Extension (Extension @)})))
@@ -134,9 +132,9 @@
   [(every .public <special>
      (<general> ..State analysis.Term Term))]
 
-  [[Handler  extension.Handler]
-   [Bundle   extension.Bundle]
-   [Extender extension.Extender]])
+  [[Handler  phase/extension.Handler]
+   [Bundle   phase/extension.Bundle]
+   [Extender phase/extension.Extender]])
 
 (every .public Abstraction
   (Abstraction' Term))
@@ -179,16 +177,18 @@
    [f64  /simple.:F64]
    [text /simple.:Text]])
 
-(template.with [<name> <tag>]
-  [(the .public <name>
-     (template.macro (<name> <@> content)
-       [(.<| [<@>]
-             {..:Structure}
-             {<tag>}
-             content)]))]
+(the .public (variant @ it)
+  (-> Provenance (@type.Variant Term)
+      Term)
+  [@ {..:Extension [[.prelude (extension.synthesis extension/lux.case)]
+                    (list (..i64 @ (.i64 (.its @type.:lefts it)))
+                          (..bit @ (.its @type.:right? it))
+                          (.its @type.:choice it))]}])
 
-  [[variant @type.:Complex_Variant]
-   [tuple   @type.:Complex_Tuple]])
+(`` (template.the .public (tuple ,@ ,it)
+      [[,@ {..:Extension [[(,, (static.text .prelude))
+                           (,, (static.text (extension.synthesis extension/lux.pair)))]
+                          ,it]}]]))
 
 (template.with [<name> <tag>]
   [(the .public <name>
@@ -230,9 +230,6 @@
   (.when value
     {:Simple it}
     (/simple.as_text it)
-
-    {:Structure it}
-    (analysis/complex.as_text as_text it)
 
     {:Reference reference}
     (reference.as_text reference)
@@ -426,10 +423,9 @@
                   (by <equality> = expected' actual')]
 
                  [[:Simple /simple.equality]
-                  [:Structure (analysis/complex.equality =)]
                   [:Reference reference.equality]
                   [:Control (control_equality =)]
-                  [:Extension (extension.equality =)]]))
+                  [:Extension (phase/extension.equality =)]]))
 
            _
            false)))))
@@ -449,11 +445,10 @@
                    [[_ {<tag> value}]
                     (n.x <factor> (by <hash> hash value))]
 
-                   [[02 :Simple /simple.hash]
-                    [03 :Structure (analysis/complex.hash again_hash)]
-                    [05 :Reference reference.hash]
-                    [07 :Control (..control_hash again_hash)]
-                    [11 :Extension (extension.hash again_hash)]]))))))))
+                   [[2 :Simple /simple.hash]
+                    [3 :Reference reference.hash]
+                    [5 :Control (..control_hash again_hash)]
+                    [7 :Extension (phase/extension.hash again_hash)]]))))))))
 
 (the Projection
   (type [Register Member]))
@@ -699,14 +694,7 @@
   (Random Term)
   (<| random.rec
       (function (_ random))
-      (.let [random_complex (is (Random (Complex Term))
-                                (all random.or
-                                     (all random.and
-                                          random.natural
-                                          random.bit
-                                          random)
-                                     (random.list 2 random)))
-             random_control (is (Random (Control Term))
+      (.let [random_control (is (Random (Control Term))
                                 (.let [random_when (is (Random (When Term))
                                                        (all random.and
                                                             random
@@ -742,7 +730,6 @@
              (random:pure provenance.dummy)
              (all random.or
                   /simple.random
-                  random_complex
                   reference.random
                   random_control
                   random_extension

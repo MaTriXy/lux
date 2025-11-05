@@ -93,20 +93,6 @@
       [@ {/.:Simple _}]
       {.:Some expr}
 
-      [@ {/.:Structure structure}]
-      (when structure
-        {@type.:Complex_Variant variant}
-        (monad.let maybe.monad
-          [value' (|> variant (its @type.:choice) (of false))]
-          (pure (|> variant
-                    (has @type.:choice value')
-                    (/.variant @))))
-        
-        {@type.:Complex_Tuple tuple}
-        (|> tuple
-            (list.each' maybe.monad (of false))
-            (maybe:each (|>> (/.tuple @)))))
-
       [@ {/.:Reference reference}]
       (when reference
         {@type.:Variable_Reference (variable.self)}
@@ -182,14 +168,11 @@
                                          (Maybe /.Term))
                                      (function (_ match)
                                        (when match
-                                         [@ {/.:Structure {@type.:Complex_Tuple tuple}}]
+                                         (/.tuple @ (list when then))
                                          (monad.let !
-                                           [when (list.item 0 tuple)
-                                            then (list.item 1 tuple)
-                                            
-                                            when (of false when)
+                                           [when (of false when)
                                             then (of return? then)]
-                                           (pure [@ {/.:Structure {@type.:Complex_Tuple (list when then)}}]))
+                                           (pure (/.tuple @ (list when then))))
 
                                          _
                                          (of false match))))

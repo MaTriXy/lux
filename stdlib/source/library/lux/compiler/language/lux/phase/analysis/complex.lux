@@ -101,7 +101,7 @@
                            code.tuple
                            (code.relative module))])))
 
-(the (case lefts right? cases)
+(the (type_of_case lefts right? cases)
   (-> Natural Bit (List Type)
       Type)
   (let [tag (/complex.tag right? lefts)
@@ -113,6 +113,16 @@
         (|> cases
             (list.item tag)
             (try.else .Nothing)))))
+
+(the (term_of_case @ lefts right? choice)
+  (-> Provenance Natural Bit
+      (Change /.Term))
+  {@type.:Extension @ [.prelude (extension.analysis extension/lux.case)]
+                    (when lefts
+                      0 (list (/.bit @ right?)
+                              choice)
+                      _ (list (/.bit @ true)
+                              (term_of_case @ (-- lefts) right? choice)))})
 
 (the .public (sum lefts right? analysis archive)
   (-> Natural Bit
@@ -128,8 +138,8 @@
         (when expectedT
           (type.Sum _ _)
           (|> (analysis archive valueC)
-              (by ! each (|>> [lefts right?] (/.variant @)))
-              (/type.with (..case lefts right? (type.flat_variant expectedT))))
+              (by ! each (term_of_case @ lefts right?))
+              (/type.with (..type_of_case lefts right? (type.flat_variant expectedT))))
 
           {.:Named name unnamedT}
           (<| (/type.with unnamedT)
@@ -206,7 +216,7 @@
         [inferenceT (/inference.variant lefts right? (@type.old variantT))
          [inferredT valueA+] (/inference.general archive analyse inferenceT (stack valueC))
          @ /.provenance]
-        (pure (/.variant @ [lefts right? (|> valueA+ stack.top try.trusted)])))
+        (pure (term_of_case @ lefts right? (|> valueA+ stack.top try.trusted))))
 
       else
       (monad.let !

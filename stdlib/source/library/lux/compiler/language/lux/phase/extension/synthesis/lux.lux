@@ -142,18 +142,6 @@
       [@ {synthesis.:Simple _}]
       {.:Some it}
       
-      [@ {synthesis.:Structure it}]
-      (when it
-        {@type.:Complex_Variant it}
-        (monad.let maybe.monad
-          [choice (as_exec (its @type.:choice it))]
-          (pure [@ {synthesis.:Structure {@type.:Complex_Variant (has @type.:choice choice it)}}]))
-        
-        {@type.:Complex_Tuple it}
-        (monad.let [! maybe.monad]
-          [it (list.each' ! as_exec it)]
-          (pure [@ {synthesis.:Structure {@type.:Complex_Tuple it}}])))
-      
       [@ {synthesis.:Reference it'}]
       (when it'
         {@type.:Variable_Reference {@type.:Local reality}}
@@ -251,9 +239,6 @@
               [@ {synthesis.:Control {synthesis.:Function {synthesis.:Abstraction _}}}])
         true
 
-        [@ {synthesis.:Structure {@type.:Complex_Variant it}}]
-        (pure? (its @type.:choice it))
-
         [@ {synthesis.:Control {synthesis.:When [input path]}}]
         (and (pure? input)
              (pure?' pure? path))
@@ -274,9 +259,13 @@
                [extension/lux.i64_+]
                [extension/lux.list_composite]]))
 
-        [@ {synthesis.:Extension [.prelude (static.text (extension.synthesis extension/lux.side))]
-                                 (list lefts right? it)}]
-        (pure? it)
+        (,, (template.with [,extension]
+              [[@ {synthesis.:Extension [.prelude (static.text (extension.synthesis ,extension))]
+                                        (list lefts right? it)}]
+               (pure? it)]
+
+              [[extension/lux.case]
+               [extension/lux.side]]))
 
         else
         false)))
@@ -317,6 +306,31 @@
                   {synthesis.:When}
                   [synthesis.:input this
                    synthesis.:output {path.:Bit_Fork .true {path.:Then then} {.:Some {path.:Then else}}}]))))]))
+
+(the case
+  Handler
+  (..custom
+   [(all ?.and ?analysis.bit ?list.any)
+    (function (_ name synthesis archive [right? choice])
+      (expansion.let [,extension (static.text (extension.synthesis extension/lux.case))
+                      ,by_default (.let [@ (synthesis.provenance choice)]
+                                    [@ {synthesis.:Extension [.prelude ,extension] (list (synthesis.i64 @ (.i64 0))
+                                                                                         (synthesis.bit @ right?)
+                                                                                         choice)}])]
+        (monad.let phase.monad
+          [choice (synthesis archive choice)]
+          (pure (.if right?
+                     (when choice
+                       [@ {synthesis.:Extension [.prelude ,extension] (list (synthesis.i64 @ every_left)
+                                                                            (synthesis.bit @ right?)
+                                                                            choice)}]
+                       [@ {synthesis.:Extension [.prelude ,extension] (list (synthesis.i64 @ (++ every_left))
+                                                                            (synthesis.bit @ right?)
+                                                                            choice)}]
+
+                       else
+                       ,by_default)
+                     ,by_default)))))]))
 
 (the pair
   Handler
@@ -395,6 +409,7 @@
 
                 [[..let]
                  [..if]
+                 [..case]
                  [..pair]
                  [..side]
                  [..text_composite]]

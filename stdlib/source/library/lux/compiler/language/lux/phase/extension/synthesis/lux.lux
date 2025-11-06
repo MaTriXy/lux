@@ -332,6 +332,38 @@
                        ,by_default)
                      ,by_default)))))]))
 
+(the if_case
+  Handler
+  (..custom
+   [(all ?.and ?list.any ?list.any ?list.any)
+    (function (_ name synthesis archive [case left_body right_body])
+      (monad.let phase.monad
+        [case (synthesis archive case)
+         left_body (synthesis.with_new_local
+                     (synthesis archive left_body))
+         right_body (synthesis.with_new_local
+                      (synthesis archive right_body))
+         register synthesis.locals]
+        (pure (<| [(synthesis.provenance case)]
+                  {synthesis.:Control}
+                  {synthesis.:When case}
+                  {path.:Or {path.:And {path.:Access {access.:Side [0 0b]}}
+                                       (when (as_exec register left_body)
+                                         {.:Some left_body}
+                                         {path.:Then left_body}
+
+                                         else
+                                         {path.:And {path.:Bind register}
+                                                    {path.:Then left_body}})}
+                            {path.:And {path.:Access {access.:Side [0 1b]}}
+                                       (when (as_exec register right_body)
+                                         {.:Some right_body}
+                                         {path.:Then right_body}
+
+                                         else
+                                         {path.:And {path.:Bind register}
+                                                    {path.:Then right_body}})}}))))]))
+
 (the pair
   Handler
   (..custom
@@ -410,6 +442,7 @@
                 [[..let]
                  [..if]
                  [..case]
+                 [..if_case]
                  [..pair]
                  [..side]
                  [..text_composite]]

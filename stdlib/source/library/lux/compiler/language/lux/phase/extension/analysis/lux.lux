@@ -385,6 +385,30 @@
     (.function (_ extension_name analysis archive [right? choice])
       (complex.sum 0 right? analysis archive choice))]))
 
+(the if_case
+  Handler
+  (..custom
+   [(all ?.and
+         ?list.any
+         ?code.local ?list.any
+         ?code.local ?list.any)
+    (.function (_ extension_name analysis archive [case
+                                                   left_variable left_body
+                                                   right_variable right_body])
+      (<| typeA.with_var (.function (_ [_ type_of_left]))
+          typeA.with_var (.function (_ [_ type_of_right]))
+          (monad.let phase.monad
+            [case (typeA.with (Or type_of_left type_of_right)
+                    (analysis archive case))
+             left_body (<| (scope.with_local [left_variable type_of_left])
+                           (analysis archive)
+                           left_body)
+             right_body (<| (scope.with_local [right_variable type_of_right])
+                            (analysis archive)
+                            right_body)
+             @ analysis.provenance]
+            (pure {@type.:Extension @ [.prelude (extension.analysis extension_name)] (list case left_body right_body)}))))]))
+
 (the pair
   Handler
   (..custom
@@ -487,6 +511,7 @@
        (with extension/lux.let ..let)
        (with extension/lux.if ..if)
        (with extension/lux.case ..case)
+       (with extension/lux.if_case ..if_case)
        (with extension/lux.pair ..pair)
        (with extension/lux.side ..side)
        (with extension/lux.when ..when)

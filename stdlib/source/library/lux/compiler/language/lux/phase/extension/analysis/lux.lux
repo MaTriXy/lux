@@ -348,16 +348,24 @@
          ?code.local
          ?list.any
          ?list.any)
-    (.function (_ extension_name analysis archive [variable value body])
-      (monad.let phase.monad
-        [[type_of_value value] (typeA.inferring (analysis archive value))
-         body (<| (scope.with_local [variable type_of_value])
-                  (analysis archive)
-                  body)
-         @ analysis.provenance]
-        (pure {@type.:Extension @ [.prelude (extension.analysis extension_name)]
-                                (list value
-                                      body)})))]))
+    (.function (_ extension_name analysis archive [variable 'value body])
+      (monad.let [! phase.monad]
+        [[type_of_value value] (typeA.inferring (analysis archive 'value))]
+        (.when value
+          (analysis.local @ register)
+          (<| (scope.with_alias [variable type_of_value register])
+              (analysis archive)
+              body)
+
+          else
+          (monad.let !
+            [body (<| (scope.with_local [variable type_of_value])
+                      (analysis archive)
+                      body)
+             @ analysis.provenance]
+            (pure {@type.:Extension @ [.prelude (extension.analysis extension_name)]
+                                    (list value
+                                          body)})))))]))
 
 (the if
   Handler

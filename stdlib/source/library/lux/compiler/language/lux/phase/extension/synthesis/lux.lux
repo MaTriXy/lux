@@ -89,14 +89,7 @@
           {.:Some it}
           
           {path.:Bind reality}
-          (.if (n.= expectation reality)
-               {.:None}
-
-               (n.> expectation reality)
-               {.:Some {path.:Bind (-- reality)}}
-
-               ... else
-               {.:Some it})
+          {.:Some {path.:Bind (-- reality)}}
           
           {path.:Bit_Fork when then {.:None}}
           (monad.let maybe.monad
@@ -270,6 +263,99 @@
         else
         false)))
 
+(the (road path it)
+  (-> (Change (path.Path synthesis.Term))
+      (for_any (_ value)
+        (Change (path.Road value (path.Path synthesis.Term)))))
+  [path.:when (its path.:when it)
+   path.:then (path (its path.:then it))])
+
+(the (no_alias' expectation term)
+  (-> @type.Register
+      (-> (Change synthesis.Term)
+          (Change (path.Path synthesis.Term))))
+  (function (path it)
+    (`` (when it
+          {path.:Bind reality}
+          {path.:Bind (-- reality)}
+          
+          {path.:Bit_Fork when then {.:None}}
+          {path.:Bit_Fork when (path then) {.:None}}
+
+          {path.:Bit_Fork when then {.:Some else}}
+          {path.:Bit_Fork when (path then) {.:Some (path else)}}
+          
+          (,, (template.with [,tag]
+                [{,tag [head tail]}
+                 {,tag [(..road path head)
+                        (list:each (..road path) tail)]}]
+
+                [[path.:I64_Fork]
+                 [path.:F64_Fork]
+                 [path.:Text_Fork]]))
+
+          (,, (template.with [,tag]
+                [{,tag this that}
+                 {,tag (path this)
+                       (path that)}]
+
+                [[path.:Or]
+                 [path.:And]]))
+
+          {path.:Then it'}
+          {path.:Then (term it')}
+
+          else
+          it))))
+
+(the (no_alias expectation variable)
+  (-> @type.Register synthesis.Term
+      (Change synthesis.Term))
+  (function (term it)
+    (when it
+      (synthesis.local @ reality)
+      (.if (n.= expectation reality)
+           variable
+
+           (n.> expectation reality)
+           (synthesis.local @ (-- reality))
+
+           ... else
+           it)
+      
+      [@ {synthesis.:Control it'}]
+      [@ {synthesis.:Control (when it'
+                               {synthesis.:When [input path]}
+                               {synthesis.:When [(term input)
+                                                 (no_alias' expectation term path)]}
+                               
+                               {synthesis.:Loop it'}
+                               {synthesis.:Loop (when it'
+                                                  {synthesis.:Tail_Recursion [start inits iteration]}
+                                                  {synthesis.:Tail_Recursion [(-- start)
+                                                                              (list:each term inits)
+                                                                              (term iteration)]}
+
+                                                  {synthesis.:Tail_Iteration it'}
+                                                  {synthesis.:Tail_Iteration (list:each term it')})}
+                               
+                               {synthesis.:Function it'}
+                               {synthesis.:Function (when it'
+                                                      {synthesis.:Abstraction [environment arity body]}
+                                                      {synthesis.:Abstraction [(list:each term environment)
+                                                                               arity
+                                                                               body]}
+
+                                                      {synthesis.:Reification [function every_argument]}
+                                                      {synthesis.:Reification [(term function)
+                                                                               (list:each term every_argument)]})})}]
+      
+      [@ {synthesis.:Extension name every_argument}]
+      [@ {synthesis.:Extension name (list:each term every_argument)}]
+
+      else
+      it)))
+
 (the let
   Handler
   (..custom
@@ -279,7 +365,8 @@
         [value (synthesis archive value)
          body (synthesis.with_new_local
                 (synthesis archive body))
-         register synthesis.locals]
+         register synthesis.locals
+         .let [@ (synthesis.provenance value)]]
         (pure (when (as_exec register body)
                 {.:Some body}
                 (.if (pure? value)
@@ -287,10 +374,16 @@
                      (exec
                        ... (.log!# (text "[!] exec"
                        ...               " " (synthesis.as_text value)))
-                       (synthesis.exec (synthesis.provenance value) value body)))
+                       (synthesis.exec @ value body)))
 
                 else
-                (synthesis.let (synthesis.provenance value) register value body)))))]))
+                (when value
+                  (^.or (synthesis.local _ _)
+                        (synthesis.foreign _ _))
+                  (no_alias register value body)
+
+                  else
+                  (synthesis.let @ register value body))))))]))
 
 (the if
   Handler

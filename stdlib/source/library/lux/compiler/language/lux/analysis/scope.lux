@@ -77,8 +77,8 @@
   (-> Text @type.Scope
       (Maybe [@type.Type Variable]))
   (when (..local name scope)
-    {.:Some type}
-    {.:Some type}
+    {.:Some type,variable}
+    {.:Some type,variable}
 
     _
     (..captured name scope)))
@@ -89,7 +89,7 @@
   (function (_ state)
     (let [[inner outer] (|> state
                             (its @type.:scopes)
-                            (stack.split_when (|>> (reference? name))))]
+                            (stack.split_when (reference? name)))]
       (when outer
         {.:Empty}
         {.:Right [state {.:None}]}
@@ -128,36 +128,6 @@
                               (is (Change Local)
                                   (|>> (revised @type.:counter ++)
                                        (revised @type.:mappings (property.has name [(@type.new type) new_var_id]))))
-                              head)]
-        (when (phase.value' (has @type.:scopes {.:Top new_head tail} state)
-                            action)
-          {try.:Success [state' output]}
-          (when (its @type.:scopes state')
-            {.:Top head' tail'}
-            (let [scopes' {.:Top (has @type.:locals (its @type.:locals head) head')
-                                 tail'}]
-              {try.:Success [(has @type.:scopes scopes' state')
-                             output]})
-
-            _
-            (exception.except ..drained []))
-
-          {try.:Failure error}
-          {try.:Failure error}))
-
-      _
-      (exception.except ..no_scope []))))
-
-(the .public (with_alias [name type register] action)
-  (for_any (_ it)
-    (-> [Text Type Register]
-        (Change (Operation it))))
-  (function (_ state)
-    (when (its @type.:scopes state)
-      {.:Top head tail}
-      (let [new_head (revised @type.:locals
-                              (is (Change Local)
-                                  (revised @type.:mappings (property.has name [(@type.new type) register])))
                               head)]
         (when (phase.value' (has @type.:scopes {.:Top new_head tail} state)
                             action)

@@ -428,6 +428,43 @@
                   else
                   (synthesis.let @ register value body))))))]))
 
+(template.with [,name ,extension ,type]
+  [(template.the (,name ,@ ,reference ,it)
+     [[,@ {synthesis.:Extension [.prelude (static.text (extension.synthesis ,extension))]
+                                (list (,type @ ,reference)
+                                      ,it)}]])]
+
+  [[i64_= extension/lux.i64_= synthesis.i64]
+   [f64_= extension/lux.f64_= synthesis.f64]
+   [text_= extension/lux.text_= synthesis.text]])
+
+(template.with [,name ,type ,tag]
+  [(the (,name @ [input every_case else])
+     (-> Provenance [synthesis.Term (List [,type synthesis.Term]) synthesis.Term]
+         synthesis.Term)
+     (<| [@]
+         {synthesis.:Control}
+         {synthesis.:When}
+         [synthesis.:input input
+          synthesis.:output]
+         (when (list.split 1 every_case)
+           [(list [head/when head/then])
+            tail]
+           {path.:Or {,tag [path.:when head/when
+                            path.:then {path.:Then head/then}]
+                           (list:each (function (_ [tail/when tail/then])
+                                        [path.:when tail/when
+                                         path.:then {path.:Then tail/then}])
+                                      tail)}
+                     {path.:Then else}}
+
+           _
+           {path.:Then else})))]
+
+  [[switch_i64 I64 path.:I64_Fork]
+   [switch_f64 Decimal path.:F64_Fork]
+   [switch_text Text path.:Text_Fork]])
+
 (the if
   Handler
   (..custom
@@ -437,11 +474,33 @@
         [this (synthesis archive this)
          then (synthesis archive then)
          else (synthesis archive else)]
-        (pure (<| [(synthesis.provenance this)]
-                  {synthesis.:Control}
-                  {synthesis.:When}
-                  [synthesis.:input this
-                   synthesis.:output {path.:Bit_Fork .true {path.:Then then} {.:Some {path.:Then else}}}]))))]))
+        (pure (`` (when (is synthesis.Term this)
+                    (,, (template.with [,= ,synthesis ,switch]
+                          [(,= @ reference this)
+                           (,switch @ (when else
+                                        [@ {synthesis.:Control {synthesis.:When else'}}]
+                                        (when (,synthesis else')
+                                          {.:Some [input every_case else']}
+                                          (.if (synthesis.= this input)
+                                               [input (list:composite (list [reference then]) every_case) else]
+                                               [this (list [reference then]) else])
+
+                                          _
+                                          [this (list [reference then]) else])
+                                        
+                                        _
+                                        [this (list [reference then]) else]))]
+
+                          [[i64_= synthesis.when_i64 switch_i64]
+                           [f64_= synthesis.when_f64 switch_f64]
+                           [text_= synthesis.when_text switch_text]]))
+
+                    _
+                    (<| [(synthesis.provenance this)]
+                        {synthesis.:Control}
+                        {synthesis.:When}
+                        [synthesis.:input this
+                         synthesis.:output {path.:Bit_Fork .true {path.:Then then} {.:Some {path.:Then else}}}]))))))]))
 
 (the case
   Handler

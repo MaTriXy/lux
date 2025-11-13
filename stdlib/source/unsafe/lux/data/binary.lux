@@ -45,7 +45,6 @@
            (every .public Binary
              (Nominal "bytearray"))
 
-           ... Default
            (every .public Binary
              (.Array (I64 Any))))
 
@@ -74,7 +73,6 @@
                              (.python_of# (.as (-> Any ffi.Function) (.python_constant# "bytearray")))
                              (.as (-> Any ..Binary)))
 
-                        ... Default
                         (array.empty <size>)))])))
 
 (`` (expansion.let [<it> (.is ..Binary it)]
@@ -95,7 +93,6 @@
                               (.as (-> Any (.Array (.I64 .Any))))
                               array.size)
 
-                         ... Default
                          (array.size <it>)))])))
 
 (the byte_mask
@@ -127,7 +124,6 @@
                               (.as (-> Any (.Array .I64)))
                               (array.item <index>))
 
-                         ... Default
                          (.if (array.lacks? <index> <it>)
                               (.i64 0)
                               (array.item <index> <it>)))))]))
@@ -194,7 +190,6 @@
                               (array.has! <index> (.|> <value> (.i64_and# <byte>) (.is (.I64 .Any))))
                               (.as (-> Any ..Binary)))
 
-                         ... Default
                          (array.has! <index> (.|> <value> .integer (.i64_and# (.integer <byte>))) <it>)))])))
 
 (template.the .public (has_16! index' value' it)
@@ -232,7 +227,6 @@
         [(target.if target.jvm
                     (ffi.of_boolean (,, (java/util/Arrays:equals [<reference> <sample>])))
 
-                    ... else
                     (.let [reference <reference>
                            sample <sample>
                            limit (..size reference)]
@@ -244,38 +238,35 @@
                                                   (..bits_08 index sample))
                                          (again (.i64_+# 1 index))))))))])))
 
-... TODO: Turn into a template ASAP.
-(`` (the .public copy!
-      (inline.macro (_ bytes source_offset source target_offset target)
-        (-> .Natural ..Index ..Binary ..Index ..Binary
-            ..Binary)
-        (target.if target.jvm
-                   (.exec
-                     (java/lang/System:arraycopy [source (ffi.as_int (.integer source_offset))
-                                                  target (ffi.as_int (.integer target_offset))
-                                                  (ffi.as_int (.integer bytes))])
-                     target)
-                   
-                   ... Default
-                   (.loop (again [index 0])
-                     (.if (.int_<# (.integer bytes) (.integer index))
-                          (.exec
-                            (..has_08! (.i64_+# target_offset index)
-                                       (..bits_08 (.i64_+# source_offset index) source)
-                                       target)
-                            (again (.i64_+# 1 index)))
-                          target))))))
+(comment "TODO: Turn into a template ASAP."
+         (`` (the .public copy!
+               (inline.macro (_ bytes source_offset source target_offset target)
+                 (-> .Natural ..Index ..Binary ..Index ..Binary
+                     ..Binary)
+                 (target.if target.jvm
+                            (.exec
+                              (java/lang/System:arraycopy [source (ffi.as_int (.integer source_offset))
+                                                           target (ffi.as_int (.integer target_offset))
+                                                           (ffi.as_int (.integer bytes))])
+                              target)
+                            
+                            (.loop (again [index 0])
+                              (.if (.int_<# (.integer bytes) (.integer index))
+                                   (.exec
+                                     (..has_08! (.i64_+# target_offset index)
+                                                (..bits_08 (.i64_+# source_offset index) source)
+                                                target)
+                                     (again (.i64_+# 1 index)))
+                                   target)))))))
 
-... TODO: Turn into a template ASAP.
-(the .public slice
-  (inline.macro (_ offset size binary)
-    (-> ..Index .Natural ..Binary
-        ..Binary)
-    (target.if target.jvm
-               (.let [limit (.i64_+# size offset)]
-                 (java/util/Arrays:copyOfRange [binary
-                                                (ffi.as_int (.integer offset))
-                                                (ffi.as_int (.integer limit))]))
-               
-               ... Default
-               (..copy! size offset binary 0 (..empty size)))))
+(comment "TODO: Turn into a template ASAP."
+         (the .public slice
+           (inline.macro (_ offset size binary)
+             (-> ..Index .Natural ..Binary
+                 ..Binary)
+             (target.if target.jvm
+                        (.let [limit (.i64_+# size offset)]
+                          (java/util/Arrays:copyOfRange [binary
+                                                         (ffi.as_int (.integer offset))
+                                                         (ffi.as_int (.integer limit))]))
+                        (..copy! size offset binary 0 (..empty size))))))

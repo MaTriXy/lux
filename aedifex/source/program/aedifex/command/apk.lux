@@ -102,34 +102,34 @@
        environment (environment.environment future.monad environment)
        apks_already_exist? (file.exists? future.monad fs file_of_apks)]
       (monad.let [! action.monad]
-        [... Step 0: Get rid of any pre-existing APKs.
-         _ (if apks_already_exist?
-               (by fs delete file_of_apks)
-               (pure []))
-         ... Step 1: Make DEX file.
-         _ (command [console environment shell fs working_directory]
-                    ..d8
-                    [(path.correct (android.d8 android fs))
-                     (list jvm_program
-                           "--release"
-                           "--lib" android_jar
-                           "--output" target)])
+        [_ (comment "Step 0: Get rid of any pre-existing APKs."
+                    (if apks_already_exist?
+                        (by fs delete file_of_apks)
+                        (pure [])))
+         _ (comment "Step 1: Make DEX file."
+                    (command [console environment shell fs working_directory]
+                             ..d8
+                             [(path.correct (android.d8 android fs))
+                              (list jvm_program
+                                    "--release"
+                                    "--lib" android_jar
+                                    "--output" target)]))
          dex (let [dex (text target / ..file_of_dex)]
                (monad.let !
                  [it (by fs read dex)
                   _ (by fs delete dex)]
                  (pure it)))
-         ... Step 2: Prepare the manifest.
          .let [apk_from_aapt2 (text target / "manifest.apk")]
-         _ (command [console environment shell fs working_directory]
-                    ..aapt2
-                    [(path.correct (android.aapt2 android fs))
-                     (list "link"
-                           "--proto-format"
-                           "-o" apk_from_aapt2
-                           "-I" android_jar
-                           "--manifest" (path.correct (its android.:manifest android))
-                           "--auto-add-overlay")])
+         _ (comment "Step 2: Prepare the manifest."
+                    (command [console environment shell fs working_directory]
+                             ..aapt2
+                             [(path.correct (android.aapt2 android fs))
+                              (list "link"
+                                    "--proto-format"
+                                    "-o" apk_from_aapt2
+                                    "-I" android_jar
+                                    "--manifest" (path.correct (its android.:manifest android))
+                                    "--auto-add-overlay")]))
          [manifest resources] (future.soon (zip.with apk_from_aapt2
                                              (function (_ zip_file)
                                                (monad.let (try.with io.monad)
@@ -137,36 +137,35 @@
                                                   resources (zip.in ..file_of_resources zip_file)]
                                                  (pure [manifest resources])))))
          _ (by fs delete apk_from_aapt2)
-         ... Step 3: Make module for bundle.
-         module_zip (future:pure (zip.file (list [(text "dex" / ..file_of_dex)
-                                                  dex]
-                                                 [(text "manifest" / ..file_of_manifest)
-                                                  manifest]
-                                                 [..file_of_resources
-                                                  resources])))
+         module_zip (comment "Step 3: Make module for bundle."
+                             (future:pure (zip.file (list [(text "dex" / ..file_of_dex)
+                                                           dex]
+                                                          [(text "manifest" / ..file_of_manifest)
+                                                           manifest]
+                                                          [..file_of_resources
+                                                           resources]))))
          .let [file_of_module (text target / ..file_of_module)]
          _ (by fs write file_of_module module_zip)
-         ... Step 4: Make bundle.
          .let [bundletool (path.correct (its android.:bundletool android))
                file_of_bundle (text target / ..file_of_bundle)]
-         _ (command [console environment shell fs working_directory]
-                    ..build_bundle
-                    ["java"
-                     (list "-jar" bundletool
-                           ..build_bundle
-                           (text "--modules=" file_of_module)
-                           (text "--output=" file_of_bundle))])
+         _ (comment "Step 4: Make bundle."
+                    (command [console environment shell fs working_directory]
+                             ..build_bundle
+                             ["java"
+                              (list "-jar" bundletool
+                                    ..build_bundle
+                                    (text "--modules=" file_of_module)
+                                    (text "--output=" file_of_bundle))]))
          _ (by fs delete file_of_module)
-         ... Step 5: Make APKs.
-         _ (command [console environment shell fs working_directory]
-                    ..build_apks
-                    ["java"
-                     (list "-jar" bundletool
-                           ..build_apks
-                           (text "--bundle=" file_of_bundle)
-                           (text "--output=" file_of_apks)
-                           ... "--mode=universal"
-                           )])
+         _ (comment "Step 5: Make APKs."
+                    (command [console environment shell fs working_directory]
+                             ..build_apks
+                             ["java"
+                              (list "-jar" bundletool
+                                    ..build_apks
+                                    (comment "--mode=universal"
+                                             (text "--bundle=" file_of_bundle))
+                                    (text "--output=" file_of_apks))]))
          _ (by fs delete file_of_bundle)]
         (pure [])))
 

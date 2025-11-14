@@ -15,7 +15,7 @@
     ["[0]" future (.only Future)]]
    ["[0]" function]
    [data
-    ["[0]" maybe (.use "[1]:[0]" monad)]
+    ["[0]" maybe (.use monad)]
     ["[0]" product]
     [text
      ["%" \\injection]
@@ -169,7 +169,6 @@
                     (<| (ffi.is org/openjdk/nashorn/api/scripting/JSObject)
                         (ffi.object [] org/openjdk/nashorn/api/scripting/AbstractJSObject [IntegerValue]
                           []
-                          ... Methods
                           (IntegerValue
                            [] (getValue self []) java/lang/Object
                            (ffi.is java/lang/Object (ffi.as_long value)))
@@ -260,12 +259,11 @@
                                                     js_integer)
 
                                                 {.:None})
-                                              ... else
+                                              
                                               (as (-> Any org/openjdk/nashorn/api/scripting/JSObject) sub_value))))]
                       (<| (ffi.is org/openjdk/nashorn/api/scripting/JSObject)
                           (ffi.object [] org/openjdk/nashorn/api/scripting/AbstractJSObject [StructureValue]
                             []
-                            ... Methods
                             (StructureValue
                              [] (getValue self [])
                              java/lang/Object
@@ -465,13 +463,13 @@
                                     {.:None}
                                     (if (ffi.of_boolean (org/openjdk/nashorn/api/scripting/JSObject:isFunction [] js_object))
                                         {try.:Success js_object}
-                                        ... (exception.except ..unknown_kind_of_host_object [(as (-> Any java/lang/Object) js_object)])
-                                        {try.:Success js_object}
+                                        (comment (exception.except ..unknown_kind_of_host_object [(as (-> Any java/lang/Object) js_object)])
+                                                 {try.:Success js_object})
                                         ))))
                               {.:None})
-                            ... else
-                            ... (exception.except ..unknown_kind_of_host_object [(as (-> Any java/lang/Object) js_object)])
-                            {try.:Success js_object}
+                            
+                            (comment (exception.except ..unknown_kind_of_host_object [(as (-> Any java/lang/Object) js_object)])
+                                     {try.:Success js_object})
                             )))
 
                   (the (ensure_function function)
@@ -589,13 +587,13 @@
            target.js
            (these (the (eval code)
                     (-> Text (Try (Maybe Any)))
-                    ... Note: I have to call "eval" this way
-                    ... in order to avoid a quirk of calling eval in Node
-                    ... when the code is running under "use strict";.
-                    (try (let [return (.js_of# (function.identity (.js_constant# "eval")) [code])]
-                           (if (.js_object_null?# return)
-                               {.:None}
-                               {.:Some return}))))
+                    (comment "Note: I have to call 'eval' this way"
+                             "in order to avoid a quirk of calling eval in Node"
+                             "when the code is running under 'use strict;'."
+                             (try (let [return (.js_of# (function.identity (.js_constant# "eval")) [code])]
+                                    (if (.js_object_null?# return)
+                                        {.:None}
+                                        {.:Some return})))))
                   
                   (the (evaluate! input)
                     (-> _.Expression (Try Any))
@@ -651,12 +649,12 @@
 (the phase_wrapper
   phase.Wrapper
   (target.if target.jvm
-             ... The implementation for target.jvm is technically incorrect.
-             ... However, the JS compiler runs fast enough on Node to be fully hosted there.
-             ... And running the JS compiler on the JVM (on top of Nashorn) is impractically slow.
-             ... This means that in practice, only the target.js implementation matters.
-             ... And since no cross-language boundary needs to be handled, it's a sufficient implementation.
-             (|>>)
+             (comment "The implementation for target.jvm is technically incorrect."
+                      "However, the JS compiler runs fast enough on Node to be fully hosted there."
+                      "And running the JS compiler on the JVM (on top of Nashorn) is impractically slow."
+                      "This means that in practice, only the target.js implementation matters."
+                      "And since no cross-language boundary needs to be handled, it's a sufficient implementation."
+                      (|>>))
 
              target.js
              (|>>)))
@@ -666,9 +664,9 @@
   (monad.let io.monad
     [host ..host]
     (pure [platform.:file_system (target.if target.jvm (file.future file.default)
-                                            ... TODO: Handle this in a safer manner.
-                                            ... This would crash if the compiler was run on a browser.
-                                            target.js (maybe.trusted file.default))
+                                            target.js (comment "TODO: Handle this in a safer manner."
+                                                               "This would crash if the compiler was run on a browser."
+                                                               (maybe.trusted file.default)))
            platform.:host host
            platform.:phase js.expression
            platform.:runtime runtime.translate
@@ -696,27 +694,27 @@
 (target.if target.jvm
            (the extender
              Extender
-             ... TODO: Stop relying on coercions ASAP.
-             (<| (function (_ handler
-                              phase
-                              archive parameters
-                              state))
-                 (as (-> Any Try))
-                 try.trusted
-                 (as (-> Any Try))
-                 (monad.let try.monad
-                   [handler (try.of_maybe "Not an extension handler."
-                                          (..ensure_function handler))
-                    .let [to_js (is (-> Any java/lang/Object)
-                                    (|>> (as (-> Any (Array java/lang/Object))) js_structure (as (-> Any java/lang/Object))))]
-                    output (org/openjdk/nashorn/api/scripting/JSObject:call [{.:None}
-                                                                             (ffi.array java/lang/Object
-                                                                                        [(as (-> Any java/lang/Object) ..phase_wrapper)
-                                                                                         (to_js archive)
-                                                                                         (to_js parameters)
-                                                                                         (to_js state)])]
-                                                                            handler)]
-                   (lux_object (as (-> Any java/lang/Object) output)))))
+             (comment "TODO: Stop relying on coercions ASAP."
+                      (<| (function (_ handler
+                                       phase
+                                       archive parameters
+                                       state))
+                          (as (-> Any Try))
+                          try.trusted
+                          (as (-> Any Try))
+                          (monad.let try.monad
+                            [handler (try.of_maybe "Not an extension handler."
+                                                   (..ensure_function handler))
+                             .let [to_js (is (-> Any java/lang/Object)
+                                             (|>> (as (-> Any (Array java/lang/Object))) js_structure (as (-> Any java/lang/Object))))]
+                             output (org/openjdk/nashorn/api/scripting/JSObject:call [{.:None}
+                                                                                      (ffi.array java/lang/Object
+                                                                                                 [(as (-> Any java/lang/Object) ..phase_wrapper)
+                                                                                                  (to_js archive)
+                                                                                                  (to_js parameters)
+                                                                                                  (to_js state)])]
+                                                                                     handler)]
+                            (lux_object (as (-> Any java/lang/Object) output))))))
 
            target.js
            (the extender

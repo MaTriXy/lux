@@ -135,9 +135,9 @@
           (text "Throws away any code given to it."
                 \n "Great for commenting-out code, while retaining syntax high-lighting and formatting in your text editor.")
           ($.example (' (comment
-                          (the (this will not)
-                            (Be Defined)
-                            (because it will be (commented out)))))))
+                         (the (this will not)
+                           (Be Defined)
+                           (because it will be (commented out)))))))
 
         ($.definition /.for_any
           "Universal quantification."
@@ -364,27 +364,6 @@
                               _
                               {:None}))))
 
-            ... ($.definition /.^or
-            ...   (text "Or-patterns."
-            ...           \n "It's a special macro meant to be used with 'when'.")
-            ...   ($.example (' (every Weekday
-            ...                   (Variant
-            ...                    {:Monday}
-            ...                    {:Tuesday}
-            ...                    {:Wednesday}
-            ...                    {:Thursday}
-            ...                    {:Friday}
-            ...                    {:Saturday}
-            ...                    {:Sunday}))))
-            ...   ($.example (' (the (weekend? day)
-            ...                   (-> Weekday Bit)
-            ...                   (when day
-            ...                     (^or {:Saturday} {:Sunday})
-            ...                     true
-
-            ...                     _
-            ...                     false)))))
-
             ($.definition /.let
               (text "Creates local bindings."
                     \n "Can (optionally) use pattern-matching macros when binding.")
@@ -532,7 +511,6 @@
                                       (< from end)
                                       (of (succ end) {.:Top end output})
 
-                                      ... (= end from)
                                       {.:Top end output})))))))
 
             ($.definition /.its
@@ -626,41 +604,6 @@
               ($.example (' (let [updater (revised [:foo :bar :baz])]
                               (updater func my_record)))))
 
-            ... ($.definition /.^template
-            ...   "It's similar to template, but meant to be used during pattern-matching."
-            ...   ($.example (' (the (reduced env type)
-            ...                   (-> (List Type) Type Type)
-            ...                   (when type
-            ...                     {.:Nominal name params}
-            ...                     {.:Nominal name (list:each (reduced env) params)}
-
-            ...                     (^template.with [<tag>]
-            ...                                     [{<tag> left right}
-            ...                                      {<tag> (reduced env left) (reduced env right)}])
-            ...                     ([.:Sum] [.:Product])
-
-            ...                     (^template.with [<tag>]
-            ...                                     [{<tag> left right}
-            ...                                      {<tag> (reduced env left) (reduced env right)}])
-            ...                     ([.:Function] [.:Reification])
-
-            ...                     (^template.with [<tag>]
-            ...                                     [{<tag> old_env def}
-            ...                                      (when old_env
-            ...                                        {.:Empty}
-            ...                                        {<tag> env def}
-
-            ...                                        _
-            ...                                        type)])
-            ...                     ([.:Universal] [.:Existential])
-
-            ...                     {.:Parameter idx}
-            ...                     (else type (list.item idx env))
-
-            ...                     _
-            ...                     type
-            ...                     )))))
-
             (,, (template.with [<name> <doc>]
                   [($.definition <name>
                      <doc>)]
@@ -732,27 +675,6 @@
                                    _
                                    false)))))
 
-            ... ($.definition /.^multi
-            ...   (text "Multi-level pattern matching."
-            ...           \n "Useful in situations where the result of a branch depends on further refinements on the values being matched.")
-            ...   ($.example (' (when (split (size static) uri)
-            ...                   (^multi {:Some [chunk uri']}
-            ...                           [(text.= static chunk) .true])
-            ...                   (match_uri endpoint? parts' uri')
-
-            ...                   _
-            ...                   {:Left (text "Static part " (%t static) " does not match URI: " uri)})))
-
-            ...   ($.comment "Short-cuts can be taken when using bit tests.")
-            ...   ($.comment "The example above can be rewritten as...")
-            ...   ($.example (' (when (split (size static) uri)
-            ...                   (^multi {:Some [chunk uri']}
-            ...                           (text.= static chunk))
-            ...                   (match_uri endpoint? parts' uri')
-
-            ...                   _
-            ...                   {:Left (text "Static part " (%t static) " does not match URI: " uri)}))))
-
             ($.definition /.name
               "Gives back a 2 tuple with the module and name parts, both as Text."
               ($.example (' (name ..:doc)))
@@ -780,21 +702,6 @@
               ($.comment "This one should fail:")
               ($.example (' (identical? +5
                                         (+ +2 +3)))))
-
-            ... ($.definition /.^let
-            ...   "Allows you to simultaneously bind and de-structure a value."
-            ...   ($.example (' (the (hash (^let set [member_hash _]))
-            ...                   (list:mix (function (_ elem acc)
-            ...                               (+ acc
-            ...                                  (by member_hash hash elem)))
-            ...                             0
-            ...                             (set.list set))))))
-
-            ... ($.definition /.^|>
-            ...   "Pipes the value being pattern-matched against prior to binding it to a variable."
-            ...   ($.example (' (when input
-            ...                   (^|> value [++ (% 10) (major 1)])
-            ...                   (foo value)))))
 
             ($.definition /.as_expected
               "Coerces the given expression to the type of whatever is expected."
@@ -858,16 +765,6 @@
                     \n "Uses a (,,) special form to specify where to expand.")
               ($.example (' (`` (some expression
                                       (,, (some macro which may yield 0 or more results)))))))
-
-            ... ($.definition /.^code
-            ...   "Generates pattern-matching code for Code values in a way that looks like code-templating."
-            ...   ($.example (' (is (Maybe Natural)
-            ...                     (when (` (0b 123 +456.789))
-            ...                       (^code (0b (, {.:Natural _ number}) +456.789))
-            ...                       {.:Some number}
-
-            ...                       _
-            ...                       {.:None})))))
 
             ($.definition /.false
               "The boolean FALSE value.")

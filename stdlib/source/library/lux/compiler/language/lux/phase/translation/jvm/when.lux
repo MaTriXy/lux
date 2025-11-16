@@ -6,15 +6,18 @@
    [abstract
     ["[0]" monad]]
    [data
+    ["[0]" product]
     ["[0]" maybe (.use functor)]
     [collection
-     ["[0]" list (.use mix monoid)]]]
+     ["[0]" list (.use monoid functor)]
+     ["[0]" set]]]
    [math
     [number
      ["i[0]" /32
       ["[1]" integer]]
      [/64
-      ["n" natural]]]]
+      ["n" natural]
+      ["i" integer]]]]
    [macro
     ["[0]" template]]
    [target
@@ -380,7 +383,7 @@
   (Expression synthesis.Its)
   (monad.let phase.monad
     [record! (expression archive recordS)]
-    (pure (list:mix (function (_ step so_far!)
+    (pure (list.mix (function (_ step so_far!)
                       (all _.composite
                            so_far!
                            (..projection step)))
@@ -407,7 +410,7 @@
     [input (expression archive input)
      body (expression archive body)]
     (pure (all _.composite
-               (list:mix (function (_ [register member] left)
+               (list.mix (function (_ [register member] left)
                            (all _.composite
                                 left
                                 _.dup
@@ -505,8 +508,8 @@
                  (<| (_.when_acknowledged @end)
                      (_.set_label @end)))))))
 
-(template.with [,name ,type ,un_box ,literal ,dup ,pop ,comparison ,if]
-  [(the .public (,name expression archive [input cases else])
+(template.with [,exposure ,name ,type ,un_box ,literal ,dup ,pop ,comparison ,if]
+  [(the ,exposure (,name expression archive [input cases else])
      (Expression [Term (List [,type Term]) Term])
      (monad.let [! phase.monad]
        [input (expression archive input)
@@ -521,7 +524,7 @@
                (all _.composite
                     input
                     ,un_box
-                    (list:mix (function (_ [when then] else)
+                    (list.mix (function (_ [when then] else)
                                 (monad.let [! _.monad]
                                   [@else _.new_label]
                                   (all _.composite
@@ -541,6 +544,59 @@
                                        (_.set_label @end)))
                               (list.in_reverse cases)))))))]
 
-  [[when_i64 I64 (//value.primitive type.long) //primitive.i64' _.dup2 _.pop2 _.lcmp _.ifne]
-   [when_f64 F64 (//value.primitive type.double) //primitive.f64' _.dup2 _.pop2 _.dcmpl _.ifne]
-   [when_text Text (pure []) //primitive.text _.dup _.pop ..object_equals _.ifeq]])
+  [[.private when_i64|general I64 (//value.primitive type.long) //primitive.i64' _.dup2 _.pop2 _.lcmp _.ifne]
+   [.public when_f64 F64 (//value.primitive type.double) //primitive.f64' _.dup2 _.pop2 _.dcmpl _.ifne]
+   [.public when_text Text (pure []) //primitive.text _.dup _.pop ..object_equals _.ifeq]])
+
+(the (when_i64|look_up expression archive [input every_case else])
+  (Expression [Term (List [i/32.Number Term]) Term])
+  (monad.let [! phase.monad]
+    [input (expression archive input)
+     every_case (list.each' ! (function (_ [when then])
+                                (by ! each
+                                    (|>> [when])
+                                    (expression archive then)))
+                            every_case)
+     else (expression archive else)]
+    (pure (monad.let [! _.monad]
+            [@pre_else _.new_label
+             @else _.new_label
+             @end _.new_label
+             every_case (list.each' ! (function (_ [when then])
+                                        (monad.let !
+                                          [@then _.new_label]
+                                          (pure [when @then then])))
+                                    every_case)]
+            (all _.composite
+                 input (//value.primitive type.long)
+                 _.dup2 (_.long (i/32.as i/32.maximum)) _.lcmp (_.ifgt @pre_else)
+                 _.dup2 (_.long (i/32.as i/32.minimum)) _.lcmp (_.iflt @pre_else)
+                 _.l2i (_.lookupswitch @else (list:each (function (_ [when @then then]) [when @then]) every_case))
+                 (list.mix (function (_ [when @then then] else)
+                             (all _.composite
+                                  (_.set_label @then)
+                                  then
+                                  (_.when_continuous (_.goto @end))
+                                  else))
+                           (all _.composite
+                                (_.set_label @pre_else)
+                                _.pop2
+                                (_.set_label @else)
+                                else
+                                (<| (_.when_acknowledged @end)
+                                    (_.set_label @end)))
+                           (list.in_reverse every_case)))))))
+
+(the .public (when_i64 expression archive [input every_case else])
+  (Expression [Term (List [I64 Term]) Term])
+  (.if (.let [every_case (list:each (|>> product.left .integer) every_case)]
+         (.and (n.> 2 (list.size every_case))
+               (n.= (set.size (set.of_list i.hash every_case))
+                    (list.size every_case))
+               (list.every? i/32.valid? every_case)))
+       (when_i64|look_up expression archive [input
+                                             (list:each (function (_ [case then])
+                                                          [(i/32.of case) then])
+                                                        every_case)
+                                             else])
+       (when_i64|general expression archive [input every_case else])))

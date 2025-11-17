@@ -99,37 +99,40 @@
         minor (all d.minor red green blue)
         luminance (|> (d.+ major minor) (d./ +2.0))]
     (if (d.= major minor)
-        ... Achromatic
-        [:hue ..least
-         :saturation ..least
-         :luminance luminance]
-        ... Chromatic
-        (let [diff (|> major (d.- minor))
-              saturation (|> diff
-                             (d./ (if (d.> +0.5 luminance)
-                                      (|> +2.0 (d.- major) (d.- minor))
-                                      (|> major (d.+ minor)))))
-              hue' (if (d.= red major)
-                       (|> green (d.- blue) (d./ diff)
-                           (d.+ (if (d.< blue green) +6.0 +0.0)))
-                       
-                       (d.= green major)
-                       (|> blue (d.- red) (d./ diff)
-                           (d.+ +2.0))
-                       
-                       ... (d.= blue major)
-                       (|> red (d.- green) (d./ diff)
-                           (d.+ +4.0)))]
-          [:hue (|> hue' (d./ +6.0))
-           :saturation saturation
-           :luminance luminance]))))
+        (comment "Achromatic"
+                 [:hue ..least
+                  :saturation ..least
+                  :luminance luminance])
+        (comment "Chromatic"
+                 (let [diff (|> major (d.- minor))
+                       saturation (|> diff
+                                      (d./ (if (d.> +0.5 luminance)
+                                               (|> +2.0 (d.- major) (d.- minor))
+                                               (|> major (d.+ minor)))))
+                       hue' (if (d.= red major)
+                                (|> green (d.- blue) (d./ diff)
+                                    (d.+ (if (d.< blue green) +6.0 +0.0)))
+                                
+                                (d.= green major)
+                                (|> blue (d.- red) (d./ diff)
+                                    (d.+ +2.0))
+                                
+                                (comment (d.= blue major)
+                                         (|> red (d.- green) (d./ diff)
+                                             (d.+ +4.0))))]
+                   [:hue (|> hue' (d./ +6.0))
+                    :saturation saturation
+                    :luminance luminance])))))
 
 (the (hue_rgb p q t)
   (-> Decimal Decimal Decimal
       Natural)
-  (let [t (if (d.< +0.0 t) (d.+ +1.0 t)
-              (d.> +1.0 t) (d.- +1.0 t)
-              ... else
+  (let [t (if (d.< +0.0 t)
+              (d.+ +1.0 t)
+              
+              (d.> +1.0 t)
+              (d.- +1.0 t)
+              
               t)
         f2/3 (d./ +3.0 +2.0)]
     (..up (if (d.< (d./ +6.0 +1.0) t)
@@ -141,25 +144,24 @@
               (d.< f2/3 t)
               (|> q (d.- p) (d.x (|> f2/3 (d.- t))) (d.x +6.0) (d.+ p))
               
-              ... else
               p))))
 
 (the .public (rgb (open "/[0]"))
   (-> HSL
       RGB)
   (if (d.= ..least /:saturation)
-      ... Achromatic
-      (let [intensity (..up /:luminance)]
-        (rgb.rgb intensity intensity intensity))
-      ... Chromatic
-      (let [q (if (d.< +0.5 /:luminance)
-                  (|> /:saturation (d.+ +1.0) (d.x /:luminance))
-                  (|> /:luminance (d.+ /:saturation) (d.- (d.x /:saturation /:luminance))))
-            p (|> /:luminance (d.x +2.0) (d.- q))
-            third (|> +1.0 (d./ +3.0))]
-        (rgb.rgb (|> /:hue (d.+ third) (hue_rgb p q))
-                 (|> /:hue (hue_rgb p q))
-                 (|> /:hue (d.- third) (hue_rgb p q))))))
+      (comment "Achromatic"
+               (let [intensity (..up /:luminance)]
+                 (rgb.rgb intensity intensity intensity)))
+      (comment "Chromatic"
+               (let [q (if (d.< +0.5 /:luminance)
+                           (|> /:saturation (d.+ +1.0) (d.x /:luminance))
+                           (|> /:luminance (d.+ /:saturation) (d.- (d.x /:saturation /:luminance))))
+                     p (|> /:luminance (d.x +2.0) (d.- q))
+                     third (|> +1.0 (d./ +3.0))]
+                 (rgb.rgb (|> /:hue (d.+ third) (hue_rgb p q))
+                          (|> /:hue (hue_rgb p q))
+                          (|> /:hue (d.- third) (hue_rgb p q)))))))
 
 (the (ratio it)
   (-> Decimal
@@ -170,7 +172,6 @@
       (d.< +0.0 it)
       (|> it (d.% +1.0) (d.+ +1.0))
 
-      ... else
       it))
 
 (template.with [<op> <name>]
@@ -184,8 +185,7 @@
             /:luminance))]
 
   [[d.+ saturated]
-   [d.- un_saturated]]
-  )
+   [d.- un_saturated]])
 
 (the .public gray_scale
   (-> HSL

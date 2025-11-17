@@ -179,6 +179,20 @@
       [(<>.at_least 2 ?list.any)]
       ///complex.tuple))
 
+(the of_pair
+  (<| ..custom
+      [(all <>.and ?list.any ?synthesis.local ?synthesis.local ?list.any)]
+      (function (_ translation archive [pair left right body])
+        (monad.let phase.monad
+          [pair (translation archive pair)
+           body (translation archive body)]
+          (pure (all _.composite
+                     pair
+                     _.dup
+                     (///when.left_of_tuple 0) (_.astore left)
+                     (///when.right_of_tuple 0) (_.astore right)
+                     body))))))
+
 (the side
   (<| ..custom
       [(all <>.and ?synthesis.i64 ?synthesis.bit ?list.any)]
@@ -198,6 +212,7 @@
        (with extension/lux.try (unary ..lux:try))
        (with extension/lux.case ..case)
        (with extension/lux.pair ..pair)
+       (with extension/lux.of_pair ..of_pair)
        (with extension/lux.side ..side)))
 
 (template.with [<name> <op>]

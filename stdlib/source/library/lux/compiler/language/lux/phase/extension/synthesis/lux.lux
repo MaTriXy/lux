@@ -184,6 +184,14 @@
             [function (as_exec function)
              every_argument (list.each' ! as_exec every_argument)]
             (pure [@ {synthesis.:Control {synthesis.:Function {synthesis.:Reification [function every_argument]}}}]))))
+
+      [@ {synthesis.:Extension [.prelude (static.text (extension.synthesis extension/lux.of_pair))]
+                               (list pair (synthesis.local @ left) (synthesis.local @ right) body)}]
+      (monad.let maybe.monad
+        [pair (as_exec pair)
+         body (as_exec body)]
+        (pure [@ {synthesis.:Extension [.prelude (static.text (extension.synthesis extension/lux.of_pair))]
+                                       (list pair (synthesis.local @ (-- left)) (synthesis.local @ (-- right)) body)}]))
       
       [@ {synthesis.:Extension name every_argument}]
       (monad.let [! maybe.monad]
@@ -380,6 +388,14 @@
                                                          {synthesis.:Reification [(term function)
                                                                                   (list:each term every_argument)]})})}]
          
+         [@ {synthesis.:Extension [.prelude (static.text (extension.synthesis extension/lux.of_pair))]
+                                  (list pair (,expectation @ left) (,expectation @ right) body)}]
+         [@ {synthesis.:Extension [.prelude (static.text (extension.synthesis extension/lux.of_pair))]
+                                  (list (term pair)
+                                        (,expectation @ (-- left))
+                                        (,expectation @ (-- right))
+                                        (term body))}]
+
          [@ {synthesis.:Extension name every_argument}]
          [@ {synthesis.:Extension name (list:each term every_argument)}]
 
@@ -577,6 +593,25 @@
              right (synthesis archive right)]
             (pure (flat_pair left right))))))]))
 
+(the of_pair
+  Handler
+  (..custom
+   [(all ?.and ?list.any ?list.any)
+    (function (_ name synthesis archive [pair body])
+      (monad.let phase.monad
+        [pair (synthesis archive pair)
+         body (<| synthesis.with_new_local
+                  synthesis.with_new_local
+                  (synthesis archive body))
+         left synthesis.locals
+         .let [@ (synthesis.provenance pair)
+               right (++ left)]]
+        (pure [@ {synthesis.:Extension [.prelude (extension.synthesis name)]
+                                       (list pair
+                                             (synthesis.local @ left)
+                                             (synthesis.local @ right)
+                                             body)}])))]))
+
 (the side
   Handler
   (..custom
@@ -639,6 +674,7 @@
                  [..case]
                  [..if_case]
                  [..pair]
+                 [..of_pair]
                  [..side]
                  [..text_composite]]
                 )))))

@@ -3928,7 +3928,7 @@
                               ?:any)
                      (?:after (?:this_bit false)
                               ?:any))
-                (?:each (function' (_ it) [(.side# 1b it) (.side# 0b it)])
+                (?:each (function' (_ it) (.of_pair# it left right [right left]))
                         (all ?:and
                              (?:after (?:this_bit false)
                                       ?:any)
@@ -4032,10 +4032,12 @@
              (failure "Redundancy")
              (meta:pure (list (` (.let# (, '_) (..is ,type (, value))
                                         (, (list:mix (function' (_ case,then 'else)
-                                                                ('if (` (,'= (, (,code (.side# 0b case,then)))
-                                                                             (, '_)))
-                                                                     (.side# 1b case,then)
-                                                                     'else))
+                                                                (.of_pair# case,then
+                                                                           case then
+                                                                           ('if (` (,'= (, (,code case))
+                                                                                        (, '_)))
+                                                                                then
+                                                                                'else)))
                                                      ('let (code:local variable) '_ 'else)
                                                      (list:in_reverse every_then)))))))))]
 
@@ -5413,7 +5415,9 @@
                                         'output
                                         '_)))
                        code:tuple)
-           source+ (` (..when (, source) (, pattern) (, 'output)))]]
+           source+ (` (..when (, source)
+                        (, pattern)
+                        (, 'output)))]]
     (when output
       {:Some [tags' members']}
       (with_monad meta:monad

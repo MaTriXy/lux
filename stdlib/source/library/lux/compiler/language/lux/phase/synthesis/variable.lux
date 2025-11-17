@@ -22,7 +22,9 @@
    [macro
     ["^" pattern]
     ["[0]" expansion]
-    ["[0]" template]]]]
+    ["[0]" template]]
+   [meta
+    ["[0]" static]]]]
  [////
   ["[0]" analysis (.only)
    ["[1]/[0]" complex]]
@@ -31,7 +33,9 @@
    ["[1][0]" access]]
   [///
    [arity (.only Arity)]
-   ["@[0]" type (.only Register Variable)]]])
+   ["@[0]" type (.only Register Variable)]
+   ["[0]" extension (.only)
+    ["[1]/[0]" lux]]]])
 
 (the (prune redundant register)
   (-> Register Register
@@ -377,6 +381,16 @@
             (pure [redundancy
                    [@ {/.:Control {/.:Function {/.:Reification abstraction inputs}}}]]))))
       
+      [@ {/.:Extension [.prelude (static.text (extension.synthesis extension/lux.of_pair))]
+                       (list pair (/.local @ left) (/.local @ right) body)}]
+      (monad.let try.monad
+        [[redundancy pair] (optimization' [redundancy pair])
+         redundancy (..declare left redundancy)
+         redundancy (..declare right redundancy)
+         [redundancy body] (optimization' [redundancy body])]
+        (pure [redundancy [@ {/.:Extension [.prelude (static.text (extension.synthesis extension/lux.of_pair))]
+                                           (list pair (/.local @ left) (/.local @ right) body)}]]))
+
       [@ {/.:Extension name inputs}]
       (monad.let try.monad
         [[redundancy inputs] (..list_optimization optimization' [redundancy inputs])]

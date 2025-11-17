@@ -1,6 +1,7 @@
 (.using
  [library
   [lux (.except global local let if when function with type)
+   ["[0]" type]
    [abstract
     ["?" projection (.use monad)]
     ["[0]" monad]]
@@ -16,7 +17,8 @@
      ["[0]" list (.use functor monoid)
       ["?[1]" \\projection]
       ["[0]" property]]
-     ["[0]" dictionary]]]
+     ["[0]" dictionary]
+     ["[0]" stack]]]
    [math
     [number
      [/64
@@ -38,7 +40,7 @@
     ["[0]" view]]]]
  ["[0]" /// (.only)
   [///
-   ["[0]" phase (.only)
+   ["[0]" phase (.use monad)
     [analysis
      ["[0]" complex]
      ["[0]" when]
@@ -418,6 +420,77 @@
     (.function (_ extension_name analysis archive [left right])
       (complex.product analysis archive (list left right)))]))
 
+(exception.the .public (not_a_pair [type])
+  (Exception Type)
+  (exception.report
+   (list ["Type" (type.as_text type)])))
+
+(every Closure
+  (Stack [Type Type]))
+
+(the (with_quantification context it)
+  (-> (Stack Closure)
+      (Change Type))
+  (stack.mix (.function (_ closure body)
+               {.:Quantification .universal closure body})
+             it
+             context))
+
+(the (every_type_of_pair it)
+  (-> Type
+      (Operation [Type Type]))
+  (loop (every_type_of_pair [context (is (Stack Closure)
+                                         {.:Empty})
+                             it it])
+    (.when it
+      (@type.Product left right)
+      (phase:pure [(with_quantification context left)
+                   (with_quantification context right)])
+      
+      {.:Named name it}
+      (every_type_of_pair context it)
+
+      {.:Reification argument abstraction}
+      (.when (type.reified (list argument) abstraction)
+        {.:Some it}
+        (every_type_of_pair context it)
+
+        else
+        (analysis.except ..not_a_pair [it]))
+
+      {.:Quantification quantification
+                        closure
+                        body}
+      (.when quantification
+        .universal
+        (every_type_of_pair {.:Top closure context} body)
+        
+        .existential
+        (monad.let phase.monad
+          [type_of_commonality typeA.existential]
+          (every_type_of_pair context {.:Reification type_of_commonality it})))
+
+      else
+      (analysis.except ..not_a_pair [it]))))
+
+(the of_pair
+  Handler
+  (..custom
+   [(all ?.and
+         ?list.any
+         ?code.local ?code.local
+         ?list.any)
+    (.function (_ extension_name analysis archive [pair left_side right_side body])
+      (monad.let phase.monad
+        [[type_of_pair pair] (typeA.inferring (analysis archive pair))
+         [type_of_left type_of_right] (every_type_of_pair type_of_pair)
+         body (<| (scope.with_local [left_side type_of_left])
+                  (scope.with_local [right_side type_of_right])
+                  (analysis archive)
+                  body)
+         @ analysis.provenance]
+        (pure {@type.:Extension @ [.prelude (extension.analysis extension_name)] (list pair body)})))]))
+
 (the side
   Handler
   (..custom
@@ -513,6 +586,7 @@
        (with extension/lux.case ..case)
        (with extension/lux.if_case ..if_case)
        (with extension/lux.pair ..pair)
+       (with extension/lux.of_pair ..of_pair)
        (with extension/lux.side ..side)
        (with extension/lux.when ..when)
        (with extension/lux.function ..function)

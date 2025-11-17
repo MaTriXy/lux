@@ -3965,6 +3965,86 @@
            (?:switch ?:text)
            ?:when/let))
 
+(the' .private Equality
+      Type
+      (type (for_any (_ it)
+              (-> it
+                  (Predicate it)))))
+
+(with_template [<nullary> <form> <name>]
+  [(the' .public <name>
+         Macro
+         (macro (_ tokens)
+           (meta:pure (list (.when# (|> (?:and ?:any ?:rest)
+                                        (?:value (list:in_reverse tokens)))
+                                    {.:Some [last init]}
+                                    (list:mix (is (-> Code (Change Code))
+                                                  (function' (_ pre post) (` <form>)))
+                                              last
+                                              init)
+                                    
+                                    else
+                                    (` <nullary>))))))]
+
+  [[0b (if (, pre) 1b (, post)) or]
+   [1b (if (, pre) (, post) 0b) and]])
+
+(the' .private (redundancy?' = reference every_case)
+      (type (for_any (_ it)
+              (-> (Equality it) it
+                  (Predicate (Stack it)))))
+      (.when# every_case
+              {:Empty}
+              false
+
+              {:Top head tail}
+              (or (= reference head)
+                  (redundancy?' = reference tail))))
+
+(the' .private (redundancy? = every_case)
+      (type (for_any (_ it)
+              (-> (Equality it)
+                  (Predicate (Stack it)))))
+      (.when# every_case
+              {:Empty}
+              false
+
+              {:Top head tail}
+              (or (redundancy?' = head tail)
+                  (redundancy? = tail))))
+
+(with_template [,name ,type ,=]
+  [(the' .private (,name reference it)
+         (type (Equality ,type))
+         (,= reference it))]
+
+  [[natural:= Natural .i64_=#]
+   [integer:= Integer .i64_=#]
+   [revolution:= Revolution .i64_=#]
+   [decimal:= Decimal .f64_=#]
+   [text:= Text .text_=#]])
+
+(with_template [,name ,type ,= ,'= ,code]
+  [(the' .private (,name '_ value every_then variable 'else)
+         (type (-> Code Code (List [,type Code]) Text Code
+                   (Meta (List Code))))
+         (if (redundancy? ,= (list:as_stack (list:each product:left every_then)))
+             (failure "Redundancy")
+             (meta:pure (list (` (.let# (, '_) (..is ,type (, value))
+                                        (, (list:mix (function' (_ case,then 'else)
+                                                                ('if (` (,'= (, (,code (.side# 0b case,then)))
+                                                                             (, '_)))
+                                                                     (.side# 1b case,then)
+                                                                     'else))
+                                                     ('let (code:local variable) '_ 'else)
+                                                     (list:in_reverse every_then)))))))))]
+
+  [[if_natural ..Natural natural:= .i64_=# code:natural]
+   [if_integer ..Integer integer:= .i64_=# code:integer]
+   [if_revolution ..Revolution revolution:= .i64_=# code:revolution]
+   [if_decimal ..Decimal decimal:= .f64_=# code:decimal]
+   [if_text ..Text text:= .text_=# code:text]])
+
 (the' .public when
       Macro
       (macro (_ tokens)
@@ -3974,75 +4054,32 @@
                 (with_monad meta:monad
                   [expansion (when_expansion branches)
                    '_ (generated_name "'_")]
-                  (pure (list (.when# (?:value expansion ?:when)
-                                      {:Some {:When/Complete_If 'then 'else}}
-                                      ('if value 'then 'else)
+                  (.when# (?:value expansion ?:when)
+                          {:Some {:When/Complete_If 'then 'else}}
+                          (pure (list ('if value 'then 'else)))
 
-                                      {:Some {:When/Partial_If case 'then variable 'else}}
-                                      (` (.let# (, '_) (..is ..Bit (, value))
-                                                (, (.if# case
-                                                         ('if '_
-                                                              'then
-                                                              (` (.let# (, (code:local variable)) 0b (, 'else))))
-                                                         ('if '_
-                                                              (` (.let# (, (code:local variable)) 1b (, 'then)))
-                                                              'else)))))
+                          {:Some {:When/Partial_If case 'then variable 'else}}
+                          (pure (list ('let '_ (` (..is ..Bit (, value)))
+                                            (.if# case
+                                                  ('if '_
+                                                       'then
+                                                       (` (.let# (, (code:local variable)) 0b (, 'else))))
+                                                  ('if '_
+                                                       (` (.let# (, (code:local variable)) 1b (, 'then)))
+                                                       'else)))))
 
-                                      {:Some {:When/If_Natural every_then variable 'else}}
-                                      (` (.let# (, '_) (..is ..Natural (, value))
-                                                (, (list:mix (function' (_ case,then 'else)
-                                                                        ('if (` (.i64_=# (, (code:natural (.side# 0b case,then)))
-                                                                                         (, '_)))
-                                                                             (.side# 1b case,then)
-                                                                             'else))
-                                                             ('let (code:local variable) '_ 'else)
-                                                             (list:in_reverse every_then)))))
+                          {:Some {:When/If_Natural every_then variable 'else}} (if_natural '_ value every_then variable 'else)
+                          {:Some {:When/If_Integer every_then variable 'else}} (if_integer '_ value every_then variable 'else)
+                          {:Some {:When/If_Revolution every_then variable 'else}} (if_revolution '_ value every_then variable 'else)
+                          {:Some {:When/If_Decimal every_then variable 'else}} (if_decimal '_ value every_then variable 'else)
+                          {:Some {:When/If_Text every_then variable 'else}} (if_text '_ value every_then variable 'else)
 
-                                      {:Some {:When/If_Integer every_then variable 'else}}
-                                      (` (.let# (, '_) (..is ..Integer (, value))
-                                                (, (list:mix (function' (_ case,then 'else)
-                                                                        ('if (` (.i64_=# (, (code:integer (.side# 0b case,then)))
-                                                                                         (, '_)))
-                                                                             (.side# 1b case,then)
-                                                                             'else))
-                                                             ('let (code:local variable) '_ 'else)
-                                                             (list:in_reverse every_then)))))
+                          {:Some {:When/Let variable 'body}}
+                          (pure (list ('let (code:local variable) value
+                                            'body)))
 
-                                      {:Some {:When/If_Revolution every_then variable 'else}}
-                                      (` (.let# (, '_) (..is ..Revolution (, value))
-                                                (, (list:mix (function' (_ case,then 'else)
-                                                                        ('if (` (.i64_=# (, (code:revolution (.side# 0b case,then)))
-                                                                                         (, '_)))
-                                                                             (.side# 1b case,then)
-                                                                             'else))
-                                                             ('let (code:local variable) '_ 'else)
-                                                             (list:in_reverse every_then)))))
-
-                                      {:Some {:When/If_Decimal every_then variable 'else}}
-                                      (` (.let# (, '_) (..is ..Decimal (, value))
-                                                (, (list:mix (function' (_ case,then 'else)
-                                                                        ('if (` (.f64_=# (, (code:decimal (.side# 0b case,then)))
-                                                                                         (, '_)))
-                                                                             (.side# 1b case,then)
-                                                                             'else))
-                                                             ('let (code:local variable) '_ 'else)
-                                                             (list:in_reverse every_then)))))
-
-                                      {:Some {:When/If_Text every_then variable 'else}}
-                                      (` (.let# (, '_) (..is ..Text (, value))
-                                                (, (list:mix (function' (_ case,then 'else)
-                                                                        ('if (` (.text_=# (, (code:text (.side# 0b case,then)))
-                                                                                          (, '_)))
-                                                                             (.side# 1b case,then)
-                                                                             'else))
-                                                             ('let (code:local variable) '_ 'else)
-                                                             (list:in_reverse every_then)))))
-
-                                      {:Some {:When/Let variable 'body}}
-                                      ('let (code:local variable) value 'body)
-
-                                      else
-                                      (` (.when# (, value)
+                          else
+                          (pure (list (` (.when# (, value)
                                                  (,* expansion)))))))
 
                 else
@@ -4108,27 +4145,30 @@
                  list:in_reverse
                  (list:mix (is (-> [Code Code]
                                    (Change Code))
-                               (function' (_ variable,value body')
+                               (function' (_ variable,value 'body)
                                           (let' [[pattern value] variable,value]
                                                 (when (|> ?:bundle
                                                           (?:value (list pattern)))
                                                   {:Some variable|tuple}
                                                   (when variable|tuple
                                                     {:Left variable}
-                                                    (` (.let# (, (code:local variable)) (, value) (, body')))
+                                                    ('let (code:local variable) value
+                                                          'body)
                                                     
                                                     {:Right [head tail]}
-                                                    (.let# last_right (.list_size# tail)
-                                                           (` (..let [(, '_) (, value)
-                                                                      (,* (|> (.list_composite# (list head) tail)
-                                                                              (list:each' (function' (_ every_left member)
-                                                                                                     (list (code:bundle member)
-                                                                                                           (side_of_tuple every_left last_right '_))))
-                                                                              list:conjoint))]
-                                                                (, body')))))
+                                                    ('let '_ value
+                                                          (` (..let [(,* (.let# last_right (.list_size# tail)
+                                                                                (|> (.list_composite# (list head) tail)
+                                                                                    (list:each' (function' (_ every_left member)
+                                                                                                           (list (code:bundle member)
+                                                                                                                 (side_of_tuple every_left last_right '_))))
+                                                                                    list:conjoint)))]
+                                                               (, 'body)))))
                                                   
                                                   {:None}
-                                                  (` (when (, value) (, pattern) (, body')))))))
+                                                  (` (..when (, value)
+                                                       (, pattern)
+                                                       (, 'body)))))))
                            body)
                  list
                  pure))
@@ -4231,23 +4271,6 @@
           
           {:None}
           (failure ""))))
-
-(with_template [<nullary> <form> <name>]
-  [(the .public <name>
-     (macro (_ tokens)
-       (meta:pure (list (when (|> (?:and ?:any ?:rest)
-                                  (?:value (list:in_reverse tokens)))
-                          {.:Some [last init]}
-                          (list:mix (is (-> Code (Change Code))
-                                        (function (_ pre post) (` <form>)))
-                                    last
-                                    init)
-                          
-                          else
-                          (` <nullary>))))))]
-
-  [[0b (if (, pre) 1b (, post)) or]
-   [1b (if (, pre) (, post) 0b) and]])
 
 ... https://en.wikipedia.org/wiki/Halting_problem
 (the .public (halt! message)

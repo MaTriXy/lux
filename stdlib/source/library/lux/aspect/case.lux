@@ -1,12 +1,13 @@
-... [Profunctor Optics: Modular Data Accessors](https://arxiv.org/abs/1703.10857)
-(.using
- [library
-  [lux (.except macro if when)
-   [abstract
-    [functor
-     ["[0]" pro]]]
-   ["[0]" function]]]
- ["[0]" //])
+(.comment "Profunctor Optics: Modular Data Accessors"
+          "https://arxiv.org/abs/1703.10857"
+          (.using
+           [library
+            [lux (.except macro if when)
+             [abstract
+              [functor
+               ["[0]" pro]]]
+             ["[0]" function]]]
+           ["[0]" //]))
 
 (the macro
   (<| (.in_module# .prelude)
@@ -16,34 +17,34 @@
   (<| (.in_module# .prelude)
       with_template))
 
-... Inlined the following functions in order to get around a circular dependency.
-(these (with_template [<right?> <name>]
-         [(the <name>
-            (for_any (_ sum:left sum:right)
-              (-> <name>
-                  (Or sum:left sum:right)))
-            (|>> {<right?>}))]
+(comment "Inlined the following functions in order to get around a circular dependency."
+         (these (with_template [<right?> <name>]
+                  [(the <name>
+                     (for_any (_ sum:left sum:right)
+                       (-> <name>
+                           (Or sum:left sum:right)))
+                     (|>> {<right?>}))]
 
-         [[0b sum:left]
-          [1b sum:right]])
+                  [[0b sum:left]
+                   [1b sum:right]])
 
-       (the (sum:either on_left on_right)
-         (for_any (_ a b c)
-           (-> (-> a c) (-> b c)
-               (-> (Or a b) c)))
-         (function (_ input)
-           (.when input
-             {0b l} (on_left l)
-             {1b r} (on_right r))))
+                (the (sum:either on_left on_right)
+                  (for_any (_ a b c)
+                    (-> (-> a c) (-> b c)
+                        (-> (Or a b) c)))
+                  (function (_ input)
+                    (.when input
+                      {0b l} (on_left l)
+                      {1b r} (on_right r))))
 
-       (the (sum:then on_left on_right)
-         (for_any (_ l l' r r')
-           (-> (-> l l') (-> r r')
-               (-> (Or l r) (Or l' r'))))
-         (function (_ input)
-           (.when input
-             {0b l} {0b (on_left l)}
-             {1b r} {1b (on_right r)}))))
+                (the (sum:then on_left on_right)
+                  (for_any (_ l l' r r')
+                    (-> (-> l l') (-> r r')
+                        (-> (Or l r) (Or l' r'))))
+                  (function (_ input)
+                    (.when input
+                      {0b l} {0b (on_left l)}
+                      {1b r} {1b (on_right r)})))))
 
 (the If'
   (macro (_ context context'

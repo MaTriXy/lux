@@ -4087,52 +4087,85 @@
                 else
                 (failure ""))))
 
-(the' .private list:enumeration
-      (type (for_any (_ it)
-              (-> (List it)
-                  (List [Natural it]))))
-      (list:each' (function' (_ address it)
-                             [address it])))
-
-(with_template [,side ,name]
-  [(the' .private (,name every_left 'pair)
-         (type (-> Natural
-                   (Change Code)))
-         (when every_left
-           0 (` (.side# ,side (, 'pair)))
-           else (,name (.i64_-# 1 every_left) (` (.side# 1b (, 'pair))))))]
-
-  [[0b left_of_tuple]
-   [1b right_of_tuple]])
-
-(the' .private (side_of_tuple every_left last_right 'pair)
-      (type (-> Natural Natural
-                (Change Code)))
-      (if (.i64_=# every_left last_right)
-          (right_of_tuple (.i64_-# 1 every_left) 'pair)
-          (left_of_tuple every_left 'pair)))
-
 (the' .private Bundle
       Type
-      (type (for_any (Bundle _)
-              (Or Text
-                  [(Bundle _) (List (Bundle _))]))))
+      {:Named [.prelude "Bundle"]
+              (type (for_any (Bundle _)
+                      (Or Text
+                          [(Bundle _) (Bundle _)])))})
+
+(the' .private (as_bundle it)
+      (type (-> (Stack Code)
+                (Maybe Bundle)))
+      (.when# it
+              {:Top {:Name _ ["" name]} {:Empty}}
+              {:Some {:Left name}}
+
+              {:Top {:Tuple _ it} {:Empty}}
+              (as_bundle (list:as_stack it))
+
+              {:Top {:Name _ ["" head]} tail}
+              (with_monad maybe:monad
+                [tail (as_bundle tail)]
+                (pure {:Right [{:Left head} tail]}))
+
+              {:Top {:Tuple _ head} tail}
+              (with_monad maybe:monad
+                [head (as_bundle (list:as_stack head))
+                 tail (as_bundle tail)]
+                (pure {:Right [head tail]}))
+
+              else
+              {:None}))
 
 (the' .private (?:bundle tape)
       (type (Projection Bundle))
-      ((?:or ?:member
-             (?:tuple (?:and ?:bundle (?:many ?:bundle))))
-       tape))
+      (let' [[address' tape'] tape]
+            (.when# (as_bundle (list:as_stack (list:after address' tape')))
+                    {:Some it}
+                    {:Some [[(.list_size# tape') tape'] it]}
 
-(the' .private (code:bundle it)
-      (-> Bundle
-          Code)
-      (when it
-        {:Left it}
-        (code:local it)
-        
-        {:Right [head tail]}
-        (code:tuple (.list_composite# (list (code:bundle head)) (list:each code:bundle tail)))))
+                    {:None}
+                    {:None})))
+
+(the' .private (let_pair 'value tuple 'body)
+      (type (-> Code Bundle Code
+                (Meta Code)))
+      (.when# tuple
+              {:Left name}
+              (meta:pure (` (.let# (, (code:local name)) (, 'value)
+                                   (, 'body))))
+
+              {:Right {:Left left} {:Left right}}
+              (meta:pure (` (.of_pair# (, 'value)
+                                       (, (code:local left)) (, (code:local right))
+                                       (, 'body))))
+
+              {:Right left {:Left right}}
+              (with_monad meta:monad
+                ['left (generated_name "'left")
+                 'body (let_pair 'left left 'body)]
+                (pure (` (.of_pair# (, 'value)
+                                    (, 'left) (, (code:local right))
+                                    (, 'body)))))
+
+              {:Right {:Left left} right}
+              (with_monad meta:monad
+                ['right (generated_name "'right")
+                 'body (let_pair 'right right 'body)]
+                (pure (` (.of_pair# (, 'value)
+                                    (, (code:local left)) (, 'right)
+                                    (, 'body)))))
+
+              {:Right left right}
+              (with_monad meta:monad
+                ['left (generated_name "'left")
+                 'right (generated_name "'right")
+                 'body (let_pair 'left left 'body)
+                 'body (let_pair 'right right 'body)]
+                (pure (` (.of_pair# (, 'value)
+                                    (, 'left) (, 'right)
+                                    (, 'body)))))))
 
 (the' .public let
       Macro
@@ -4142,38 +4175,23 @@
                   (?:value tokens))
           {:Some [bindings body]}
           (with_monad meta:monad
-            ['_ (generated_name "'_")]
-            (|>  bindings
-                 list:in_reverse
-                 (list:mix (is (-> [Code Code]
-                                   (Change Code))
-                               (function' (_ variable,value 'body)
-                                          (let' [[pattern value] variable,value]
-                                                (when (|> ?:bundle
-                                                          (?:value (list pattern)))
-                                                  {:Some variable|tuple}
-                                                  (when variable|tuple
-                                                    {:Left variable}
-                                                    ('let (code:local variable) value
-                                                          'body)
-                                                    
-                                                    {:Right [head tail]}
-                                                    ('let '_ value
-                                                          (` (..let [(,* (.let# last_right (.list_size# tail)
-                                                                                (|> (.list_composite# (list head) tail)
-                                                                                    (list:each' (function' (_ every_left member)
-                                                                                                           (list (code:bundle member)
-                                                                                                                 (side_of_tuple every_left last_right '_))))
-                                                                                    list:conjoint)))]
-                                                               (, 'body)))))
-                                                  
-                                                  {:None}
-                                                  (` (..when (, value)
-                                                       (, pattern)
-                                                       (, 'body)))))))
-                           body)
-                 list
-                 pure))
+            ['_ (generated_name "'_")
+             it (|>  bindings
+                     list:in_reverse
+                     (monad:mix meta:monad
+                                (function' (_ variable,value 'body)
+                                           (let' [[pattern 'value] variable,value]
+                                                 (when (|> ?:bundle
+                                                           (?:value (list pattern)))
+                                                   {:Some bundle}
+                                                   (let_pair 'value bundle 'body)
+                                                   
+                                                   {:None}
+                                                   (pure (` (..when (, 'value)
+                                                              (, pattern)
+                                                              (, 'body)))))))
+                                body))]
+            (pure (list it)))
 
           else
           (failure ""))))
@@ -4659,6 +4677,13 @@
   (if (complex:right? arity label)
       (.i64_-# 1 label)
       label))
+
+(the list:enumeration
+  (for_any (_ it)
+    (-> (List it)
+        (List [Natural it])))
+  (list:each' (function (_ address it)
+                [address it])))
 
 (the (label_definitions module export_policy associated_type label_type family labels)
   (-> Text Code Code Code Code (List Text)

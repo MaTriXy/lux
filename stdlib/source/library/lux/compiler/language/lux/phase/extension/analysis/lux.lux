@@ -1,7 +1,6 @@
 (.using
  [library
   [lux (.except global local let if when function with type)
-   ["[0]" type]
    [abstract
     ["?" projection (.use monad)]
     ["[0]" monad]]
@@ -37,7 +36,9 @@
     ["[0]" code (.only)
      ["?[1]" \\projection]]]
    [aspect
-    ["[0]" view]]]]
+    ["[0]" view]]
+   ["[0]" type (.only)
+    ["[0]" check]]]]
  ["[0]" /// (.only)
   [///
    ["[0]" phase (.use monad)
@@ -451,12 +452,19 @@
       (every_type_of_pair context it)
 
       {.:Reification argument abstraction}
-      (.when (type.reified (list argument) abstraction)
-        {.:Some it}
-        (every_type_of_pair context it)
+      (.when abstraction
+        {.:Variable .general id}
+        (monad.let phase.monad
+          [abstraction (typeA.check (check.type id))]
+          (every_type_of_pair context {.:Reification argument abstraction}))
 
         else
-        (analysis.except ..not_a_pair [it]))
+        (.when (type.reified (list argument) abstraction)
+          {.:Some it}
+          (every_type_of_pair context it)
+
+          else
+          (analysis.except ..not_a_pair [it])))
 
       {.:Quantification quantification
                         closure
@@ -490,24 +498,6 @@
                   body)
          @ analysis.provenance]
         (pure {@type.:Extension @ [.prelude (extension.analysis extension_name)] (list pair body)})))]))
-
-(the side
-  Handler
-  (..custom
-   [(all ?.and
-         ?code.bit
-         ?list.any)
-    (.function (_ extension_name analysis archive [right? pair])
-      (<| typeA.with_var (.function (_ [_ type_of_left]))
-          typeA.with_var (.function (_ [_ type_of_right]))
-          (monad.let phase.monad
-            [pair (typeA.with (And type_of_left type_of_right)
-                    (analysis archive pair))
-             _ (typeA.inference (.if right?
-                                     type_of_right
-                                     type_of_left))
-             @ analysis.provenance]
-            (pure {@type.:Extension @ [.prelude (extension.analysis extension_name)] (list (analysis.bit @ right?) pair)}))))]))
 
 (the when
   Handler
@@ -587,7 +577,6 @@
        (with extension/lux.if_case ..if_case)
        (with extension/lux.pair ..pair)
        (with extension/lux.of_pair ..of_pair)
-       (with extension/lux.side ..side)
        (with extension/lux.when ..when)
        (with extension/lux.function ..function)
        (with extension/lux.constant ..constant)

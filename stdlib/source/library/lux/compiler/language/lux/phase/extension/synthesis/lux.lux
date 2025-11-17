@@ -266,8 +266,7 @@
                                         (list lefts right? it)}]
                (pure? it)]
 
-              [[extension/lux.case]
-               [extension/lux.side]]))
+              [[extension/lux.case]]))
 
         else
         false)))
@@ -612,34 +611,6 @@
                                              (synthesis.local @ right)
                                              body)}])))]))
 
-(the side
-  Handler
-  (..custom
-   [(all ?.and ?analysis.bit ?list.any)
-    (function (_ name synthesis archive [right? pair])
-      (expansion.let [,extension (static.text (extension.synthesis extension/lux.side))]
-        (template.let [(flat_side ,right? ,pair)
-                       [(is synthesis.Term
-                            (when ,pair
-                              [@ {synthesis.:Extension [.prelude ,extension]
-                                                       (list (synthesis.i64 @every_left every_left)
-                                                             (synthesis.bit @side .true)
-                                                             pair')}]
-                              [@ {synthesis.:Extension [.prelude ,extension]
-                                                       (list (synthesis.i64 @every_left (++ every_left))
-                                                             (synthesis.bit @side ,right?)
-                                                             pair')}]
-
-                              else
-                              (.let [@ (synthesis.provenance ,pair)]
-                                [@ {synthesis.:Extension [.prelude ,extension]
-                                                         (list (synthesis.i64 @ (.i64 0))
-                                                               (synthesis.bit @ ,right?)
-                                                               ,pair)}])))]]
-          (monad.let phase.monad
-            [pair (synthesis archive pair)]
-            (pure (flat_side right? pair))))))]))
-
 (the (flat_text_composite expected)
   (-> Name
       (Change (List synthesis.Term)))
@@ -675,6 +646,5 @@
                  [..if_case]
                  [..pair]
                  [..of_pair]
-                 [..side]
                  [..text_composite]]
                 )))))

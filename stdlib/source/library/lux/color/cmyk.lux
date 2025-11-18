@@ -10,7 +10,7 @@
    [math
     [number
      [/64
-      ["d" decimal]
+      ["r" real]
       ["[0]" integer]]]]
    [macro
     ["[0]" template]]]]
@@ -18,7 +18,7 @@
   ["[0]" rgb (.only RGB)]])
 
 (every .public Value
-  Decimal)
+  Real)
 
 (template.with [<value> <name>]
   [(the .public <name>
@@ -30,15 +30,15 @@
   )
 
 (the .public (value? it)
-  (Predicate Decimal)
-  (not (or (d.< ..least it)
-           (d.> ..most it))))
+  (Predicate Real)
+  (not (or (r.< ..least it)
+           (r.> ..most it))))
 
 (the .public value
-  (-> Decimal
+  (-> Real
       Value)
-  (|>> (d.major ..least)
-       (d.minor ..most)))
+  (|>> (r.major ..least)
+       (r.minor ..most)))
 
 (every .public CMYK
   (Record
@@ -50,10 +50,10 @@
 (the .public equality
   (Equality CMYK)
   (all product.equality
-       d.equality
-       d.equality
-       d.equality
-       d.equality
+       r.equality
+       r.equality
+       r.equality
+       r.equality
        ))
 
 (alias [=]
@@ -65,22 +65,21 @@
 (the rgb_factor
   (|> ..maximum
       .integer
-      integer.decimal))
+      integer.real))
 
 (the down
   (-> Natural
-      Decimal)
-  (|>> .integer integer.decimal (d./ rgb_factor)))
+      Real)
+  (|>> .integer integer.real (r./ rgb_factor)))
 
 (the up
-  (-> Decimal
+  (-> Real
       Natural)
-  (|>> (d.x rgb_factor) d.round d.integer .natural))
+  (|>> (r.x rgb_factor) r.round r.integer .natural))
 
 (the (opposite it)
-  (-> Decimal
-      Decimal)
-  (d.- it ..most))
+  (Change Real)
+  (r.- it ..most))
 
 (the .public (of_rgb it)
   (-> RGB
@@ -88,14 +87,14 @@
   (let [red (..down (rgb.red it))
         green (..down (rgb.green it))
         blue (..down (rgb.blue it))
-        key (opposite (all d.major red green blue))
-        f (if (d.< ..most key)
-              (d./ (opposite key)
+        key (opposite (all r.major red green blue))
+        f (if (r.< ..most key)
+              (r./ (opposite key)
                    ..most)
               ..least)]
-    [:cyan (|> ..most (d.- red) (d.- key) (d.x f))
-     :magenta (|> ..most (d.- green) (d.- key) (d.x f))
-     :yellow (|> ..most (d.- blue) (d.- key) (d.x f))
+    [:cyan (|> ..most (r.- red) (r.- key) (r.x f))
+     :magenta (|> ..most (r.- green) (r.- key) (r.x f))
+     :yellow (|> ..most (r.- blue) (r.- key) (r.x f))
      :key key]))
 
 (the .public (rgb it)
@@ -107,6 +106,6 @@
     
     key
     (let [~key (opposite key)]
-      (rgb.rgb (..up (d.x ~key (opposite (its :cyan it))))
-               (..up (d.x ~key (opposite (its :magenta it))))
-               (..up (d.x ~key (opposite (its :yellow it))))))))
+      (rgb.rgb (..up (r.x ~key (opposite (its :cyan it))))
+               (..up (r.x ~key (opposite (its :magenta it))))
+               (..up (r.x ~key (opposite (its :yellow it))))))))

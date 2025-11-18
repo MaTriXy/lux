@@ -16,7 +16,7 @@
       ["n" natural]
       ["[0]" integer]
       ["[0]" revolution]
-      ["[0]" decimal]]]
+      ["[0]" real]]]
     [collection
      ["[0]" list (.use functor mix monoid)]
      ["[0]" set]]]
@@ -223,7 +223,7 @@
   [[random_natural n.hash random.natural (|>> .i64 synthesis.path/i64) (|>> .i64 synthesis.i64) analysis.pattern/natural analysis.natural]
    [random_integer integer.hash random.integer (|>> .i64 synthesis.path/i64) (|>> .i64 synthesis.i64) analysis.pattern/integer analysis.integer]
    [random_revolution revolution.hash random.revolution (|>> .i64 synthesis.path/i64) (|>> .i64 synthesis.i64) analysis.pattern/revolution analysis.revolution]
-   [random_decimal decimal.hash random.decimal synthesis.path/f64 synthesis.f64 analysis.pattern/decimal analysis.decimal]
+   [random_real real.hash random.real synthesis.path/f64 synthesis.f64 analysis.pattern/real analysis.real]
    [random_text text.hash (random.unicode 1) synthesis.path/text synthesis.text analysis.pattern/text analysis.text]])
 
 (the random_simple
@@ -232,7 +232,7 @@
        ..random_natural
        ..random_integer
        ..random_revolution
-       ..random_decimal
+       ..random_real
        ..random_text
        ))
 
@@ -242,8 +242,8 @@
     [[lefts/0 lefts/1 lefts/2 lefts/3 lefts/4] (random_five n.hash random.natural)
      [value/0 value/1 value/2 value/3 value/4] (random_five text.hash (random.unicode 1))
      last_is_right? random.bit
-     [body/0 body/1 body/2 body/3 body/4] (random_five decimal.hash random.decimal)
-     .let [path (is (-> Natural Bit Text Decimal Path)
+     [body/0 body/1 body/2 body/3 body/4] (random_five real.hash random.real)
+     .let [path (is (-> Natural Bit Text Real Path)
                     (function (_ lefts right? value body)
                       (all {synthesis.:And}
                            (synthesis.path/side (if right?
@@ -251,12 +251,12 @@
                                                     {.:Left lefts}))
                            (synthesis.path/text value)
                            {synthesis.:Then (synthesis.f64 body)})))
-           branch (is (-> Natural Bit Text Decimal Branch)
+           branch (is (-> Natural Bit Text Real Branch)
                       (function (_ lefts right? value body)
                         [analysis.:when (analysis.pattern/variant [analysis.:lefts lefts
                                                                    analysis.:right? right?
                                                                    analysis.:value (analysis.pattern/text value)])
-                         analysis.:then (analysis.decimal body)]))]]
+                         analysis.:then (analysis.real body)]))]]
     (pure [(all {synthesis.:Or}
                 (path lefts/0 false value/0 body/0)
                 (path lefts/1 false value/1 body/1)
@@ -278,10 +278,10 @@
      value/mid (random.list mid_size (random.unicode 1))
      value/last (random.unicode 1)
 
-     body/first random.decimal
-     body/mid (random.list mid_size random.decimal)
-     body/last random.decimal
-     .let [path (is (-> Natural Bit Text Decimal Path)
+     body/first random.real
+     body/mid (random.list mid_size random.real)
+     body/last random.real
+     .let [path (is (-> Natural Bit Text Real Path)
                     (function (_ lefts right? value body)
                       (if right?
                           (all {synthesis.:And}
@@ -297,7 +297,7 @@
                                (synthesis.path/text value)
                                {synthesis.:Pop}
                                {synthesis.:Then (synthesis.f64 body)}))))
-           branch (is (-> Natural Bit Text Decimal Branch)
+           branch (is (-> Natural Bit Text Real Branch)
                       (function (_ lefts right? value body)
                         [analysis.:when (if right?
                                             (analysis.pattern/tuple (list:composite (list.repeated (++ lefts) (analysis.pattern/unit))
@@ -306,7 +306,7 @@
                                                                          (list.repeated lefts (analysis.pattern/unit))
                                                                          (list (analysis.pattern/text value)
                                                                                (analysis.pattern/unit)))))
-                         analysis.:then (analysis.decimal body)]))]]
+                         analysis.:then (analysis.real body)]))]]
     (pure [(list:mix (function (_ left right)
                        {synthesis.:Or left right})
                      (path (++ mid_size) true value/last body/last)

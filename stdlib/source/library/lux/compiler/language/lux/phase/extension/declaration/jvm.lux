@@ -241,40 +241,40 @@
   (-> Field
       (Resource field.Field))
   (when field
-    ... TODO: Handle annotations.
     {:Constant [name annotations type value]}
-    (`` (when value
-          (,, (template.with [<tag> <type> <constant>]
-                [{<tag> _ value}
-                 (monad.let pool.monad
-                   [constant (`` (|> value (,, (template.spliced <constant>))))
-                    attribute (attribute.constant constant)]
-                   (field.field ..constant:modifier name true <type> (sequence.new attribute)))]
+    (comment "TODO: Handle annotations."
+             (`` (when value
+                   (,, (template.with [<tag> <type> <constant>]
+                         [{<tag> _ value}
+                          (comment [@type.:Integer type.byte [.i64 i/32.of pool.integer]]
+                                   [@type.:Integer type.short [.i64 i/32.of pool.integer]]
+                                   [@type.:Integer type.int [.i64 i/32.of pool.integer]]
+                                   [@type.:Real type.float [ffi.as_double ffi.double_to_float pool.float]]
+                                   (monad.let pool.monad
+                                     [constant (`` (|> value (,, (template.spliced <constant>))))
+                                      attribute (attribute.constant constant)]
+                                     (field.field ..constant:modifier name true <type> (sequence.new attribute))))]
 
-                [[@type.:Bit type.boolean [(pipe.when 0b +0 1b +1) i/32.of pool.integer]]
-                 ... [@type.:Integer type.byte [.i64 i/32.of pool.integer]]
-                 ... [@type.:Integer type.short [.i64 i/32.of pool.integer]]
-                 ... [@type.:Integer type.int [.i64 i/32.of pool.integer]]
-                 [@type.:Integer type.long [pool.long]]
-                 ... [@type.:Decimal type.float [ffi.as_double ffi.double_to_float pool.float]]
-                 [@type.:Decimal type.double [pool.double]]
-                 [@type.:Natural type.char [.i64 i/32.of pool.integer]]
-                 [@type.:Text (type.class (list) "java.lang.String") [pool.string]]]
-                ))
+                         [[@type.:Bit type.boolean [(pipe.when 0b +0 1b +1) i/32.of pool.integer]]
+                          [@type.:Integer type.long [pool.long]]
+                          [@type.:Real type.double [pool.double]]
+                          [@type.:Natural type.char [.i64 i/32.of pool.integer]]
+                          [@type.:Text (type.class (list) "java.lang.String") [pool.string]]]
+                         ))
 
-          ... TODO: Tighten this pattern-matching so this catch-all clause isn't necessary.
-          _
-          (undefined)))
+                   _
+                   (comment "TODO: Tighten this pattern-matching so this catch-all clause isn't necessary."
+                            (undefined)))))
 
-    ... TODO: Handle annotations.
     {:Variable [name visibility state static? annotations type]}
-    (field.field (all modifier:composite
-                      (if static?
-                          field.static
-                          modifier.empty)
-                      visibility
-                      state)
-                 name true type sequence.empty)))
+    (comment "TODO: Handle annotations."
+             (field.field (all modifier:composite
+                               (if static?
+                                   field.static
+                                   modifier.empty)
+                               visibility
+                               state)
+                          name true type sequence.empty))))
 
 (the annotation_parameter_synthesis
   (<synthesis>.Projection (jvm.Annotation_Parameter synthesis.Term))
@@ -469,9 +469,8 @@
                      [1 _.fload type.float]
                      [2 _.lload type.long]]
                     ))
-
-              ... (by type.equality = type.double argumentT)
-              (wrap_primitive 2 _.dload type.double))))))
+              (comment (by type.equality = type.double argumentT)
+                       (wrap_primitive 2 _.dload type.double)))))))
 
 (the .public (method_arguments offset types)
   (-> Natural (List (Type Value))
@@ -558,9 +557,8 @@
                        [_.freturn type.float]
                        [_.lreturn type.long]]
                       ))
-
-                ... (by type.equality = type.double returnT)
-                (unwrap_primitive _.dreturn type.double)))))))
+                (comment (by type.equality = type.double returnT)
+                         (unwrap_primitive _.dreturn type.double))))))))
 
 (the (overriden_method_translation translation archive method)
   (-> (translation.Phase Anchor (Bytecode Any) Definition) Archive (jvm.Overriden_Method synthesis.Term)
@@ -756,8 +754,8 @@
         (by type.equality = type.double primitiveT)
         _.dconst_0
 
-        ... type.boolean type.byte type.short type.int type.char
-        _.iconst_0)))
+        (comment type.boolean type.byte type.short type.int type.char
+                 _.iconst_0))))
 
 (the (mock_return returnT)
   (-> (Type Return)
@@ -783,8 +781,8 @@
                (by type.equality = type.double primitiveT)
                _.dreturn
 
-               ... type.boolean type.byte type.short type.int type.char
-               _.ireturn)))))
+               (comment type.boolean type.byte type.short type.int type.char
+                        _.ireturn))))))
 
 (the (mock_method super method)
   (-> (Type Class) (Method_Definition @type.Code)
@@ -905,62 +903,62 @@
          (?code.tuple (<>.some ..annotation))
          (?code.tuple (<>.some ..field))
          (?code.tuple (<>.some ..method)))
-    (function (_ phase archive
-                 [class_declaration
-                  super
-                  interfaces
-                  inheritance
-                  ... TODO: Handle annotations.
-                  annotations
-                  fields
-                  methods])
-      (monad.let [! phase.monad]
-        [.let [[parameters name] class_declaration
-               declaration_of_type (signature.inheritance (list:each type.signature parameters)
-                                                          (type.signature super)
-                                                          (list:each type.signature interfaces))]
-         mock (<| phase.of_try
-                  (..mock class_declaration
-                          super
-                          interfaces
-                          inheritance
-                          fields
-                          methods))
-         ... Necessary for reflection to work properly during analysis.
-         _ (declaration.of_translation
-            (translation.execute! mock))
-         parameters (declaration.of_analysis
-                     (typeA.check (jvm.parameter_types parameters)))
-         .let [mapping (list:mix (function (_ [parameterJ parameterT] mapping)
-                                   (dictionary.has (projection.name parameterJ) parameterT mapping))
-                                 luxT.fresh
-                                 parameters)
-               selfT {.:Nominal name (list:each (|>> product.right
-                                                     [.co_variant])
-                                                parameters)}]
-         state phase.state
-         methods (list.each' ! (let [analysis_state (its [declaration.:analysis declaration.:state] state)]
-                                 (..method_definition archive super interfaces [mapping selfT]
-                                                      [(its [declaration.:analysis declaration.:phase] state)
-                                                       ((its [declaration.:synthesis declaration.:phase] state) analysis_state)
-                                                       ((its [declaration.:translation declaration.:phase] state) analysis_state)]))
-                             methods)
-         .let [all_dependencies (cache.all (list:each product.left methods))]
-         bytecode (<| (by ! each (\\injection.value class.as_binary))
-                      phase.of_try
-                      (class.class version.v6_0
-                                   (all modifier:composite
-                                        class.public
-                                        inheritance)
-                                   (internal.name name)
-                                   {.:Some declaration_of_type}
-                                   (..class_name super)
-                                   (list:each ..class_name interfaces)
-                                   (list:each ..field_definition fields)
-                                   (list:each product.right methods)
-                                   (list)))
-         _ (..save_class! name bytecode all_dependencies)]
-        (pure declaration.no_requirements)))]))
+    (comment "TODO: Handle annotations."
+             (function (_ phase archive
+                          [class_declaration
+                           super
+                           interfaces
+                           inheritance
+                           annotations
+                           fields
+                           methods])
+               (monad.let [! phase.monad]
+                 [.let [[parameters name] class_declaration
+                        declaration_of_type (signature.inheritance (list:each type.signature parameters)
+                                                                   (type.signature super)
+                                                                   (list:each type.signature interfaces))]
+                  mock (<| phase.of_try
+                           (..mock class_declaration
+                                   super
+                                   interfaces
+                                   inheritance
+                                   fields
+                                   methods))
+                  _ (comment "Necessary for reflection to work properly during analysis."
+                             (declaration.of_translation
+                              (translation.execute! mock)))
+                  parameters (declaration.of_analysis
+                              (typeA.check (jvm.parameter_types parameters)))
+                  .let [mapping (list:mix (function (_ [parameterJ parameterT] mapping)
+                                            (dictionary.has (projection.name parameterJ) parameterT mapping))
+                                          luxT.fresh
+                                          parameters)
+                        selfT {.:Nominal name (list:each (|>> product.right
+                                                              [.co_variant])
+                                                         parameters)}]
+                  state phase.state
+                  methods (list.each' ! (let [analysis_state (its [declaration.:analysis declaration.:state] state)]
+                                          (..method_definition archive super interfaces [mapping selfT]
+                                                               [(its [declaration.:analysis declaration.:phase] state)
+                                                                ((its [declaration.:synthesis declaration.:phase] state) analysis_state)
+                                                                ((its [declaration.:translation declaration.:phase] state) analysis_state)]))
+                                      methods)
+                  .let [all_dependencies (cache.all (list:each product.left methods))]
+                  bytecode (<| (by ! each (\\injection.value class.as_binary))
+                               phase.of_try
+                               (class.class version.v6_0
+                                            (all modifier:composite
+                                                 class.public
+                                                 inheritance)
+                                            (internal.name name)
+                                            {.:Some declaration_of_type}
+                                            (..class_name super)
+                                            (list:each ..class_name interfaces)
+                                            (list:each ..field_definition fields)
+                                            (list:each product.right methods)
+                                            (list)))
+                  _ (..save_class! name bytecode all_dependencies)]
+                 (pure declaration.no_requirements))))]))
 
 (the (method_declaration (open "/[0]"))
   (-> (jvm.Method_Declaration @type.Code)
@@ -980,8 +978,8 @@
    [(all <>.and
          ..class_declaration
          (?code.tuple (<>.some jvm.class))
-         ... TODO: Handle annotations.
-         (?code.tuple (<>.some ..annotation))
+         (comment "TODO: Handle annotations."
+                  (?code.tuple (<>.some ..annotation)))
          (<>.some jvm.method_declaration))
     (function (_ phase archive [[parameters name] supers annotations method_declarations])
       (declaration.of_translation

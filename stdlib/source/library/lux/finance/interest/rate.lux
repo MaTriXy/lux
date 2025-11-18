@@ -12,7 +12,7 @@
     [number
      [/64
       ["n" natural]
-      ["d" decimal]]]]
+      ["r" real]]]]
    [macro
     ["[0]" template]]]]
  [///
@@ -20,7 +20,7 @@
 
 ... https://en.wikipedia.org/wiki/Interest_rate
 (every .public Rate
-  Decimal)
+  Real)
 
 ... https://en.wikipedia.org/wiki/Break-even
 (the .public break_even
@@ -31,16 +31,16 @@
 (the .public compound
   (-> Rate Rate
       Rate)
-  d.x)
+  r.x)
 
 (template.with [<order> <name>]
   [(the .public <name>
      (Predicate Rate)
      (<order> ..break_even))]
 
-  [[d.< loss?]
-   [d.> gain?]
-   [d.= break_even?]])
+  [[r.< loss?]
+   [r.> gain?]
+   [r.= break_even?]])
 
 (the .public monoid
   (Monoid Rate)
@@ -50,12 +50,12 @@
 
 (the .public as_text
   (text.Injection Rate)
-  (|>> (d.- ..break_even)
+  (|>> (r.- ..break_even)
        %.per_cent))
 
 (the .public (rate before after)
   (for_any (_ $)
     (-> (Money $) (Money $)
         Rate))
-  (d./ (n.decimal (money.amount before))
-       (n.decimal (money.amount after))))
+  (r./ (n.real (money.amount before))
+       (n.real (money.amount after))))

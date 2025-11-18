@@ -27,7 +27,7 @@
      ["[0]" /64 (.only)
       ["n" natural]
       ["i" integer]
-      ["d" decimal]]]]
+      ["r" real]]]]
    [macro
     ["[0]" template]]
    [meta
@@ -54,7 +54,7 @@
   (monad.let [! random.monad]
     [boolean random.bit
      int random.integer
-     float random.decimal
+     float random.real
      string (random.upper_cased 5)]
     (all _.and
          (_.coverage [/.nil]
@@ -71,7 +71,7 @@
            (expression (|>> (as (-> Any Integer)) (i.= int))
                        (/.int int)))
          (_.coverage [/.float]
-           (expression (|>> (as (-> Any Decimal)) (d.= float))
+           (expression (|>> (as (-> Any Real)) (r.= float))
                        (/.float float)))
          (_.coverage [/.string]
            (expression (|>> (as (-> Any Text)) (text.= string))
@@ -151,33 +151,33 @@
 (the test|float
   Test
   (monad.let [! random.monad]
-    [parameter (random.only (|>> (d.= +0.0) not)
-                            random.unit_decimal)
-     subject random.unit_decimal]
+    [parameter (random.only (|>> (r.= +0.0) not)
+                            random.unit_real)
+     subject random.unit_real]
     (`` (all _.and
              (,, (template.with [</> <lux> <pre>]
                    [(_.coverage [</>]
                       (let [expected (<lux> (<pre> parameter) (<pre> subject))]
-                        (expression (|>> (as (-> Any Decimal)) (d.= expected))
+                        (expression (|>> (as (-> Any Real)) (r.= expected))
                                     (</> (/.float (<pre> parameter)) (/.float (<pre> subject))))))]
 
-                   [[/.+ d.+ |>]
-                    [/.- d.- |>]
-                    [/.* d.x |>]
-                    [/./ d./ |>]
-                    [/.% d.modulo |>]
-                    [/.^ d.^ d.absolute]]))
+                   [[/.+ r.+ |>]
+                    [/.- r.- |>]
+                    [/.* r.x |>]
+                    [/./ r./ |>]
+                    [/.% r.modulo |>]
+                    [/.^ r.^ r.absolute]]))
              (,, (template.with [</> <lux>]
                    [(_.coverage [</>]
                       (let [expected (<lux> parameter subject)]
                         (expression (|>> (as (-> Any Bit)) (bit.= expected))
                                     (</> (/.float parameter) (/.float subject)))))]
 
-                   [[/.<  d.<]
-                    [/.<= d.<=]
-                    [/.>  d.>]
-                    [/.>= d.>=]
-                    [/.=  d.=]]))
+                   [[/.<  r.<]
+                    [/.<= r.<=]
+                    [/.>  r.>]
+                    [/.>= r.>=]
+                    [/.=  r.=]]))
              ))))
 
 (the test|string
@@ -198,13 +198,13 @@
   (monad.let [! random.monad]
     [size (by ! each (|>> (n.% 10) ++) random.natural)
      index (by ! each (n.% size) random.natural)
-     items (random.list size random.unit_decimal)
+     items (random.list size random.unit_real)
      .let [expected (|> items
                         (list.item index)
                         maybe.trusted)]]
     (all _.and
          (_.coverage [/.array /.item]
-           (and (expression (|>> (as (-> Any Decimal)) (d.= expected))
+           (and (expression (|>> (as (-> Any Real)) (r.= expected))
                             (/.item (/.int (.integer (++ index)))
                                     (/.array (list:each /.float items))))
                 (expression (|>> (as (-> Any Bit)))
@@ -219,13 +219,13 @@
 (the test|table
   Test
   (monad.let [! random.monad]
-    [expected random.unit_decimal
-     dummy (random.only (|>> (d.= expected) not)
-                        random.unit_decimal)
+    [expected random.unit_real
+     dummy (random.only (|>> (r.= expected) not)
+                        random.unit_real)
 
      size (by ! each (|>> (n.% 10) ++) random.natural)
      index (by ! each (n.% size) random.natural)
-     items (random.list size random.unit_decimal)
+     items (random.list size random.unit_real)
 
      $self (by ! each /.var (random.lower_cased 10))
      $table (by ! each /.var (random.lower_cased 11))
@@ -236,14 +236,14 @@
      method (random.upper_cased 6)]
     (all _.and
          (_.coverage [/.table /.its]
-           (and (expression (|>> (as (-> Any Decimal)) (d.= expected))
+           (and (expression (|>> (as (-> Any Real)) (r.= expected))
                             (/.its field (/.table (list [field (/.float expected)]))))
                 (expression (|>> (as (-> Any Bit)))
                             (|> (/.table (list [field (/.float expected)]))
                                 (/.its non_field)
                                 (/.= /.nil)))))
          (_.coverage [/.do /.function]
-           (expression (|>> (as (-> Any Decimal)) (d.= expected))
+           (expression (|>> (as (-> Any Real)) (r.= expected))
                        (|> (all /.then
                                 (/.local/1 $table (/.table (list [field (/.float expected)])))
                                 (/.function (/.its method $table) (list $self $arg)
@@ -259,12 +259,12 @@
   Test
   (monad.let [! random.monad]
     [test random.bit
-     then random.unit_decimal
-     else random.unit_decimal
+     then random.unit_real
+     else random.unit_real
 
      boolean random.bit
      int random.integer
-     float random.decimal
+     float random.real
      string (random.upper_cased 5)
 
      comment (random.upper_cased 10)]
@@ -299,7 +299,7 @@
                            (/.its "abs")
                            (/.of (list (/.int int))))))
          (_.coverage [/.comment]
-           (expression (|>> (as (-> Any Decimal)) (d.= then))
+           (expression (|>> (as (-> Any Real)) (r.= then))
                        (/.comment comment
                                   (/.float then))))
          )))
@@ -316,9 +316,9 @@
 (the test/var
   Test
   (monad.let [! random.monad]
-    [float/0 random.unit_decimal
-     float/1 random.unit_decimal
-     float/2 random.unit_decimal
+    [float/0 random.unit_real
+     float/1 random.unit_real
+     float/2 random.unit_real
      foreign (random.lower_cased 10)
      local (random.only (|>> (text.= foreign) not)
                         (random.lower_cased 10))
@@ -326,26 +326,26 @@
            $local (/.var local)]]
     (all _.and
          (_.coverage [/.var]
-           (expression (|>> (as (-> Any Decimal)) (d.= float/0))
+           (expression (|>> (as (-> Any Real)) (r.= float/0))
                        (|> (/.return $foreign)
                            (/.closure (list $foreign))
                            (/.of (list (/.float float/0))))))
          (_.coverage [/.let]
-           (expression (|>> (as (-> Any Decimal)) (d.= float/1))
+           (expression (|>> (as (-> Any Real)) (r.= float/1))
                        (|> (all /.then
                                 (/.let (list $local) (/.float float/1))
                                 (/.return $local))
                            (/.closure (list $foreign))
                            (/.of (list (/.float float/0))))))
          (_.coverage [/.local/1]
-           (expression (|>> (as (-> Any Decimal)) (d.= float/1))
+           (expression (|>> (as (-> Any Real)) (r.= float/1))
                        (|> (all /.then
                                 (/.local/1 $local (/.float float/1))
                                 (/.return $local))
                            (/.closure (list $foreign))
                            (/.of (list (/.float float/0))))))
          (_.coverage [/.local]
-           (expression (|>> (as (-> Any Decimal)) (d.= float/1))
+           (expression (|>> (as (-> Any Real)) (r.= float/1))
                        (|> (all /.then
                                 (/.local (list $local))
                                 (/.set (list $local) (/.float float/1))
@@ -357,8 +357,8 @@
 (the test/location
   Test
   (monad.let [! random.monad]
-    [float/0 random.unit_decimal
-     float/1 random.unit_decimal
+    [float/0 random.unit_real
+     float/1 random.unit_real
      int/0 ..int_16
      $foreign (by ! each /.var (random.lower_cased 10))
      $arg/0 (by ! each /.var (random.lower_cased 11))
@@ -366,27 +366,27 @@
      field (random.upper_cased 10)]
     (all _.and
          (_.coverage [/.set]
-           (expression (|>> (as (-> Any Decimal)) (d.= (d.+ float/0 float/0)))
+           (expression (|>> (as (-> Any Real)) (r.= (r.+ float/0 float/0)))
                        (|> (all /.then
                                 (/.set (list $foreign) (/.+ $foreign $foreign))
                                 (/.return $foreign))
                            (/.closure (list $foreign))
                            (/.of (list (/.float float/0))))))
          (_.coverage [/.multi]
-           (and (expression (|>> (as (-> Any Decimal)) (d.= float/0))
+           (and (expression (|>> (as (-> Any Real)) (r.= float/0))
                             (|> (all /.then
                                      (/.set (list $arg/0 $arg/1) (/.multi (list (/.float float/0) (/.float float/1))))
                                      (/.return $arg/0))
                                 (/.closure (list))
                                 (/.of (list))))
-                (expression (|>> (as (-> Any Decimal)) (d.= float/1))
+                (expression (|>> (as (-> Any Real)) (r.= float/1))
                             (|> (all /.then
                                      (/.set (list $arg/0 $arg/1) (/.multi (list (/.float float/0) (/.float float/1))))
                                      (/.return $arg/1))
                                 (/.closure (list))
                                 (/.of (list))))))
          (_.coverage [/.Access]
-           (and (expression (|>> (as (-> Any Decimal)) (d.= (d.+ float/0 float/0)))
+           (and (expression (|>> (as (-> Any Real)) (r.= (r.+ float/0 float/0)))
                             (let [@ (/.at (/.int +1) $foreign)]
                               (|> (all /.then
                                        (/.set (list $foreign) (/.array (list $foreign)))
@@ -394,7 +394,7 @@
                                        (/.return @))
                                   (/.closure (list $foreign))
                                   (/.of (list (/.float float/0))))))
-                (expression (|>> (as (-> Any Decimal)) (d.= (d.+ float/0 float/0)))
+                (expression (|>> (as (-> Any Real)) (r.= (r.+ float/0 float/0)))
                             (let [@ (/.its field $foreign)]
                               (|> (all /.then
                                        (/.set (list $foreign) (/.table (list [field $foreign])))
@@ -557,14 +557,14 @@
 (the test|exception
   Test
   (monad.let [! random.monad]
-    [expected random.unit_decimal
-     dummy (random.only (|>> (d.= expected) not)
-                        random.unit_decimal)
+    [expected random.unit_real
+     dummy (random.only (|>> (r.= expected) not)
+                        random.unit_real)
      $verdict (by ! each /.var (random.lower_cased 10))
      $outcome (by ! each /.var (random.lower_cased 11))]
     (all _.and
          (_.coverage [/.pcall/1]
-           (expression (|>> (as (-> Any Decimal)) (d.= expected))
+           (expression (|>> (as (-> Any Real)) (r.= expected))
                        (|> (all /.then
                                 (/.let (list $verdict $outcome) (/.pcall/1 (/.closure (list)
                                                                                       (/.return (/.float expected)))))
@@ -574,7 +574,7 @@
                            (/.closure (list))
                            (/.of (list)))))
          (_.coverage [/.error/1]
-           (expression (|>> (as (-> Any Decimal)) (d.= expected))
+           (expression (|>> (as (-> Any Real)) (r.= expected))
                        (|> (all /.then
                                 (/.let (list $verdict $outcome) (/.pcall/1 (/.closure (list)
                                                                                       (all /.then
@@ -586,7 +586,7 @@
                            (/.closure (list))
                            (/.of (list)))))
          (_.coverage [/.error/2]
-           (expression (|>> (as (-> Any Decimal)) (d.= expected))
+           (expression (|>> (as (-> Any Real)) (r.= expected))
                        (|> (all /.then
                                 (/.let (list $verdict $outcome) (/.pcall/1 (/.closure (list)
                                                                                       (all /.then
@@ -602,7 +602,7 @@
 (the test|function
   Test
   (monad.let [! random.monad]
-    [float/0 random.unit_decimal
+    [float/0 random.unit_real
      iterations (by ! each (n.% 10) random.natural)
      $self (by ! each /.var (random.lower_cased 1))
      $arg/0 (by ! each /.var (random.lower_cased 2))
@@ -610,7 +610,7 @@
      $class (by ! each /.var (random.upper_cased 4))]
     (all _.and
          (_.coverage [/.closure /.return]
-           (expression (|>> (as (-> Any Decimal)) (d.= float/0))
+           (expression (|>> (as (-> Any Real)) (r.= float/0))
                        (/.of (list)
                              (/.closure (list) (/.return (/.float float/0))))))
          (_.coverage [/.local_function]
@@ -624,15 +624,15 @@
                            (/.closure (list))
                            (/.of (list)))))
          (monad.let [! random.monad]
-           [float/0 random.unit_decimal
-            float/1 random.unit_decimal
-            float/2 random.unit_decimal
+           [float/0 random.unit_real
+            float/1 random.unit_real
+            float/2 random.unit_real
             $arg/0 (by ! each /.var (random.lower_cased 10))
             $arg/1 (by ! each /.var (random.lower_cased 11))
             $arg/2 (by ! each /.var (random.lower_cased 12))]
            (`` (all _.and
                     (_.coverage [/.of]
-                      (expression (|>> (as (-> Any Decimal)) (d.= (all d.+ float/0 float/1 float/2)))
+                      (expression (|>> (as (-> Any Real)) (r.= (all r.+ float/0 float/1 float/2)))
                                   (/.of (list (/.float float/0)
                                               (/.float float/1)
                                               (/.float float/2))
@@ -643,19 +643,19 @@
 (the test|branching
   Test
   (monad.let [! random.monad]
-    [float/0 random.unit_decimal
-     float/1 random.unit_decimal
+    [float/0 random.unit_real
+     float/1 random.unit_real
      ??? random.bit]
     (all _.and
          (_.coverage [/.if]
-           (expression (|>> (as (-> Any Decimal)) (d.= (if ??? float/0 float/1)))
+           (expression (|>> (as (-> Any Real)) (r.= (if ??? float/0 float/1)))
                        (|> (/.if (/.boolean ???)
                                  (/.return (/.float float/0))
                                  (/.return (/.float float/1)))
                            (/.closure (list))
                            (/.of (list)))))
          (_.coverage [/.when]
-           (expression (|>> (as (-> Any Decimal)) (d.= (if ??? float/0 float/1)))
+           (expression (|>> (as (-> Any Real)) (r.= (if ??? float/0 float/1)))
                        (|> (all /.then
                                 (/.when (/.boolean ???)
                                   (/.return (/.float float/0)))
@@ -683,13 +683,13 @@
 (the test|statement
   Test
   (monad.let [! random.monad]
-    [float/0 random.unit_decimal
-     float/1 random.unit_decimal
+    [float/0 random.unit_real
+     float/1 random.unit_real
      $arg/0 (by ! each /.var (random.lower_cased 10))
      $arg/1 (by ! each /.var (random.lower_cased 11))]
     (`` (all _.and
              (_.coverage [/.; /.then /.print/1]
-               (expression (|>> (as (-> Any Decimal)) (d.= float/0))
+               (expression (|>> (as (-> Any Real)) (r.= float/0))
                            (|> (all /.then
                                     (/.; (/.print/1 $arg/0))
                                     (/.return $arg/0))

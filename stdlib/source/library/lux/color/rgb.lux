@@ -16,7 +16,7 @@
      ["[0]" /64 (.only)
       ["n" natural]
       ["i" integer]
-      ["d" decimal]]]]
+      ["r" real]]]]
    [macro
     ["[0]" template]]]])
 
@@ -133,27 +133,26 @@
    [..white n.minor subtraction]])
 
 (the (ratio it)
-  (-> Decimal
-      Decimal)
-  (if (d.> +1.0 it)
-      (d.% +1.0 it)
+  (Change Real)
+  (if (r.> +1.0 it)
+      (r.% +1.0 it)
 
-      (d.< +0.0 it)
-      (|> it (d.% +1.0) (d.+ +1.0))
+      (r.< +0.0 it)
+      (|> it (r.% +1.0) (r.+ +1.0))
 
       it))
 
 (the .public (interpolated end ratio start)
-  (-> RGB Decimal RGB
+  (-> RGB Real RGB
       RGB)
   (let [dS (..ratio ratio)
-        dE (|> +1.0 (d.- dS))
+        dE (|> +1.0 (r.- dS))
         interpolated' (is (-> Natural Natural
                               Natural)
                           (function (_ end start)
-                            (|> (|> start .integer i.decimal (d.x dS))
-                                (d.+ (|> end .integer i.decimal (d.x dE)))
-                                d.integer
+                            (|> (|> start .integer i.real (r.x dS))
+                                (r.+ (|> end .integer i.real (r.x dE)))
+                                r.integer
                                 .natural)))]
     (..rgb (interpolated' (red end) (red start))
            (interpolated' (green end) (green start))
@@ -161,8 +160,8 @@
 
 (template.with [<name> <target>]
   [(the .public <name>
-     (-> Decimal RGB
-         RGB)
+     (-> Real
+         (Change RGB))
      (..interpolated <target>))]
 
   [[darker   ..black]

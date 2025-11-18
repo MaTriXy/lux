@@ -35,7 +35,7 @@
       ["[0]" natural]
       ["[0]" integer]
       ["[0]" revolution]
-      ["[0]" decimal (.use base_10)]]]]
+      ["[0]" real (.use base_10)]]]]
    [macro
     ["^" pattern]
     ["[0]" syntax]
@@ -57,7 +57,7 @@
 
   [[Null    Any]
    [Boolean Bit]
-   [Number  Decimal]
+   [Number  Real]
    [String  Text]])
 
 (every .public (JSON _)
@@ -110,7 +110,7 @@
       (all ?.or
            (<code>.form (pure []))
            <code>.bit
-           <code>.decimal
+           <code>.real
            <code>.text
            (<code>.tuple (?.some jsonP))
            (each (dictionary.of_list text.hash)
@@ -130,7 +130,7 @@
                (` {<output_tag> (, (<ctor> value))})]
 
               [[code.bit  ..:Boolean' ..:Boolean]
-               [code.decimal ..:Number' ..:Number]
+               [code.real ..:Number' ..:Number]
                [code.text ..:String' ..:String]]))
         
         {:Array' members}
@@ -218,7 +218,7 @@
                   (by <struct> = x' y')]
 
                  [[:Boolean bit.equality]
-                  [:Number  decimal.equality]
+                  [:Number  real.equality]
                   [:String  text.equality]]))
 
            [{:Array xs} {:Array ys}]
@@ -272,8 +272,8 @@
          "0.0"
 
          value
-         (let [raw (by decimal.base_10 as value)]
-           (if (decimal.< +0.0 value)
+         (let [raw (by real.base_10 as value)]
+           (if (real.< +0.0 value)
                raw
                (|> raw (text.split_at 1) maybe.trusted product.right))))))
 
@@ -477,7 +477,7 @@
              (<| (let:integer digits)
                  (let:revolution decimals "0")
                  (let:delimiter_of_exponent exp let:integer "0")
-                 (when (decimal:of (.text digits "." decimals "e" exp))
+                 (when (real:of (.text digits "." decimals "e" exp))
                    {try.:Success value}
                    (?:pure value)
 
@@ -624,7 +624,7 @@
 
   [[any Any :Null]
    [bit Bit :Boolean]
-   [decimal Decimal :Number]
+   [real Real :Number]
    [text Text :String]])
 
 (the low_mask Natural (|> 1 (/64.<< 32) --))
@@ -636,13 +636,13 @@
    (the (as input)
      (let [high (|> input (/64.and high_mask) (/64.>> 32))
            low (/64.and low_mask input)]
-       {:Array (.list (|> high .integer integer.decimal {:Number})
-                      (|> low .integer integer.decimal {:Number}))}))
+       {:Array (.list (|> high .integer integer.real {:Number})
+                      (|> low .integer integer.real {:Number}))}))
    (the (of it)
      (when it
        {:Array (.list {:Number high} {:Number low})}
-       {try.:Success (natural.+ (|> high decimal.integer .natural (/64.<< 32))
-                                (|> low decimal.integer .natural))}
+       {try.:Success (natural.+ (|> high real.integer .natural (/64.<< 32))
+                                (|> low real.integer .natural))}
 
        _
        (exception.except ..cannot_project [it])))))
@@ -790,7 +790,7 @@
     (-> (Format JSON it)
         (Case it)))
   (function (_ expected)
-    (let [expected (natural.decimal expected)]
+    (let [expected (natural.real expected)]
       (implementation
        (the (as it)
          {:Array (.list {:Number expected}
@@ -798,7 +798,7 @@
        (the (of it)
          (when it
            {:Array (.list {:Number actual} case)}
-           (if (decimal.= expected actual)
+           (if (real.= expected actual)
                (by format of case)
                (exception.except ..cannot_project [it]))
            

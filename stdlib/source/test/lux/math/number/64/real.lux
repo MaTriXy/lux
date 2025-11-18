@@ -39,16 +39,16 @@
 
 (the (positive range)
   (-> Natural
-      (Random Decimal))
+      (Random Real))
   (by random.monad each
       (|>> (n.% (++ range))
-           n.decimal
-           (/./ (n.decimal range)))
+           n.real
+           (/./ (n.real range)))
       random.natural))
 
 (the (random range)
   (-> Natural
-      (Random Decimal))
+      (Random Real))
   (monad.let random.monad
     [magnitude (..positive range)
      positive? random.bit]
@@ -59,7 +59,7 @@
 (the constant
   Test
   (monad.let random.monad
-    [sample random.unit_decimal]
+    [sample random.unit_real]
     (all _.and
          (_.coverage [/.biggest]
            (/.<= /.biggest sample))
@@ -107,27 +107,27 @@
        (monad.let [! random.monad]
          [expected (by ! each (n.% 1,000,000) random.natural)]
          (_.coverage [/.natural]
-           (|> expected n.decimal /.natural (n.= expected))))
+           (|> expected n.real /.natural (n.= expected))))
        (monad.let [! random.monad]
          [expected (by ! each (i.% +1,000,000) random.integer)]
          (_.coverage [/.integer]
-           (|> expected i.decimal /.integer (i.= expected))))
+           (|> expected i.real /.integer (i.= expected))))
        (monad.let [! random.monad]
          [expected (by ! each (|>> (/64.<< 52) .revolution)
                        random.natural)]
          (_.coverage [/.revolution]
-           (|> expected r.decimal /.revolution (r.= expected))))
+           (|> expected r.real /.revolution (r.= expected))))
        ))
 
 (the signature
   Test
   (`` (all _.and
            (_.for [/.equality]
-                  (equalityT.spec /.equality random.unit_decimal))
+                  (equalityT.spec /.equality random.unit_real))
            (_.for [/.hash]
-                  (hashT.spec /.hash random.decimal))
+                  (hashT.spec /.hash random.real))
            (_.for [/.order /.<]
-                  (orderT.spec /.order random.unit_decimal))
+                  (orderT.spec /.order random.unit_real))
            (,, (template.with [<composite> <monoid>]
                  [(_.for [<monoid> <composite>]
                          (monoidT.spec (/.approximately? +0.000001) <monoid>
@@ -140,14 +140,14 @@
                   [/.major /.maximum]]))
            (,, (template.with [<format>]
                  [(_.for [<format>]
-                         (formatT.spec /.equality <format> random.unit_decimal))]
+                         (formatT.spec /.equality <format> random.unit_real))]
 
                  [[/.base_02]
                   [/.base_08]
                   [/.base_10]
                   [/.base_16]]))
            (monad.let random.monad
-             [it random.safe_decimal]
+             [it random.safe_real]
              (all _.and
                   (_.coverage [/.delimiter]
                     (and (text.contains? /.delimiter (by /.base_02 as it))
@@ -161,7 +161,7 @@
                          (text.contains? /.delimiter_for_exponentiation (by /.base_16 as it))))))
            (,, (template.with [<format> ,unit]
                  [(_.for [<format>]
-                         (let [threshold (/./ (n.decimal (its unit.:factor ,unit)) +1.0)]
+                         (let [threshold (/./ (n.real (its unit.:factor ,unit)) +1.0)]
                            (formatT.spec (/.approximately? threshold) <format>
                                          (..random (its unit.:factor ,unit)))))]
 
@@ -176,8 +176,6 @@
            (ffi.the java/lang/Double
              ("static" doubleToRawLongBits [double] long)
              ("static" longBitsToDouble [long] double))
-
-           ... else
            (these))
 
 (the margin_of_error
@@ -187,21 +185,21 @@
   Test
   (all _.and
        (monad.let [! random.monad]
-         [sample (|> random.unit_decimal (by ! each (/.x +1000.0)))]
+         [sample (|> random.unit_real (by ! each (/.x +1000.0)))]
          (all _.and
               (_.coverage [/.ceil]
                 (let [ceil'd (/.ceil sample)]
-                  (and (|> ceil'd /.integer i.decimal (/.= ceil'd))
+                  (and (|> ceil'd /.integer i.real (/.= ceil'd))
                        (/.>= sample ceil'd)
                        (/.<= +1.0 (/.- sample ceil'd)))))
               (_.coverage [/.floor]
                 (let [floor'd (/.floor sample)]
-                  (and (|> floor'd /.integer i.decimal (/.= floor'd))
+                  (and (|> floor'd /.integer i.real (/.= floor'd))
                        (/.<= sample floor'd)
                        (/.<= +1.0 (/.- floor'd sample)))))
               (_.coverage [/.round]
                 (let [round'd (/.round sample)]
-                  (and (|> round'd /.integer i.decimal (/.= round'd))
+                  (and (|> round'd /.integer i.real (/.= round'd))
                        (/.<= +1.0 (/.absolute (/.- sample round'd))))))
               (_.coverage [/.root_2]
                 (let [sample (/.absolute sample)]
@@ -217,8 +215,8 @@
               ))
        (monad.let [! random.monad]
          [.let [~= (/.approximately? ..margin_of_error)]
-          sample (by ! each (/.x +10.0) random.unit_decimal)
-          power (by ! each (|>> (n.% 10) ++ n.decimal) random.natural)]
+          sample (by ! each (/.x +10.0) random.unit_real)
+          power (by ! each (|>> (n.% 10) ++ n.real) random.natural)]
          (all _.and
               (_.coverage [/.exp /.log]
                 (|> sample /.exp /.log (/.approximately? +0.000000000000001 sample)))
@@ -241,12 +239,12 @@
 (the .public test
   Test
   (<| (_.covering /._)
-      (_.for [.Decimal .F64 .Double])
+      (_.for [.Real .F64 .Double])
       (monad.let random.monad
-        [expected random.safe_decimal])
+        [expected random.safe_real])
       (`` (all _.and
                (_.coverage [/.Number]
-                 (identical? .Decimal /.Number))
+                 (identical? .Real /.Number))
                (_.coverage [/.=]
                  (and (not (/.= /.not_a_number /.not_a_number))
                       (with /.equality
@@ -261,21 +259,21 @@
                (_.coverage [/.reciprocal]
                  (let [expected (if (or (/.= /.positive_infinity (/.reciprocal expected))
                                         (/.= /.negative_infinity (/.reciprocal expected)))
-                                    (/.x (n.decimal (/64.<< 7 1)) expected)
+                                    (/.x (n.real (/64.<< 7 1)) expected)
                                     expected)]
                    (/.approximately? ..margin_of_error
                                      /.positive_one 
                                      (/.x expected (/.reciprocal expected)))))
                (_.coverage [/.whole]
                  (let [expected (/.% +1.0e+18 expected)]
-                   (/.= (i.decimal (/.integer expected))
+                   (/.= (i.real (/.integer expected))
                         (/.whole expected))))
                (_.coverage [/.partial]
                  (/.= (/.- (/.whole expected) expected)
                       (/.partial expected)))
                (monad.let random.monad
-                 [left random.unit_decimal
-                  right random.unit_decimal]
+                 [left random.unit_real
+                  right random.unit_real]
                  (all _.and
                       (_.coverage [/.>]
                         (bit.= (/.> left right)
@@ -285,7 +283,7 @@
                                (/.>= right left)))
                       ))
                (monad.let random.monad
-                 [sample random.unit_decimal]
+                 [sample random.unit_real]
                  (all _.and
                       (_.coverage [/.-]
                         (and (/.= +0.0 (/.- sample sample))
@@ -332,12 +330,12 @@
                       ))
                (target.if target.jvm
                           (all _.and
-                               (let [test (is (-> Decimal Bit)
+                               (let [test (is (-> Real Bit)
                                               (function (_ value)
                                                 (n.= (.natural (ffi.of_long (java/lang/Double:doubleToRawLongBits [(ffi.as_double value)])))
                                                      (/.bits value))))]
                                  (monad.let random.monad
-                                   [sample random.decimal]
+                                   [sample random.real]
                                    (_.coverage [/.bits]
                                      (and (test sample)
                                           (test /.biggest)
@@ -354,16 +352,14 @@
                                          (and (/.not_a_number? expected)
                                               (/.not_a_number? actual))))))
                                )
-
-                          ... else
-                          (let [test (is (-> Decimal Bit)
+                          (let [test (is (-> Real Bit)
                                          (function (_ expected)
                                            (let [actual (|> expected /.bits /.of_bits)]
                                              (or (/.= expected actual)
                                                  (and (/.not_a_number? expected)
                                                       (/.not_a_number? actual))))))]
                             (monad.let random.monad
-                              [sample random.decimal]
+                              [sample random.real]
                               (_.coverage [/.bits /.of_bits]
                                 (and (test sample)
                                      (test /.biggest)
@@ -372,7 +368,7 @@
                                      (test /.positive_infinity)
                                      (test /.negative_infinity))))))
                (monad.let random.monad
-                 [expected random.unit_decimal]
+                 [expected random.unit_real]
                  (_.coverage [/.opposite]
                    (let [subtraction!
                          (/.= +0.0 (/.+ (/.opposite expected) expected))
@@ -385,7 +381,7 @@
                      [(monad.let [! random.monad]
                         [expected (random.only (|>> /.zero? not)
                                                (..random (its unit.:factor ,unit)))
-                         .let [threshold (/./ (n.decimal (its unit.:factor ,unit)) +1.0)
+                         .let [threshold (/./ (n.real (its unit.:factor ,unit)) +1.0)
 
                                change_of_scale!
                                (|> expected

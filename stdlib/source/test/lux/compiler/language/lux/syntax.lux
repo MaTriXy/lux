@@ -16,7 +16,7 @@
      [/64
       ["n" natural]
       ["i" integer]
-      ["d" decimal]
+      ["r" real]
       ["[0]" fraction (.only)
        ["[1]T" \\test]]
       ["[0]" rational (.only)
@@ -60,7 +60,7 @@
                           (|> random.natural (random:each code.natural))
                           (|> random.integer (random:each code.integer))
                           (|> random.revolution (random:each code.revolution))
-                          (|> random.unit_decimal (random:each code.decimal))
+                          (|> random.unit_real (random:each code.real))
                           ))
         textual^ (is (Random Code)
                      (all random.either
@@ -98,7 +98,7 @@
 
      natural_numerator random.natural
      integer_numerator random.integer
-     decimal_numerator random.safe_decimal
+     real_numerator random.safe_real
 
      .let [random_digit (by ! each (n.% 10) random.natural)]
      digit_0 random_digit
@@ -245,7 +245,7 @@
                                      (, (code.integer integer_numerator))
                                      (, (code.natural (its unit.:factor ,unit)))))
                                  actual))
-                           (when (let [source_code (text (by d.base_10 as decimal_numerator)
+                           (when (let [source_code (text (by r.base_10 as real_numerator)
                                                          (its unit.:suffix ,unit))]
                                    (/.parse source_code "" (dictionary.empty text.hash)
                                             [provenance.dummy 0 source_code]))
@@ -253,8 +253,8 @@
                              false
 
                              {.:Right [_ actual]}
-                             (let [expected (code.decimal (d./ (n.decimal (its unit.:factor ,unit))
-                                                               decimal_numerator))]
+                             (let [expected (code.real (r./ (n.real (its unit.:factor ,unit))
+                                                            real_numerator))]
                                (by code.equality = expected actual)))
                            ))]
 
@@ -265,7 +265,7 @@
                     [unit.per_myriad]]))
              (,, (template.with [,unit]
                    [(_.coverage [,unit]
-                      (let [source_code (text (by d.base_10 as decimal_numerator)
+                      (let [source_code (text (by r.base_10 as real_numerator)
                                               (its unit.:suffix ,unit))]
                         (when (/.parse source_code "" (dictionary.empty text.hash)
                                        [provenance.dummy 0 source_code])
@@ -274,8 +274,8 @@
 
                           {.:Right [_ actual]}
                           (let [
-                                expected (code.decimal (d.x (its unit.:factor ,unit)
-                                                            decimal_numerator))]
+                                expected (code.real (r.x (its unit.:factor ,unit)
+                                                         real_numerator))]
                             (by code.equality = expected actual)))))]
 
                    [[unit.radian]

@@ -38,7 +38,7 @@
      ["[0]" /64 (.only)
       ["n" natural]
       ["i" integer]
-      ["d" decimal]]]]
+      ["r" real]]]]
    [macro
     ["[0]" template]]
    [test
@@ -321,15 +321,15 @@
        (the $Float:random
          (Random java/lang/Float)
          (by random.monad each
-             (|>> (as (-> Decimal java/lang/Double))
+             (|>> (as (-> Real java/lang/Double))
                   ffi.double_to_float)
-             random.decimal))
+             random.real))
        
        (the valid_float
          (Random java/lang/Float)
          (random.only (|>> ffi.float_to_double
-                           (as (-> java/lang/Double Decimal))
-                           d.not_a_number?
+                           (as (-> java/lang/Double Real))
+                           r.not_a_number?
                            not)
                       ..$Float:random))
        
@@ -351,20 +351,20 @@
                                        (.list)])))
        
        (the $Double:random
-         (as (-> (Random Decimal)
+         (as (-> (Random Real)
                  (Random java/lang/Double))
-             random.decimal))
+             random.real))
        
        (the $Double:literal
          (-> java/lang/Double
              (Bytecode Any))
-         (|>> (as (-> java/lang/Double Decimal))
+         (|>> (as (-> java/lang/Double Real))
               /.double))
        
        (the valid_double
          (Random java/lang/Double)
-         (random.only (|>> (as (-> java/lang/Double Decimal))
-                           d.not_a_number?
+         (random.only (|>> (as (-> java/lang/Double Real))
+                           r.not_a_number?
                            not)
                       ..$Double:random))
        
@@ -669,8 +669,8 @@
                                               (as (-> Any java/lang/Float))
                                               .jvm_object_cast#
                                               (.jvm_float_=# (.jvm_object_cast# expected)))
-                                          (and (d.not_a_number? (as (-> java/lang/Double Decimal) (ffi.float_to_double expected)))
-                                               (d.not_a_number? (as (-> java/lang/Double Decimal) (ffi.float_to_double (as (-> Any java/lang/Float) actual))))))))
+                                          (and (r.not_a_number? (as (-> java/lang/Double Real) (ffi.float_to_double expected)))
+                                               (r.not_a_number? (as (-> java/lang/Double Real) (ffi.float_to_double (as (-> Any java/lang/Float) actual))))))))
                         (monad.let /.monad
                           [_ bytecode]
                           ..$Float:wrap))))
@@ -697,9 +697,9 @@
                                  _ (/.float parameter)]
                                 instruction)))))
         literal (all _.and
-                     (..coverage [/.fconst_0] (float (ffi.double_to_float (as (-> Decimal java/lang/Double) +0.0)) /.fconst_0))
-                     (..coverage [/.fconst_1] (float (ffi.double_to_float (as (-> Decimal java/lang/Double) +1.0)) /.fconst_1))
-                     (..coverage [/.fconst_2] (float (ffi.double_to_float (as (-> Decimal java/lang/Double) +2.0)) /.fconst_2))
+                     (..coverage [/.fconst_0] (float (ffi.double_to_float (as (-> Real java/lang/Double) +0.0)) /.fconst_0))
+                     (..coverage [/.fconst_1] (float (ffi.double_to_float (as (-> Real java/lang/Double) +1.0)) /.fconst_1))
+                     (..coverage [/.fconst_2] (float (ffi.double_to_float (as (-> Real java/lang/Double) +2.0)) /.fconst_2))
                      (..coverage [/.float]
                        (monad.let random.monad
                          [expected ..$Float:random]
@@ -713,12 +713,12 @@
                         (..coverage [/.fneg] (unary (function (_ value)
                                                       ((float/2 "jvm fsub" .jvm_float_-#)
                                                        value
-                                                       (ffi.double_to_float (as (-> Decimal java/lang/Double) +0.0))))
+                                                       (ffi.double_to_float (as (-> Real java/lang/Double) +0.0))))
                                                     /.fneg)))
         comparison (is (-> (Bytecode Any) (-> java/lang/Float java/lang/Float Bit) (Random Bit))
                        (function (_ instruction standard)
                          (monad.let random.monad
-                           [.let [valid_float (random.only (|>> ffi.float_to_double (as (-> java/lang/Double Decimal)) d.not_a_number? not)
+                           [.let [valid_float (random.only (|>> ffi.float_to_double (as (-> java/lang/Double Real)) r.not_a_number? not)
                                                            ..$Float:random)]
                             expected valid_float
                             actual valid_float
@@ -758,8 +758,8 @@
                                                (as (-> Any java/lang/Double))
                                                .jvm_object_cast#
                                                (.jvm_double_=# (.jvm_object_cast# expected)))
-                                           (and (d.not_a_number? (as (-> java/lang/Double Decimal) expected))
-                                                (d.not_a_number? (as (-> Any Decimal) actual))))))
+                                           (and (r.not_a_number? (as (-> java/lang/Double Real) expected))
+                                                (r.not_a_number? (as (-> Any Real) actual))))))
                          (monad.let /.monad
                            [_ bytecode]
                            ..$Double:wrap))))
@@ -782,8 +782,8 @@
                                   _ (..$Double:literal parameter)]
                                  instruction)))))
         literal (all _.and
-                     (..coverage [/.dconst_0] (double (as (-> Decimal java/lang/Double) +0.0) /.dconst_0))
-                     (..coverage [/.dconst_1] (double (as (-> Decimal java/lang/Double) +1.0) /.dconst_1))
+                     (..coverage [/.dconst_0] (double (as (-> Real java/lang/Double) +0.0) /.dconst_0))
+                     (..coverage [/.dconst_1] (double (as (-> Real java/lang/Double) +1.0) /.dconst_1))
                      (..coverage [/.double]
                        (monad.let random.monad
                          [expected ..$Double:random]
@@ -797,7 +797,7 @@
                         (..coverage [/.dneg] (unary (function (_ value)
                                                       ((double/2 "jvm dsub" .jvm_double_-#)
                                                        value
-                                                       (as (-> Decimal java/lang/Double) +0.0)))
+                                                       (as (-> Real java/lang/Double) +0.0)))
                                                     /.dneg)))
         comparison (is (-> (Bytecode Any) (-> java/lang/Double java/lang/Double Bit) (Random Bit))
                        (function (_ instruction standard)
@@ -908,8 +908,8 @@
   (all _.and
        (<| (..coverage [/.invokestatic])
            (monad.let random.monad
-             [expected (random.only (|>> (as (-> java/lang/Double Decimal))
-                                         d.not_a_number?
+             [expected (random.only (|>> (as (-> java/lang/Double Real))
+                                         r.not_a_number?
                                          not)
                                     ..$Double:random)])
            (..bytecode (function.constant false)
@@ -917,23 +917,23 @@
                             .jvm_object_cast#
                             (.jvm_double_=# (.jvm_object_cast# expected))))
            (monad.let /.monad
-             [_ (/.double (as (-> java/lang/Double Decimal) expected))]
+             [_ (/.double (as (-> java/lang/Double Real) expected))]
              (/.invokestatic ..$Double "valueOf" (type.method [(.list) (.list type.double) ..$Double (.list)]))))
        (<| (..coverage [/.invokevirtual])
            (monad.let random.monad
              [expected ..$Double:random])
            (..bytecode (function.constant false)
                        (|>> (as (-> Any Bit))
-                            (bit.= (d.not_a_number? (as (-> java/lang/Double Decimal) expected)))))
+                            (bit.= (r.not_a_number? (as (-> java/lang/Double Real) expected)))))
            (monad.let /.monad
-             [_ (/.double (as (-> java/lang/Double Decimal) expected))
+             [_ (/.double (as (-> java/lang/Double Real) expected))
               _ ..$Double:wrap
               _ (/.invokevirtual ..$Double "isNaN" (type.method [(.list) (.list) type.boolean (.list)]))]
              ..$Boolean:wrap))
        (<| (..coverage [/.invokespecial])
            (monad.let random.monad
-             [expected (random.only (|>> (as (-> java/lang/Double Decimal))
-                                         d.not_a_number?
+             [expected (random.only (|>> (as (-> java/lang/Double Real))
+                                         r.not_a_number?
                                          not)
                                     ..$Double:random)])
            (..bytecode (function.constant false)
@@ -943,7 +943,7 @@
            (monad.let /.monad
              [_ (/.new ..$Double)
               _ /.dup
-              _ (/.double (as (-> java/lang/Double Decimal) expected))]
+              _ (/.double (as (-> java/lang/Double Real) expected))]
              (/.invokespecial ..$Double "<init>" (type.method [(.list) (.list type.double) type.void (.list)]))))
        (<| (..coverage [/.invokeinterface])
            (monad.let random.monad

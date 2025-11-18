@@ -26,7 +26,7 @@
     ["[0]" unit]]]])
 
 (the .public Number
-  .Decimal)
+  .Real)
 
 (the It ..Number)
 
@@ -74,7 +74,7 @@
                           (as (-> It (Nominal "java.lang.Double")))
                           .jvm_object_cast#)]))
                   
-                  (the !decimal
+                  (the !real
                     (template:macro
                      (_ value)
                      [(|> value
@@ -87,7 +87,7 @@
                        (|>> !double
                             ["D"]
                             (.jvm_member_invoke_static# [] "java.lang.Math" <method> [])
-                            !decimal))]
+                            !real))]
                     
                     [[exp    "exp"]
                      [log    "log"]
@@ -103,7 +103,7 @@
                         It)
                     (|> (.jvm_member_invoke_static# [] "java.lang.Math" "pow" []
                                                     ["D" (!double subject)] ["D" (!double param)])
-                        !decimal)))
+                        !real)))
 
            target.js
            (these (with_template [,name <method>]
@@ -336,7 +336,7 @@
       positive_one))
 
 (the min_exponent -1022)
-(the max_exponent (integer.decimal +1023))
+(the max_exponent (integer.real +1023))
 
 (with_template [,name <test>]
   [(the .public (,name left right)
@@ -416,12 +416,12 @@
 
 (the .public smallest
   It
-  (^ (integer.decimal (integer.- (.integer ..size_of_mantissa) ..min_exponent))
+  (^ (integer.real (integer.- (.integer ..size_of_mantissa) ..min_exponent))
      +2.0))
 
 (the .public biggest
   It
-  (let [f2^-52 (^ (natural.decimal (natural.- ..size_of_mantissa 0)) +2.0)
+  (let [f2^-52 (^ (natural.real (natural.- ..size_of_mantissa 0)) +2.0)
         f2^+1023 (^ ..max_exponent +2.0)]
     (|> +2.0
         (..- f2^-52)
@@ -520,7 +520,7 @@
                     .jvm_object_cast#
                     ["Ljava/lang/String;"]
                     (.jvm_member_invoke_static# [] "java.lang.Double" "parseDouble" [])
-                    ..!decimal
+                    ..!real
                     with_projection_error)
 
                 target.js
@@ -614,8 +614,8 @@
                                ..log/2
                                ..floor
                                (..minor ..max_exponent))
-                  min_gap (..- (integer.decimal ..min_exponent) exponent)
-                  power (|> (natural.decimal ..size_of_mantissa)
+                  min_gap (..- (integer.real ..min_exponent) exponent)
+                  power (|> (natural.real ..size_of_mantissa)
                             (..+ (..minor zero min_gap))
                             (..- exponent))
                   max_gap (..- ..max_exponent power)
@@ -683,8 +683,8 @@
                                     (integer.- (.integer ..size_of_mantissa)))]
                                [(/64.one ..size_of_mantissa M)
                                 (|> E (natural.- ..bias_of_exponent) (natural.- ..size_of_mantissa) .integer)])
-          exponent (^ (integer.decimal power) +2.0)]
-      (|> (natural.decimal mantissa)
+          exponent (^ (integer.real power) +2.0)]
+      (|> (natural.real mantissa)
           (..x exponent)
           (..x sign)))))
 
@@ -738,23 +738,23 @@
           (if (or negative? positive?)
               (monad.let [! try.monad]
                 [[mantissa exponent] (..representation_exponent <natural> representation)
-                 [whole decimal] (when (.text_index# 0 ..delimiter mantissa)
-                                   {.:Some split_index}
-                                   (monad.let !
-                                     [.let [after_offset (++ split_index)
-                                            after_length (natural.- after_offset (.text_size# mantissa))]
-                                      decimal (|> mantissa
-                                                  (.text_clip# after_offset after_length)
-                                                  (by <natural> of))]
-                                     (pure [(.text_clip# 0 split_index mantissa)
-                                            decimal]))
+                 [whole real] (when (.text_index# 0 ..delimiter mantissa)
+                                {.:Some split_index}
+                                (monad.let !
+                                  [.let [after_offset (++ split_index)
+                                         after_length (natural.- after_offset (.text_size# mantissa))]
+                                   real (|> mantissa
+                                            (.text_clip# after_offset after_length)
+                                            (by <natural> of))]
+                                  (pure [(.text_clip# 0 split_index mantissa)
+                                         real]))
 
-                                   {.:None}
-                                   {try.:Failure error.not_valid})
+                                {.:None}
+                                {try.:Failure error.not_valid})
                  .let [whole (.text_clip# 1 (-- (.text_size# whole)) whole)]
-                 mantissa (by <natural> of (when decimal
+                 mantissa (by <natural> of (when real
                                              0 whole
-                                             _ (.text_composite# whole (by <natural> as decimal))))
+                                             _ (.text_composite# whole (by <natural> as real))))
                  .let [sign (if negative? 1 0)]]
                 (pure (..of_bits
                        (all /64.or
@@ -797,11 +797,11 @@
 (with_template [<format> <as> <of> ,unit]
   [(the .public <as>
      (Change It)
-     (x (natural.decimal (its unit.:factor ,unit))))
+     (x (natural.real (its unit.:factor ,unit))))
    
    (the .public <of>
      (Change It)
-     (/ (natural.decimal (its unit.:factor ,unit))))
+     (/ (natural.real (its unit.:factor ,unit))))
    
    (the .public <format>
      (Format Text It)

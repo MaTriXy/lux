@@ -31,7 +31,7 @@
     [number
      [/64
       ["i" integer]
-      ["d" decimal]]]]
+      ["r" real]]]]
    [macro
     ["[0]" template]
     ["[0]" expansion]]
@@ -447,7 +447,7 @@
                                                            node_fs))]
                                          (pure (|> stats
                                                    Stats:size
-                                                   d.natural))))
+                                                   r.natural))))
 
                                      (the (last_modified path)
                                        (monad.let (try.with future.monad)
@@ -456,7 +456,7 @@
                                                            node_fs))]
                                          (pure (|> stats
                                                    Stats:mtimeMs
-                                                   d.integer
+                                                   r.integer
                                                    duration.of_millis
                                                    instant.absolute))))
 
@@ -494,7 +494,7 @@
 
                                      (the (modify path time_stamp)
                                        (with_future write! (Try Any)
-                                         (let [when (|> time_stamp instant.relative duration.millis i.decimal)]
+                                         (let [when (|> time_stamp instant.relative duration.millis i.real)]
                                            (Fs:utimes [path when when (..any_callback write!)]
                                                       node_fs))))
 
@@ -589,7 +589,7 @@
                          (the last_modified
                            (|>> []
                                 os/path:getmtime
-                                (by (try.with io.monad) each (|>> d.integer
+                                (by (try.with io.monad) each (|>> r.integer
                                                                   (i.x +1,000)
                                                                   duration.of_millis
                                                                   instant.absolute))))
@@ -633,8 +633,8 @@
 
            target.ruby
            (these (ffi.the Time
-                    ("static" at [Decimal] Time)
-                    (to_f [] Decimal))
+                    ("static" at [Real] Time)
+                    (to_f [] Real))
 
                   (ffi.the Stat
                     (executable? [] Bit)
@@ -724,8 +724,8 @@
                                [[file_size [Stat:size .natural]]
                                 [last_modified [(Stat:mtime [])
                                                 (Time:to_f [])
-                                                (d.x +1,000.0)
-                                                d.integer
+                                                (r.x +1,000.0)
+                                                r.integer
                                                 duration.of_millis
                                                 instant.absolute]]
                                 [can_execute? [(Stat:executable? [])]]]))
@@ -748,8 +748,8 @@
                            (let [moment (|> moment
                                             instant.relative
                                             duration.millis
-                                            i.decimal
-                                            (d./ +1,000.0)
+                                            i.real
+                                            (r./ +1,000.0)
                                             [] Time:at)]
                              (RubyFile:utime [moment moment path])))
 

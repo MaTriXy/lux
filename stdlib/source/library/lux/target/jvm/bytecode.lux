@@ -700,7 +700,7 @@
 
 (the negative_zero_float_bits
   (|> -0.0
-      (as (-> Decimal java/lang/Double))
+      (as (-> Real java/lang/Double))
       ffi.double_to_float
       ..float_bits))
 
@@ -712,7 +712,7 @@
       (..arbitrary_float value)
       (`` (when (|> value
                     ffi.float_to_double
-                    (as (-> java/lang/Double Decimal)))
+                    (as (-> java/lang/Double Real)))
             (,, (template.with [<special> <instruction>]
                   [<special> (..bytecode $0 $1 @_ <instruction> [])]
 
@@ -724,16 +724,16 @@
             (..arbitrary_float value)))))
 
 (the (arbitrary_double value)
-  (-> Decimal
+  (-> Real
       (Bytecode Any))
   (monad.let ..monad
     [index (..lifted (pool.double value))]
     (..bytecode $0 $2 @_ /.ldc2_w/double [index])))
 
 (the double_bits
-  (-> Decimal
+  (-> Real
       .Integer)
-  (|>> (as (-> Decimal java/lang/Double))
+  (|>> (as (-> Real java/lang/Double))
        [] java/lang/Double:doubleToRawLongBits
        (as (-> java/lang/Long .Integer))))
 
@@ -741,7 +741,7 @@
   (..double_bits -0.0))
 
 (the .public (double value)
-  (-> Decimal
+  (-> Real
       (Bytecode Any))
   (if (i.= ..negative_zero_double_bits
            (..double_bits value))

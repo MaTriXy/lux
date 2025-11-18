@@ -11,9 +11,9 @@
     [number
      [/64
       ["n" natural]
-      ["d" decimal]
       ["r" revolution]
-      ["[0]" integer]]]]
+      ["[0]" integer]
+      ["[0]" real]]]]
    [macro
     ["[0]" template]]
    [test
@@ -29,16 +29,16 @@
   Test
   (<| (_.covering /._)
       (monad.let [! random.monad]
-        [expected_hue (by ! each (|>> d.absolute (d.% +0.9) (d.+ +0.05))
-                          random.unit_decimal)
+        [expected_hue (by ! each (|>> real.absolute (real.% +0.9) (real.+ +0.05))
+                          random.unit_real)
          .let [expected_saturation +0.5]
          variations (by ! each (|>> (n.% 3) (n.+ 2)) random.natural)
-         .let [max_spread (d./ (|> variations ++ .integer integer.decimal)
-                               +1.0)
-               min_spread (d./ +2.0 max_spread)
-               spread_space (d.- min_spread max_spread)]
-         spread (by ! each (|>> d.absolute (d.% spread_space) (d.+ min_spread))
-                    random.unit_decimal)])
+         .let [max_spread (real./ (|> variations ++ .integer integer.real)
+                                  +1.0)
+               min_spread (real./ +2.0 max_spread)
+               spread_space (real.- min_spread max_spread)]
+         spread (by ! each (|>> real.absolute (real.% spread_space) (real.+ min_spread))
+                    random.unit_real)])
       (`` (all _.and
                (,, (template.with [<palette>]
                      [(_.coverage [<palette>]

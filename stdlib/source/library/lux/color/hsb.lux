@@ -11,7 +11,7 @@
    [math
     [number
      [/64
-      ["d" decimal]
+      ["r" real]
       ["[0]" natural]
       ["[0]" integer]]]]
    ["[0]" macro
@@ -23,7 +23,7 @@
   ["[0]" rgb (.only RGB)]])
 
 (every .public Value
-  Decimal)
+  Real)
 
 (template.with [<value> <name>]
   [(the .public <name>
@@ -34,15 +34,15 @@
    [+1.0 most]])
 
 (the .public (value? it)
-  (Predicate Decimal)
-  (not (or (d.< ..least it)
-           (d.> ..most it))))
+  (Predicate Real)
+  (not (or (r.< ..least it)
+           (r.> ..most it))))
 
 (the .public value
-  (-> Decimal
+  (-> Real
       Value)
-  (|>> (d.major ..least)
-       (d.minor ..most)))
+  (|>> (r.major ..least)
+       (r.minor ..most)))
 
 (nominal.every .public HSB
   (Record
@@ -55,7 +55,7 @@
     (implementation
      (the (= left right)
        (`` (and (,, (template.with [<slot>]
-                      [(d.= (its <slot> (nominal.as left))
+                      [(r.= (its <slot> (nominal.as left))
                             (its <slot> (nominal.as right)))]
 
                       [[:hue]
@@ -79,7 +79,7 @@
     )
 
   (the .public (hsb hue saturation brightness)
-    (-> Decimal Decimal Decimal
+    (-> Real Real Real
         HSB)
     (nominal.of
      [:hue (..value hue)
@@ -92,17 +92,17 @@
   (the rgb_factor
     (|> ..maximum
         .integer
-        integer.decimal))
+        integer.real))
 
   (the down
     (-> Natural
-        Decimal)
-    (|>> natural.decimal (d./ rgb_factor)))
+        Real)
+    (|>> natural.real (r./ rgb_factor)))
 
   (the up
-    (-> Decimal
+    (-> Real
         Natural)
-    (|>> (d.x rgb_factor) d.round d.integer .natural))
+    (|>> (r.x rgb_factor) r.round r.integer .natural))
 
   (the .public (of_rgb it)
     (-> RGB
@@ -111,31 +111,31 @@
           green (..down (rgb.green it))
           blue (..down (rgb.blue it))
 
-          brightness (all d.major red green blue)
-          range (all d.minor red green blue)
+          brightness (all r.major red green blue)
+          range (all r.minor red green blue)
 
-          chroma (|> brightness (d.- range))
-          saturation (if (d.= +0.0 brightness)
+          chroma (|> brightness (r.- range))
+          saturation (if (r.= +0.0 brightness)
                          +0.0
-                         (|> chroma (d./ brightness)))]
+                         (|> chroma (r./ brightness)))]
       (macro.let [hue_of (template.macro (_ <base> <shift> <adjustment>)
-                           [(|> <base> (d.- <shift>)
-                                (d./ chroma)
+                           [(|> <base> (r.- <shift>)
+                                (r./ chroma)
                                 <adjustment>
-                                (d./ +6.0))])]
+                                (r./ +6.0))])]
         (nominal.of
-         [:hue (if (d.= +0.0 chroma)
+         [:hue (if (r.= +0.0 chroma)
                    (comment "Achromatic"
                             +0.0)
                    (comment "Chromatic"
-                            (if (d.= brightness red)
-                                (hue_of green blue (d.modulo +6.0))
+                            (if (r.= brightness red)
+                                (hue_of green blue (r.modulo +6.0))
 
-                                (d.= brightness green)
-                                (hue_of blue red (d.+ +2.0))
+                                (r.= brightness green)
+                                (hue_of blue red (r.+ +2.0))
 
-                                (comment (d.= brightness blue)
-                                         (hue_of red green (d.+ +4.0))))))
+                                (comment (r.= brightness blue)
+                                         (hue_of red green (r.+ +4.0))))))
           :saturation saturation
           :brightness brightness]))))
 
@@ -143,15 +143,15 @@
     (-> HSB
         RGB)
     (let [[hue saturation brightness] (nominal.as it)
-          hue (|> hue (d.x +6.0))
+          hue (|> hue (r.x +6.0))
           
-          i (d.floor hue)
-          f (|> hue (d.- i))
-          p (|> +1.0 (d.- saturation) (d.x brightness))
-          q (|> +1.0 (d.- (d.x f saturation)) (d.x brightness))
-          t (|> +1.0 (d.- (|> +1.0 (d.- f) (d.x saturation))) (d.x brightness))
+          i (r.floor hue)
+          f (|> hue (r.- i))
+          p (|> +1.0 (r.- saturation) (r.x brightness))
+          q (|> +1.0 (r.- (r.x f saturation)) (r.x brightness))
+          t (|> +1.0 (r.- (|> +1.0 (r.- f) (r.x saturation))) (r.x brightness))
           v brightness
-          modulo (|> i (d.% +6.0) d.integer .natural)
+          modulo (|> i (r.% +6.0) r.integer .natural)
           
           red (when modulo 0 v 1 q 2 p 3 p 4 t 5 v _ (undefined))
           green (when modulo 0 t 1 v 2 v 3 q 4 p 5 p _ (undefined))
@@ -164,8 +164,8 @@
     (text.Injection HSB)
     (let [it (nominal.as it)]
       (text "hsb("
-            (%.natural (d.natural (d.as_degree (its :hue it))))
-            ", " (%.natural (d.natural (d.as_per_cent (its :saturation it)))) "%"
-            ", " (%.natural (d.natural (d.as_per_cent (its :brightness it)))) "%"
+            (%.natural (r.natural (r.as_degree (its :hue it))))
+            ", " (%.natural (r.natural (r.as_per_cent (its :saturation it)))) "%"
+            ", " (%.natural (r.natural (r.as_per_cent (its :brightness it)))) "%"
             ")")))
   )

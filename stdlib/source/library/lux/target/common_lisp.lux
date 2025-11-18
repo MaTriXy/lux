@@ -12,7 +12,7 @@
    [math
     [number
      [/64
-      ["d" decimal]]]]
+      ["r" real]]]]
    [macro
     ["[0]" template]
     ["[0]" expansion]]
@@ -86,34 +86,34 @@
     (|>> %.integer nominal.of))
 
   (the .public float
-    (-> Decimal Literal)
-    (|>> (pipe.if [(d.= d.positive_infinity)]
+    (-> Real Literal)
+    (|>> (pipe.if [(r.= r.positive_infinity)]
                   [(pipe.new "(/ 1.0 0.0)" [])]
                   
-                  [(d.= d.negative_infinity)]
+                  [(r.= r.negative_infinity)]
                   [(pipe.new "(/ -1.0 0.0)" [])]
                   
-                  [d.not_a_number?]
+                  [r.not_a_number?]
                   [(pipe.new "(/ 0.0 0.0)" [])]
                   
                   ... else
-                  [%.decimal])
+                  [%.real])
          nominal.of))
 
   (the .public (double value)
-    (-> Decimal Literal)
+    (-> Real Literal)
     (nominal.of
-     (.if (d.= d.positive_infinity value)
+     (.if (r.= r.positive_infinity value)
           "(/ 1.0d0 0.0d0)"
           
-          (d.= d.negative_infinity value)
+          (r.= r.negative_infinity value)
           "(/ -1.0d0 0.0d0)"
           
-          (d.not_a_number? value)
+          (r.not_a_number? value)
           "(/ 0.0d0 0.0d0)"
           
           ... else
-          (.let [raw (%.decimal value)]
+          (.let [raw (%.real value)]
             (.if (text.contains? "E" raw)
                  (text.replaced_once "E" "d" raw)
                  (text raw "d0"))))))

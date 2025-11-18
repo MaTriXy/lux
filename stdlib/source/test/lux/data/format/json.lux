@@ -37,7 +37,7 @@
       ["[0]" natural]
       ["[0]" integer]
       ["[0]" revolution]
-      ["[0]" decimal]]]]
+      ["[0]" real]]]]
    ["[0]" macro (.only)
     ["^" pattern]
     ["[0]" syntax]
@@ -113,7 +113,7 @@
                                         (!expect {try.:Failure _}))))))]
 
                      [[\\projection.boolean \\projection.boolean? \\projection.this_boolean random.bit /.:Boolean bit.equality]
-                      [\\projection.number \\projection.number? \\projection.this_number random.safe_decimal /.:Number decimal.equality]
+                      [\\projection.number \\projection.number? \\projection.this_number random.safe_real /.:Number real.equality]
                       [\\projection.string \\projection.string? \\projection.this_string (random.unicode 1) /.:String text.equality]]))
                (monad.let [! random.monad]
                  [expected (random.unicode 1)
@@ -165,7 +165,7 @@
                                        (exception.is? \\projection.empty_input error)))))
                (monad.let [! random.monad]
                  [expected_boolean random.bit
-                  expected_number random.safe_decimal
+                  expected_number random.safe_real
                   expected_string (random.unicode 1)
                   [boolean_field number_field string_field] (|> (random.set text.hash 3 (random.unicode 3))
                                                                 (by ! each (|>> set.as_list
@@ -187,7 +187,7 @@
                                                                       [string_field {/.:String expected_string}]))})
                        (!expect (^.multi {try.:Success [actual_boolean actual_number actual_string]}
                                          (and (by bit.equality = expected_boolean actual_boolean)
-                                              (by decimal.equality = expected_number actual_number)
+                                              (by real.equality = expected_number actual_number)
                                               (by text.equality = expected_string actual_string)))))))
                (monad.let [! random.monad]
                  [size (by ! each (natural.% 10) random.natural)
@@ -220,20 +220,20 @@
 (every Recursive
   (Rec Recursive
     (.Variant
-     {:Number Decimal}
-     {:Addition Decimal Recursive})))
+     {:Number Real}
+     {:Addition Real Recursive})))
 
 (every Arbitrary
   (.Record
-   [:maybe (Maybe Decimal)
+   [:maybe (Maybe Real)
     :recursive Recursive]))
 
 (the gen_recursive
   (Random Recursive)
   (random.rec
    (function (_ gen_recursive)
-     (random.or random.unit_decimal
-                (random.and random.unit_decimal
+     (random.or random.unit_real
+                (random.and random.unit_real
                             gen_recursive)))))
 
 (the gen_arbitrary
@@ -241,7 +241,7 @@
   (monad.let [! random.monad]
     [size (by ! each (natural.% 2) random.natural)]
     (all random.and
-         (random.maybe random.unit_decimal)
+         (random.maybe random.unit_real)
          ..gen_recursive)))
 
 (the equality
@@ -267,7 +267,7 @@
        (all random.or
             (by ! pure [])
             random.bit
-            random.unit_decimal
+            random.unit_real
             (random.unicode size)
             (random.list size again)
             (random.dictionary text.hash size (random.unicode size) again)
@@ -281,7 +281,7 @@
 (syntax.the (number [])
   (monad.let meta.monad
     [value meta.seed]
-    (pure (list (code.decimal (natural.decimal value))))))
+    (pure (list (code.real (natural.real value))))))
 
 (syntax.the (string [])
   (monad.let meta.monad
@@ -321,10 +321,10 @@
                            (formatT.spec revolution.equality /.revolution random.revolution)
                            (formatT.spec revolution.equality (\\polytypic.format Revolution) random.revolution)
                            ))
-               (_.for [/.decimal]
+               (_.for [/.real]
                       (all _.and
-                           (formatT.spec decimal.equality /.decimal random.decimal)
-                           (formatT.spec decimal.equality (\\polytypic.format Decimal) random.unit_decimal)
+                           (formatT.spec real.equality /.real random.real)
+                           (formatT.spec real.equality (\\polytypic.format Real) random.unit_real)
                            ))
                (_.for [/.text]
                       (all _.and
@@ -424,7 +424,7 @@
                        (try.else false))))
                (monad.let random.monad
                  [keys (random.set text.hash 3 (random.alphabetic 1))
-                  values (random.set decimal.hash 3 random.unit_decimal)
+                  values (random.set real.hash 3 random.unit_real)
                   .let [expected (list.zipped_2 (set.as_list keys)
                                                 (list:each (|>> {/.:Number}) (set.as_list values)))
                         object (/.object expected)]]
@@ -449,7 +449,7 @@
                  [key (random.alphabetic 1)
                   unknown (random.only (|>> (by text.equality = key) not)
                                        (random.alphabetic 1))
-                  expected random.unit_decimal]
+                  expected random.unit_real]
                  (_.coverage [/.has]
                    (<| (try.else false)
                        (monad.let try.monad
@@ -480,7 +480,7 @@
                               (try.else false))))]
 
                      [[/.Boolean /.boolean_field /.:Boolean random.bit bit.equality]
-                      [/.Number /.number_field /.:Number random.unit_decimal decimal.equality]
+                      [/.Number /.number_field /.:Number random.unit_real real.equality]
                       [/.String /.string_field /.:String (random.alphabetic 1) text.equality]
                       [/.Array /.array_field /.:Array (random.list 3 ..random) (list.equality /.equality)]
                       [/.Object /.object_field /.:Object (random.dictionary text.hash 3 (random.alphabetic 1) ..random) (dictionary.equality /.equality)]]))

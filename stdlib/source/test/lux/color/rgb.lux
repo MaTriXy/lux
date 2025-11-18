@@ -22,7 +22,7 @@
      [/64
       ["n" natural]
       ["i" integer]
-      ["d" decimal]]]]
+      ["r" real]]]]
    [meta
     ["[0]" static]]
    [test
@@ -45,28 +45,28 @@
 
 (the scale
   (-> Natural
-      Decimal)
+      Real)
   (|>> .integer
-       i.decimal))
+       i.real))
 
 (the square
-  (-> Decimal
-      Decimal)
-  (d.^ +2.0))
+  (-> Real
+      Real)
+  (r.^ +2.0))
 
 (the square_root
-  (-> Decimal
-      Decimal)
-  (d.^ +0.5))
+  (-> Real
+      Real)
+  (r.^ +0.5))
 
 (the (distance/3 from to)
   (-> /.RGB /.RGB
-      Decimal)
+      Real)
   (square_root
-   (all d.+
-        (|> (scale (/.red to)) (d.- (scale (/.red from))) square)
-        (|> (scale (/.green to)) (d.- (scale (/.green from))) square)
-        (|> (scale (/.blue to)) (d.- (scale (/.blue from))) square))))
+   (all r.+
+        (|> (scale (/.red to)) (r.- (scale (/.red from))) square)
+        (|> (scale (/.green to)) (r.- (scale (/.green from))) square)
+        (|> (scale (/.blue to)) (r.- (scale (/.blue from))) square))))
 
 (the .public test
   Test
@@ -80,11 +80,11 @@
          expected_blue ..value
 
          colorful (random.only (function (_ it)
-                                 (and (|> it (distance/3 /.black) (d.>= +100.0))
-                                      (|> it (distance/3 /.white) (d.>= +100.0))))
+                                 (and (|> it (distance/3 /.black) (r.>= +100.0))
+                                      (|> it (distance/3 /.white) (r.>= +100.0))))
                                ..random)
-         ratio (random.only (d.>= +0.5)
-                            random.unit_decimal)
+         ratio (random.only (r.>= +0.5)
+                            random.unit_real)
 
          left ..random
          right ..random])
@@ -141,14 +141,14 @@
                               (by /.equality = /.black (/.complement /.white))))
 
                        (_.coverage [/.interpolated]
-                         (and (d.<= (distance/3 /.black colorful)
+                         (and (r.<= (distance/3 /.black colorful)
                                     (distance/3 /.black (/.interpolated /.black ratio colorful)))
-                              (d.<= (distance/3 /.white colorful)
+                              (r.<= (distance/3 /.white colorful)
                                     (distance/3 /.white (/.interpolated /.white ratio colorful)))))
                        (_.coverage [/.darker /.brighter]
-                         (and (d.<= (distance/3 /.black colorful)
+                         (and (r.<= (distance/3 /.black colorful)
                                     (distance/3 /.black (/.darker ratio colorful)))
-                              (d.<= (distance/3 /.white colorful)
+                              (r.<= (distance/3 /.white colorful)
                                     (distance/3 /.white (/.brighter ratio colorful)))))
                        (_.coverage [/.as_text]
                          (bit.= (by /.equality = left right)

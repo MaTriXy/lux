@@ -190,9 +190,9 @@
 (alias [lcm]
        ..least_common_multiple)
 
-(the .public decimal
+(the .public real
   (-> It
-      Decimal)
+      Real)
   (|>> .integer
        .int_f64#))
 
@@ -303,7 +303,7 @@
     ..character_of_07 {.:Some ..value_of_07}
     _ (value_for_base_02 it)))
 
-(the (decimal_digit it)
+(the (real_digit it)
   (-> It
       Text)
   (when it
@@ -311,7 +311,7 @@
     ..value_of_09 ..text_of_09
     _ (digit_for_base_08 it)))
 
-(the (decimal_value it)
+(the (real_value it)
   (-> It
       (Maybe It))
   (when it
@@ -329,7 +329,7 @@
     ..value_of_13 ..text_of_13
     ..value_of_14 ..text_of_14
     ..value_of_15 ..text_of_15
-    _ (decimal_digit it)))
+    _ (real_digit it)))
 
 (the (value_for_base_16 it)
   (-> It
@@ -341,7 +341,7 @@
     ..character_of_13 {.:Some ..value_of_13}
     ..character_of_14 {.:Some ..value_of_14}
     ..character_of_15 {.:Some ..value_of_15}
-    _ (decimal_value it)))
+    _ (real_value it)))
 
 (with_template [<shift> <struct> <to_digit> <to_value>]
   [(the .public <struct>
@@ -414,28 +414,28 @@
                                              ,limit output
                                              _ (of (-- natural) output))))]}))]
 
-                    [[leading_triple_decimals ..last_triple_digit "" 0]
+                    [[leading_triple_base_10s ..last_triple_digit "" 0]
 
-                     [non_leading_single_decimals ..last_single_digit "00" 0]
-                     [non_leading_double_decimals ..last_double_digit "0" ..single_digit_range]
-                     [non_leading_triple_decimals ..last_triple_digit "" ..double_digit_range]])
+                     [non_leading_single_base_10s ..last_single_digit "00" 0]
+                     [non_leading_double_base_10s ..last_double_digit "0" ..single_digit_range]
+                     [non_leading_triple_base_10s ..last_triple_digit "" ..double_digit_range]])
 
-                  (the (leading_decimals value)
+                  (the (leading_base_10s value)
                     (-> It
                         Text)
                     (`` (when value
-                          (,, (leading_triple_decimals))
+                          (,, (leading_triple_base_10s))
 
                           _
                           (undefined))))
 
-                  (the (non_leading_decimals value)
+                  (the (non_leading_base_10s value)
                     (-> It
                         Text)
                     (`` (when value
-                          (,, (non_leading_single_decimals))
-                          (,, (non_leading_double_decimals))
-                          (,, (non_leading_triple_decimals))
+                          (,, (non_leading_single_base_10s))
+                          (,, (non_leading_double_base_10s))
+                          (,, (non_leading_triple_base_10s))
 
                           _
                           (undefined))))))
@@ -452,20 +452,20 @@
                   (loop (code:text [input value
                                     output ""])
                     (if (..< ..triple_digit_range input)
-                        (.text_composite# (leading_decimals input)
+                        (.text_composite# (leading_base_10s input)
                                           output)
                         (code:text (../ ..triple_digit_range input)
-                                   (.text_composite# (non_leading_decimals (..% ..triple_digit_range input))
+                                   (.text_composite# (non_leading_base_10s (..% ..triple_digit_range input))
                                                      output)))))))
 
    (the (of repr)
      (let [input_size (.text_size# repr)]
-       (<| (_expansion:let [<failure> {try.:Failure (.text_composite# "Invalid decimal syntax: " repr)}])
+       (<| (_expansion:let [<failure> {try.:Failure (.text_composite# "Invalid base 10 syntax: " repr)}])
            (if (..> 0 input_size)
                (loop (of [idx 0
                           output 0])
                  (if (..< input_size idx)
-                     (when (decimal_value (.text_char# idx repr))
+                     (when (real_value (.text_char# idx repr))
                        {.:None}
                        <failure>
 

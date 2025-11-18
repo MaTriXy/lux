@@ -14,7 +14,7 @@
     [number
      [/64
       ["n" natural]
-      ["d" decimal]]]]
+      ["r" real]]]]
    [meta
     ["[0]" static]]
    [test
@@ -28,16 +28,16 @@
 
 (the .public value
   (Random /.Value)
-  (random:each /.value random.unit_decimal))
+  (random:each /.value random.unit_real))
 
 (the degree
   (Random /.Value)
-  (random:each (|>> (n.% 360) n.decimal d.of_degree)
+  (random:each (|>> (n.% 360) n.real r.of_degree)
                random.natural))
 
 (the per_cent
   (Random /.Value)
-  (random:each (|>> (n.% 100) n.decimal d.of_per_cent)
+  (random:each (|>> (n.% 100) n.real r.of_per_cent)
                random.natural))
 
 (the .public random
@@ -56,8 +56,8 @@
          expected_rgb rgbT.random
          expected_hsb ..random
 
-         possible_value (random.only (|>> d.not_a_number? not)
-                                     random.decimal)
+         possible_value (random.only (|>> r.not_a_number? not)
+                                     random.real)
          .let [delta +0.000000001]
 
          left ..random
@@ -67,27 +67,27 @@
                   (all _.and
                        (_.coverage [/.value?]
                          (and (/.value? expected_value)
-                              (not (/.value? (d.+ delta /.most)))
-                              (not (/.value? (d.- delta /.least)))))
+                              (not (/.value? (r.+ delta /.most)))
+                              (not (/.value? (r.- delta /.least)))))
                        (_.coverage [/.value]
                          (if (/.value? possible_value)
                              (|> possible_value
                                  /.value
-                                 (d.= possible_value))
-                             (or (d.= /.least (/.value possible_value))
-                                 (d.= /.most (/.value possible_value)))))
+                                 (r.= possible_value))
+                             (or (r.= /.least (/.value possible_value))
+                                 (r.= /.most (/.value possible_value)))))
                        (_.coverage [/.least]
-                         (and (d.< /.most
+                         (and (r.< /.most
                                    /.least)
                               (/.value? /.least)
-                              (/.value? (d.+ delta /.least))
-                              (not (/.value? (d.- delta /.least)))))
+                              (/.value? (r.+ delta /.least))
+                              (not (/.value? (r.- delta /.least)))))
                        (_.coverage [/.most]
-                         (and (d.> /.least
+                         (and (r.> /.least
                                    /.most)
                               (/.value? /.most)
-                              (/.value? (d.- delta /.most))
-                              (not (/.value? (d.+ delta /.most)))))
+                              (/.value? (r.- delta /.most))
+                              (not (/.value? (r.+ delta /.most)))))
                        ))
            (_.for [/.HSB]
                   (all _.and

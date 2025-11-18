@@ -51,8 +51,6 @@
       {try.:Failure error}
       (phase.failure error))))
 
-... [Procedures]
-... [[Bits]]
 (template.with [<name> <op>]
   [(the (<name> [paramG subjectG])
      (Binary _.Expression)
@@ -61,13 +59,11 @@
   [[i64:<< runtime.i64:<<]
    [i64:>> runtime.i64:>>]])
 
-... [[Numbers]]
 (the (i64:char it)
   (Unary _.Expression)
   (_.of (.list (runtime.i64:number it))
         (_.var "String.fromCharCode")))
 
-... [[Text]]
 (the (text//composite it)
   (Variadic _.Expression)
   (when it
@@ -92,7 +88,6 @@
   (Trinary _.Expression)
   (runtime.text//index startG partG subjectG))
 
-... [[IO]]
 (the (io//log messageG)
   (Unary _.Expression)
   (all _.,
@@ -102,12 +97,12 @@
 (the .public (statement expression archive synthesis)
   Phase!
   (`` (when synthesis
-        ... TODO: Get rid of this ASAP
         [@ {synthesis.:Extension [.prelude (,, (static.text (extension.synthesis extension/lux.when_char)))] parameters}]
-        (monad.let phase.monad
-          [body (expression archive synthesis)]
-          (pure (as (-> _.Expression _.Statement)
-                    body)))
+        (comment "TODO: Get rid of this ASAP"
+                 (monad.let phase.monad
+                   [body (expression archive synthesis)]
+                   (pure (as (-> _.Expression _.Statement)
+                             body))))
 
         (,, (template.with [<tag>]
               [(<tag> @ value)
@@ -175,39 +170,38 @@
         (phase:each _.return (//function.function statement expression archive abstraction))
         )))
 
-... TODO: Get rid of this ASAP
-(the lux:syntax_char_case!
-  (..custom [(all <>.and
-                  ?list.any
-                  ?list.any
-                  (<>.some (?synthesis.tuple (all <>.and
-                                                  (?synthesis.tuple (<>.many ?synthesis.i64))
-                                                  ?list.any))))
-             (function (_ phase archive [input else conditionals])
-               (monad.let [! phase.monad]
-                 [inputG (phase archive input)
-                  else! (..statement phase archive else)
-                  conditionals! (is (Operation (List [(List Literal)
-                                                      _.Statement]))
-                                    (list.each' ! (function (_ [chars branch])
-                                                    (monad.let !
-                                                      [branch! (..statement phase archive branch)]
-                                                      (pure [(list:each (|>> .integer _.int)
-                                                                        chars)
-                                                             branch!])))
-                                                conditionals))]
-                 ... (pure (|> (_.switch (_.its runtime.i64_low_field inputG)
-                 ...                   conditionals!
-                 ...                   {.:Some (_.return else!)})
-                 ...         (_.closure (list))
-                 ...         (_.of (list))))
-                 (pure (<| (as (-> _.Statement
-                                   _.Expression))
-                           (_.switch (_.its runtime.i64_low_field inputG)
-                                     conditionals!
-                                     {.:Some else!})))))]))
+(comment "TODO: Get rid of this ASAP"
+         (the lux:syntax_char_case!
+           (..custom [(all <>.and
+                           ?list.any
+                           ?list.any
+                           (<>.some (?synthesis.tuple (all <>.and
+                                                           (?synthesis.tuple (<>.many ?synthesis.i64))
+                                                           ?list.any))))
+                      (function (_ phase archive [input else conditionals])
+                        (monad.let [! phase.monad]
+                          [inputG (phase archive input)
+                           else! (..statement phase archive else)
+                           conditionals! (is (Operation (List [(List Literal)
+                                                               _.Statement]))
+                                             (list.each' ! (function (_ [chars branch])
+                                                             (monad.let !
+                                                               [branch! (..statement phase archive branch)]
+                                                               (pure [(list:each (|>> .integer _.int)
+                                                                                 chars)
+                                                                      branch!])))
+                                                         conditionals))]
+                          (comment (pure (|> (_.switch (_.its runtime.i64_low_field inputG)
+                                                       conditionals!
+                                                       {.:Some (_.return else!)})
+                                             (_.closure (list))
+                                             (_.of (list))))
+                                   (pure (<| (as (-> _.Statement
+                                                     _.Expression))
+                                             (_.switch (_.its runtime.i64_low_field inputG)
+                                                       conditionals!
+                                                       {.:Some else!}))))))])))
 
-... [Bundles]
 (the .public (with name anonymous)
   (-> extension.Name Handler
       (Change Bundle))
@@ -294,16 +288,12 @@
   (target.if target.js
              (|> left
                  (_.do "concat" (.list right)))
-             
-             ... else
              (let [as_array (is (Change _.Expression)
                                 (function (as_array it)
                                   (_.do "slice" (.list) it)))
                    as_array (is (Change _.Expression)
                                 (target.if target.js
                                            (|>>)
-                                           
-                                           ... else
                                            as_array))]
                (_.of (.list (_.array (.list)) (as_array left) (as_array right))
                      (let [it (_.var "it")

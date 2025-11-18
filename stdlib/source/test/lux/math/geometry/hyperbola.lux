@@ -7,7 +7,7 @@
     ["[0]" random]
     [number
      [/64
-      ["d" decimal]]]
+      ["r" real]]]
     [geometry
      ["[0]" circle]]]
    [macro
@@ -24,29 +24,29 @@
   Test
   (<| (_.covering /._)
       (monad.let [! random.monad]
-        [.let [~= (d.approximately? ..margin_of_error)]
-         angle (by ! each (d.x circle.tau) random.unit_decimal)
-         sample (by ! each d.absolute random.unit_decimal)
-         big (by ! each (d.x +1,000,000,000.00) random.unit_decimal)]
+        [.let [~= (r.approximately? ..margin_of_error)]
+         angle (by ! each (r.x circle.tau) random.unit_real)
+         sample (by ! each r.absolute random.unit_real)
+         big (by ! each (r.x +1,000,000,000.00) random.unit_real)]
         (template.let [(odd! ,function ,alias)
                        [(_.coverage [,function
                                      ,alias]
-                          (and (~= (d.opposite (,function angle))
-                                   (,function (d.opposite angle)))
+                          (and (~= (r.opposite (,function angle))
+                                   (,function (r.opposite angle)))
                                (identical? ,alias ,function)))]
 
                        (even! ,function ,alias)
                        [(_.coverage [,function
                                      ,alias]
                           (and (~= (,function angle)
-                                   (,function (d.opposite angle)))
+                                   (,function (r.opposite angle)))
                                (identical? ,alias ,function)))]
 
                        (inverse! ,left ,right ,input ,left_alias ,right_alias)
                        [(_.coverage [,left ,right
                                      ,left_alias ,right_alias]
                           (and (~= (,right ,input)
-                                   (,left (d./ ,input +1.0)))
+                                   (,left (r./ ,input +1.0)))
                                (identical? ,left ,left_alias)
                                (identical? ,right ,right_alias)))]]
           (all _.and

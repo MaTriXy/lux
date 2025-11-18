@@ -110,50 +110,50 @@
          (_.set_label @end)
          )))
 
-... TODO: Get rid of this ASAP
-(the lux:syntax_char_case!
-  (..custom [(all ?.and
-                  ?list.any
-                  ?list.any
-                  (?.some (?synthesis.tuple (all ?.and
-                                                 (?synthesis.tuple (?.many ?synthesis.i64))
-                                                 ?list.any))))
-             (function (_ phase archive [inputS elseS conditionalsS])
-               (monad.let [! phase.monad]
-                 [@end jvm/runtime.forge_label
-                  inputG (phase archive inputS)
-                  elseG (phase archive elseS)
-                  conditionalsG+ (is (Operation (List [(List [/32.Number Label])
-                                                       (Bytecode Any)]))
-                                     (list.each' ! (function (_ [chars branch])
-                                                     (monad.let !
-                                                       [branchG (phase archive branch)
-                                                        @branch jvm/runtime.forge_label]
-                                                       (pure [(list:each (function (_ char)
-                                                                           [(/32.of (.integer char)) @branch])
-                                                                         chars)
-                                                              (all _.composite
-                                                                   (_.set_label @branch)
-                                                                   branchG
-                                                                   (_.when_continuous (_.goto @end)))])))
-                                                 conditionalsS))
-                  .let [table (|> conditionalsG+
-                                  (list:each product.left)
-                                  list:conjoint)
-                        conditionalsG (|> conditionalsG+
-                                          (list:each product.right)
-                                          (list.complete _.monad))]]
-                 (pure (monad.let _.monad
-                         [@else _.new_label]
-                         (all _.composite
-                              inputG (jvm/value.primitive type.long) _.l2i
-                              (_.lookupswitch @else table)
-                              conditionalsG
-                              (_.set_label @else)
-                              elseG
-                              (<| (_.when_acknowledged @end)
-                                  (_.set_label @end))
-                              )))))]))
+(comment "TODO: Get rid of this ASAP"
+         (the lux:syntax_char_case!
+           (..custom [(all ?.and
+                           ?list.any
+                           ?list.any
+                           (?.some (?synthesis.tuple (all ?.and
+                                                          (?synthesis.tuple (?.many ?synthesis.i64))
+                                                          ?list.any))))
+                      (function (_ phase archive [inputS elseS conditionalsS])
+                        (monad.let [! phase.monad]
+                          [@end jvm/runtime.forge_label
+                           inputG (phase archive inputS)
+                           elseG (phase archive elseS)
+                           conditionalsG+ (is (Operation (List [(List [/32.Number Label])
+                                                                (Bytecode Any)]))
+                                              (list.each' ! (function (_ [chars branch])
+                                                              (monad.let !
+                                                                [branchG (phase archive branch)
+                                                                 @branch jvm/runtime.forge_label]
+                                                                (pure [(list:each (function (_ char)
+                                                                                    [(/32.of (.integer char)) @branch])
+                                                                                  chars)
+                                                                       (all _.composite
+                                                                            (_.set_label @branch)
+                                                                            branchG
+                                                                            (_.when_continuous (_.goto @end)))])))
+                                                          conditionalsS))
+                           .let [table (|> conditionalsG+
+                                           (list:each product.left)
+                                           list:conjoint)
+                                 conditionalsG (|> conditionalsG+
+                                                   (list:each product.right)
+                                                   (list.complete _.monad))]]
+                          (pure (monad.let _.monad
+                                  [@else _.new_label]
+                                  (all _.composite
+                                       inputG (jvm/value.primitive type.long) _.l2i
+                                       (_.lookupswitch @else table)
+                                       conditionalsG
+                                       (_.set_label @else)
+                                       elseG
+                                       (<| (_.when_acknowledged @end)
+                                           (_.set_label @end))
+                                       )))))])))
 
 (the (lux:is [referenceG sampleG])
   (Binary (Bytecode Any))
@@ -334,7 +334,7 @@
        (with extension/lux.int_f64 (unary ..i64:f64))
        (with extension/lux.int_char (unary ..i64:char))))
 
-(the with_decimal
+(the with_real
   (Change Bundle)
   (|>> (with extension/lux.f64_+ (binary ..f64:+))
        (with extension/lux.f64_- (binary ..f64:-))
@@ -552,26 +552,18 @@
   (Binary (Bytecode Any))
   (let [swap2
         (all _.composite
-             ... a b c d
-             _.dup2_x2 _.pop2
-             ... c d a b
-             )
+             _.dup2_x2
+             _.pop2)
 
         swap_2,1
         (all _.composite
-             ... a b c
              _.dup2_x1
-             _.pop2
-             ... b c a
-             )
+             _.pop2)
 
         swap_1,2
         (all _.composite
-             ... a b c
              _.dup_x2
-             _.pop
-             ... c a b
-             )
+             _.pop)
 
         as_list (function (_ it)
                   (all _.composite
@@ -581,59 +573,37 @@
 
         with_size
         (all _.composite
-             ... it
              _.dup
-             _.arraylength
-             ... it (size it)
-             )
+             _.arraylength)
         
         empty_composite
         (all _.composite
-             ... (size prefix) (size suffix)
-             _.iadd (_.anewarray $Object)
-             ... composite
-             )
+             _.iadd
+             (_.anewarray $Object))
 
         beginning
         (_.int (/32.of +0))
 
         copy_of_prefix
         (all _.composite
-             ... P (# P) P+S
              _.dup2_x1
-             ... {(# P) P+S} P (# P) P+S
              _.swap beginning _.dup_x2 _.swap
-             ... {(# P) P+S} P 0 P+S 0 (# P)
-             system:arraycopy
-             ... {(# P) P+S}
-             )
+             system:arraycopy)
 
         copy_of_suffix
         (all _.composite
-             ... S (# S) (# P) P+S
              swap_1,2
-             ... S P+S (# S) (# P)
              swap2 _.swap _.dup2_x2 _.pop
-             ... {P+S} S (# S) (# P) P+S
              beginning _.swap swap2 _.swap
-             ... {P+S} S 0 P+S (# P) (# S)
-             system:arraycopy
-             ... {P+S}
-             )]
+             system:arraycopy)]
     (all _.composite
          (as_list suffix) with_size
-         ... [S (# S)]
          _.dup
          (as_list prefix) with_size
          swap_2,1
-         ... [S (# S)] [P (# P)] (# S)
          _.swap _.dup_x1 empty_composite
-         ... ... [S (# S)] [P (# P)] P+S
          copy_of_prefix
-         ... S (# S) (# P) P+S
-         copy_of_suffix
-         ... P+S
-         )))
+         copy_of_suffix)))
 
 (the with_list
   (Change Bundle)
@@ -694,7 +664,7 @@
       with_text
       with_i64
       with_integer
-      with_decimal
+      with_real
       with_list
       with_array
       ))

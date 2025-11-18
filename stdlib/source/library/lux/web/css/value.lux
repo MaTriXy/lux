@@ -18,7 +18,7 @@
       ["n" natural]
       ["i" integer]
       ["r" revolution]
-      ["d" decimal]]]]
+      ["[0]" real]]]]
    [macro
     ["[0]" syntax]
     ["[0]" template]
@@ -53,9 +53,9 @@
        (template.spliced <definition>+))]))
 
 (the (%number value)
-  (Injection Decimal)
-  (let [raw (%.decimal value)]
-    (if (d.< +0.0 value)
+  (Injection Real)
+  (let [raw (%.real value)]
+    (if (real.< +0.0 value)
         raw
         (|> raw (text.split_at 1) maybe.trusted product.right))))
 
@@ -806,7 +806,7 @@
     (..of "steps" (list (%.natural intervals) (..step step))))
 
   (the .public (cubic_bezier p0 p1 p2 p3)
-    (-> Decimal Decimal Decimal Decimal
+    (-> Real Real Real Real
         (Value Timing))
     (|> (list p0 p1 p2 p3)
         (list:each %number)
@@ -849,7 +849,7 @@
 
   (template.with [<name> <suffix>]
     [(the .public (<name> value)
-       (-> Decimal
+       (-> Real
            (Value Length))
        (nominal.of
         (.text (%number value) <suffix>)))]
@@ -1035,7 +1035,7 @@
 
        <function>+)]
 
-    [[Natural (<| nominal.as ..px n.decimal)
+    [[Natural (<| nominal.as ..px n.real)
       [[blur "blur"]]]
      [Natural (<| ..angle ..degree)
       [[hue_rotate "hue-rotate"]]]
@@ -1231,7 +1231,7 @@
     (|>> nominal.transmutation))
 
   (the .public number
-    (-> Decimal
+    (-> Real
         (Value Number))
     (|>> %number
          nominal.of))
@@ -1318,19 +1318,19 @@
         nominal.of))
 
   (the .public (matrix_2d [a b] [c d] [tx ty])
-    (-> [Decimal Decimal]
-        [Decimal Decimal]
-        [Decimal Decimal]
+    (-> [Real Real]
+        [Real Real]
+        [Real Real]
         (Value Transform))
     (|> (list a b c d tx ty)
         (list:each %number)
         (..of "matrix")))
 
   (the .public (matrix_3d [a0 b0 c0 d0] [a1 b1 c1 d1] [a2 b2 c2 d2] [a3 b3 c3 d3])
-    (-> [Decimal Decimal Decimal Decimal]
-        [Decimal Decimal Decimal Decimal]
-        [Decimal Decimal Decimal Decimal]
-        [Decimal Decimal Decimal Decimal]
+    (-> [Real Real Real Real]
+        [Real Real Real Real]
+        [Real Real Real Real]
+        [Real Real Real Real]
         (Value Transform))
     (|> (list a0 b0 c0 d0 a1 b1 c1 d1 a2 b2 c2 d2 a3 b3 c3 d3)
         (list:each %number)
@@ -1344,19 +1344,19 @@
                (list:each %number)
                (..of <function>))))]
 
-    [[translate_2d "translate" [Decimal Decimal] [x y]]
-     [translate_3d "translate3d" [Decimal Decimal Decimal] [x y z]]
-     [translate_x "translateX" [Decimal] [value]]
-     [translate_y "translateY" [Decimal] [value]]
-     [translate_z "translateZ" [Decimal] [value]]
+    [[translate_2d "translate" [Real Real] [x y]]
+     [translate_3d "translate3d" [Real Real Real] [x y z]]
+     [translate_x "translateX" [Real] [value]]
+     [translate_y "translateY" [Real] [value]]
+     [translate_z "translateZ" [Real] [value]]
 
-     [scale_2d "scale" [Decimal Decimal] [x y]]
-     [scale_3d "scale3d" [Decimal Decimal Decimal] [x y z]]
-     [scale_x "scaleX" [Decimal] [value]]
-     [scale_y "scaleY" [Decimal] [value]]
-     [scale_z "scaleZ" [Decimal] [value]]
+     [scale_2d "scale" [Real Real] [x y]]
+     [scale_3d "scale3d" [Real Real Real] [x y z]]
+     [scale_x "scaleX" [Real] [value]]
+     [scale_y "scaleY" [Real] [value]]
+     [scale_z "scaleZ" [Real] [value]]
 
-     [perspective "perspective" [Decimal] [value]]])
+     [perspective "perspective" [Real] [value]]])
 
   (template.with [<name> <function> <input_types> <input_values>]
     [(`` (the .public (<name> [(,, (template.spliced <input_values>))])
@@ -1376,7 +1376,7 @@
      [skew_y "skewY" [Angle] [angle]]])
 
   (the .public (rotate_3d [x y z angle])
-    (-> [Decimal Decimal Decimal Angle]
+    (-> [Real Real Real Angle]
         (Value Transform))
     (..of "rotate3d"
           (list (%number x) (%number y) (%number z) (..angle angle))))

@@ -12,7 +12,7 @@
     ["[0]" random (.only Random) (.use functor)]
     [number
      [/64
-      ["d" decimal]]]]
+      ["r" real]]]]
    [meta
     ["[0]" static]]
    [test
@@ -26,7 +26,7 @@
 
 (the .public value
   (Random /.Value)
-  (random:each /.value random.unit_decimal))
+  (random:each /.value random.unit_real))
 
 (the .public random
   (Random /.CMYK)
@@ -48,34 +48,34 @@
          expected_rgb rgbT.random
          expected_cmyk ..random
 
-         possible_value random.unit_decimal
+         possible_value random.unit_real
          .let [delta +0.000000001]])
       (all _.and
            (_.for [/.Value]
                   (all _.and
                        (_.coverage [/.value?]
                          (and (/.value? expected_value)
-                              (not (/.value? (d.+ delta /.most)))
-                              (not (/.value? (d.- delta /.least)))))
+                              (not (/.value? (r.+ delta /.most)))
+                              (not (/.value? (r.- delta /.least)))))
                        (_.coverage [/.value]
                          (if (/.value? possible_value)
                              (|> possible_value
                                  /.value
-                                 (d.= possible_value))
-                             (or (d.= /.least (/.value possible_value))
-                                 (d.= /.most (/.value possible_value)))))
+                                 (r.= possible_value))
+                             (or (r.= /.least (/.value possible_value))
+                                 (r.= /.most (/.value possible_value)))))
                        (_.coverage [/.least]
-                         (and (d.< /.most
+                         (and (r.< /.most
                                    /.least)
                               (/.value? /.least)
-                              (/.value? (d.+ delta /.least))
-                              (not (/.value? (d.- delta /.least)))))
+                              (/.value? (r.+ delta /.least))
+                              (not (/.value? (r.- delta /.least)))))
                        (_.coverage [/.most]
-                         (and (d.> /.least
+                         (and (r.> /.least
                                    /.most)
                               (/.value? /.most)
-                              (/.value? (d.- delta /.most))
-                              (not (/.value? (d.+ delta /.most)))))
+                              (/.value? (r.- delta /.most))
+                              (not (/.value? (r.+ delta /.most)))))
                        ))
            (_.for [/.CMYK
                    /.:cyan /.:magenta /.:yellow /.:key]

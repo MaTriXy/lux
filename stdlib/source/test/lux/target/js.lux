@@ -23,7 +23,7 @@
      ["[0]" /64 (.only)
       ["n" natural]
       ["i" integer]
-      ["d" decimal]]]]
+      ["r" real]]]]
    [macro
     ["[0]" template]]
    [meta
@@ -73,7 +73,7 @@
   Test
   (monad.let [! random.monad]
     [boolean random.bit
-     number random.decimal
+     number random.real
      int ..int_32
      string (random.upper_cased 5)]
     (all _.and
@@ -89,10 +89,10 @@
            (expression (|>> (as (-> Any Bit)) (bit.= boolean))
                        (/.boolean boolean)))
          (_.coverage [/.number]
-           (expression (|>> (as (-> Any Decimal)) (d.= number))
+           (expression (|>> (as (-> Any Real)) (r.= number))
                        (/.number number)))
          (_.coverage [/.int]
-           (expression (|>> (as (-> Any Decimal)) d.integer (i.= int))
+           (expression (|>> (as (-> Any Real)) r.integer (i.= int))
                        (/.int int)))
          (_.coverage [/.string]
            (expression (|>> (as (-> Any Text)) (text.= string))
@@ -121,32 +121,32 @@
 (the test|number
   Test
   (monad.let [! random.monad]
-    [parameter (random.only (|>> (d.= +0.0) not)
-                            random.unit_decimal)
-     subject random.unit_decimal]
+    [parameter (random.only (|>> (r.= +0.0) not)
+                            random.unit_real)
+     subject random.unit_real]
     (`` (all _.and
              (,, (template.with [<js> <lux>]
                    [(_.coverage [<js>]
                       (let [expected (<lux> parameter subject)]
-                        (expression (|>> (as (-> Any Decimal)) (d.= expected))
+                        (expression (|>> (as (-> Any Real)) (r.= expected))
                                     (<js> (/.number parameter) (/.number subject)))))]
 
-                   [[/.+ d.+]
-                    [/.- d.-]
-                    [/.* d.x]
-                    [/./ d./]
-                    [/.% d.%]]))
+                   [[/.+ r.+]
+                    [/.- r.-]
+                    [/.* r.x]
+                    [/./ r./]
+                    [/.% r.%]]))
              (,, (template.with [<js> <lux>]
                    [(_.coverage [<js>]
                       (let [expected (<lux> parameter subject)]
                         (expression (|>> (as (-> Any Bit)) (bit.= expected))
                                     (<js> (/.number parameter) (/.number subject)))))]
 
-                   [[/.<  d.<]
-                    [/.<= d.<=]
-                    [/.>  d.>]
-                    [/.>= d.>=]
-                    [/.=  d.=]]))
+                   [[/.<  r.<]
+                    [/.<= r.<=]
+                    [/.>  r.>]
+                    [/.>= r.>=]
+                    [/.=  r.=]]))
              ))))
 
 (the test|i32
@@ -162,42 +162,42 @@
              (,, (template.with [<js> <lux>]
                    [(_.coverage [<js>]
                       (let [expected (<lux> left right)]
-                        (expression (|>> (as (-> Any Decimal)) d.integer (i.= expected))
+                        (expression (|>> (as (-> Any Real)) r.integer (i.= expected))
                                     (<js> (/.int left) (/.int right)))))]
 
                    [[/.bit_or /64.or]
                     [/.bit_xor /64.xor]
                     [/.bit_and /64.and]]))
              (_.coverage [/.opposite]
-               (expression (|>> (as (-> Any Decimal)) d.integer (i.= (i.x -1 i32)))
+               (expression (|>> (as (-> Any Real)) r.integer (i.= (i.x -1 i32)))
                            (/.opposite (/.i32 i32))))
 
              (_.coverage [/.i32]
-               (expression (|>> (as (-> Any Decimal)) d.integer (i.= i32))
+               (expression (|>> (as (-> Any Real)) r.integer (i.= i32))
                            (/.i32 i32)))
              (_.coverage [/.to_i32]
-               (expression (|>> (as (-> Any Decimal)) d.integer (i.= i32))
+               (expression (|>> (as (-> Any Real)) r.integer (i.= i32))
                            (/.to_i32 (/.int i32))))
              (_.coverage [/.left_shift]
                (let [expected (/64.<< shift i16)]
-                 (expression (|>> (as (-> Any Decimal)) d.integer (i.= expected))
+                 (expression (|>> (as (-> Any Real)) r.integer (i.= expected))
                              (/.left_shift (/.int (.integer shift))
                                            (/.i32 i16)))))
              (_.coverage [/.logic_right_shift]
                (let [expected (/64.>> shift (as_int_32 i16))]
-                 (expression (|>> (as (-> Any Decimal)) d.integer (i.= expected))
+                 (expression (|>> (as (-> Any Real)) r.integer (i.= expected))
                              (/.logic_right_shift (/.int (.integer shift))
                                                   (/.i32 i16)))))
              (_.coverage [/.arithmetic_right_shift]
                (let [expected (i.>> shift i16)]
-                 (expression (|>> (as (-> Any Decimal)) d.integer (i.= expected))
+                 (expression (|>> (as (-> Any Real)) r.integer (i.= expected))
                              (/.arithmetic_right_shift (/.int (.integer shift))
                                                        (/.i32 i16)))))
              (_.coverage [/.bit_not]
                (let [expected (if (i.< +0 i32)
                                   (as_int_32 (/64.not i32))
                                   (/64.not (as_int_32 i32)))]
-                 (expression (|>> (as (-> Any Decimal)) d.integer (i.= expected))
+                 (expression (|>> (as (-> Any Real)) r.integer (i.= expected))
                              (/.bit_not (/.i32 i32)))))
              ))))
 
@@ -206,13 +206,13 @@
   (monad.let [! random.monad]
     [size (by ! each (|>> (n.% 10) ++) random.natural)
      index (by ! each (n.% size) random.natural)
-     items (random.list size random.unit_decimal)
+     items (random.list size random.unit_real)
      .let [expected (|> items
                         (list.item index)
-                        (try.else d.not_a_number))]]
+                        (try.else r.not_a_number))]]
     (all _.and
          (_.coverage [/.array /.at]
-           (and (expression (|>> (as (-> Any Decimal)) (d.= expected))
+           (and (expression (|>> (as (-> Any Real)) (r.= expected))
                             (/.at (/.int (.integer index))
                                   (/.array (list:each /.number items))))
                 (expression (|>> (as (-> Any Bit)))
@@ -224,23 +224,23 @@
 (the test|object
   Test
   (monad.let [! random.monad]
-    [expected random.unit_decimal
+    [expected random.unit_real
      field (random.upper_cased 5)
      dummy (random.only (|>> (text.= field) not)
                         (random.upper_cased 5))
 
      size (by ! each (|>> (n.% 10) ++) random.natural)
      index (by ! each (n.% size) random.natural)
-     items (random.list size random.unit_decimal)]
+     items (random.list size random.unit_real)]
     (all _.and
          (_.coverage [/.object /.its]
-           (expression (|>> (as (-> Any Decimal)) (d.= expected))
+           (expression (|>> (as (-> Any Real)) (r.= expected))
                        (/.its field (/.object (list [field (/.number expected)])))))
          (let [expected (|> items
                             (list.item index)
-                            (try.else d.not_a_number))]
+                            (try.else r.not_a_number))]
            (_.coverage [/.do]
-             (expression (|>> (as (-> Any Decimal)) d.integer (i.= (.integer index)))
+             (expression (|>> (as (-> Any Real)) r.integer (i.= (.integer index)))
                          (|> (/.array (list:each /.number items))
                              (/.do "lastIndexOf" (list (/.number expected)))))))
          (_.coverage [/.undefined]
@@ -254,11 +254,11 @@
   Test
   (monad.let [! random.monad]
     [test random.bit
-     then random.unit_decimal
-     else random.unit_decimal
+     then random.unit_real
+     else random.unit_real
 
      boolean random.bit
-     number random.decimal
+     number random.real
      string (random.upper_cased 5)
 
      comment (random.upper_cased 10)]
@@ -270,13 +270,13 @@
          ..test|object
          (_.coverage [/.?]
            (let [expected (if test then else)]
-             (expression (|>> (as (-> Any Decimal)) (d.= expected))
+             (expression (|>> (as (-> Any Real)) (r.= expected))
                          (/.? (/.boolean test)
                               (/.number then)
                               (/.number else)))))
          (_.coverage [/.not_a_number?]
            (and (expression (|>> (as (-> Any Bit)))
-                            (/.not_a_number? (/.number d.not_a_number)))
+                            (/.not_a_number? (/.number r.not_a_number)))
                 (expression (|>> (as (-> Any Bit)) not)
                             (/.not_a_number? (/.number then)))))
          (_.coverage [/.type_of]
@@ -297,7 +297,7 @@
                 (expression (|>> (as (-> Any Text)) (text.= "undefined"))
                             (/.type_of /.undefined))))
          (_.coverage [/.comment]
-           (expression (|>> (as (-> Any Decimal)) (d.= then))
+           (expression (|>> (as (-> Any Real)) (r.= then))
                        (/.comment comment
                                   (/.number then))))
          )))
@@ -305,24 +305,24 @@
 (the test|expression
   Test
   (monad.let [! random.monad]
-    [dummy random.unit_decimal
-     expected random.unit_decimal]
+    [dummy random.unit_real
+     expected random.unit_real]
     (`` (all _.and
              (_.for [/.Literal]
                     ..test|literal)
              (_.for [/.Computation]
                     ..test|computation)
              (_.coverage [/.,]
-               (expression (|>> (as (-> Any Decimal)) (d.= expected))
+               (expression (|>> (as (-> Any Real)) (r.= expected))
                            (/., (/.number dummy) (/.number expected))))
              ))))
 
 (the test/var
   Test
   (monad.let [! random.monad]
-    [number/0 random.unit_decimal
-     number/1 random.unit_decimal
-     number/2 random.unit_decimal
+    [number/0 random.unit_real
+     number/1 random.unit_real
+     number/2 random.unit_real
      foreign (random.lower_cased 10)
      local (random.only (|>> (text.= foreign) not)
                         (random.lower_cased 10))
@@ -330,19 +330,19 @@
            $local (/.var local)]]
     (all _.and
          (_.coverage [/.var]
-           (expression (|>> (as (-> Any Decimal)) (d.= number/0))
+           (expression (|>> (as (-> Any Real)) (r.= number/0))
                        (|> (/.return $foreign)
                            (/.closure (list $foreign))
                            (/.of (list (/.number number/0))))))
          (_.coverage [/.define]
-           (expression (|>> (as (-> Any Decimal)) (d.= number/1))
+           (expression (|>> (as (-> Any Real)) (r.= number/1))
                        (|> (all /.then
                                 (/.define $local (/.number number/1))
                                 (/.return $local))
                            (/.closure (list $foreign))
                            (/.of (list (/.number number/0))))))
          (_.coverage [/.declare]
-           (expression (|>> (as (-> Any Decimal)) (d.= number/1))
+           (expression (|>> (as (-> Any Real)) (r.= number/1))
                        (|> (all /.then
                                 (/.declare $local)
                                 (/.; (/.set $local (/.number number/1)))
@@ -354,19 +354,19 @@
 (the test/location
   Test
   (monad.let [! random.monad]
-    [number/0 random.unit_decimal
+    [number/0 random.unit_real
      int/0 ..int_16
      $foreign (by ! each /.var (random.lower_cased 10))
      field (random.upper_cased 10)]
     (all _.and
          (_.coverage [/.set]
-           (and (expression (|>> (as (-> Any Decimal)) (d.= (d.+ number/0 number/0)))
+           (and (expression (|>> (as (-> Any Real)) (r.= (r.+ number/0 number/0)))
                             (|> (all /.then
                                      (/.; (/.set $foreign (/.+ $foreign $foreign)))
                                      (/.return $foreign))
                                 (/.closure (list $foreign))
                                 (/.of (list (/.number number/0)))))
-                (expression (|>> (as (-> Any Decimal)) (d.= (d.+ number/0 number/0)))
+                (expression (|>> (as (-> Any Real)) (r.= (r.+ number/0 number/0)))
                             (let [@ (/.at (/.int +0) $foreign)]
                               (|> (all /.then
                                        (/.; (/.set $foreign (/.array (list $foreign))))
@@ -374,7 +374,7 @@
                                        (/.return @))
                                   (/.closure (list $foreign))
                                   (/.of (list (/.number number/0))))))
-                (expression (|>> (as (-> Any Decimal)) (d.= (d.+ number/0 number/0)))
+                (expression (|>> (as (-> Any Real)) (r.= (r.+ number/0 number/0)))
                             (let [@ (/.its field $foreign)]
                               (|> (all /.then
                                        (/.; (/.set $foreign (/.object (list [field $foreign]))))
@@ -412,13 +412,13 @@
                 ))
          (_.coverage [/.Access]
            (`` (and (,, (template.with [<js> <lux>]
-                          [(expression (|>> (as (-> Any Decimal)) d.integer (i.= (<lux> int/0)))
+                          [(expression (|>> (as (-> Any Real)) r.integer (i.= (<lux> int/0)))
                                        (|> (all /.then
                                                 (/.; (<js> $foreign))
                                                 (/.return $foreign))
                                            (/.closure (list $foreign))
                                            (/.of (list (/.int int/0)))))
-                           (expression (|>> (as (-> Any Decimal)) d.integer (i.= (<lux> int/0)))
+                           (expression (|>> (as (-> Any Real)) r.integer (i.= (<lux> int/0)))
                                        (let [@ (/.at (/.int +0) $foreign)]
                                          (|> (all /.then
                                                   (/.; (/.set $foreign (/.array (list $foreign))))
@@ -426,7 +426,7 @@
                                                   (/.return @))
                                              (/.closure (list $foreign))
                                              (/.of (list (/.int int/0))))))
-                           (expression (|>> (as (-> Any Decimal)) d.integer (i.= (<lux> int/0)))
+                           (expression (|>> (as (-> Any Real)) r.integer (i.= (<lux> int/0)))
                                        (let [@ (/.its field $foreign)]
                                          (|> (all /.then
                                                   (/.; (/.set $foreign (/.object (list [field $foreign]))))
@@ -460,7 +460,7 @@
     (all _.and
          (_.coverage [/.break]
            (let [expected (i.x (.integer expected_inner_iterations) input)]
-             (expression (|>> (as (-> Any Decimal)) d.integer (i.= expected))
+             (expression (|>> (as (-> Any Real)) r.integer (i.= expected))
                          (|> (all /.then
                                   (/.define $inner_index (/.int +0))
                                   (/.define $output (/.int +0))
@@ -476,7 +476,7 @@
                              (/.of (list (/.int input)))))))
          (_.coverage [/.continue]
            (let [expected (i.x (.integer (n.- expected_inner_iterations full_inner_iterations)) input)]
-             (expression (|>> (as (-> Any Decimal)) d.integer (i.= expected))
+             (expression (|>> (as (-> Any Real)) r.integer (i.= expected))
                          (|> (all /.then
                                   (/.define $inner_index (/.int +0))
                                   (/.define $output (/.int +0))
@@ -496,7 +496,7 @@
                        (let [expected (i.x (.integer (n.x expected_outer_iterations
                                                           expected_inner_iterations))
                                            input)]
-                         (expression (|>> (as (-> Any Decimal)) d.integer (i.= expected))
+                         (expression (|>> (as (-> Any Real)) r.integer (i.= expected))
                                      (|> (all /.then
                                               (/.define $output (/.int +0))
                                               (/.define $outer_index (/.int +0))
@@ -522,7 +522,7 @@
                        (let [expected (i.x (.integer (n.x (n.- expected_outer_iterations full_outer_iterations)
                                                           (n.- expected_inner_iterations full_inner_iterations)))
                                            input)]
-                         (expression (|>> (as (-> Any Decimal)) d.integer (i.= expected))
+                         (expression (|>> (as (-> Any Real)) r.integer (i.= expected))
                                      (|> (all /.then
                                               (/.define $output (/.int +0))
                                               (/.define $outer_index (/.int +0))
@@ -560,7 +560,7 @@
            expected|do_while (i.x (.integer (n.major 1 iterations)) input)]]
     (all _.and
          (_.coverage [/.while]
-           (expression (|>> (as (-> Any Decimal)) d.integer (i.= expected|while))
+           (expression (|>> (as (-> Any Real)) r.integer (i.= expected|while))
                        (|> (all /.then
                                 (/.define $index (/.int +0))
                                 (/.define $output (/.int +0))
@@ -573,7 +573,7 @@
                            (/.closure (list $input))
                            (/.of (list (/.int input))))))
          (_.coverage [/.do_while]
-           (expression (|>> (as (-> Any Decimal)) d.integer (i.= expected|do_while))
+           (expression (|>> (as (-> Any Real)) r.integer (i.= expected|do_while))
                        (|> (all /.then
                                 (/.define $index (/.int +0))
                                 (/.define $output (/.int +0))
@@ -586,7 +586,7 @@
                            (/.closure (list $input))
                            (/.of (list (/.int input))))))
          (_.coverage [/.for]
-           (expression (|>> (as (-> Any Decimal)) d.integer (i.= expected|while))
+           (expression (|>> (as (-> Any Real)) r.integer (i.= expected|while))
                        (|> (all /.then
                                 (/.define $output (/.int +0))
                                 (/.for $index (/.int +0)
@@ -603,19 +603,19 @@
 (the test|exception
   Test
   (monad.let [! random.monad]
-    [expected random.unit_decimal
-     dummy (random.only (|>> (d.= expected) not)
-                        random.unit_decimal)
+    [expected random.unit_real
+     dummy (random.only (|>> (r.= expected) not)
+                        random.unit_real)
      $ex (by ! each /.var (random.lower_cased 10))]
     (all _.and
          (_.coverage [/.try]
-           (expression (|>> (as (-> Any Decimal)) (d.= expected))
+           (expression (|>> (as (-> Any Real)) (r.= expected))
                        (|> (/.try (/.return (/.number expected))
                                   [$ex (/.return (/.number dummy))])
                            (/.closure (list))
                            (/.of (list)))))
          (_.coverage [/.throw]
-           (expression (|>> (as (-> Any Decimal)) (d.= expected))
+           (expression (|>> (as (-> Any Real)) (r.= expected))
                        (|> (/.try (all /.then
                                        (/.throw (/.number expected))
                                        (/.return (/.number dummy)))
@@ -627,7 +627,7 @@
 (the test|function
   Test
   (monad.let [! random.monad]
-    [number/0 random.unit_decimal
+    [number/0 random.unit_real
      iterations (by ! each (n.% 10) random.natural)
      $self (by ! each /.var (random.lower_cased 1))
      $arg/0 (by ! each /.var (random.lower_cased 2))
@@ -635,19 +635,19 @@
      $class (by ! each /.var (random.upper_cased 4))]
     (all _.and
          (_.coverage [/.closure /.return]
-           (expression (|>> (as (-> Any Decimal)) (d.= number/0))
+           (expression (|>> (as (-> Any Real)) (r.= number/0))
                        (|> (/.return (/.number number/0))
                            (/.closure (list))
                            (/.of (list)))))
          (_.coverage [/.function]
-           (expression (|>> (as (-> Any Decimal)) d.natural (n.= iterations))
+           (expression (|>> (as (-> Any Real)) r.natural (n.= iterations))
                        (|> (/.return (/.? (/.< (/.int (.integer iterations)) $arg/0)
                                           (/.of (list (/.+ (/.int +1) $arg/0)) $self)
                                           $arg/0))
                            (/.function $self (list $arg/0))
                            (/.of (list (/.int +0))))))
          (_.coverage [/.function_definition]
-           (expression (|>> (as (-> Any Decimal)) d.natural (n.= iterations))
+           (expression (|>> (as (-> Any Real)) r.natural (n.= iterations))
                        (|> (all /.then
                                 (/.function_definition $self (list $arg/0)
                                                        (/.return (/.? (/.< (/.int (.integer iterations)) $arg/0)
@@ -658,7 +658,7 @@
                            (/.of (list)))))
          (_.coverage [/.new]
            (let [$this (/.var "this")]
-             (expression (|>> (as (-> Any Decimal)) (d.= number/0))
+             (expression (|>> (as (-> Any Real)) (r.= number/0))
                          (|> (all /.then
                                   (/.function_definition $class (list)
                                                          (/.; (/.set (/.its field $this) $arg/0)))
@@ -666,15 +666,15 @@
                              (/.closure (list $arg/0))
                              (/.of (list (/.number number/0)))))))
          (monad.let [! random.monad]
-           [number/0 random.unit_decimal
-            number/1 random.unit_decimal
-            number/2 random.unit_decimal
+           [number/0 random.unit_real
+            number/1 random.unit_real
+            number/2 random.unit_real
             $arg/0 (by ! each /.var (random.lower_cased 10))
             $arg/1 (by ! each /.var (random.lower_cased 11))
             $arg/2 (by ! each /.var (random.lower_cased 12))]
            (`` (all _.and
                     (_.coverage [/.of]
-                      (expression (|>> (as (-> Any Decimal)) (d.= (all d.+ number/0 number/1 number/2)))
+                      (expression (|>> (as (-> Any Real)) (r.= (all r.+ number/0 number/1 number/2)))
                                   (|> (/.return (all /.+ $arg/0 $arg/1 $arg/2))
                                       (/.closure (list $arg/0 $arg/1 $arg/2))
                                       (/.of (list (/.number number/0)
@@ -686,9 +686,9 @@
 (the test|branching
   Test
   (monad.let [! random.monad]
-    [number/0 random.unit_decimal
-     number/1 random.unit_decimal
-     number/2 random.unit_decimal
+    [number/0 random.unit_real
+     number/1 random.unit_real
+     number/2 random.unit_real
      arg/0 (random.lower_cased 10)
      arg/1 (random.only (|>> (text.= arg/0) not)
                         (random.lower_cased 10))
@@ -702,14 +702,14 @@
      int ..int_16]
     (all _.and
          (_.coverage [/.if]
-           (expression (|>> (as (-> Any Decimal)) (d.= (if ??? number/0 number/1)))
+           (expression (|>> (as (-> Any Real)) (r.= (if ??? number/0 number/1)))
                        (|> (/.if (/.boolean ???)
                                  (/.return (/.number number/0))
                                  (/.return (/.number number/1)))
                            (/.closure (list))
                            (/.of (list)))))
          (_.coverage [/.when]
-           (expression (|>> (as (-> Any Decimal)) (d.= (if ??? number/0 number/1)))
+           (expression (|>> (as (-> Any Real)) (r.= (if ??? number/0 number/1)))
                        (|> (all /.then
                                 (/.when (/.boolean ???)
                                   (/.return (/.number number/0)))
@@ -717,9 +717,9 @@
                            (/.closure (list))
                            (/.of (list)))))
          (_.coverage [/.switch]
-           (let [number/0' (%.decimal number/0)
-                 number/1' (%.decimal number/1)
-                 number/2' (%.decimal number/2)]
+           (let [number/0' (%.real number/0)
+                 number/1' (%.real number/1)
+                 number/2' (%.real number/2)]
              (and (expression (|>> (as (-> Any Text)) (text.= number/0'))
                               (|> (/.switch (/.number number/0)
                                             (list [(list (/.number number/0)) (/.return (/.string number/0'))]
@@ -747,9 +747,9 @@
 (the test|statement
   Test
   (monad.let [! random.monad]
-    [number/0 random.unit_decimal
-     number/1 random.unit_decimal
-     number/2 random.unit_decimal
+    [number/0 random.unit_real
+     number/1 random.unit_real
+     number/2 random.unit_real
      $arg/0 (by ! each /.var (random.lower_cased 10))
      $arg/1 (by ! each /.var (random.lower_cased 11))
      $arg/2 (by ! each /.var (random.lower_cased 12))
@@ -757,7 +757,7 @@
      int ..int_16]
     (`` (all _.and
              (_.coverage [/.;]
-               (expression (|>> (as (-> Any Decimal)) (d.= number/0))
+               (expression (|>> (as (-> Any Real)) (r.= number/0))
                            (|> (all /.then
                                     (/.; (/.+ $arg/0 $arg/0))
                                     (/.return $arg/0))
@@ -765,7 +765,7 @@
                                (/.of (list (/.number number/0))))))
              (,, (template.with [<js> <lux>]
                    [(_.coverage [<js>]
-                      (expression (|>> (as (-> Any Decimal)) d.integer (i.= (<lux> int)))
+                      (expression (|>> (as (-> Any Real)) r.integer (i.= (<lux> int)))
                                   (|> (/.return (/., (<js> $arg/0)
                                                      $arg/0))
                                       (/.closure (list $arg/0))
@@ -774,7 +774,7 @@
                    [[/.++ .++]
                     [/.-- .--]]))
              (_.coverage [/.then]
-               (expression (|>> (as (-> Any Decimal)) (d.= number/0))
+               (expression (|>> (as (-> Any Real)) (r.= number/0))
                            (|> (all /.then
                                     (/.return $arg/0)
                                     (/.return $arg/1))
@@ -782,7 +782,7 @@
                                (/.of (list (/.number number/0)
                                            (/.number number/1))))))
              (_.coverage [/.use_strict]
-               (and (expression (|>> (as (-> Any Decimal)) (d.= number/0))
+               (and (expression (|>> (as (-> Any Real)) (r.= number/0))
                                 (|> (all /.then
                                          /.use_strict
                                          (/.declare $arg/0)

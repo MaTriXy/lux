@@ -351,10 +351,10 @@
                      {:Nominal (.type_name# "i64") (.list# [..co_variant {:Nominal (.type_name# "revolution") (.list#)}])}})
        ..public)
 
-(.def# Decimal
+(.def# Real
        (.is# Type
-             {:Named [..prelude "Decimal"]
-                     {:Nominal (.type_name# "decimal") (.list#)}})
+             {:Named [..prelude "Real"]
+                     {:Nominal (.type_name# "real") (.list#)}})
        ..public)
 
 (.def# Text
@@ -420,7 +420,7 @@
                      [..prelude ":Natural"]
                      [..prelude ":Integer"]
                      [..prelude ":Revolution"]
-                     [..prelude ":Decimal"]
+                     [..prelude ":Real"]
                      [..prelude ":Text"]
                      [..prelude ":Name"]
                      [..prelude ":Form"]
@@ -431,7 +431,7 @@
 (.def# :Natural (tag [{:Some [1 0b ..every_tag_of_code]} Code]) ..public)
 (.def# :Integer (tag [{:Some [2 0b ..every_tag_of_code]} Code]) ..public)
 (.def# :Revolution (tag [{:Some [3 0b ..every_tag_of_code]} Code]) ..public)
-(.def# :Decimal (tag [{:Some [4 0b ..every_tag_of_code]} Code]) ..public)
+(.def# :Real (tag [{:Some [4 0b ..every_tag_of_code]} Code]) ..public)
 (.def# :Text (tag [{:Some [5 0b ..every_tag_of_code]} Code]) ..public)
 (.def# :Name (tag [{:Some [6 0b ..every_tag_of_code]} Code]) ..public)
 (.def# :Form (tag [{:Some [7 0b ..every_tag_of_code]} Code]) ..public)
@@ -470,10 +470,10 @@
              (.function# _ value {:Revolution (annotated value)}))
        ..private)
 
-(.def# code:decimal
-       (.is# (Function Decimal
+(.def# code:real
+       (.is# (Function Real
                        Code)
-             (.function# _ value {:Decimal (annotated value)}))
+             (.function# _ value {:Real (annotated value)}))
        ..private)
 
 (.def# code:text
@@ -2277,8 +2277,8 @@
               {:Revolution _ it}
               {:Revolution provenance it}
 
-              {:Decimal _ it}
-              {:Decimal provenance it}
+              {:Real _ it}
+              {:Real provenance it}
 
               {:Text _ it}
               {:Text provenance it}
@@ -2393,10 +2393,10 @@
                                              ..no_provenance
                                              (code:revolution value))))
               
-              [_ {:Decimal @token value}]
-              (meta:pure (code:variant (list ('prelude ":Decimal")
+              [_ {:Real @token value}]
+              (meta:pure (code:variant (list ('prelude ":Real")
                                              ..no_provenance
-                                             (code:decimal value))))
+                                             (code:real value))))
 
               [_ {:Text @token value}]
               (meta:pure (untemplated_text value))
@@ -3027,7 +3027,7 @@
           [?:natural Natural :Natural]
           [?:integer Integer :Integer]
           [?:revolution Revolution :Revolution]
-          [?:decimal Decimal :Decimal]
+          [?:real Real :Real]
           [?:text Text :Text]
           [?:name Name :Name]])
 
@@ -3229,7 +3229,7 @@
               {:Revolution _ value}
               (.error# "@code:as_text Undefined behavior.")
               
-              {:Decimal _ value}
+              {:Real _ value}
               (.error# "@code:as_text Undefined behavior.")
 
               {:Text _ value}
@@ -3688,8 +3688,8 @@
                                                              (if (.text_=# name_of_type (.type_name# "bit"))
                                                                  (pure (code:bit (as (-> Any Bit) value)))
 
-                                                                 (.text_=# name_of_type (.type_name# "decimal"))
-                                                                 (pure (code:decimal (as (-> Any Decimal) value)))
+                                                                 (.text_=# name_of_type (.type_name# "real"))
+                                                                 (pure (code:real (as (-> Any Real) value)))
 
                                                                  (.text_=# name_of_type (.type_name# "text"))
                                                                  (pure (code:text (as (-> Any Text) value)))
@@ -3978,7 +3978,7 @@
                 [(List [Natural Code]) Text Code]
                 [(List [Integer Code]) Text Code]
                 [(List [Revolution Code]) Text Code]
-                [(List [Decimal Code]) Text Code]
+                [(List [Real Code]) Text Code]
                 [(List [Text Code]) Text Code]
                 [Bundle Code])))
 
@@ -3989,7 +3989,7 @@
             [..prelude ":When/If_Natural"]
             [..prelude ":When/If_Integer"]
             [..prelude ":When/If_Revolution"]
-            [..prelude ":When/If_Decimal"]
+            [..prelude ":When/If_Real"]
             [..prelude ":When/If_Text"]
             [..prelude ":When/Let"]))
 (the' .private :When/Complete_If Tag (..tag [{:Some [0 0b ..every_tag_of_when]} When]))
@@ -3997,7 +3997,7 @@
 (the' .private :When/If_Natural Tag (..tag [{:Some [2 0b ..every_tag_of_when]} When]))
 (the' .private :When/If_Integer Tag (..tag [{:Some [3 0b ..every_tag_of_when]} When]))
 (the' .private :When/If_Revolution Tag (..tag [{:Some [4 0b ..every_tag_of_when]} When]))
-(the' .private :When/If_Decimal Tag (..tag [{:Some [5 0b ..every_tag_of_when]} When]))
+(the' .private :When/If_Real Tag (..tag [{:Some [5 0b ..every_tag_of_when]} When]))
 (the' .private :When/If_Text Tag (..tag [{:Some [6 0b ..every_tag_of_when]} When]))
 (the' .private :When/Let Tag (..tag [{:Some [6 1b ..every_tag_of_when]} When]))
 
@@ -4045,7 +4045,7 @@
            (?:switch ?:natural)
            (?:switch ?:integer)
            (?:switch ?:revolution)
-           (?:switch ?:decimal)
+           (?:switch ?:real)
            (?:switch ?:text)
            ?:when/let))
 
@@ -4105,7 +4105,7 @@
   [[natural:= Natural .i64_=#]
    [integer:= Integer .i64_=#]
    [revolution:= Revolution .i64_=#]
-   [decimal:= Decimal .f64_=#]
+   [real:= Real .f64_=#]
    [text:= Text .text_=#]])
 
 (with_template [,name ,type ,= ,'= ,code]
@@ -4128,7 +4128,7 @@
   [[if_natural ..Natural natural:= .i64_=# code:natural]
    [if_integer ..Integer integer:= .i64_=# code:integer]
    [if_revolution ..Revolution revolution:= .i64_=# code:revolution]
-   [if_decimal ..Decimal decimal:= .f64_=# code:decimal]
+   [if_real ..Real real:= .f64_=# code:real]
    [if_text ..Text text:= .text_=# code:text]])
 
 (the' .public when
@@ -4157,7 +4157,7 @@
                           {:Some {:When/If_Natural every_then variable 'else}} (if_natural '_ value every_then variable 'else)
                           {:Some {:When/If_Integer every_then variable 'else}} (if_integer '_ value every_then variable 'else)
                           {:Some {:When/If_Revolution every_then variable 'else}} (if_revolution '_ value every_then variable 'else)
-                          {:Some {:When/If_Decimal every_then variable 'else}} (if_decimal '_ value every_then variable 'else)
+                          {:Some {:When/If_Real every_then variable 'else}} (if_real '_ value every_then variable 'else)
                           {:Some {:When/If_Text every_then variable 'else}} (if_text '_ value every_then variable 'else)
 
                           {:Some {:When/Let bundle 'body}}
@@ -5912,7 +5912,7 @@
                                      {:Natural _ _}
                                      {:Integer _ _}
                                      {:Revolution _ _}
-                                     {:Decimal _ _}
+                                     {:Real _ _}
                                      {:Text _ _})
                                (list target)
 
@@ -6317,7 +6317,7 @@
       (failure ""))))
 
 (alias [F64 Double]
-       ..Decimal)
+       ..Real)
 
 (the .public variant
   (macro (_ it)

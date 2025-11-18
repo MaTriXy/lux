@@ -8,7 +8,7 @@
     [number
      [/64
       ["i" integer]
-      ["d" decimal]]]]
+      ["r" real]]]]
    [macro
     ["[0]" template]]]]
  [//
@@ -17,13 +17,12 @@
   ["[0]" hsb]])
 
 (the (ratio it)
-  (-> Decimal
-      Decimal)
-  (if (d.> +1.0 it)
-      (d.% +1.0 it)
+  (Change Real)
+  (if (r.> +1.0 it)
+      (r.% +1.0 it)
 
-      (d.< +0.0 it)
-      (|> it (d.% +1.0) (d.+ +1.0))
+      (r.< +0.0 it)
+      (|> it (r.% +1.0) (r.+ +1.0))
 
       it))
 
@@ -33,16 +32,16 @@
              [RGB RGB RGB])
          (let [(open "/[0]") (hsl.of_rgb it)]
            [it
-            (hsl.rgb (hsl.hsl (|> /:hue (d.+ <1>) ..ratio)
+            (hsl.rgb (hsl.hsl (|> /:hue (r.+ <1>) ..ratio)
                               /:saturation
                               /:luminance))
-            (hsl.rgb (hsl.hsl (|> /:hue (d.+ <2>) ..ratio)
+            (hsl.rgb (hsl.hsl (|> /:hue (r.+ <2>) ..ratio)
                               /:saturation
                               /:luminance))])))]
 
-  [[triad            (|> +1.0 (d./ +3.0)) (|> +2.0 (d./ +3.0))]
-   [clash            (|> +1.0 (d./ +4.0)) (|> +3.0 (d./ +4.0))]
-   [split_complement (|> +1.0 (d./ +5.0)) (|> +3.0 (d./ +5.0))]]
+  [[triad            (|> +1.0 (r./ +3.0)) (|> +2.0 (r./ +3.0))]
+   [clash            (|> +1.0 (r./ +4.0)) (|> +3.0 (r./ +4.0))]
+   [split_complement (|> +1.0 (r./ +5.0)) (|> +3.0 (r./ +5.0))]]
   )
 
 (template.with [<name> <1> <2> <3>]
@@ -55,16 +54,16 @@
                           (function (_ hue)
                             (hsl.rgb (hsl.hsl hue /:saturation /:luminance))))]
            [it
-            (|> /:hue (d.+ <1>) ..ratio of_hue)
-            (|> /:hue (d.+ <2>) ..ratio of_hue)
-            (|> /:hue (d.+ <3>) ..ratio of_hue)])))]
+            (|> /:hue (r.+ <1>) ..ratio of_hue)
+            (|> /:hue (r.+ <2>) ..ratio of_hue)
+            (|> /:hue (r.+ <3>) ..ratio of_hue)])))]
 
-  [[square   (|> +1.0 (d./ +4.0))  (|> +2.0 (d./ +4.0))  (|> +3.0 (d./ +4.0))]
-   [tetradic (|> +2.0 (d./ +12.0)) (|> +6.0 (d./ +12.0)) (|> +8.0 (d./ +12.0))]]
+  [[square   (|> +1.0 (r./ +4.0))  (|> +2.0 (r./ +4.0))  (|> +3.0 (r./ +4.0))]
+   [tetradic (|> +2.0 (r./ +12.0)) (|> +6.0 (r./ +12.0)) (|> +8.0 (r./ +12.0))]]
   )
 
 (every .public Spread
-  Decimal)
+  Real)
 
 (comment "https://en.wikipedia.org/wiki/Color_scheme"
          (every .public Scheme
@@ -79,7 +78,7 @@
         luminance (its hsl.:luminance it)
         spread (..ratio spread)]
     (list:each (function (_ idx)
-                 (hsl.rgb (hsl.hsl (|> idx ++ .integer i.decimal (d.x spread) (d.+ hue) ..ratio)
+                 (hsl.rgb (hsl.hsl (|> idx ++ .integer i.real (r.x spread) (r.+ hue) ..ratio)
                                    saturation
                                    luminance)))
                (list.domain variations))))
@@ -92,9 +91,9 @@
         brightness (hsb.brightness it)
         spread (..ratio spread)]
     (|> (list.domain variations)
-        (list:each (|>> ++ .integer i.decimal
-                        (d.x spread)
-                        (d.+ brightness)
+        (list:each (|>> ++ .integer i.real
+                        (r.x spread)
+                        (r.+ brightness)
                         ..ratio
                         (hsb.hsb hue saturation)
                         hsb.rgb)))))

@@ -14,7 +14,7 @@
     ["[0]" number (.only)
      ["[0]" /64 (.only)
       ["[0]" integer]
-      ["[0]" decimal]]]]
+      ["[0]" real]]]]
    [macro
     ["[0]" template]
     ["[0]" expansion]]
@@ -33,8 +33,8 @@
 (the expected_int (//.as_int (static.random_integer)))
 (the expected_long (//.as_long (static.random_integer)))
 (the expected_char (//.as_char (static.random_integer)))
-(the expected_float (//.as_float (static.random_decimal)))
-(the expected_double (//.as_double (static.random_decimal)))
+(the expected_float (//.as_float (static.random_real)))
+(the expected_double (//.as_double (static.random_real)))
 (the expected_string (//.as_string (static.random code.text (random.lower_cased 2))))
 
 (`` (`` (/.export Primitives
@@ -64,8 +64,8 @@
                          [int integer.+]
                          [long integer.+]
                          [char integer.+]
-                         [float decimal.+]
-                         [double decimal.+]]))
+                         [float real.+]
+                         [double real.+]]))
                   )))
 
 (`` (`` (//.the Primitives
@@ -118,11 +118,11 @@
   (random:each (|>> (/64.and (number.base_16 "F")) .integer)
                random.natural))
 
-(the tiny_decimal
-  (Random Decimal)
+(the tiny_real
+  (Random Real)
   (random:each (|>> (/64.and (number.base_16 "FFFF"))
                     .integer
-                    integer.decimal)
+                    integer.real)
                random.natural))
 
 (`` (`` (the .public test
@@ -139,8 +139,8 @@
                         [int //.as_int ..tiny_integer]
                         [long //.as_long ..tiny_integer]
                         [char //.as_char ..tiny_integer]
-                        [float //.as_float ..tiny_decimal]
-                        [double //.as_double ..tiny_decimal]
+                        [float //.as_float ..tiny_real]
+                        [double //.as_double ..tiny_real]
                         [string //.as_string (random.lower_cased 1)]]))]
                 (all _.and
                      (_.coverage [/.export]
@@ -150,8 +150,8 @@
                             (integer.= (//.of_int ..expected_int) (//.of_int (Primitives:actual_int)))
                             (integer.= (//.of_long ..expected_long) (//.of_long (Primitives:actual_long)))
                             (integer.= (//.of_char ..expected_char) (//.of_char (Primitives:actual_char)))
-                            (decimal.= (//.of_float ..expected_float) (//.of_float (Primitives:actual_float)))
-                            (decimal.= (//.of_double ..expected_double) (//.of_double (Primitives:actual_double)))
+                            (real.= (//.of_float ..expected_float) (//.of_float (Primitives:actual_float)))
+                            (real.= (//.of_double ..expected_double) (//.of_double (Primitives:actual_double)))
 
                             (,, (template.with [<=> <+> <type>]
                                   [(expansion.let [<left> (template.name ["left_" <type>])
@@ -167,8 +167,8 @@
                                    [integer.= integer.+ int]
                                    [integer.= integer.+ long]
                                    [integer.= integer.+ char]
-                                   [decimal.= decimal.+ float]
-                                   [decimal.= decimal.+ double]]))
+                                   [real.= real.+ float]
+                                   [real.= real.+ double]]))
 
                             (text.= (//.of_string ..expected_string) (//.of_string (Objects:actual_string)))
                             

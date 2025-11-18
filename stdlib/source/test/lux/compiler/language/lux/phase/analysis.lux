@@ -79,8 +79,8 @@
         (phase.value state)
         (try.else false))))
 
-(the (can_analyse_simple_literal_or_singleton_tuple! lux module/0 [bit/0 natural/0 integer/0 revolution/0 decimal/0 text/0])
-  (-> Lux Text [.Bit .Natural .Integer .Revolution .Decimal .Text] Bit)
+(the (can_analyse_simple_literal_or_singleton_tuple! lux module/0 [bit/0 natural/0 integer/0 revolution/0 real/0 text/0])
+  (-> Lux Text [.Bit .Natural .Integer .Revolution .Real .Text] Bit)
   (let [state [extension.:bundle (extension/analysis.bundle ..eval)
                extension.:state lux]]
     (`` (and (,, (template.with [<expected> <code> <type> <analysis>]
@@ -106,7 +106,7 @@
                     [natural/0 code.natural .Natural //.natural]
                     [integer/0 code.integer .Integer //.integer]
                     [revolution/0 code.revolution .Revolution //.revolution]
-                    [decimal/0 code.decimal .Decimal //.decimal]
+                    [real/0 code.real .Real //.real]
                     [text/0 code.text .Text //.text]
 
                     ... Singleton tuple
@@ -114,16 +114,16 @@
                     [natural/0 (<| code.tuple stack code.natural) .Natural //.natural]
                     [integer/0 (<| code.tuple stack code.integer) .Integer //.integer]
                     [revolution/0 (<| code.tuple stack code.revolution) .Revolution //.revolution]
-                    [decimal/0 (<| code.tuple stack code.decimal) .Decimal //.decimal]
+                    [real/0 (<| code.tuple stack code.real) .Real //.real]
                     [text/0 (<| code.tuple stack code.text) .Text //.text]]))
              ))))
 
-(the (can_analyse_sum! lux module/0 [@any @bit @natural @integer @revolution @decimal @text] [bit/0 natural/0 integer/0 revolution/0 decimal/0 text/0] [@left @right])
-  (-> Lux Text [.Text .Text .Text .Text .Text .Text .Text] [.Bit .Natural .Integer .Revolution .Decimal .Text] [.Text .Text] Bit)
+(the (can_analyse_sum! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0] [@left @right])
+  (-> Lux Text [.Text .Text .Text .Text .Text .Text .Text] [.Bit .Natural .Integer .Revolution .Real .Text] [.Text .Text] Bit)
   (let [state [extension.:bundle (extension/analysis.bundle ..eval)
                extension.:state lux]
-        :record: (And .Any .Bit .Natural .Integer .Revolution .Decimal .Text)
-        :variant: (Or .Any .Bit .Natural .Integer .Revolution .Decimal .Text)
+        :record: (And .Any .Bit .Natural .Integer .Revolution .Real .Text)
+        :variant: (Or .Any .Bit .Natural .Integer .Revolution .Real .Text)
 
         can_analyse_unary!
         (`` (and (|> (monad.let phase.monad
@@ -162,7 +162,7 @@
                         [2 0b natural/0 @natural code.natural //.natural]
                         [3 0b integer/0 @integer code.integer //.integer]
                         [4 0b revolution/0 @revolution code.revolution //.revolution]
-                        [5 0b decimal/0 @decimal code.decimal //.decimal]
+                        [5 0b real/0 @real code.real //.real]
                         [5 1b text/0 @text code.text //.text]]))))
 
         can_analyse_nullary!
@@ -193,7 +193,7 @@
                                            (code.natural natural/0)
                                            (code.integer integer/0)
                                            (code.revolution revolution/0)
-                                           (code.decimal decimal/0)
+                                           (code.real real/0)
                                            (code.text text/0)))
                       (/.phase ..expander archive.empty)
                       (//type.with :either:))]
@@ -203,13 +203,13 @@
                                                          (//.natural natural/?)
                                                          (//.integer integer/?)
                                                          (//.revolution revolution/?)
-                                                         (//.decimal decimal/?)
+                                                         (//.real real/?)
                                                          (//.text text/?)))])
                       (and (identical? bit/0 bit/?)
                            (identical? natural/0 natural/?)
                            (identical? integer/0 integer/?)
                            (identical? revolution/0 revolution/?)
-                           (identical? decimal/0 decimal/?)
+                           (identical? real/0 real/?)
                            (identical? text/0 text/?))
 
                       _
@@ -224,20 +224,20 @@
          can_analyse_multiary!
          )))
 
-(the (can_analyse_variant! lux module/0 [@any @bit @natural @integer @revolution @decimal @text] [bit/0 natural/0 integer/0 revolution/0 decimal/0 text/0] [@left @right])
-  (-> Lux Text [.Text .Text .Text .Text .Text .Text .Text] [.Bit .Natural .Integer .Revolution .Decimal .Text] [.Text .Text] Bit)
+(the (can_analyse_variant! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0] [@left @right])
+  (-> Lux Text [.Text .Text .Text .Text .Text .Text .Text] [.Bit .Natural .Integer .Revolution .Real .Text] [.Text .Text] Bit)
   (let [state [extension.:bundle (extension/analysis.bundle ..eval)
                extension.:state lux]
         :record: {.:Named [module/0 @text]
-                          (type [.Any .Bit .Natural .Integer .Revolution .Decimal .Text])}
-        slots/* (stack @any @bit @natural @integer @revolution @decimal @text)
+                          (type [.Any .Bit .Natural .Integer .Revolution .Real .Text])}
+        slots/* (stack @any @bit @natural @integer @revolution @real @text)
         :variant: {.:Named [module/0 @text]
-                           (type (Or .Any .Bit .Natural .Integer .Revolution .Decimal .Text))}
-        tags/* (stack @any @bit @natural @integer @revolution @decimal @text)
+                           (type (Or .Any .Bit .Natural .Integer .Revolution .Real .Text))}
+        tags/* (stack @any @bit @natural @integer @revolution @real @text)
 
         can_analyse_unary!
         (`` (and (|> (monad.let phase.monad
-                       [_ (//module.decimallare_labels false tags/* false :variant:)
+                       [_ (//module.reallare_labels false tags/* false :variant:)
                         [:it: it] (|> (code.variant (stack (code.local @any) (` [])))
                                       (/.phase ..expander archive.empty)
                                       //type.inferring)]
@@ -278,7 +278,7 @@
                         [2 0b natural/0 @natural code.natural //.natural]
                         [3 0b integer/0 @integer code.integer //.integer]
                         [4 0b revolution/0 @revolution code.revolution //.revolution]
-                        [5 0b decimal/0 @decimal code.decimal //.decimal]
+                        [5 0b real/0 @real code.real //.real]
                         [5 1b text/0 @text code.text //.text]]))))
 
         can_analyse_nullary!
@@ -316,7 +316,7 @@
                                                   (code.natural natural/0)
                                                   (code.integer integer/0)
                                                   (code.revolution revolution/0)
-                                                  (code.decimal decimal/0)
+                                                  (code.real real/0)
                                                   (code.text text/0)))
                              (/.phase ..expander archive.empty)
                              //type.inferring)]
@@ -328,13 +328,13 @@
                                                               (//.natural natural/?)
                                                               (//.integer integer/?)
                                                               (//.revolution revolution/?)
-                                                              (//.decimal decimal/?)
+                                                              (//.real real/?)
                                                               (//.text text/?)))])
                            (and (identical? bit/0 bit/?)
                                 (identical? natural/0 natural/?)
                                 (identical? integer/0 integer/?)
                                 (identical? revolution/0 revolution/?)
-                                (identical? decimal/0 decimal/?)
+                                (identical? real/0 real/?)
                                 (identical? text/0 text/?))
 
                            _
@@ -348,8 +348,8 @@
          can_analyse_nullary!
          can_analyse_multiary!)))
 
-(the (can_analyse_tuple! lux module/0 [bit/0 natural/0 integer/0 revolution/0 decimal/0 text/0])
-  (-> Lux Text [.Bit .Natural .Integer .Revolution .Decimal .Text] Bit)
+(the (can_analyse_tuple! lux module/0 [bit/0 natural/0 integer/0 revolution/0 real/0 text/0])
+  (-> Lux Text [.Bit .Natural .Integer .Revolution .Real .Text] Bit)
   (let [state [extension.:bundle (extension/analysis.bundle ..eval)
                extension.:state lux]]
     (|> (monad.let phase.monad
@@ -358,11 +358,11 @@
                                             (code.natural natural/0)
                                             (code.integer integer/0)
                                             (code.revolution revolution/0)
-                                            (code.decimal decimal/0)
+                                            (code.real real/0)
                                             (code.text text/0)))
                          (/.phase ..expander archive.empty)
                          //type.inferring)]
-          (pure (and (type.= (type [.Any .Bit .Natural .Integer .Revolution .Decimal .Text])
+          (pure (and (type.= (type [.Any .Bit .Natural .Integer .Revolution .Real .Text])
                              :it:)
                      (when it
                        (//.tuple (stack (//.unit)
@@ -370,13 +370,13 @@
                                         (//.natural natural/?)
                                         (//.integer integer/?)
                                         (//.revolution revolution/?)
-                                        (//.decimal decimal/?)
+                                        (//.real real/?)
                                         (//.text text/?)))
                        (and (identical? bit/0 bit/?)
                             (identical? natural/0 natural/?)
                             (identical? integer/0 integer/?)
                             (identical? revolution/0 revolution/?)
-                            (identical? decimal/0 decimal/?)
+                            (identical? real/0 real/?)
                             (identical? text/0 text/?))
 
                        _
@@ -387,13 +387,13 @@
         (phase.value state)
         (try.else false))))
 
-(the (can_analyse_record! lux module/0 [@any @bit @natural @integer @revolution @decimal @text] [bit/0 natural/0 integer/0 revolution/0 decimal/0 text/0])
-  (-> Lux Text [.Text .Text .Text .Text .Text .Text .Text] [.Bit .Natural .Integer .Revolution .Decimal .Text] Bit)
+(the (can_analyse_record! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0])
+  (-> Lux Text [.Text .Text .Text .Text .Text .Text .Text] [.Bit .Natural .Integer .Revolution .Real .Text] Bit)
   (let [state [extension.:bundle (extension/analysis.bundle ..eval)
                extension.:state lux]
         :record: {.:Named [module/0 @text]
-                          (type [.Any .Bit .Natural .Integer .Revolution .Decimal .Text])}
-        slots/* (stack @any @bit @natural @integer @revolution @decimal @text)]
+                          (type [.Any .Bit .Natural .Integer .Revolution .Real .Text])}
+        slots/* (stack @any @bit @natural @integer @revolution @real @text)]
     (|> (monad.let phase.monad
           [_ (//module.declare_labels true slots/* false :record:)
            [:it: it] (|> (code.tuple (stack (code.local @text) (code.text text/0)
@@ -401,7 +401,7 @@
                                             (code.local @revolution) (code.revolution revolution/0)
                                             (code.local @integer) (code.integer integer/0)
                                             (code.local @natural) (code.natural natural/0)
-                                            (code.local @decimal) (code.decimal decimal/0)
+                                            (code.local @real) (code.real real/0)
                                             (code.local @any) (` [])))
                          (/.phase ..expander archive.empty)
                          //type.inferring)]
@@ -413,13 +413,13 @@
                                         (//.natural natural/?)
                                         (//.integer integer/?)
                                         (//.revolution revolution/?)
-                                        (//.decimal decimal/?)
+                                        (//.real real/?)
                                         (//.text text/?)))
                        (and (identical? bit/0 bit/?)
                             (identical? natural/0 natural/?)
                             (identical? integer/0 integer/?)
                             (identical? revolution/0 revolution/?)
-                            (identical? decimal/0 decimal/?)
+                            (identical? real/0 real/?)
                             (identical? text/0 text/?))
 
                        _
@@ -655,33 +655,33 @@
         (phase.value state)
         (try.else false))))
 
-(the (can_analyse_pattern_matching! lux module/0 [@any @bit @natural @integer @revolution @decimal @text] [bit/0 natural/0 integer/0 revolution/0 decimal/0 text/0] $parameter/0)
-  (-> Lux Text [.Text .Text .Text .Text .Text .Text .Text] [.Bit .Natural .Integer .Revolution .Decimal .Text] Code Bit)
+(the (can_analyse_pattern_matching! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0] $parameter/0)
+  (-> Lux Text [.Text .Text .Text .Text .Text .Text .Text] [.Bit .Natural .Integer .Revolution .Real .Text] Code Bit)
   (let [state [extension.:bundle (extension/analysis.bundle ..eval)
                extension.:state lux]
         
         :variant: {.:Named [module/0 module/0]
-                           (type (Or .Any .Bit .Natural .Integer .Revolution .Decimal .Text))}
-        tags/* (stack @any @bit @natural @integer @revolution @decimal @text)
+                           (type (Or .Any .Bit .Natural .Integer .Revolution .Real .Text))}
+        tags/* (stack @any @bit @natural @integer @revolution @real @text)
 
         :record: {.:Named [module/0 module/0]
-                          (type (And .Any .Bit .Natural .Integer .Revolution .Decimal .Text))}
-        slots/* (stack @any @bit @natural @integer @revolution @decimal @text)
+                          (type (And .Any .Bit .Natural .Integer .Revolution .Real .Text))}
+        slots/* (stack @any @bit @natural @integer @revolution @real @text)
 
         simple!
         (`` (and (,, (template.with [<input> <code> <analysis> <pattern>]
                        [(|> (monad.let phase.monad
-                              [[:it: it] (|> (` ({(, $parameter/0) (, (code.decimal decimal/0))} (, (<code> <input>))))
+                              [[:it: it] (|> (` ({(, $parameter/0) (, (code.real real/0))} (, (<code> <input>))))
                                              (/.phase ..expander archive.empty)
                                              //type.inferring)]
-                              (pure (and (type.= .Decimal :it:)
+                              (pure (and (type.= .Real :it:)
                                          (when it
                                            {//.:When (<analysis> input/?)
                                                      [[//.:when (//pattern.bind 0)
-                                                       //.:then (//.decimal decimal/?)]
+                                                       //.:then (//.real real/?)]
                                                       (stack)]}
                                            (and (identical? <input> input/?)
-                                                (identical? decimal/0 decimal/?))
+                                                (identical? real/0 real/?))
 
                                            _
                                            false))))
@@ -692,23 +692,23 @@
                             (try.else false))
                         (|> (monad.let phase.monad
                               [[:it: it] (|> (` ({(, (<code> <input>))
-                                                  (, (code.decimal decimal/0))
+                                                  (, (code.real real/0))
 
                                                   (, $parameter/0)
-                                                  (, (code.decimal decimal/0))}
+                                                  (, (code.real real/0))}
                                                  (, (<code> <input>))))
                                              (/.phase ..expander archive.empty)
                                              //type.inferring)]
-                              (pure (and (type.= .Decimal :it:)
+                              (pure (and (type.= .Real :it:)
                                          (when it
                                            {//.:When (<analysis> input/?)
                                                      [[//.:when (<pattern> pattern/?)
-                                                       //.:then (//.decimal decimal/?)]
+                                                       //.:then (//.real real/?)]
                                                       (stack [//.:when (//pattern.bind 0)
-                                                              //.:then (//.decimal decimal/?)])]}
+                                                              //.:then (//.real real/?)])]}
                                            (and (identical? <input> input/?)
                                                 (identical? <input> pattern/?)
-                                                (identical? decimal/0 decimal/?))
+                                                (identical? real/0 real/?))
 
                                            _
                                            false))))
@@ -722,29 +722,29 @@
                         [natural/0 code.natural //.natural //pattern.natural]
                         [integer/0 code.integer //.integer //pattern.integer]
                         [revolution/0 code.revolution //.revolution //pattern.revolution]
-                        [decimal/0 code.decimal //.decimal //pattern.decimal]
+                        [real/0 code.real //.real //pattern.real]
                         [text/0 code.text //.text //pattern.text]]))))
 
         bit!
         (|> (monad.let phase.monad
               [[:it: it] (|> (` ({0b
-                                  (, (code.decimal decimal/0))
+                                  (, (code.real real/0))
 
                                   1b
-                                  (, (code.decimal decimal/0))}
+                                  (, (code.real real/0))}
                                  (, (code.bit bit/0))))
                              (/.phase ..expander archive.empty)
                              //type.inferring)]
-              (pure (and (type.= .Decimal :it:)
+              (pure (and (type.= .Real :it:)
                          (when it
                            {//.:When (//.bit bit/?)
                                      [[//.:when (//pattern.bit .false)
-                                       //.:then (//.decimal false/?)]
+                                       //.:then (//.real false/?)]
                                       (stack [//.:when (//pattern.bit .true)
-                                              //.:then (//.decimal true/?)])]}
+                                              //.:then (//.real true/?)])]}
                            (and (identical? bit/0 bit/?)
-                                (identical? decimal/0 false/?)
-                                (identical? decimal/0 true/?))
+                                (identical? real/0 false/?)
+                                (identical? real/0 true/?))
 
                            _
                            false))))
@@ -759,24 +759,24 @@
                        [(|> (monad.let phase.monad
                               [_ (//module.declare_labels false tags/* false :variant:)
                                [:it: it] (|> (` ({{(, (code.local <tag>)) (, (<code> <expected>))}
-                                                  (, (code.decimal decimal/0))
+                                                  (, (code.real real/0))
 
                                                   (, $parameter/0)
-                                                  (, (code.decimal decimal/0))}
+                                                  (, (code.real real/0))}
                                                  {(, (code.local <tag>)) (, (<code> <expected>))}))
                                              (/.phase ..expander archive.empty)
                                              //type.inferring)]
-                              (pure (and (type.= .Decimal :it:)
+                              (pure (and (type.= .Real :it:)
                                          (when it
                                            {//.:When (//.variant [<lefts> <right?> (<analysis> analysis/?)])
                                                      [[//.:when (//pattern.variant [<lefts> <right?> (<pattern> pattern/?)])
-                                                       //.:then (//.decimal match/?)]
+                                                       //.:then (//.real match/?)]
                                                       (stack [//.:when (//pattern.bind 0)
-                                                              //.:then (//.decimal mismatch/?)])]}
+                                                              //.:then (//.real mismatch/?)])]}
                                            (and (identical? <expected> analysis/?)
                                                 (identical? <expected> pattern/?)
-                                                (identical? decimal/0 match/?)
-                                                (identical? decimal/0 mismatch/?))
+                                                (identical? real/0 match/?)
+                                                (identical? real/0 mismatch/?))
 
                                            _
                                            false))))
@@ -790,31 +790,31 @@
                         [2 0b natural/0 @natural code.natural //.natural //pattern.natural]
                         [3 0b integer/0 @integer code.integer //.integer //pattern.integer]
                         [4 0b revolution/0 @revolution code.revolution //.revolution //pattern.revolution]
-                        [5 0b decimal/0 @decimal code.decimal //.decimal //pattern.decimal]
+                        [5 0b real/0 @real code.real //.real //pattern.real]
                         [5 1b text/0 @text code.text //.text //pattern.text]]))))
 
         tuple!
         (|> (monad.let phase.monad
               [[:it: it] (|> (` ({[0b (, $parameter/0)]
-                                  (, (code.decimal decimal/0))
+                                  (, (code.real real/0))
 
                                   [1b (, $parameter/0)]
-                                  (, (code.decimal decimal/0))}
+                                  (, (code.real real/0))}
                                  [(, (code.bit bit/0))
                                   (, (code.natural natural/0))]))
                              (/.phase ..expander archive.empty)
                              //type.inferring)]
-              (pure (and (type.= .Decimal :it:)
+              (pure (and (type.= .Real :it:)
                          (when it
                            {//.:When (//.tuple (stack (//.bit bit/?) (//.natural natural/?)))
                                      [[//.:when (//pattern.tuple (stack (//pattern.bit .false) (//pattern.bind 0)))
-                                       //.:then (//.decimal false/?)]
+                                       //.:then (//.real false/?)]
                                       (stack [//.:when (//pattern.tuple (stack (//pattern.bit .true) (//pattern.bind 0)))
-                                              //.:then (//.decimal true/?)])]}
+                                              //.:then (//.real true/?)])]}
                            (and (identical? bit/0 bit/?)
                                 (identical? natural/0 natural/?)
-                                (identical? decimal/0 false/?)
-                                (identical? decimal/0 true/?))
+                                (identical? real/0 false/?)
+                                (identical? real/0 true/?))
 
                            _
                            false))))
@@ -832,48 +832,48 @@
                                    (, (code.name [module/0 @natural])) (, (code.natural natural/0))
                                    (, (code.name [module/0 @integer])) (, (code.integer integer/0))
                                    (, (code.name [module/0 @revolution])) (, (code.revolution revolution/0))
-                                   (, (code.name [module/0 @decimal])) (, (code.decimal decimal/0))
+                                   (, (code.name [module/0 @real])) (, (code.real real/0))
                                    (, (code.name [module/0 @text])) (, (code.text text/0))]
-                                  (, (code.decimal decimal/0))
+                                  (, (code.real real/0))
 
                                   (, $parameter/0)
-                                  (, (code.decimal decimal/0))}
+                                  (, (code.real real/0))}
                                  [(, (code.local @any)) []
                                   (, (code.local @bit)) (, (code.bit bit/0))
                                   (, (code.local @natural)) (, (code.natural natural/0))
                                   (, (code.local @integer)) (, (code.integer integer/0))
                                   (, (code.local @revolution)) (, (code.revolution revolution/0))
-                                  (, (code.local @decimal)) (, (code.decimal decimal/0))
+                                  (, (code.local @real)) (, (code.real real/0))
                                   (, (code.local @text)) (, (code.text text/0))]))
                              (/.phase ..expander archive.empty)
                              //type.inferring)]
-              (pure (and (type.= .Decimal :it:)
+              (pure (and (type.= .Real :it:)
                          (when it
                            {//.:When (//.tuple (stack (//.unit)
                                                       (//.bit bit/?)
                                                       (//.natural natural/?)
                                                       (//.integer integer/?)
                                                       (//.revolution revolution/?)
-                                                      (//.decimal decimal/?)
+                                                      (//.real real/?)
                                                       (//.text text/?)))
                                      [[//.:when (//pattern.tuple (stack (//pattern.unit)
                                                                         (//pattern.bit bit/?')
                                                                         (//pattern.natural natural/?')
                                                                         (//pattern.integer integer/?')
                                                                         (//pattern.revolution revolution/?')
-                                                                        (//pattern.decimal decimal/?')
+                                                                        (//pattern.real real/?')
                                                                         (//pattern.text text/?')))
-                                       //.:then (//.decimal match/?)]
+                                       //.:then (//.real match/?)]
                                       (stack [//.:when (//pattern.bind 0)
-                                              //.:then (//.decimal mismatch/?)])]}
+                                              //.:then (//.real mismatch/?)])]}
                            (and (identical? bit/0 bit/?) (identical? bit/0 bit/?')
                                 (identical? natural/0 natural/?) (identical? natural/0 natural/?')
                                 (identical? integer/0 integer/?) (identical? integer/0 integer/?')
                                 (identical? revolution/0 revolution/?) (identical? revolution/0 revolution/?')
-                                (identical? decimal/0 decimal/?) (identical? decimal/0 decimal/?')
+                                (identical? real/0 real/?) (identical? real/0 real/?')
                                 (identical? text/0 text/?) (identical? text/0 text/?')
-                                (identical? decimal/0 match/?)
-                                (identical? decimal/0 mismatch/?))
+                                (identical? real/0 match/?)
+                                (identical? real/0 mismatch/?))
 
                            _
                            false))))
@@ -902,7 +902,7 @@
          natural/0 random.natural
          integer/0 random.integer
          revolution/0 random.revolution
-         decimal/0 random.decimal
+         real/0 random.real
          text/0 (random.lower_cased 1)
 
          @any (random.lower_cased 2)
@@ -910,7 +910,7 @@
          @natural (random.lower_cased 4)
          @integer (random.lower_cased 5)
          @revolution (random.lower_cased 6)
-         @decimal (random.lower_cased 7)
+         @real (random.lower_cased 7)
          @text (random.lower_cased 8)
 
          @left (random.lower_cased 9)
@@ -923,15 +923,15 @@
       (all _.and
            (_.coverage [/.phase]
              (and (..can_analyse_unit! lux module/0)
-                  (..can_analyse_simple_literal_or_singleton_tuple! lux module/0 [bit/0 natural/0 integer/0 revolution/0 decimal/0 text/0])
-                  (..can_analyse_sum! lux module/0 [@any @bit @natural @integer @revolution @decimal @text] [bit/0 natural/0 integer/0 revolution/0 decimal/0 text/0] [@left @right])
-                  (..can_analyse_variant! lux module/0 [@any @bit @natural @integer @revolution @decimal @text] [bit/0 natural/0 integer/0 revolution/0 decimal/0 text/0] [@left @right])
-                  (..can_analyse_tuple! lux module/0 [bit/0 natural/0 integer/0 revolution/0 decimal/0 text/0])
-                  (..can_analyse_record! lux module/0 [@any @bit @natural @integer @revolution @decimal @text] [bit/0 natural/0 integer/0 revolution/0 decimal/0 text/0])
+                  (..can_analyse_simple_literal_or_singleton_tuple! lux module/0 [bit/0 natural/0 integer/0 revolution/0 real/0 text/0])
+                  (..can_analyse_sum! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0] [@left @right])
+                  (..can_analyse_variant! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0] [@left @right])
+                  (..can_analyse_tuple! lux module/0 [bit/0 natural/0 integer/0 revolution/0 real/0 text/0])
+                  (..can_analyse_record! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0])
                   (..can_analyse_function! lux module/0 natural/0 [$abstraction/0 $parameter/0 $abstraction/1 $parameter/1])
                   (..can_analyse_reification! lux module/0 bit/0 natural/0 [$abstraction/0 $parameter/0 $abstraction/1 $parameter/1])
                   (..can_analyse_extension! lux module/0 text/0)
-                  (..can_analyse_pattern_matching! lux module/0 [@any @bit @natural @integer @revolution @decimal @text] [bit/0 natural/0 integer/0 revolution/0 decimal/0 text/0] $parameter/0)
+                  (..can_analyse_pattern_matching! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0] $parameter/0)
                   ))
            (_.coverage [/.invalid]
              (`` (and (,, (template.with [<syntax>]
@@ -948,12 +948,12 @@
 
                             [[(` ({0b} (, (code.bit bit/0))))]
                              [(` ({0b [] 1b} (, (code.bit bit/0))))]
-                             [(` {(, (code.bit bit/0)) (, (code.natural natural/0)) (, (code.integer integer/0)) (, (code.revolution revolution/0)) (, (code.decimal decimal/0)) (, (code.text text/0))})]
-                             [(` {(, (code.natural natural/0)) (, (code.integer integer/0)) (, (code.revolution revolution/0)) (, (code.decimal decimal/0)) (, (code.text text/0)) (, (code.bit bit/0))})]
-                             [(` {(, (code.integer integer/0)) (, (code.revolution revolution/0)) (, (code.decimal decimal/0)) (, (code.text text/0)) (, (code.bit bit/0)) (, (code.natural natural/0))})]
-                             [(` {(, (code.revolution revolution/0)) (, (code.decimal decimal/0)) (, (code.text text/0)) (, (code.bit bit/0)) (, (code.natural natural/0)) (, (code.integer integer/0))})]
-                             [(` {(, (code.decimal decimal/0)) (, (code.text text/0)) (, (code.bit bit/0)) (, (code.natural natural/0)) (, (code.integer integer/0)) (, (code.revolution revolution/0))})]
-                             [(` {(, (code.text text/0)) (, (code.bit bit/0)) (, (code.natural natural/0)) (, (code.integer integer/0)) (, (code.revolution revolution/0)) (, (code.decimal decimal/0))})]]))
+                             [(` {(, (code.bit bit/0)) (, (code.natural natural/0)) (, (code.integer integer/0)) (, (code.revolution revolution/0)) (, (code.real real/0)) (, (code.text text/0))})]
+                             [(` {(, (code.natural natural/0)) (, (code.integer integer/0)) (, (code.revolution revolution/0)) (, (code.real real/0)) (, (code.text text/0)) (, (code.bit bit/0))})]
+                             [(` {(, (code.integer integer/0)) (, (code.revolution revolution/0)) (, (code.real real/0)) (, (code.text text/0)) (, (code.bit bit/0)) (, (code.natural natural/0))})]
+                             [(` {(, (code.revolution revolution/0)) (, (code.real real/0)) (, (code.text text/0)) (, (code.bit bit/0)) (, (code.natural natural/0)) (, (code.integer integer/0))})]
+                             [(` {(, (code.real real/0)) (, (code.text text/0)) (, (code.bit bit/0)) (, (code.natural natural/0)) (, (code.integer integer/0)) (, (code.revolution revolution/0))})]
+                             [(` {(, (code.text text/0)) (, (code.bit bit/0)) (, (code.natural natural/0)) (, (code.integer integer/0)) (, (code.revolution revolution/0)) (, (code.real real/0))})]]))
                       )))
            
            /simple.test

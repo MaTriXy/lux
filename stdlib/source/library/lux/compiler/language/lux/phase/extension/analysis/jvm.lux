@@ -210,33 +210,31 @@
   external.Name
   "java.lang.Object")
 
-... TODO: Get rid of this template.with block and use the definition in
-... lux/ffi.jvm.lux ASAP
-(template.with [<name> <class>]
-  [(the .public <name>
-     .Type
-     {.:Nominal <class> (list)})]
+(comment "TODO: Get rid of this template.with block and use the definition in"
+         "lux/ffi.jvm.lux ASAP"
+         (template.with [<name> <class>]
+           [(the .public <name>
+              .Type
+              {.:Nominal <class> (list)})]
 
-  [... Boxes
-   [Boolean   box.boolean]
-   [Byte      box.byte]
-   [Short     box.short]
-   [Integer   box.int]
-   [Long      box.long]
-   [Float     box.float]
-   [Double    box.double]
-   [Character box.char]
-   [String    "java.lang.String"]
+           [[Boolean   box.boolean]
+            [Byte      box.byte]
+            [Short     box.short]
+            [Integer   box.int]
+            [Long      box.long]
+            [Float     box.float]
+            [Double    box.double]
+            [Character box.char]
+            [String    "java.lang.String"]
 
-   ... Primitives
-   [boolean   (reflection.reflection reflection.boolean)]
-   [byte      (reflection.reflection reflection.byte)]
-   [short     (reflection.reflection reflection.short)]
-   [int       (reflection.reflection reflection.int)]
-   [long      (reflection.reflection reflection.long)]
-   [float     (reflection.reflection reflection.float)]
-   [double    (reflection.reflection reflection.double)]
-   [char      (reflection.reflection reflection.char)]])
+            [boolean   (reflection.reflection reflection.boolean)]
+            [byte      (reflection.reflection reflection.byte)]
+            [short     (reflection.reflection reflection.short)]
+            [int       (reflection.reflection reflection.int)]
+            [long      (reflection.reflection reflection.long)]
+            [float     (reflection.reflection reflection.float)]
+            [double    (reflection.reflection reflection.double)]
+            [char      (reflection.reflection reflection.char)]]))
 
 (.every Member
   (Record
@@ -591,7 +589,6 @@
                     (text.starts_with? descriptor.array_prefix name))
                 (analysis.except ..non_parameter objectT)
 
-                ... else
                 (phase:pure (jvm.class (list) name))))
 
         {.:Named name anonymous}
@@ -658,7 +655,6 @@
                   (by phase.monad each jvm.array
                       (check_jvm {.:Nominal unprefixed (list)})))
 
-                ... else
                 (phase:pure (jvm.class (list) name))))
 
         (@type.Array _ elementT)
@@ -1011,7 +1007,6 @@
                                       [reflection.double  box.double]
                                       [reflection.char    box.char]]))
 
-                               ... else
                                (monad.let !
                                  [_ (phase.assertion ..primitives_are_not_objects [from_name]
                                                      (not (dictionary.in_domain? ..boxes from_name)))
@@ -1099,10 +1094,10 @@
                                        (monad.let try.monad
                                          [class (reflection!.load class_loader class)]
                                          (reflection!.static_field field class)))
-         _ (phase.warning ..deprecated_field [class field]
-                          (not deprecated?))
-         ... _ (phase.assertion ..cannot_set_a_final_field [class field]
-         ...                    (not final?))
+         _ (comment _ (phase.assertion ..cannot_set_a_final_field [class field]
+                                       (not final?))
+                    (phase.warning ..deprecated_field [class field]
+                                   (not deprecated?)))
          fieldT (reflection_type luxT.fresh fieldJT)
          valueA (<| (typeA.with fieldT)
                     (analyse archive valueC))
@@ -1489,7 +1484,7 @@
   (-> (java/lang/Class java/lang/Object)
       (List (java/lang/Class java/lang/Object)))
   (|>> ..family_tree'
-       ... De-duplication
+       (comment "De-duplication")
        (list:mix (function (_ class all)
                    (dictionary.has (ffi.of_string (java/lang/Class:getName [] class)) class all))
                  (dictionary.empty text.hash))
@@ -1844,8 +1839,8 @@
    [methods (<|)
     ..all_declared_methods]])
 
-... https://en.wikipedia.org/wiki/Delimiter
-(the jvm_package_delimiter ".")
+(comment "https://en.wikipedia.org/wiki/Delimiter"
+         (the jvm_package_delimiter "."))
 
 (template.with [<name> <methods>]
   [(the (<name> class_loader)
@@ -2645,34 +2640,34 @@
   (-> Field
       (Resource field.Field))
   (when field
-    ... TODO: Handle annotations.
     {:Constant [name annotations type value]}
-    (`` (when value
-          (,, (template.with [<tag> <type> <constant>]
-                [{<tag> _ value}
-                 (monad.let pool.monad
-                   [constant (`` (|> value (,, (template.spliced <constant>))))
-                    attribute (attribute.constant constant)]
-                   (field.field ..constant:modifier name true <type> (sequence.new attribute)))]
+    (comment "TODO: Handle annotations."
+             (`` (when value
+                   (,, (template.with [<tag> <type> <constant>]
+                         [{<tag> _ value}
+                          (comment [@type.:Integer jvm.byte [.i64 i/32.of pool.integer]]
+                                   [@type.:Integer jvm.short [.i64 i/32.of pool.integer]]
+                                   [@type.:Integer jvm.int [.i64 i/32.of pool.integer]]
+                                   [@type.:Decimal jvm.float [ffi.as_double ffi.double_to_float pool.float]]
+                                   (monad.let pool.monad
+                                     [constant (`` (|> value (,, (template.spliced <constant>))))
+                                      attribute (attribute.constant constant)]
+                                     (field.field ..constant:modifier name true <type> (sequence.new attribute))))]
 
-                [[@type.:Bit jvm.boolean [(|.when 0b +0 1b +1) i/32.of pool.integer]]
-                 ... [@type.:Integer jvm.byte [.i64 i/32.of pool.integer]]
-                 ... [@type.:Integer jvm.short [.i64 i/32.of pool.integer]]
-                 ... [@type.:Integer jvm.int [.i64 i/32.of pool.integer]]
-                 [@type.:Integer jvm.long [pool.long]]
-                 ... [@type.:Decimal jvm.float [ffi.as_double ffi.double_to_float pool.float]]
-                 [@type.:Decimal jvm.double [pool.double]]
-                 [@type.:Natural jvm.char [.i64 i/32.of pool.integer]]
-                 [@type.:Text (jvm.class (list) "java.lang.String") [pool.string]]]))
+                         [[@type.:Bit jvm.boolean [(|.when 0b +0 1b +1) i/32.of pool.integer]]
+                          [@type.:Integer jvm.long [pool.long]]
+                          [@type.:Decimal jvm.double [pool.double]]
+                          [@type.:Natural jvm.char [.i64 i/32.of pool.integer]]
+                          [@type.:Text (jvm.class (list) "java.lang.String") [pool.string]]]))
 
-          ... TODO: Tighten this pattern-matching so this catch-all clause isn't necessary.
-          _
-          (undefined)))
+                   _
+                   (comment "TODO: Tighten this pattern-matching so this catch-all clause isn't necessary."
+                            (undefined)))))
 
-    ... TODO: Handle annotations.
     {:Variable [name visibility state annotations type]}
-    (field.field (modifier:composite visibility state)
-                 name true type sequence.empty)))
+    (comment "TODO: Handle annotations."
+             (field.field (modifier:composite visibility state)
+                          name true type sequence.empty))))
 
 (the method_privacy
   (-> ffi.Privacy
@@ -2703,8 +2698,8 @@
         (by jvm.equality = jvm.double primitiveT)
         _.dconst_0
 
-        ... jvm.boolean jvm.byte jvm.short jvm.int jvm.char
-        _.iconst_0)))
+        (comment jvm.boolean jvm.byte jvm.short jvm.int jvm.char
+                 _.iconst_0))))
 
 (the (mock_return :return:)
   (-> (Type Return)
@@ -2730,8 +2725,8 @@
                (by jvm.equality = jvm.double primitiveT)
                _.dreturn
 
-               ... jvm.boolean jvm.byte jvm.short jvm.int jvm.char
-               _.ireturn)))))
+               (comment jvm.boolean jvm.byte jvm.short jvm.int jvm.char
+                        _.ireturn))))))
 
 (the (mock_method super method)
   (-> (Type Class) (Method_Definition @type.Code)
@@ -2853,8 +2848,8 @@
                           class.final
                           (list)
                           (list:each (|>> {:Overriden_Method}) methods)))
-         ... Necessary for reflection to work properly during analysis.
-         _ (phase.of_try (by host execute mock))
+         _ (comment "Necessary for reflection to work properly during analysis."
+                    (phase.of_try (by host execute mock)))
 
          mapping (typeA.check (..class_mapping parameters))
          super_classT (typeA.check (luxT.check (luxT.class mapping) (..signature super_class)))

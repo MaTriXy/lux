@@ -99,75 +99,75 @@
     {.:Top head tail}
     (quantified tail {.:Quantification .universal head baseT})))
 
-... Type-checking on the input value is done during the analysis of a
-... "when" expression, to ensure that the patterns being used make
-... sense for the type of the input value.
-... Sometimes, that input value is complex, by depending on
-... type-variables or quantifications.
-... This function makes it easier for "when" analysis to properly
-... type-check the input with respect to the patterns.
-(the .public (tuple :it:)
-  (-> Type
-      (Check [(Stack type.Variable) Type]))
-  (loop (of [envs (is (Stack (Stack [Type Type]))
-                      (stack))
-             :it: :it:])
-    (.when :it:
-      (type.Product _ _)
-      (|> :it:
-          type.flat_tuple
-          (list:each (..quantified envs))
-          type.tuple
-          [(stack)]
-          (by check.monad pure))
+(comment "Type-checking on the input value is done during the analysis of a"
+         "'when' expression, to ensure that the patterns being used make"
+         "sense for the type of the input value."
+         "Sometimes, that input value is complex, by depending on"
+         "type-variables or quantifications."
+         "This function makes it easier for 'when' analysis to properly"
+         "type-check the input with respect to the patterns."
+         (the .public (tuple :it:)
+           (-> Type
+               (Check [(Stack type.Variable) Type]))
+           (loop (of [envs (is (Stack (Stack [Type Type]))
+                               (stack))
+                      :it: :it:])
+             (.when :it:
+               (type.Product _ _)
+               (|> :it:
+                   type.flat_tuple
+                   (list:each (..quantified envs))
+                   type.tuple
+                   [(stack)]
+                   (by check.monad pure))
 
-      {.:Variable .general id}
-      (monad.let check.monad
-        [?:it:' (phase.try (check.type id))]
-        (.when ?:it:'
-          {try.:Success :it:'}
-          (of envs :it:')
+               {.:Variable .general id}
+               (monad.let check.monad
+                 [?:it:' (phase.try (check.type id))]
+                 (.when ?:it:'
+                   {try.:Success :it:'}
+                   (of envs :it:')
 
-          _
-          (check.except ..non_tuple :it:)))
+                   _
+                   (check.except ..non_tuple :it:)))
 
-      {.:Named name unnamedT}
-      (of envs unnamedT)
+               {.:Named name unnamedT}
+               (of envs unnamedT)
 
-      {.:Quantification .universal env unquantifiedT}
-      (of {.:Top env envs} unquantifiedT)
+               {.:Quantification .universal env unquantifiedT}
+               (of {.:Top env envs} unquantifiedT)
 
-      {.:Quantification .existential _}
-      (monad.let check.monad
-        [[@head :head:] check.var
-         [tail :tuple:] (of envs (maybe.trusted (type.reified (.list :head:) :it:)))]
-        (pure [(stack.partial @head tail) :tuple:]))
+               {.:Quantification .existential _}
+               (monad.let check.monad
+                 [[@head :head:] check.var
+                  [tail :tuple:] (of envs (maybe.trusted (type.reified (.list :head:) :it:)))]
+                 (pure [(stack.partial @head tail) :tuple:]))
 
-      {.:Reification _}
-      (monad.let [! check.monad]
-        [.let [[:abstraction: :parameters:] (type.flat_reification :it:)]
-         :abstraction: (.when :abstraction:
-                         {.:Variable .general @abstraction}
-                         (monad.let !
-                           [?:abstraction: (phase.try (check.type @abstraction))]
-                           (.when ?:abstraction:
-                             {try.:Success :abstraction:}
-                             (pure :abstraction:)
+               {.:Reification _}
+               (monad.let [! check.monad]
+                 [.let [[:abstraction: :parameters:] (type.flat_reification :it:)]
+                  :abstraction: (.when :abstraction:
+                                  {.:Variable .general @abstraction}
+                                  (monad.let !
+                                    [?:abstraction: (phase.try (check.type @abstraction))]
+                                    (.when ?:abstraction:
+                                      {try.:Success :abstraction:}
+                                      (pure :abstraction:)
 
-                             _
-                             (check.except ..non_tuple :it:)))
+                                      _
+                                      (check.except ..non_tuple :it:)))
 
-                         _
-                         (pure :abstraction:))]
-        (.when (type.reified :parameters: :abstraction:)
-          {.:Some :it:}
-          (of envs :it:)
+                                  _
+                                  (pure :abstraction:))]
+                 (.when (type.reified :parameters: :abstraction:)
+                   {.:Some :it:}
+                   (of envs :it:)
 
-          {.:None}
-          (check.except ..non_tuple :it:)))
+                   {.:None}
+                   (check.except ..non_tuple :it:)))
 
-      _
-      (by check.monad pure [(stack) (..quantified envs :it:)]))))
+               _
+               (by check.monad pure [(stack) (..quantified envs :it:)])))))
 
 (the .public (list type)
   (-> Type
@@ -374,130 +374,130 @@
           [here phase.name_of_current_module]
           (/.except ..mismatch [here :input:' pattern]))))))
 
-... This function handles several concerns at once, but it must be that
-... way because those concerns are interleaved when doing
-... pattern-matching and they cannot be separated.
-... The pattern is analysed in order to get a general feel for what is
-... expected of the input value. This, in turn, informs the
-... type-checking of the input.
-... A kind of "continuation" value is passed around which signifies
-... what needs to be done _after_ analysing a pattern.
-... In general, this is done to analyse the "body" expression
-... associated to a particular pattern _in the context of_ said
-... pattern.
-... The reason why *context* is important is because patterns may bind
-... values to local variables, which may in turn be referenced in the
-... body expressions.
-... That is why the body must be analysed in the context of the
-... pattern, and not separately.
-(the (pattern_analysis :input: pattern next)
-  Analysis
-  (let [failure (monad.let phase.monad
-                  [here phase.name_of_current_module]
-                  (/.except ..invalid [here pattern]))]
-    (`` (.when pattern
-          {@type.:Name provenance ["" name]}
-          (/.with_provenance provenance
-            (monad.let phase.monad
-              [outputA (/scope.with_local [name :input:]
-                         next)
-               idx /scope.next]
-              (pure [{@type.:Bind_Pattern idx} outputA])))
+(comment "This function handles several concerns at once, but it must be that"
+         "way because those concerns are interleaved when doing"
+         "pattern-matching and they cannot be separated."
+         "The pattern is analysed in order to get a general feel for what is"
+         "expected of the input value. This, in turn, informs the"
+         "type-checking of the input."
+         "A kind of 'continuation' value is passed around which signifies"
+         "what needs to be done _after_ analysing a pattern."
+         "In general, this is done to analyse the 'body' expression"
+         "associated to a particular pattern _in the context of_ said"
+         "pattern."
+         "The reason why *context* is important is because patterns may bind"
+         "values to local variables, which may in turn be referenced in the"
+         "body expressions."
+         "That is why the body must be analysed in the context of the"
+         "pattern, and not separately."
+         (the (pattern_analysis :input: pattern next)
+           Analysis
+           (let [failure (monad.let phase.monad
+                           [here phase.name_of_current_module]
+                           (/.except ..invalid [here pattern]))]
+             (`` (.when pattern
+                   {@type.:Name provenance ["" name]}
+                   (/.with_provenance provenance
+                     (monad.let phase.monad
+                       [outputA (/scope.with_local [name :input:]
+                                  next)
+                        idx /scope.next]
+                       (pure [{@type.:Bind_Pattern idx} outputA])))
 
-          (,, (template.with [<type> ,tag <input> <output>]
-                [{,tag provenance <input>}
-                 (simple_pattern_analysis <type> :input: provenance {@type.:Simple_Pattern <output>} next)]
+                   (,, (template.with [<type> ,tag <input> <output>]
+                         [{,tag provenance <input>}
+                          (simple_pattern_analysis <type> :input: provenance {@type.:Simple_Pattern <output>} next)]
 
-                [[@type.Bit @type.:Bit pattern_value {@type.:Simple_Bit pattern_value}]
-                 [@type.Natural @type.:Natural pattern_value {@type.:Simple_Natural pattern_value}]
-                 [@type.Integer @type.:Integer pattern_value {@type.:Simple_Integer pattern_value}]
-                 [@type.Revolution @type.:Revolution pattern_value {@type.:Simple_Revolution pattern_value}]
-                 [@type.Decimal @type.:Decimal pattern_value {@type.:Simple_Decimal pattern_value}]
-                 [@type.Text @type.:Text pattern_value {@type.:Simple_Text pattern_value}]
-                 [Any @type.:Tuple (.list) {@type.:Simple_Unit}]]))
-          
-          {@type.:Tuple provenance (.list singleton)}
-          (pattern_analysis :input: singleton next)
-          
-          {@type.:Tuple provenance sub_patterns}
-          (/.with_provenance provenance
-            (monad.let [! phase.monad]
-              [record (//complex.normal true sub_patterns)
-               record_size,members,recordT (is (Operation (Maybe [Natural (Stack @type.Code) Type]))
-                                               (.when record
-                                                 {.:Some record}
-                                                 (//complex.order true record)
+                         [[@type.Bit @type.:Bit pattern_value {@type.:Simple_Bit pattern_value}]
+                          [@type.Natural @type.:Natural pattern_value {@type.:Simple_Natural pattern_value}]
+                          [@type.Integer @type.:Integer pattern_value {@type.:Simple_Integer pattern_value}]
+                          [@type.Revolution @type.:Revolution pattern_value {@type.:Simple_Revolution pattern_value}]
+                          [@type.Decimal @type.:Decimal pattern_value {@type.:Simple_Decimal pattern_value}]
+                          [@type.Text @type.:Text pattern_value {@type.:Simple_Text pattern_value}]
+                          [Any @type.:Tuple (.list) {@type.:Simple_Unit}]]))
+                   
+                   {@type.:Tuple provenance (.list singleton)}
+                   (pattern_analysis :input: singleton next)
+                   
+                   {@type.:Tuple provenance sub_patterns}
+                   (/.with_provenance provenance
+                     (monad.let [! phase.monad]
+                       [record (//complex.normal true sub_patterns)
+                        record_size,members,recordT (is (Operation (Maybe [Natural (Stack @type.Code) Type]))
+                                                        (.when record
+                                                          {.:Some record}
+                                                          (//complex.order true record)
+
+                                                          {.:None}
+                                                          (pure {.:None})))]
+                       (.when record_size,members,recordT
+                         {.:Some [record_size members recordT]}
+                         (monad.let !
+                           [_ (.when :input:
+                                {.:Variable .general @input}
+                                (/type.check (monad.let check.monad
+                                               [? (check.bound? @input)]
+                                               (if ?
+                                                   (pure [])
+                                                   (check.check :input: recordT))))
+
+                                _
+                                (pure []))]
+                           (.when members
+                             (stack singleton)
+                             (pattern_analysis :input: singleton next)
+
+                             _
+                             (..tuple_pattern_analysis pattern_analysis :input: members next)))
+                         
+                         {.:None}
+                         (..tuple_pattern_analysis pattern_analysis :input: (view.as list.stack sub_patterns) next))))
+
+                   {@type.:Form provenance every_item}
+                   (.when (view.as list.stack every_item)
+                     (stack.partial {@type.:Name provenance [.prelude extension.list]} sub_patterns)
+                     (/.with_provenance provenance
+                       (..analysis_of_list pattern_analysis :input: sub_patterns next))
+
+                     _
+                     failure)
+
+                   {@type.:Variant provenance every_item}
+                   (.when (view.as list.stack every_item)
+                     (stack.partial {@type.:Bit _ right?} values)
+                     (anonymous_variant pattern_analysis
+                                        :input: pattern next
+                                        provenance 0 right? values)
+
+                     (stack.partial {@type.:Natural _ lefts} {@type.:Bit _ right?} values)
+                     (anonymous_variant pattern_analysis
+                                        :input: pattern next
+                                        provenance lefts right? values)
+
+                     (stack.partial {@type.:Name _ tag} values)
+                     (/.with_provenance provenance
+                       (monad.let phase.monad
+                         [tag (phase.normal tag)
+                          [lefts,right? variantT] (phase.tag tag)
+                          [lefts right?] (pure (.when lefts,right?
+                                                 {.:Some [lefts right? family]}
+                                                 [lefts right?]
 
                                                  {.:None}
-                                                 (pure {.:None})))]
-              (.when record_size,members,recordT
-                {.:Some [record_size members recordT]}
-                (monad.let !
-                  [_ (.when :input:
-                       {.:Variable .general @input}
-                       (/type.check (monad.let check.monad
-                                      [? (check.bound? @input)]
-                                      (if ?
-                                          (pure [])
-                                          (check.check :input: recordT))))
+                                                 [0 false]))
+                          _ (/type.check (check.check :input: (@type.old variantT)))]
+                         (pattern_analysis :input:
+                                           (code.variant (.list (code.natural lefts)
+                                                                (code.bit right?)
+                                                                (code.tuple (view.of list.stack values))))
+                                           next)))
 
-                       _
-                       (pure []))]
-                  (.when members
-                    (stack singleton)
-                    (pattern_analysis :input: singleton next)
+                     _
+                     failure)
 
-                    _
-                    (..tuple_pattern_analysis pattern_analysis :input: members next)))
-                
-                {.:None}
-                (..tuple_pattern_analysis pattern_analysis :input: (view.as list.stack sub_patterns) next))))
-
-          {@type.:Form provenance every_item}
-          (.when (view.as list.stack every_item)
-            (stack.partial {@type.:Name provenance [.prelude extension.list]} sub_patterns)
-            (/.with_provenance provenance
-              (..analysis_of_list pattern_analysis :input: sub_patterns next))
-
-            _
-            failure)
-
-          {@type.:Variant provenance every_item}
-          (.when (view.as list.stack every_item)
-            (stack.partial {@type.:Bit _ right?} values)
-            (anonymous_variant pattern_analysis
-                               :input: pattern next
-                               provenance 0 right? values)
-
-            (stack.partial {@type.:Natural _ lefts} {@type.:Bit _ right?} values)
-            (anonymous_variant pattern_analysis
-                               :input: pattern next
-                               provenance lefts right? values)
-
-            (stack.partial {@type.:Name _ tag} values)
-            (/.with_provenance provenance
-              (monad.let phase.monad
-                [tag (phase.normal tag)
-                 [lefts,right? variantT] (phase.tag tag)
-                 [lefts right?] (pure (.when lefts,right?
-                                        {.:Some [lefts right? family]}
-                                        [lefts right?]
-
-                                        {.:None}
-                                        [0 false]))
-                 _ (/type.check (check.check :input: (@type.old variantT)))]
-                (pattern_analysis :input:
-                                  (code.variant (.list (code.natural lefts)
-                                                       (code.bit right?)
-                                                       (code.tuple (view.of list.stack values))))
-                                  next)))
-
-            _
-            failure)
-
-          _
-          failure
-          ))))
+                   _
+                   failure
+                   )))))
 
 (the .public (when branches analyse archive inputC)
   (-> (Stack [@type.Code @type.Code])

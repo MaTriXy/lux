@@ -145,75 +145,75 @@
        @ analysis.provenance]
       (pure {@type.:Extension @ [.prelude (next extension_name)] argsA}))))
 
-... TODO: Get rid of this ASAP
-(these
- (exception.the .public (character_text_must_be_size_1 text)
-   (Exception Text)
-   (exception.report
-    (list ["Text" (%.text text)])))
- 
- (the text_char
-   (?code.Projection Character)
-   (monad.let ?.monad
-     [raw ?code.text]
-     (.when (text.size raw)
-       1 (pure (|> raw (text.character 0) maybe.trusted))
-       _ (?.failure (exception.error ..character_text_must_be_size_1 [raw])))))
+(comment "TODO: Get rid of this ASAP"
+         (these
+          (exception.the .public (character_text_must_be_size_1 text)
+            (Exception Text)
+            (exception.report
+             (list ["Text" (%.text text)])))
+          
+          (the text_char
+            (?code.Projection Character)
+            (monad.let ?.monad
+              [raw ?code.text]
+              (.when (text.size raw)
+                1 (pure (|> raw (text.character 0) maybe.trusted))
+                _ (?.failure (exception.error ..character_text_must_be_size_1 [raw])))))
 
- (the lux:syntax_char_case!
-   Handler
-   (..custom
-    [(all ?.and
-          ?list.any
-          (?code.tuple (?.some (?.and (?code.tuple (?.many ..text_char))
-                                      ?list.any)))
-          ?list.any)
-     (.function (_ extension_name analysis archive [input conditionals else])
-       (monad.let [! phase.monad]
-         [input (<| (typeA.with @type.Character)
-                    (analysis archive input))
-          expectedT analysis.expected_type
-          .let [expectedT (@type.old expectedT)]
-          conditionals (list.each' ! (.function (_ [cases branch])
-                                       (<| (by ! each (|>> [cases]))
-                                           (typeA.with expectedT)
-                                           (analysis archive)
-                                           branch))
-                                   conditionals)
-          else (<| (typeA.with expectedT)
-                   (analysis archive else))
-          @ analysis.provenance]
-         (pure (|> conditionals
-                   (list:each (.function (_ [cases branch])
-                                (<| (analysis.tuple @)
-                                    (list (analysis.tuple @ (list:each (|>> (analysis.natural @)) cases))
-                                          branch))))
-                   (list:composite (list input else))
-                   {@type.:Extension @ (..synthesis extension_name)}))))])))
+          (the lux:syntax_char_case!
+            Handler
+            (..custom
+             [(all ?.and
+                   ?list.any
+                   (?code.tuple (?.some (?.and (?code.tuple (?.many ..text_char))
+                                               ?list.any)))
+                   ?list.any)
+              (.function (_ extension_name analysis archive [input conditionals else])
+                (monad.let [! phase.monad]
+                  [input (<| (typeA.with @type.Character)
+                             (analysis archive input))
+                   expectedT analysis.expected_type
+                   .let [expectedT (@type.old expectedT)]
+                   conditionals (list.each' ! (.function (_ [cases branch])
+                                                (<| (by ! each (|>> [cases]))
+                                                    (typeA.with expectedT)
+                                                    (analysis archive)
+                                                    branch))
+                                            conditionals)
+                   else (<| (typeA.with expectedT)
+                            (analysis archive else))
+                   @ analysis.provenance]
+                  (pure (|> conditionals
+                            (list:each (.function (_ [cases branch])
+                                         (<| (analysis.tuple @)
+                                             (list (analysis.tuple @ (list:each (|>> (analysis.natural @)) cases))
+                                                   branch))))
+                            (list:composite (list input else))
+                            {@type.:Extension @ (..synthesis extension_name)}))))]))))
 
-... .is?# represents reference/pointer equality.
-(the (lux:is? extension_name)
-  Handler
-  (.function (_ analysis archive args)
-    (<| typeA.with_var (.function (_ [@var :var:]))
-        ((binary :var: :var: @type.Bit extension_name)
-         analysis archive args))))
+(comment ".is?# represents reference/pointer equality."
+         (the (lux:is? extension_name)
+           Handler
+           (.function (_ analysis archive args)
+             (<| typeA.with_var (.function (_ [@var :var:]))
+                 ((binary :var: :var: @type.Bit extension_name)
+                  analysis archive args)))))
 
-... .try# provides a unified way to interact with the host platform's runtime error-handling facilities.
-(the lux:try
-  Handler
-  (..custom
-   [?list.any
-    (.function (_ extension_name analysis archive opC)
-      (<| typeA.with_var (.function (_ [@var :var:]))
-          (monad.let [! phase.monad]
-            [_ (typeA.inference (.type (Either @type.Text :var:)))
-             @ analysis.provenance]
-            (|> opC
-                (analysis archive)
-                (typeA.with (.type (-> .Any :var:)))
-                (by ! each (|>> list
-                                {@type.:Extension @ (..synthesis extension_name)}))))))]))
+(comment ".try# provides a unified way to interact with the host platform's runtime error-handling facilities."
+         (the lux:try
+           Handler
+           (..custom
+            [?list.any
+             (.function (_ extension_name analysis archive opC)
+               (<| typeA.with_var (.function (_ [@var :var:]))
+                   (monad.let [! phase.monad]
+                     [_ (typeA.inference (.type (Either @type.Text :var:)))
+                      @ analysis.provenance]
+                     (|> opC
+                         (analysis archive)
+                         (typeA.with (.type (-> .Any :var:)))
+                         (by ! each (|>> list
+                                         {@type.:Extension @ (..synthesis extension_name)}))))))])))
 
 (the .public (in_module#_extension eval)
   (-> Eval
@@ -294,16 +294,16 @@
                  {@type.:Definition [type expression _]}
                  (.when type
                    (@type.Default type)
-                   ... It may seem odd that type-checking is done just prior to raising an exception.
-                   ... It would be a completely useless labor...
-                   ... Except for that fact that, under certain circumstances, the compiler needs to access defaults.
-                   ... And it only needs to forbid access in every other situation.
-                   ... What this does is make sure that any code which does need to access defaults can just catch
-                   ... the exception, and know that the default it was looking for has the correct type, because
-                   ... the exception is only ever raised _after_ the inference.
-                   (monad.let !
-                     [_ (typeA.inference (@type.old type))]
-                     (analysis.except ///.defaults_cannot_be_referenced [def_name]))
+                   (comment "It may seem odd that type-checking is done just prior to raising an exception."
+                            "It would be a completely useless labor..."
+                            "Except for that fact that, under certain circumstances, the compiler needs to access defaults."
+                            "And it only needs to forbid access in every other situation."
+                            "What this does is make sure that any code which does need to access defaults can just catch"
+                            "the exception, and know that the default it was looking for has the correct type, because"
+                            "the exception is only ever raised _after_ the inference."
+                            (monad.let !
+                              [_ (typeA.inference (@type.old type))]
+                              (analysis.except ///.defaults_cannot_be_referenced [def_name])))
 
                    else
                    (monad.let !

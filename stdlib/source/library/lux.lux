@@ -3891,6 +3891,86 @@
       (?:either ?:local
                 (?:tuple ?:local)))
 
+(the' .private Bundle
+      Type
+      {:Named [.prelude "Bundle"]
+              (type (for_any (Bundle _)
+                      (Or Text
+                          [(Bundle _) (Bundle _)])))})
+
+(the' .private (as_bundle it)
+      (type (-> (Stack Code)
+                (Maybe Bundle)))
+      (.when# it
+              {:Top {:Name _ ["" name]} {:Empty}}
+              {:Some {:Left name}}
+
+              {:Top {:Tuple _ it} {:Empty}}
+              (as_bundle (list:as_stack it))
+
+              {:Top {:Name _ ["" head]} tail}
+              (with_monad maybe:monad
+                [tail (as_bundle tail)]
+                (pure {:Right [{:Left head} tail]}))
+
+              {:Top {:Tuple _ head} tail}
+              (with_monad maybe:monad
+                [head (as_bundle (list:as_stack head))
+                 tail (as_bundle tail)]
+                (pure {:Right [head tail]}))
+
+              else
+              {:None}))
+
+(the' .private (?:bundle tape)
+      (type (Projection Bundle))
+      (let' [[address' tape'] tape]
+            (.when# (as_bundle (list:as_stack (list:after address' tape')))
+                    {:Some it}
+                    {:Some [[(.list_size# tape') tape'] it]}
+
+                    {:None}
+                    {:None})))
+
+(the' .private (let_pair tuple 'value 'body)
+      (type (-> Bundle Code Code
+                (Meta Code)))
+      (.when# tuple
+              {:Left name}
+              (meta:pure (` (.let# (, (code:local name)) (, 'value)
+                                   (, 'body))))
+
+              {:Right {:Left left} {:Left right}}
+              (meta:pure (` (.of_pair# (, 'value)
+                                       (, (code:local left)) (, (code:local right))
+                                       (, 'body))))
+
+              {:Right left {:Left right}}
+              (with_monad meta:monad
+                ['left (generated_name "'left")
+                 'body (let_pair left 'left 'body)]
+                (pure (` (.of_pair# (, 'value)
+                                    (, 'left) (, (code:local right))
+                                    (, 'body)))))
+
+              {:Right {:Left left} right}
+              (with_monad meta:monad
+                ['right (generated_name "'right")
+                 'body (let_pair right 'right 'body)]
+                (pure (` (.of_pair# (, 'value)
+                                    (, (code:local left)) (, 'right)
+                                    (, 'body)))))
+
+              {:Right left right}
+              (with_monad meta:monad
+                ['left (generated_name "'left")
+                 'right (generated_name "'right")
+                 'body (let_pair left 'left 'body)
+                 'body (let_pair right 'right 'body)]
+                (pure (` (.of_pair# (, 'value)
+                                    (, 'left) (, 'right)
+                                    (, 'body)))))))
+
 (the' .private When
       Type
       (type (Or [Code Code]
@@ -3900,7 +3980,7 @@
                 [(List [Revolution Code]) Text Code]
                 [(List [Decimal Code]) Text Code]
                 [(List [Text Code]) Text Code]
-                [Text Code])))
+                [Bundle Code])))
 
 (the' .private every_tag_of_when
       (type (List Name))
@@ -3935,23 +4015,27 @@
                              (?:after (?:this_bit true)
                                       ?:any)))))
 
-(the' .private ?:when/let
+(the' .private ?:when/let'
       (type (Projection [Text Code]))
       (?:and ?:member ?:any))
+
+(the' .private ?:when/let
+      (type (Projection [Bundle Code]))
+      (?:and ?:bundle ?:any))
 
 (the' .private ?:when/partial_if
       (type (Projection [Bit Code Text Code]))
       (all ?:and
            ?:bit
            ?:any
-           ?:when/let))
+           ?:when/let'))
 
 (the' .private (?:switch ?:case)
       (type (for_any (_ it)
               (-> (Projection it)
                   (Projection [(List [it Code]) Text Code]))))
       (?:and (?:many (?:and ?:case ?:any))
-             ?:when/let))
+             ?:when/let'))
 
 (the' .private ?:when
       (type (Projection When))
@@ -4076,9 +4160,10 @@
                           {:Some {:When/If_Decimal every_then variable 'else}} (if_decimal '_ value every_then variable 'else)
                           {:Some {:When/If_Text every_then variable 'else}} (if_text '_ value every_then variable 'else)
 
-                          {:Some {:When/Let variable 'body}}
-                          (pure (list ('let (code:local variable) value
-                                            'body)))
+                          {:Some {:When/Let bundle 'body}}
+                          (with_monad meta:monad
+                            [it (let_pair bundle value 'body)]
+                            (pure (list it)))
 
                           else
                           (pure (list (` (.when# (, value)
@@ -4086,86 +4171,6 @@
 
                 else
                 (failure ""))))
-
-(the' .private Bundle
-      Type
-      {:Named [.prelude "Bundle"]
-              (type (for_any (Bundle _)
-                      (Or Text
-                          [(Bundle _) (Bundle _)])))})
-
-(the' .private (as_bundle it)
-      (type (-> (Stack Code)
-                (Maybe Bundle)))
-      (.when# it
-              {:Top {:Name _ ["" name]} {:Empty}}
-              {:Some {:Left name}}
-
-              {:Top {:Tuple _ it} {:Empty}}
-              (as_bundle (list:as_stack it))
-
-              {:Top {:Name _ ["" head]} tail}
-              (with_monad maybe:monad
-                [tail (as_bundle tail)]
-                (pure {:Right [{:Left head} tail]}))
-
-              {:Top {:Tuple _ head} tail}
-              (with_monad maybe:monad
-                [head (as_bundle (list:as_stack head))
-                 tail (as_bundle tail)]
-                (pure {:Right [head tail]}))
-
-              else
-              {:None}))
-
-(the' .private (?:bundle tape)
-      (type (Projection Bundle))
-      (let' [[address' tape'] tape]
-            (.when# (as_bundle (list:as_stack (list:after address' tape')))
-                    {:Some it}
-                    {:Some [[(.list_size# tape') tape'] it]}
-
-                    {:None}
-                    {:None})))
-
-(the' .private (let_pair tuple 'value 'body)
-      (type (-> Bundle Code Code
-                (Meta Code)))
-      (.when# tuple
-              {:Left name}
-              (meta:pure (` (.let# (, (code:local name)) (, 'value)
-                                   (, 'body))))
-
-              {:Right {:Left left} {:Left right}}
-              (meta:pure (` (.of_pair# (, 'value)
-                                       (, (code:local left)) (, (code:local right))
-                                       (, 'body))))
-
-              {:Right left {:Left right}}
-              (with_monad meta:monad
-                ['left (generated_name "'left")
-                 'body (let_pair left 'left 'body)]
-                (pure (` (.of_pair# (, 'value)
-                                    (, 'left) (, (code:local right))
-                                    (, 'body)))))
-
-              {:Right {:Left left} right}
-              (with_monad meta:monad
-                ['right (generated_name "'right")
-                 'body (let_pair right 'right 'body)]
-                (pure (` (.of_pair# (, 'value)
-                                    (, (code:local left)) (, 'right)
-                                    (, 'body)))))
-
-              {:Right left right}
-              (with_monad meta:monad
-                ['left (generated_name "'left")
-                 'right (generated_name "'right")
-                 'body (let_pair left 'left 'body)
-                 'body (let_pair right 'right 'body)]
-                (pure (` (.of_pair# (, 'value)
-                                    (, 'left) (, 'right)
-                                    (, 'body)))))))
 
 (the' .public let
       Macro

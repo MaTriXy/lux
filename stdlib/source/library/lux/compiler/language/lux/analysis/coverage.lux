@@ -41,33 +41,33 @@
   ["[1][0]" simple]
   ["[1][0]" complex]])
 
-... The coverage of a pattern-matching expression summarizes how well
-... all the possible values of an input are being covered by the
-... different patterns involved.
-... Ideally, the pattern-matching has "exhaustive" coverage, which just
-... means that every possible value can be matched by at least 1
-... pattern.
-... Every other coverage is considered partial, and it would be valued
-... as insuficient (since it could lead to runtime errors due to values
-... not being handled by any pattern).
-(template.let [(Variant' @)
-               [[(Maybe Natural) (Dictionary Natural @)]]]
-  (these (every .public (Coverage _)
-           (.Variant
-            {:Exhaustive}
-            {:Bit Bit}
-            {:Natural (Set Natural)}
-            {:Integer (Set Integer)}
-            {:Revolution (Set Revolution)}
-            {:Decimal (Set Decimal)}
-            {:Text (Set Text)}
-            {:Variant (Variant' (Coverage _))}
-            {:List (List (Coverage _))}
-            {:Or (Coverage _) (Coverage _)}
-            {:And (Coverage _) (Coverage _)}))
+(comment "The coverage of a pattern-matching expression summarizes how well"
+         "all the possible values of an input are being covered by the"
+         "different patterns involved."
+         "Ideally, the pattern-matching has 'exhaustive' coverage, which just"
+         "means that every possible value can be matched by at least 1"
+         "pattern."
+         "Every other coverage is considered partial, and it would be valued"
+         "as insuficient (since it could lead to runtime errors due to values"
+         "not being handled by any pattern)."
+         (template.let [(Variant' @)
+                        [[(Maybe Natural) (Dictionary Natural @)]]]
+           (these (every .public (Coverage _)
+                    (.Variant
+                     {:Exhaustive}
+                     {:Bit Bit}
+                     {:Natural (Set Natural)}
+                     {:Integer (Set Integer)}
+                     {:Revolution (Set Revolution)}
+                     {:Decimal (Set Decimal)}
+                     {:Text (Set Text)}
+                     {:Variant (Variant' (Coverage _))}
+                     {:List (List (Coverage _))}
+                     {:Or (Coverage _) (Coverage _)}
+                     {:And (Coverage _) (Coverage _)}))
 
-         (every .public Variant
-           (Variant' Coverage))))
+                  (every .public Variant
+                    (Variant' Coverage)))))
 
 (the .public (minimum [maximum cases])
   (-> Variant
@@ -198,11 +198,11 @@
               {@type.:Bind_Pattern _})
         {try.:Success {:Exhaustive}}
 
-        ... Simple patterns (other than unit/[]) always have partial coverage because there
-        ... are too many possibilities as far as values go.
         (,, (template.with [<from> <to> <hash>]
               [{@type.:Simple_Pattern {<from> it}}
-               {try.:Success {<to> (set.of_list <hash> (list it))}}]
+               (comment "Simple patterns (other than unit/[]) always have partial coverage because there"
+                        "are too many possibilities as far as values go."
+                        {try.:Success {<to> (set.of_list <hash> (list it))}})]
 
               [[@type.:Simple_Natural :Natural n.hash]
                [@type.:Simple_Integer :Integer i.hash]
@@ -210,69 +210,69 @@
                [@type.:Simple_Decimal :Decimal d.hash]
                [@type.:Simple_Text :Text text.hash]]))
 
-        ... Bits are the exception, since there is only "0b" and
-        ... "1b", which means it is possible for bit
-        ... pattern-matching to become exhaustive if complementary parts meet.
         {@type.:Simple_Pattern {@type.:Simple_Bit value}}
-        {try.:Success {:Bit value}}
+        (comment "Bits are the exception, since there is only 0b and"
+                 "1b, which means it is possible for bit"
+                 "pattern-matching to become exhaustive if complementary parts meet."
+                 {try.:Success {:Bit value}})
 
-        ... Tuple patterns can be exhaustive if there is exhaustiveness for all of
-        ... their sub-patterns.
         {@type.:Complex_Pattern {@type.:Complex_Tuple membersP+}}
-        (when (list.in_reverse membersP+)
-          (^.or (list)
-                (list _))
-          (exception.except ..invalid_tuple [(list.size membersP+)])
-          
-          members
-          (list.mix' try.monad
-                     (function (_ leftP rightC)
-                       (monad.let try.monad
-                         [leftC (coverage leftP)]
-                         (when rightC
-                           {:Exhaustive}
-                           (pure leftC)
+        (comment "Tuple patterns can be exhaustive if there is exhaustiveness for all of"
+                 "their sub-patterns."
+                 (when (list.in_reverse membersP+)
+                   (^.or (list)
+                         (list _))
+                   (exception.except ..invalid_tuple [(list.size membersP+)])
+                   
+                   members
+                   (list.mix' try.monad
+                              (function (_ leftP rightC)
+                                (monad.let try.monad
+                                  [leftC (coverage leftP)]
+                                  (when rightC
+                                    {:Exhaustive}
+                                    (pure leftC)
 
-                           _
-                           (pure {:And leftC rightC}))))
-                     {:Exhaustive}
-                     members))
+                                    _
+                                    (pure {:And leftC rightC}))))
+                              {:Exhaustive}
+                              members)))
 
         {@type.:List_Pattern it}
         (|> it
             (list.each' try.monad coverage)
             (by try.monad each (|>> {:List})))
 
-        ... Variant patterns can be shown to be exhaustive if all the possible
-        ... cases are handled exhaustively.
         {@type.:Complex_Pattern {@type.:Complex_Variant [lefts right? value]}}
-        (monad.let try.monad
-          [value_coverage (coverage value)
-           .let [idx (if right?
-                         (++ lefts)
-                         lefts)]]
-          (pure {:Variant (if right?
-                              {.:Some (++ idx)}
-                              {.:None})
-                          (|> (dictionary.empty n.hash)
-                              (dictionary.has idx value_coverage))})))))
+        (comment "Variant patterns can be shown to be exhaustive if all the possible"
+                 "cases are handled exhaustively."
+                 (monad.let try.monad
+                   [value_coverage (coverage value)
+                    .let [idx (if right?
+                                  (++ lefts)
+                                  lefts)]]
+                   (pure {:Variant (if right?
+                                       {.:Some (++ idx)}
+                                       {.:None})
+                                   (|> (dictionary.empty n.hash)
+                                       (dictionary.has idx value_coverage))}))))))
 
 (the (xor left right)
   (-> Bit Bit
       Bit)
   (not (bit.= left right)))
 
-... The coverage checker not only verifies that pattern-matching is
-... exhaustive, but also that there are no redundant patterns.
-... Redundant patterns will never be executed, since there will
-... always be a pattern prior to them that would match the input.
-... Because of that, the presence of redundant patterns is assumed to
-... be a bug, likely due to programmer carelessness.
-(exception.the .public (redundancy [so_far addition])
-  (Exception [Coverage Coverage])
-  (exception.report
-   (list ["Coverage so-far" (as_text so_far)]
-         ["Additional coverage" (as_text addition)])))
+(comment "The coverage checker not only verifies that pattern-matching is"
+         "exhaustive, but also that there are no redundant patterns."
+         "Redundant patterns will never be executed, since there will"
+         "always be a pattern prior to them that would match the input."
+         "Because of that, the presence of redundant patterns is assumed to"
+         "be a bug, likely due to programmer carelessness."
+         (exception.the .public (redundancy [so_far addition])
+           (Exception [Coverage Coverage])
+           (exception.report
+            (list ["Coverage so-far" (as_text so_far)]
+                  ["Additional coverage" (as_text addition)]))))
 
 (exception.the .public (variant_mismatch [expected mismatched])
   (Exception [Natural Natural])
@@ -289,191 +289,190 @@
     _
     false))
 
-... After determining the coverage of each individual pattern, it is
-... necessary to merge them all to figure out if the entire
-... pattern-matching expression is exhaustive and whether it contains
-... redundant patterns.
-(the .public (composite addition so_far)
-  (-> Coverage Coverage
-      (Try Coverage))
-  (expansion.let [<redundancy> (exception.except ..redundancy [so_far addition])
-                  <alternatively> {try.:Success {:Or addition so_far}}
-                  <else> (if (= so_far addition)
-                             ... The addition cannot possibly improve the coverage.
+(comment "After determining the coverage of each individual pattern, it is"
+         "necessary to merge them all to figure out if the entire"
+         "pattern-matching expression is exhaustive and whether it contains"
+         "redundant patterns."
+         (the .public (composite addition so_far)
+           (-> Coverage Coverage
+               (Try Coverage))
+           (expansion.let [<redundancy> (exception.except ..redundancy [so_far addition])
+                           <alternatively> {try.:Success {:Or addition so_far}}
+                           <else> (if (= so_far addition)
+                                      (comment "The addition cannot possibly improve the coverage."
+                                               <redundancy>)
+                                      (comment "There are now 2 alternative paths."
+                                               <alternatively>))]
+             (`` (when [addition so_far]
+                   [{:Bit sideA} {:Bit sideSF}]
+                   (comment "2 bit coverages are exhaustive if they complement one another."
+                            (if (xor sideA sideSF)
+                                {try.:Success {:Exhaustive}}
+                                <redundancy>))
+
+                   (,, (template.with [<tag>]
+                         [[{<tag> partialA} {<tag> partialSF}]
+                          (if (set.empty? (set.intersection partialA partialSF))
+                              {try.:Success {<tag> (set.union partialA partialSF)}}
+                              <redundancy>)]
+
+                         [[:Natural]
+                          [:Integer]
+                          [:Revolution]
+                          [:Decimal]
+                          [:Text]]))
+
+                   [{:Variant addition'} {:Variant so_far'}]
+                   (let [[allA casesA] addition'
+                         [allSF casesSF] so_far'
+                         addition_cases (..maximum addition')
+                         so_far_cases (..maximum so_far')]
+                     (if (template.let [(known_cases? it)
+                                        [(n.< n:maximum it)]]
+                           (and (known_cases? so_far_cases)
+                                (if (known_cases? addition_cases)
+                                    (not (n.= so_far_cases addition_cases))
+                                    (n.> so_far_cases (..minimum addition')))))
+                         (exception.except ..variant_mismatch [so_far_cases addition_cases])
+
+                         (by (dictionary.equality ..equality) = casesSF casesA)
+                         <redundancy>
+
+                         (monad.let [! try.monad]
+                           [casesM (list.mix' !
+                                              (function (_ [tagA coverageA] casesSF')
+                                                (when (dictionary.value tagA casesSF')
+                                                  {try.:Success coverageSF}
+                                                  (monad.let !
+                                                    [coverageM (composite coverageA coverageSF)]
+                                                    (pure (dictionary.has tagA coverageM casesSF')))
+
+                                                  {try.:Failure _}
+                                                  (pure (dictionary.has tagA coverageA casesSF'))))
+                                              casesSF
+                                              (dictionary.entries casesA))]
+                           (pure (if (and (n.= (n.minor addition_cases so_far_cases)
+                                               (dictionary.size casesM))
+                                          (list.every? ..exhaustive? (dictionary.values casesM)))
+                                     {:Exhaustive}
+                                     {:Variant (maybe:composite allA allSF) casesM})))))
+
+                   [{:List addition'} {:List so_far'}]
+                   (if (n.= (list.size addition')
+                            (list.size so_far'))
+                       (let [composites (|> (list.zipped_2 addition' so_far')
+                                            (list:each (function (_ [addition' so_far'])
+                                                         [(composite addition' so_far')
+                                                          so_far'])))
+
+                             redundant? (is (Predicate [(Try Coverage)
+                                                        Coverage])
+                                            (|>> product.left (match? {try.:Failure _})))
+                             complete_redundancy! (list.every? redundant? composites)]
+                         (if complete_redundancy!
                              <redundancy>
-                             ... There are now 2 alternative paths.
-                             <alternatively>)]
-    (`` (when [addition so_far]
-          ... 2 bit coverages are exhaustive if they complement one another.
-          [{:Bit sideA} {:Bit sideSF}]
-          (if (xor sideA sideSF)
-              {try.:Success {:Exhaustive}}
-              <redundancy>)
+                             (|> composites
+                                 (list:each (function (_ [composite so_far])
+                                              (try.else so_far composite)))
+                                 {:List}
+                                 {try.:Success})))
+                       <else>)
 
-          (,, (template.with [<tag>]
-                [[{<tag> partialA} {<tag> partialSF}]
-                 (if (set.empty? (set.intersection partialA partialSF))
-                     {try.:Success {<tag> (set.union partialA partialSF)}}
-                     <redundancy>)]
+                   [{:And leftA rightA} {:And leftSF rightSF}]
+                   (when [(= leftSF leftA) (= rightSF rightA)]
+                     [.true .false]
+                     (comment "Same prefix"
+                              (monad.let try.monad
+                                [rightM (composite rightA rightSF)]
+                                (pure (if (..exhaustive? rightM)
+                                          (comment "If all that follows is exhaustive, then it can be safely dropped"
+                                                   "(since only the 'left' part would influence whether the"
+                                                   "composite coverage is exhaustive or not)."
+                                                   leftSF)
+                                          {:And leftSF rightM}))))
 
-                [[:Natural]
-                 [:Integer]
-                 [:Revolution]
-                 [:Decimal]
-                 [:Text]]))
+                     [.false .true]
+                     (comment "Same suffix"
+                              (monad.let try.monad
+                                [leftM (composite leftA leftSF)]
+                                (pure {:And leftM rightA})))
 
-          [{:Variant addition'} {:Variant so_far'}]
-          (let [[allA casesA] addition'
-                [allSF casesSF] so_far'
-                addition_cases (..maximum addition')
-                so_far_cases (..maximum so_far')]
-            (if (template.let [(known_cases? it)
-                               [(n.< n:maximum it)]]
-                  (and (known_cases? so_far_cases)
-                       (if (known_cases? addition_cases)
-                           (not (n.= so_far_cases addition_cases))
-                           (n.> so_far_cases (..minimum addition')))))
-                (exception.except ..variant_mismatch [so_far_cases addition_cases])
+                     [.false .false]
+                     (comment "The 2 sequences cannot possibly be merged."
+                              <alternatively>)
 
-                (by (dictionary.equality ..equality) = casesSF casesA)
-                <redundancy>
+                     [.true .true]
+                     (comment "There is nothing the addition adds to the coverage."
+                              <redundancy>))
 
-                ... else
-                (monad.let [! try.monad]
-                  [casesM (list.mix' !
-                                     (function (_ [tagA coverageA] casesSF')
-                                       (when (dictionary.value tagA casesSF')
-                                         {try.:Success coverageSF}
-                                         (monad.let !
-                                           [coverageM (composite coverageA coverageSF)]
-                                           (pure (dictionary.has tagA coverageM casesSF')))
+                   [_ {:Exhaustive}]
+                   (comment "The addition cannot possibly improve the coverage."
+                            <redundancy>)
 
-                                         {try.:Failure _}
-                                         (pure (dictionary.has tagA coverageA casesSF'))))
-                                     casesSF
-                                     (dictionary.entries casesA))]
-                  (pure (if (and (n.= (n.minor addition_cases so_far_cases)
-                                      (dictionary.size casesM))
-                                 (list.every? ..exhaustive? (dictionary.values casesM)))
-                            {:Exhaustive}
-                            {:Variant (maybe:composite allA allSF) casesM})))))
+                   [{:Exhaustive} _]
+                   (comment "The addition completes the coverage."
+                            {try.:Success {:Exhaustive}})
+                   
+                   [_ {:Or leftS rightS}]
+                   (comment "When merging a new coverage against one based on Alt, it may be"
+                            "that one of the many coverages in the Alt is complementary to"
+                            "the new one, so effort must be made to fuse carefully, to match"
+                            "the right coverages together."
+                            "If one of the Alt sub-coverages matches the new one, the cycle"
+                            "must be repeated, in case the resulting coverage can now match"
+                            "other ones in the original Alt."
+                            "This process must be repeated until no further productive"
+                            "merges can be done."
+                            (monad.let [! try.monad]
+                              [.let [fuse_once (is (-> Coverage (Stack Coverage)
+                                                       (Try [(Maybe Coverage)
+                                                             (Stack Coverage)]))
+                                                   (function (_ coverageA possibilitiesSF)
+                                                     (loop (of [altsSF possibilitiesSF])
+                                                       (when altsSF
+                                                         {.:Empty}
+                                                         (pure [{.:None} (stack coverageA)])
+                                                         
+                                                         {.:Top altSF altsSF'}
+                                                         (monad.let !
+                                                           [altMSF (composite coverageA altSF)]
+                                                           (when altMSF
+                                                             {:Or _}
+                                                             (monad.let !
+                                                               [[success altsSF+] (of altsSF')]
+                                                               (pure [success {.:Top altSF altsSF+}]))
 
-          [{:List addition'} {:List so_far'}]
-          (if (n.= (list.size addition')
-                   (list.size so_far'))
-              (let [composites (|> (list.zipped_2 addition' so_far')
-                                   (list:each (function (_ [addition' so_far'])
-                                                [(composite addition' so_far')
-                                                 so_far'])))
+                                                             _
+                                                             (pure [{.:Some altMSF} altsSF'])))))))]]
+                              (loop (of [addition addition
+                                         possibilitiesSF (alternatives so_far)])
+                                (monad.let !
+                                  [[addition' possibilitiesSF'] (fuse_once addition possibilitiesSF)]
+                                  (when addition'
+                                    {.:Some addition'}
+                                    (of addition' possibilitiesSF')
+                                    
+                                    {.:None}
+                                    (when (stack.in_reverse possibilitiesSF')
+                                      {.:Top last prevs}
+                                      (pure (stack.mix (function (_ left right) {:Or left right})
+                                                       last
+                                                       prevs))
 
-                    redundant? (is (Predicate [(Try Coverage)
-                                               Coverage])
-                                   (|>> product.left (match? {try.:Failure _})))
-                    complete_redundancy! (list.every? redundant? composites)]
-                (if complete_redundancy!
-                    <redundancy>
-                    (|> composites
-                        (list:each (function (_ [composite so_far])
-                                     (try.else so_far composite)))
-                        {:List}
-                        {try.:Success})))
-              <else>)
+                                      {.:Empty}
+                                      (undefined)))))))
 
-          [{:And leftA rightA} {:And leftSF rightSF}]
-          (when [(= leftSF leftA) (= rightSF rightA)]
-            ... Same prefix
-            [.true .false]
-            (monad.let try.monad
-              [rightM (composite rightA rightSF)]
-              (pure (if (..exhaustive? rightM)
-                        ... If all that follows is exhaustive, then it can be safely dropped
-                        ... (since only the "left" part would influence whether the
-                        ... composite coverage is exhaustive or not).
-                        leftSF
-                        {:And leftSF rightM})))
+                   [{:And left right} single]
+                   (comment "The left part will always match, so the addition is redundant."
+                            (if (= left single)
+                                <redundancy>
+                                <else>))
 
-            ... Same suffix
-            [.false .true]
-            (monad.let try.monad
-              [leftM (composite leftA leftSF)]
-              (pure {:And leftM rightA}))
+                   [single {:And left right}]
+                   (comment "The right part is not necessary, since it can always match the left."
+                            (if (= left single)
+                                {try.:Success single}
+                                <else>))
 
-            ... The 2 sequences cannot possibly be merged.
-            [.false .false]
-            <alternatively>
-
-            ... There is nothing the addition adds to the coverage.
-            [.true .true]
-            <redundancy>)
-
-          ... The addition cannot possibly improve the coverage.
-          [_ {:Exhaustive}]
-          <redundancy>
-
-          ... The addition completes the coverage.
-          [{:Exhaustive} _]
-          {try.:Success {:Exhaustive}}
-          
-          ... When merging a new coverage against one based on Alt, it may be
-          ... that one of the many coverages in the Alt is complementary to
-          ... the new one, so effort must be made to fuse carefully, to match
-          ... the right coverages together.
-          ... If one of the Alt sub-coverages matches the new one, the cycle
-          ... must be repeated, in case the resulting coverage can now match
-          ... other ones in the original Alt.
-          ... This process must be repeated until no further productive
-          ... merges can be done.
-          [_ {:Or leftS rightS}]
-          (monad.let [! try.monad]
-            [.let [fuse_once (is (-> Coverage (Stack Coverage)
-                                     (Try [(Maybe Coverage)
-                                           (Stack Coverage)]))
-                                 (function (_ coverageA possibilitiesSF)
-                                   (loop (of [altsSF possibilitiesSF])
-                                     (when altsSF
-                                       {.:Empty}
-                                       (pure [{.:None} (stack coverageA)])
-                                       
-                                       {.:Top altSF altsSF'}
-                                       (monad.let !
-                                         [altMSF (composite coverageA altSF)]
-                                         (when altMSF
-                                           {:Or _}
-                                           (monad.let !
-                                             [[success altsSF+] (of altsSF')]
-                                             (pure [success {.:Top altSF altsSF+}]))
-
-                                           _
-                                           (pure [{.:Some altMSF} altsSF'])))))))]]
-            (loop (of [addition addition
-                       possibilitiesSF (alternatives so_far)])
-              (monad.let !
-                [[addition' possibilitiesSF'] (fuse_once addition possibilitiesSF)]
-                (when addition'
-                  {.:Some addition'}
-                  (of addition' possibilitiesSF')
-                  
-                  {.:None}
-                  (when (stack.in_reverse possibilitiesSF')
-                    {.:Top last prevs}
-                    (pure (stack.mix (function (_ left right) {:Or left right})
-                                     last
-                                     prevs))
-
-                    {.:Empty}
-                    (undefined))))))
-
-          ... The left part will always match, so the addition is redundant.
-          [{:And left right} single]
-          (if (= left single)
-              <redundancy>
-              <else>)
-
-          ... The right part is not necessary, since it can always match the left.
-          [single {:And left right}]
-          (if (= left single)
-              {try.:Success single}
-              <else>)
-
-          _
-          <else>))))
+                   _
+                   <else>)))))

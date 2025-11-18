@@ -153,11 +153,11 @@
               (<| (/type.with expectedT')
                   (of valueC))
 
-              ... Cannot do inference when the tag is numeric.
-              ... This is because there is no way of knowing how many
-              ... cases the inferred sum type would have.
               _
-              (/.except ..cannot_infer_sum [here expectedT lefts right? valueC])))
+              (comment "Cannot do inference when the tag is numeric."
+                       "This is because there is no way of knowing how many"
+                       "cases the inferred sum type would have."
+                       (/.except ..cannot_infer_sum [here expectedT lefts right? valueC]))))
 
           {.:Quantification .universal _}
           (monad.let !
@@ -300,19 +300,19 @@
             (<| (/type.with expectedT')
                 (product analyse archive membersC))
 
-            ... Must infer...
             _
-            (monad.let !
-              [membersTA (list.each' ! (|>> (analyse archive)
-                                            /type.inferring)
-                                     membersC)
-               _ (/type.check (check.check expectedT
-                                           (type.tuple (list:each product.left membersTA))))
-               @ /.provenance]
-              (pure (|> membersTA
-                        (list:each product.right)
-                        (view.as list.stack)
-                        (tuple_as_pair @))))))
+            (comment "Must infer..."
+                     (monad.let !
+                       [membersTA (list.each' ! (|>> (analyse archive)
+                                                     /type.inferring)
+                                              membersC)
+                        _ (/type.check (check.check expectedT
+                                                    (type.tuple (list:each product.left membersTA))))
+                        @ /.provenance]
+                       (pure (|> membersTA
+                                 (list:each product.right)
+                                 (view.as list.stack)
+                                 (tuple_as_pair @)))))))
 
         {.:Quantification .universal _}
         (monad.let !
@@ -351,34 +351,34 @@
         _
         (/.except ..invalid_tuple_type [here expectedT membersC])))))
 
-... There cannot be any ambiguity or improper syntax when analysing
-... records, so they must be normalized for further analysis.
-... Normalization just means that all the tags get resolved to their
-... canonical form (with their corresponding module identified).
-(the .public (normal pattern_matching? record)
-  (-> Bit (List @type.Code)
-      (Operation (Maybe (Stack [Name @type.Code]))))
-  (loop (of [input (view.as list.stack record)
-             output (is (Stack [Name @type.Code])
-                        {.:Empty})])
-    (when input
-      (stack.partial {@type.:Name _ ["" slotH]} valueH tail)
-      (if pattern_matching?
-          (phase:pure {.:None})
-          (monad.let phase.monad
-            [slotH (phase.normal ["" slotH])]
-            (of tail {.:Top [slotH valueH] output})))
-      
-      (stack.partial {@type.:Name _ slotH} valueH tail)
-      (monad.let phase.monad
-        [slotH (phase.normal slotH)]
-        (of tail {.:Top [slotH valueH] output}))
+(comment "There cannot be any ambiguity or improper syntax when analysing"
+         "records, so they must be normalized for further analysis."
+         "Normalization just means that all the tags get resolved to their"
+         "canonical form (with their corresponding module identified)."
+         (the .public (normal pattern_matching? record)
+           (-> Bit (List @type.Code)
+               (Operation (Maybe (Stack [Name @type.Code]))))
+           (loop (of [input (view.as list.stack record)
+                      output (is (Stack [Name @type.Code])
+                                 {.:Empty})])
+             (when input
+               (stack.partial {@type.:Name _ ["" slotH]} valueH tail)
+               (if pattern_matching?
+                   (phase:pure {.:None})
+                   (monad.let phase.monad
+                     [slotH (phase.normal ["" slotH])]
+                     (of tail {.:Top [slotH valueH] output})))
+               
+               (stack.partial {@type.:Name _ slotH} valueH tail)
+               (monad.let phase.monad
+                 [slotH (phase.normal slotH)]
+                 (of tail {.:Top [slotH valueH] output}))
 
-      {.:Empty}
-      (phase:pure {.:Some output})
+               {.:Empty}
+               (phase:pure {.:Some output})
 
-      _
-      (phase:pure {.:None}))))
+               _
+               (phase:pure {.:None})))))
 
 (the (local_binding? name)
   (-> Text
@@ -435,45 +435,45 @@
                           false)))
        (view.as list.stack)))
 
-... Lux already possesses the means to analyse tuples, so
-... re-implementing the same functionality for records makes no sense.
-... Records, thus, get transformed into tuples by ordering the elements.
-(the (order' head_k original_record)
-  (-> Name (Stack [Name @type.Code])
-      (Operation (Maybe [Natural (Stack @type.Code) Type])))
-  (monad.let [! phase.monad]
-    [record (<| phase.try
-                (stack.each' ! (function (_ [slot value])
-                                 (monad.let !
-                                   [slot (phase.slot slot)]
-                                   (pure [slot value])))
-                             original_record))]
-    (when record
-      {try.:Success record}
-      (monad.let !
-        [.let [record (record_in_order record)]
-         here phase.name_of_current_module
-         _ (phase.assertion ..cannot_order_record [here (` ..same_record?) (view.of list.stack original_record)]
-                            (same_record? record))
-         _ (phase.assertion ..cannot_order_record [here (` ..complete_record?) (view.of list.stack original_record)]
-                            (complete_record? record))]
-        (pure (<| try.maybe
-                  (monad.let try.monad
-                    [[[_ :record:] _] (stack.top record)]
-                    (pure [(stack.size record)
-                           (stack:each product.right record)
-                           (@type.old :record:)])))))
+(comment "Lux already possesses the means to analyse tuples, so"
+         "re-implementing the same functionality for records makes no sense."
+         "Records, thus, get transformed into tuples by ordering the elements."
+         (the (order' head_k original_record)
+           (-> Name (Stack [Name @type.Code])
+               (Operation (Maybe [Natural (Stack @type.Code) Type])))
+           (monad.let [! phase.monad]
+             [record (<| phase.try
+                         (stack.each' ! (function (_ [slot value])
+                                          (monad.let !
+                                            [slot (phase.slot slot)]
+                                            (pure [slot value])))
+                                      original_record))]
+             (when record
+               {try.:Success record}
+               (monad.let !
+                 [.let [record (record_in_order record)]
+                  here phase.name_of_current_module
+                  _ (phase.assertion ..cannot_order_record [here (` ..same_record?) (view.of list.stack original_record)]
+                                     (same_record? record))
+                  _ (phase.assertion ..cannot_order_record [here (` ..complete_record?) (view.of list.stack original_record)]
+                                     (complete_record? record))]
+                 (pure (<| try.maybe
+                           (monad.let try.monad
+                             [[[_ :record:] _] (stack.top record)]
+                             (pure [(stack.size record)
+                                    (stack:each product.right record)
+                                    (@type.old :record:)])))))
 
-      {try.:Failure error}
-      (pure {.:None}))))
+               {try.:Failure error}
+               (pure {.:None})))))
 
 (the .public (order pattern_matching? record)
   (-> Bit (Stack [Name @type.Code])
       (Operation (Maybe [Natural (Stack @type.Code) Type])))
   (when record
-    ... empty_record = empty_tuple = unit/any = []
     {.:Empty}
-    (phase:pure {.:Some [0 (stack) .Any]})
+    (comment "empty_record = empty_tuple = unit/any = []"
+             (phase:pure {.:Some [0 (stack) .Any]}))
 
     {.:Top [head_k head_v] _}
     (when head_k
@@ -526,30 +526,28 @@
           (analyse archive singletonC)
           
           _
-          (..product analyse archive members)
-          ... (analyse archive (..record_as_pair members))
-          )
+          (comment (analyse archive (..record_as_pair members))
+                   (..product analyse archive members)))
 
         _
-        (..product analyse archive members)
-        ... (analyse archive (..record_as_pair members))
-        ))
+        (comment (analyse archive (..record_as_pair members))
+                 (..product analyse archive members))))
 
     _
     (monad.let [! phase.monad]
       [?members (..normal false members)]
       (when ?members
         {.:None}
-        (..product analyse archive members)
-        ... (analyse archive (..record_as_pair members))
+        (comment (analyse archive (..record_as_pair members))
+                 (..product analyse archive members))
 
         {.:Some slots}
         (monad.let !
           [record_size,membersC,recordT (..order false slots)]
           (when record_size,membersC,recordT
             {.:None}
-            (..product analyse archive members)
-            ... (analyse archive (..record_as_pair members))
+            (comment (analyse archive (..record_as_pair members))
+                     (..product analyse archive members))
 
             {.:Some [record_size membersC recordT]}
             (monad.let !
@@ -564,6 +562,5 @@
                   (pure (tuple_as_pair @ membersA)))
 
                 _
-                (..product analyse archive (view.of list.stack membersC))
-                ... (analyse archive (..record_as_pair (view.of list.stack membersC)))
-                ))))))))
+                (comment (analyse archive (..record_as_pair (view.of list.stack membersC)))
+                         (..product analyse archive (view.of list.stack membersC)))))))))))

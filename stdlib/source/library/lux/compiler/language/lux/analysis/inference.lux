@@ -99,77 +99,77 @@
     [here phase.name_of_current_module]
     (/.except ..cannot_infer [here inference (view.of list.stack arguments)])))
 
-... Type-inference works by applying some (potentially quantified) type
-... to a sequence of values.
-... Function types are used for this, although inference is not always
-... done for function application (alternative uses may be records and
-... tagged variants).
-... But, so long as the type being used for the inference can be treated
-... as a function type, this method of inference should work.
-(the .public (general archive analysis morphism args)
-  (-> Archive Phase Type (Stack @type.Code)
-      (Operation [Type (Stack /.Term)]))
-  (when args
-    {.:Empty}
-    (monad.let phase.monad
-      [_ (/type.inference morphism)]
-      (pure [morphism (stack)]))
-    
-    {.:Top argC args'}
-    (when morphism
-      {.:Named name unnamedT}
-      (general archive analysis unnamedT args)
+(comment "Type-inference works by applying some (potentially quantified) type"
+         "to a sequence of values."
+         "Function types are used for this, although inference is not always"
+         "done for function application (alternative uses may be records and"
+         "tagged variants)."
+         "But, so long as the type being used for the inference can be treated"
+         "as a function type, this method of inference should work."
+         (the .public (general archive analysis morphism args)
+           (-> Archive Phase Type (Stack @type.Code)
+               (Operation [Type (Stack /.Term)]))
+           (when args
+             {.:Empty}
+             (monad.let phase.monad
+               [_ (/type.inference morphism)]
+               (pure [morphism (stack)]))
+             
+             {.:Top argC args'}
+             (when morphism
+               {.:Named name unnamedT}
+               (general archive analysis unnamedT args)
 
-      {.:Quantification .universal _}
-      (monad.let phase.monad
-        [[@variable :variable:] (/type.check check.var)]
-        (general archive analysis
-                 (maybe.trusted (type.reified (list :variable:) morphism))
-                 args))
+               {.:Quantification .universal _}
+               (monad.let phase.monad
+                 [[@variable :variable:] (/type.check check.var)]
+                 (general archive analysis
+                          (maybe.trusted (type.reified (list :variable:) morphism))
+                          args))
 
-      {.:Quantification .existential _}
-      (monad.let phase.monad
-        [:ex: /type.existential]
-        (general archive analysis
-                 (maybe.trusted (type.reified (list (@type.old :ex:)) morphism))
-                 args))
+               {.:Quantification .existential _}
+               (monad.let phase.monad
+                 [:ex: /type.existential]
+                 (general archive analysis
+                          (maybe.trusted (type.reified (list (@type.old :ex:)) morphism))
+                          args))
 
-      {.:Reification inputT transT}
-      (when (type.reified (list inputT) transT)
-        {.:Some outputT}
-        (general archive analysis outputT args)
+               {.:Reification inputT transT}
+               (when (type.reified (list inputT) transT)
+                 {.:Some outputT}
+                 (general archive analysis outputT args)
 
-        {.:None}
-        (/.except ..invalid_type_application [morphism]))
+                 {.:None}
+                 (/.except ..invalid_type_application [morphism]))
 
-      ... Arguments are inferred back-to-front because, by convention,
-      ... Lux functions take the most important arguments *last*, which
-      ... means that the most information for doing proper inference is
-      ... located in the last arguments to a function call.
-      ... By inferring back-to-front, a lot of type-annotations can be
-      ... avoided in Lux code, since the inference algorithm can piece
-      ... things together more easily.
-      (type.Function inputT outputT)
-      (monad.let phase.monad
-        [[outputT' args'A] (general archive analysis outputT args')
-         here phase.name_of_current_module
-         argA (<| (/.with_exception ..cannot_infer_argument [here inputT argC])
-                  (/type.with inputT)
-                  (analysis archive argC))]
-        (pure [outputT' (stack.partial argA args'A)]))
+               (type.Function inputT outputT)
+               (comment "Arguments are inferred back-to-front because, by convention,"
+                        "Lux functions take the most important arguments *last*, which"
+                        "means that the most information for doing proper inference is"
+                        "located in the last arguments to a function call."
+                        "By inferring back-to-front, a lot of type-annotations can be"
+                        "avoided in Lux code, since the inference algorithm can piece"
+                        "things together more easily."
+                        (monad.let phase.monad
+                          [[outputT' args'A] (general archive analysis outputT args')
+                           here phase.name_of_current_module
+                           argA (<| (/.with_exception ..cannot_infer_argument [here inputT argC])
+                                    (/type.with inputT)
+                                    (analysis archive argC))]
+                          (pure [outputT' (stack.partial argA args'A)])))
 
-      {.:Variable .general morphism'}
-      (monad.let phase.monad
-        [morphism' (phase.try (/type.check (check.type morphism')))]
-        (when morphism'
-          {try.:Success morphism}
-          (general archive analysis morphism args)
+               {.:Variable .general morphism'}
+               (monad.let phase.monad
+                 [morphism' (phase.try (/type.check (check.type morphism')))]
+                 (when morphism'
+                   {try.:Success morphism}
+                   (general archive analysis morphism args)
 
-          _
-          (cannot_infer! morphism args)))
+                   _
+                   (cannot_infer! morphism args)))
 
-      _
-      (cannot_infer! morphism args))))
+               _
+               (cannot_infer! morphism args)))))
 
 (the (with_recursion @self recursion)
   (-> Natural Type

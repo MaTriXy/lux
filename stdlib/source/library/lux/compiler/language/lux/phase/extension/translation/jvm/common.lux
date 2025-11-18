@@ -2,7 +2,7 @@
  [library
   [lux (.except Type Label with)
    [abstract
-    ["<>" projection]
+    ["?" projection (.use functor)]
     ["[0]" monad]]
    [control
     ["|" pipe]]
@@ -32,20 +32,21 @@
   [translation
    [extension (.only Nullary Unary Binary Trinary Variadic
                      nullary unary binary trinary variadic)]
-   ["///" jvm
-    ["[1][0]" type]
-    ["[1][0]" value]
-    ["[1][0]" primitive]
-    ["[1][0]" complex]
-    ["[1][0]" runtime (.only Operation Phase Bundle Handler)]
-    ["[1][0]" when]
-    ["[1][0]" function
+   ["[0]" jvm
+    ["[1]/[0]" type]
+    ["[1]/[0]" value]
+    ["[1]/[0]" primitive]
+    ["[1]/[0]" complex]
+    ["[1]/[0]" runtime (.only Operation Phase Bundle Handler)]
+    ["[1]/[0]" when]
+    ["[1]/[0]" function
      ["[1]" abstract]]]]
   [//
    ["[0]" phase (.use monad)]
    ["[0]" synthesis (.only)
     ["?[1]" \\projection (.only Projection)]]
    [///
+    [type (.only Register)]
     [meta
      [archive (.only Archive)]]
     ["[0]" extension (.only)
@@ -83,7 +84,7 @@
   (Bytecode Any)
   (all _.composite
        _.i2l
-       (///value.boxed type.long)))
+       (jvm/value.boxed type.long)))
 
 (the lux_natural
   ..lux_i64)
@@ -91,7 +92,7 @@
 (the jvm_int
   (Bytecode Any)
   (all _.composite
-       (///value.primitive type.long)
+       (jvm/value.primitive type.long)
        _.l2i))
 
 (the .public (predicate bytecode)
@@ -111,15 +112,15 @@
 
 ... TODO: Get rid of this ASAP
 (the lux:syntax_char_case!
-  (..custom [(all <>.and
+  (..custom [(all ?.and
                   ?list.any
                   ?list.any
-                  (<>.some (?synthesis.tuple (all <>.and
-                                                  (?synthesis.tuple (<>.many ?synthesis.i64))
-                                                  ?list.any))))
+                  (?.some (?synthesis.tuple (all ?.and
+                                                 (?synthesis.tuple (?.many ?synthesis.i64))
+                                                 ?list.any))))
              (function (_ phase archive [inputS elseS conditionalsS])
                (monad.let [! phase.monad]
-                 [@end ///runtime.forge_label
+                 [@end jvm/runtime.forge_label
                   inputG (phase archive inputS)
                   elseG (phase archive elseS)
                   conditionalsG+ (is (Operation (List [(List [/32.Number Label])
@@ -127,7 +128,7 @@
                                      (list.each' ! (function (_ [chars branch])
                                                      (monad.let !
                                                        [branchG (phase archive branch)
-                                                        @branch ///runtime.forge_label]
+                                                        @branch jvm/runtime.forge_label]
                                                        (pure [(list:each (function (_ char)
                                                                            [(/32.of (.integer char)) @branch])
                                                                          chars)
@@ -145,7 +146,7 @@
                  (pure (monad.let _.monad
                          [@else _.new_label]
                          (all _.composite
-                              inputG (///value.primitive type.long) _.l2i
+                              inputG (jvm/value.primitive type.long) _.l2i
                               (_.lookupswitch @else table)
                               conditionalsG
                               (_.set_label @else)
@@ -165,33 +166,50 @@
   (Unary (Bytecode Any))
   (all _.composite
        riskyG
-       (_.checkcast ///function.class)
-       ///runtime.try))
+       (_.checkcast jvm/function.class)
+       jvm/runtime.try))
 
 (the case
   (<| ..custom
-      [(all <>.and ?synthesis.i64 ?synthesis.bit ?list.any)]
+      [(all ?.and ?synthesis.i64 ?synthesis.bit ?list.any)]
       (function (_ translation archive [every_left right? choice])
-        (///complex.variant translation archive [(.natural every_left) right? choice]))))
+        (jvm/complex.variant translation archive [(.natural every_left) right? choice]))))
 
 (the pair
   (<| ..custom
-      [(<>.at_least 2 ?list.any)]
-      ///complex.tuple))
+      [(?.at_least 2 ?list.any)]
+      jvm/complex.tuple))
+
+(the side
+  (Projection [Natural Bit Register])
+  (all ?.and
+       (?:each (|>> .natural) ?synthesis.i64)
+       ?synthesis.bit
+       ?synthesis.local))
 
 (the of_pair
   (<| ..custom
-      [(all <>.and ?list.any ?synthesis.local ?synthesis.local ?list.any)]
-      (function (_ translation archive [pair left right body])
+      [(all ?.and ?list.any (?.many ..side) ?list.any)]
+      (function (_ translation archive [pair every_side body])
         (monad.let phase.monad
           [pair (translation archive pair)
            body (translation archive body)]
           (pure (all _.composite
                      pair
-                     _.dup
-                     (///when.left_of_tuple 0) (_.astore left)
-                     (///when.right_of_tuple 0) (_.astore right)
-                     body))))))
+                     (list.mix (function (_ [every_next_side [every_left right? register]] then)
+                                 (let [after_dup (all _.composite
+                                                      (if right?
+                                                          (jvm/when.right_of_tuple every_left)
+                                                          (jvm/when.left_of_tuple every_left))
+                                                      (_.astore register)
+                                                      then)]
+                                   (when every_next_side
+                                     0 after_dup
+                                     _ (all _.composite
+                                            _.dup
+                                            after_dup))))
+                               body
+                               (list.enumeration (list.in_reverse every_side)))))))))
 
 (the with_basic
   (Change Bundle)
@@ -206,9 +224,9 @@
   [(the (<name> [maskG inputG])
      (Binary (Bytecode Any))
      (all _.composite
-          inputG (///value.primitive type.long)
-          maskG (///value.primitive type.long)
-          <op> (///value.boxed type.long)))]
+          inputG (jvm/value.primitive type.long)
+          maskG (jvm/value.primitive type.long)
+          <op> (jvm/value.boxed type.long)))]
 
   [[i64:and _.land]
    [i64:or  _.lor]
@@ -218,9 +236,9 @@
   [(the (<name> [shiftG inputG])
      (Binary (Bytecode Any))
      (all _.composite
-          inputG (///value.primitive type.long)
+          inputG (jvm/value.primitive type.long)
           shiftG ..jvm_int
-          <op> (///value.boxed type.long)))]
+          <op> (jvm/value.boxed type.long)))]
 
   [[i64:<< _.lshl]
    [i64:>> _.lushr]])
@@ -229,9 +247,9 @@
   [(the (<name> [paramG subjectG])
      (Binary (Bytecode Any))
      (all _.composite
-          subjectG (///value.primitive <type>)
-          paramG (///value.primitive <type>)
-          <op> (///value.boxed <type>)))]
+          subjectG (jvm/value.primitive <type>)
+          paramG (jvm/value.primitive <type>)
+          <op> (jvm/value.boxed <type>)))]
 
   [[i64:+ type.long   _.ladd]
    [i64:- type.long   _.lsub]
@@ -250,8 +268,8 @@
      [(the (<name> [paramG subjectG])
         (Binary (Bytecode Any))
         (all _.composite
-             subjectG (///value.primitive <type>)
-             paramG (///value.primitive <type>)
+             subjectG (jvm/value.primitive <type>)
+             paramG (jvm/value.primitive <type>)
              <cmp>
              <reference>
              (..predicate _.if_icmpeq)))]
@@ -276,23 +294,23 @@
           <transform>))]
 
   [[i64:f64
-    (///value.primitive type.long)
+    (jvm/value.primitive type.long)
     (all _.composite
          _.l2d
-         (///value.boxed type.double))]
+         (jvm/value.boxed type.double))]
 
    [i64:char
-    (///value.primitive type.long)
+    (jvm/value.primitive type.long)
     (all _.composite
          _.l2i
          _.i2c
          (..:toString ..$Character type.char))]
 
    [f64:i64
-    (///value.primitive type.double)
+    (jvm/value.primitive type.double)
     (all _.composite
          _.d2l
-         (///value.boxed type.long))]])
+         (jvm/value.boxed type.long))]])
 
 (the with_i64
   (Change Bundle)
@@ -354,7 +372,7 @@
 
   [[text:= ..no_op ..no_op
     (_.invokevirtual ..$Object "equals" (type.method [(list) (list ..$Object) type.boolean (list)]))
-    (///value.boxed type.boolean)]
+    (jvm/value.boxed type.boolean)]
    [text:< (_.checkcast $String) (_.checkcast $String)
     (_.invokevirtual ..$String "compareTo" (type.method [(list) (list ..$String) type.int (list)]))
     (..predicate _.iflt)]
@@ -447,11 +465,11 @@
          _.iconst_m1
          (_.if_icmpeq @not_found)
          ..lux_natural
-         ///runtime.some
+         jvm/runtime.some
          (_.goto @end)
          (_.set_label @not_found)
          _.pop
-         ///runtime.none
+         jvm/runtime.none
          (_.set_label @end))))
 
 (the with_text
@@ -473,7 +491,7 @@
        messageG
        (_.checkcast $String)
        (_.invokevirtual ..$PrintStream "println" ..string_method)
-       ///runtime.unit))
+       jvm/runtime.unit))
 
 (the (io:error messageG)
   (Unary (Bytecode Any))
@@ -509,14 +527,14 @@
   (Unary (Bytecode Any))
   (all _.composite
        it
-       (_.checkcast ///type.list)
+       (_.checkcast jvm/type.list)
        _.arraylength
        ..lux_natural))
 
 (the (lux:list_item [address it])
   (Binary (Bytecode Any))
   (all _.composite
-       it (_.checkcast ///type.list)
+       it (_.checkcast jvm/type.list)
        address ..jvm_int
        _.aaload))
 
@@ -524,8 +542,8 @@
   (Bytecode Any)
   (_.invokestatic ..$System "arraycopy"
                   (type.method [(list)
-                                (list ///type.value type.int
-                                      ///type.value type.int
+                                (list jvm/type.value type.int
+                                      jvm/type.value type.int
                                       type.int)
                                 type.void
                                 (list)])))
@@ -558,7 +576,7 @@
         as_list (function (_ it)
                   (all _.composite
                        it
-                       (_.checkcast ///type.list)
+                       (_.checkcast jvm/type.list)
                        ))
 
         with_size
@@ -630,7 +648,7 @@
   (all _.composite
        it
        ..jvm_int
-       (_.anewarray ///type.value)))
+       (_.anewarray jvm/type.value)))
 
 (the array_size
   ..lux:list_size)
@@ -642,7 +660,7 @@
   (Trinary (Bytecode Any))
   (all _.composite
        it
-       (_.checkcast ///type.list)
+       (_.checkcast jvm/type.list)
        _.dup
        address ..jvm_int
        value

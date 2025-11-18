@@ -89,13 +89,13 @@
              :phase_wrapper phase.Wrapper
              :write (-> declaration Binary)]))
 
-         ... TODO: Get rid of this
-         (every (Action a)
-           (Future (Try a)))
+         (comment "TODO: Get rid of this"
+                  (every (Action it)
+                    (Future (Try it))))
 
-         ... TODO: Get rid of this
-         (the monad
-           (try.with future.monad))
+         (comment "TODO: Get rid of this"
+                  (the monad
+                    (try.with future.monad)))
 
          (expansion.let [<Platform> (these (Platform <type_vars>))
                          <State> (these (///declaration.State <type_vars>))]
@@ -133,7 +133,6 @@
                                           (list.each' ! (list.each' ! write_artifact!))
                                           (is (Action (List (List Any)))))
 
-                                      ... else
                                       (|> entry
                                           (its archive.:output)
                                           sequence.as_list
@@ -149,20 +148,20 @@
                                 (_.value (..as_binary as_binary))
                                 (cache/module.cache! system @module))))))
 
-                  ... TODO: Inline ASAP
-                  (the initialize_buffer!
-                    (for_any (_ <type_vars>)
-                      (///translation.Operation <type_vars> Any))
-                    (///translation.set_buffer ///translation.empty_buffer))
+                  (comment "TODO: Inline ASAP"
+                           (the initialize_buffer!
+                             (for_any (_ <type_vars>)
+                               (///translation.Operation <type_vars> Any))
+                             (///translation.set_buffer ///translation.empty_buffer)))
 
-                  ... TODO: Inline ASAP
-                  (the (compile_runtime! platform)
-                    (for_any (_ <type_vars>)
-                      (-> <Platform>
-                          (///translation.Operation <type_vars> [Registry Output])))
-                    (monad.let phase.monad
-                      [_ ..initialize_buffer!]
-                      (its :runtime platform)))
+                  (comment "TODO: Inline ASAP"
+                           (the (compile_runtime! platform)
+                             (for_any (_ <type_vars>)
+                               (-> <Platform>
+                                   (///translation.Operation <type_vars> [Registry Output])))
+                             (monad.let phase.monad
+                               [_ ..initialize_buffer!]
+                               (its :runtime platform))))
 
                   (the runtime_descriptor
                     Descriptor
@@ -357,7 +356,6 @@
                         (..circular_dependency? importer importee dependence)
                         (exception.except ..cannot_import_circular_dependency [importer importee])
 
-                        ... else
                         {try.:Success []}))
 
                   (every (Context state)
@@ -482,34 +480,34 @@
                                             (future.soon (resolver result))))]
                                      return)))))
 
-                           ... TODO: Find a better way, as this only works for the Lux compiler.
-                           (the (updated_state archive state)
-                             (for_any (_ <type_vars>)
-                               (-> Archive <State>
-                                   (Try <State>)))
-                             (monad.let [! try.monad]
-                               [modules (is (Try (property.List @type.Module))
-                                            (list.each' ! (function (_ module)
-                                                            (monad.let !
-                                                              [entry (archive.find module archive)
-                                                               it (|> entry
-                                                                      (its [archive.:module moduleM.:document])
-                                                                      (document.content $.key))]
-                                                              (pure [module it])))
-                                                        (archive.archived archive)))
-                                .let [additions (|> modules
-                                                    (list:each product.left)
-                                                    (set.of_list text.hash))
-                                      with_modules (is (for_any (_ <type_vars>)
-                                                         (Change <State>))
-                                                       (revised [///declaration.:analysis
-                                                                 ///declaration.:state
-                                                                 @type.:modules]
-                                                                (|>> (list.only (|>> product.left
-                                                                                     (set.member? additions)
-                                                                                     not))
-                                                                     (list:composite modules))))]]
-                               (pure (with_modules state))))
+                           (comment "TODO: Find a better way, as this only works for the Lux compiler."
+                                    (the (updated_state archive state)
+                                      (for_any (_ <type_vars>)
+                                        (-> Archive <State>
+                                            (Try <State>)))
+                                      (monad.let [! try.monad]
+                                        [modules (is (Try (property.List @type.Module))
+                                                     (list.each' ! (function (_ module)
+                                                                     (monad.let !
+                                                                       [entry (archive.find module archive)
+                                                                        it (|> entry
+                                                                               (its [archive.:module moduleM.:document])
+                                                                               (document.content $.key))]
+                                                                       (pure [module it])))
+                                                                 (archive.archived archive)))
+                                         .let [additions (|> modules
+                                                             (list:each product.left)
+                                                             (set.of_list text.hash))
+                                               with_modules (is (for_any (_ <type_vars>)
+                                                                  (Change <State>))
+                                                                (revised [///declaration.:analysis
+                                                                          ///declaration.:state
+                                                                          @type.:modules]
+                                                                         (|>> (list.only (|>> product.left
+                                                                                              (set.member? additions)
+                                                                                              not))
+                                                                              (list:composite modules))))]]
+                                        (pure (with_modules state)))))
 
                            (the (set_current_module module state)
                              (for_any (_ <type_vars>)
@@ -520,25 +518,25 @@
                                  try.trusted
                                  product.left))
 
-                           ... TODO: Come up with a less hacky way to prevent duplicate imports.
-                           ... This currently assumes that all imports will be specified once in a single .using form.
-                           ... This might not be the case in the future.
-                           (the (with_new_dependencies new_dependencies all_dependencies)
-                             (-> (List descriptor.Module) (Set descriptor.Module)
-                                 [(Set descriptor.Module) (Set descriptor.Module)])
-                             (let [[all_dependencies duplicates _] (is [(Set descriptor.Module) (Set descriptor.Module) Bit]
-                                                                       (list:mix (function (_ new [all duplicates seen_prelude?])
-                                                                                   (if (set.member? all new)
-                                                                                       (if (text.= .prelude new)
-                                                                                           (if seen_prelude?
-                                                                                               [all (set.has new duplicates) seen_prelude?]
-                                                                                               [all duplicates true])
-                                                                                           [all (set.has new duplicates) seen_prelude?])
-                                                                                       [(set.has new all) duplicates seen_prelude?]))
-                                                                                 (is [(Set descriptor.Module) (Set descriptor.Module) Bit]
-                                                                                     [all_dependencies ..empty (set.empty? all_dependencies)])
-                                                                                 new_dependencies))]
-                               [all_dependencies duplicates]))
+                           (comment "TODO: Come up with a less hacky way to prevent duplicate imports."
+                                    "This currently assumes that all imports will be specified once in a single .using form."
+                                    "This might not be the case in the future."
+                                    (the (with_new_dependencies new_dependencies all_dependencies)
+                                      (-> (List descriptor.Module) (Set descriptor.Module)
+                                          [(Set descriptor.Module) (Set descriptor.Module)])
+                                      (let [[all_dependencies duplicates _] (is [(Set descriptor.Module) (Set descriptor.Module) Bit]
+                                                                                (list:mix (function (_ new [all duplicates seen_prelude?])
+                                                                                            (if (set.member? all new)
+                                                                                                (if (text.= .prelude new)
+                                                                                                    (if seen_prelude?
+                                                                                                        [all (set.has new duplicates) seen_prelude?]
+                                                                                                        [all duplicates true])
+                                                                                                    [all (set.has new duplicates) seen_prelude?])
+                                                                                                [(set.has new all) duplicates seen_prelude?]))
+                                                                                          (is [(Set descriptor.Module) (Set descriptor.Module) Bit]
+                                                                                              [all_dependencies ..empty (set.empty? all_dependencies)])
+                                                                                          new_dependencies))]
+                                        [all_dependencies duplicates])))
 
                            (the (after_imports customs import! module duplicates new_dependencies archive)
                              (for_any (_ <type_vars>
@@ -589,8 +587,8 @@
                                    (Try [<State> (Either (///.Compilation <State> @type.Module)
                                                          (archive.Entry Any))])))
                              ((its ///.:process compilation)
-                              ... TODO: The "///declaration.set_current_module" below shouldn't be necessary. Remove it ASAP.
-                              ... TODO: The context shouldn't need to be re-set either.
+                              (comment "TODO: The '///declaration.set_current_module' below shouldn't be necessary. Remove it ASAP."
+                                       "TODO: The context shouldn't need to be re-set either.")
                               (|> (///declaration.set_current_module module)
                                   (phase.value' state)
                                   try.trusted

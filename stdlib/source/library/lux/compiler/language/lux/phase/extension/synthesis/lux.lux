@@ -2,7 +2,7 @@
  [library
   [lux (.except let if with)
    [abstract
-    ["?" projection]
+    ["?" projection (.use functor)]
     ["[0]" monad]]
    [error
     ["[0]" try]]
@@ -35,6 +35,7 @@
    ["[0]" analysis
     ["?[1]" \\projection]]
    ["[0]" synthesis (.only Operation Phase Bundle)
+    ["?[1]" \\projection]
     ["[0]" path]
     ["[0]" access]]
    [///
@@ -58,8 +59,8 @@
     (-> [(?analysis.Projection it)
          (-> extension.Name Phase Archive it (Operation synthesis.Term))]
         Handler))
-  (.function (_ synthesis archive args)
-    (.when (?list.value args syntax)
+  (function (_ synthesis archive args)
+    (when (?list.value args syntax)
       {try.:Success inputs}
       (handler extension_name synthesis archive inputs)
 
@@ -184,14 +185,6 @@
             [function (as_exec function)
              every_argument (list.each' ! as_exec every_argument)]
             (pure [@ {synthesis.:Control {synthesis.:Function {synthesis.:Reification [function every_argument]}}}]))))
-
-      [@ {synthesis.:Extension [.prelude (static.text (extension.synthesis extension/lux.of_pair))]
-                               (list pair (synthesis.local @ left) (synthesis.local @ right) body)}]
-      (monad.let maybe.monad
-        [pair (as_exec pair)
-         body (as_exec body)]
-        (pure [@ {synthesis.:Extension [.prelude (static.text (extension.synthesis extension/lux.of_pair))]
-                                       (list pair (synthesis.local @ (-- left)) (synthesis.local @ (-- right)) body)}]))
       
       [@ {synthesis.:Extension name every_argument}]
       (monad.let [! maybe.monad]
@@ -387,14 +380,6 @@
                                                          {synthesis.:Reification [(term function)
                                                                                   (list:each term every_argument)]})})}]
          
-         [@ {synthesis.:Extension [.prelude (static.text (extension.synthesis extension/lux.of_pair))]
-                                  (list pair (,expectation @ left) (,expectation @ right) body)}]
-         [@ {synthesis.:Extension [.prelude (static.text (extension.synthesis extension/lux.of_pair))]
-                                  (list (term pair)
-                                        (,expectation @ (-- left))
-                                        (,expectation @ (-- right))
-                                        (term body))}]
-
          [@ {synthesis.:Extension name every_argument}]
          [@ {synthesis.:Extension name (list:each term every_argument)}]
 
@@ -432,7 +417,9 @@
                      (exec
                        ... (.log!# (text "[!] exec"
                        ...               " " (synthesis.as_text value)))
-                       (synthesis.exec @ value body)))
+                       (synthesis.exec @
+                         value
+                         body)))
 
                 else
                 (when value
@@ -592,6 +579,75 @@
              right (synthesis archive right)]
             (pure (flat_pair left right))))))]))
 
+(every Side
+  [Natural Bit @type.Register])
+
+(the (as_side @ [every_left right? register])
+  (-> Provenance Side
+      (List synthesis.Term))
+  (list (synthesis.i64 @ (.i64 every_left))
+        (synthesis.bit @ right?)
+        (synthesis.local @ register)))
+
+(the ?side
+  (?synthesis.Projection Side)
+  (all ?.and
+       (?:each (|>> .natural) ?synthesis.i64)
+       ?synthesis.bit
+       ?synthesis.local))
+
+(every Of_Pair
+  (Record [:pair synthesis.Term
+           :every_side (List Side)
+           :body synthesis.Term]))
+
+(the ?of_pair
+  (?synthesis.Projection Of_Pair)
+  (all ?.and
+       ?list.any
+       (?.many ?side)
+       ?list.any))
+
+(the (in_right [every_left right? register])
+  (Change [Natural Bit @type.Register])
+  [(++ every_left) right? register])
+
+(the (skip [every_left right? register])
+  (Change [Natural Bit @type.Register])
+  [every_left right? (-- register)])
+
+(the (of_pair_as_extension it)
+  (-> Of_Pair
+      synthesis.Term)
+  (when (its :every_side it)
+    (list)
+    (.if (pure? (its :pair it))
+         (its :body it)
+         (.let [@ (synthesis.provenance (its :pair it))]
+           (synthesis.exec @
+             (its :pair it)
+             (its :body it))))
+
+    every_side
+    (.let [@ (synthesis.provenance (its :pair it))]
+      [@ {synthesis.:Extension [.prelude (extension.synthesis extension/lux.of_pair)]
+                               (list:conjoint (list (list (its :pair it))
+                                                    (list:conjoint (list:each (as_side @) every_side))
+                                                    (list (its :body it))))}])))
+
+(the (with_side side it)
+  (-> Side
+      (Change Of_Pair))
+  (.let [[every_left right? register] side]
+    (when (as_exec register (its :body it))
+      {.:Some body}
+      [:pair (its :pair it)
+       :every_side (list:each ..skip (its :every_side it))
+       :body body]
+
+      else
+      (revised :every_side (list:composite (list side)) it))))
+
 (the of_pair
   Handler
   (..custom
@@ -603,13 +659,35 @@
                   synthesis.with_new_local
                   (synthesis archive body))
          left synthesis.locals
-         .let [@ (synthesis.provenance pair)
-               right (++ left)]]
-        (pure [@ {synthesis.:Extension [.prelude (extension.synthesis name)]
-                                       (list pair
-                                             (synthesis.local @ left)
-                                             (synthesis.local @ right)
-                                             body)}])))]))
+         .let [right (++ left)
+               it (expansion.let [,extension (static.text (extension.synthesis extension/lux.of_pair))
+                                  ,default (these (|> [:pair pair
+                                                       :every_side (list)
+                                                       :body body]
+                                                      (with_side [0 1b right])
+                                                      (with_side [0 0b left])))]
+                    (when body
+                      [@ {synthesis.:Extension [.prelude ,extension] tape}]
+                      (when (?list.value tape ?of_pair)
+                        {try.:Success [pair' every_side' body']}
+                        (.if (synthesis.= (synthesis.local @ right) pair')
+                             (when (as_exec right body')
+                               {.:Some body'}
+                               (|> [:pair pair
+                                    :every_side (list:each (|>> ..in_right ..skip) every_side')
+                                    :body body']
+                                   (with_side [0 0b left]))
+                               
+                               else
+                               ,default)
+                             ,default)
+
+                        {try.:Failure error}
+                        ,default)
+
+                      else
+                      ,default))]]
+        (pure (of_pair_as_extension it))))]))
 
 (the (flat_text_composite expected)
   (-> Name

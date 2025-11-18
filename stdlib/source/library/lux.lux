@@ -4128,8 +4128,8 @@
                     {:None}
                     {:None})))
 
-(the' .private (let_pair 'value tuple 'body)
-      (type (-> Code Bundle Code
+(the' .private (let_pair tuple 'value 'body)
+      (type (-> Bundle Code Code
                 (Meta Code)))
       (.when# tuple
               {:Left name}
@@ -4144,7 +4144,7 @@
               {:Right left {:Left right}}
               (with_monad meta:monad
                 ['left (generated_name "'left")
-                 'body (let_pair 'left left 'body)]
+                 'body (let_pair left 'left 'body)]
                 (pure (` (.of_pair# (, 'value)
                                     (, 'left) (, (code:local right))
                                     (, 'body)))))
@@ -4152,7 +4152,7 @@
               {:Right {:Left left} right}
               (with_monad meta:monad
                 ['right (generated_name "'right")
-                 'body (let_pair 'right right 'body)]
+                 'body (let_pair right 'right 'body)]
                 (pure (` (.of_pair# (, 'value)
                                     (, (code:local left)) (, 'right)
                                     (, 'body)))))
@@ -4161,8 +4161,8 @@
               (with_monad meta:monad
                 ['left (generated_name "'left")
                  'right (generated_name "'right")
-                 'body (let_pair 'left left 'body)
-                 'body (let_pair 'right right 'body)]
+                 'body (let_pair left 'left 'body)
+                 'body (let_pair right 'right 'body)]
                 (pure (` (.of_pair# (, 'value)
                                     (, 'left) (, 'right)
                                     (, 'body)))))))
@@ -4175,8 +4175,7 @@
                   (?:value tokens))
           {:Some [bindings body]}
           (with_monad meta:monad
-            ['_ (generated_name "'_")
-             it (|>  bindings
+            [it (|>  bindings
                      list:in_reverse
                      (monad:mix meta:monad
                                 (function' (_ variable,value 'body)
@@ -4184,7 +4183,7 @@
                                                  (when (|> ?:bundle
                                                            (?:value (list pattern)))
                                                    {:Some bundle}
-                                                   (let_pair 'value bundle 'body)
+                                                   (let_pair bundle 'value 'body)
                                                    
                                                    {:None}
                                                    (pure (` (..when (, 'value)
@@ -5440,8 +5439,7 @@
                                         'output
                                         '_)))
                        code:tuple)
-           source+ (` (..when (, source)
-                        (, pattern)
+           source+ (` (..let [(, pattern) (, source)]
                         (, 'output)))]]
     (when output
       {:Some [tags' members']}

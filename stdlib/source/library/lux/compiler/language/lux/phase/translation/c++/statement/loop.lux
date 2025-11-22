@@ -75,34 +75,33 @@
                                   (_.initializer_list bindings)))
         _.block)))
 
-(the .public (scope statement expression archive [start initialization body])
-  (runtime.Statement synthesis.Scope)
-  (when initialization
-    ... function/false/non-independent loop
-    {.:Empty}
-    (statement expression archive body)
+(comment (the .public (iteration statement expression archive it)
+           (runtime.Expression List)
+           (monad.let [! phase.monad]
+             [[offset @scope] translation.anchor
+              it (list.each' ! (expression archive) it)
+              $iteration_parameters (by ! each ..$iteration_parameters translation.next)]
+             (pure (..setup $iteration_parameters
+                            false offset it
+                            (_.go_to @scope)))))
+         (the .public (scope statement expression archive [start initialization body])
+           (runtime.Statement synthesis.Scope)
+           (when initialization
+             {.:Empty}
+             (comment "function/false/non-independent loop"
+                      (statement expression archive body))
 
-    ... true loop
-    _
-    (monad.let [! phase.monad]
-      [@scope (by ! each ..@scope translation.next)
-       initialization (list.each' ! (expression archive) initialization)
-       body (translation.with_anchor [start @scope]
-              (statement expression archive body))
-       $iteration_parameters (by ! each ..$iteration_parameters translation.next)]
-      (pure (..setup $iteration_parameters
-                     true start
-                     initialization
-                     (all _.then
-                          (_.set_label @scope)
-                          body))))))
-
-... (the .public (iteration statement expression archive it)
-...   (runtime.Expression List)
-...   (monad.let [! phase.monad]
-...     [[offset @scope] translation.anchor
-...      it (list.each' ! (expression archive) it)
-...      $iteration_parameters (by ! each ..$iteration_parameters translation.next)]
-...     (pure (..setup $iteration_parameters
-...                  false offset it
-...                  (_.go_to @scope)))))
+             _
+             (comment "true loop"
+                      (monad.let [! phase.monad]
+                        [@scope (by ! each ..@scope translation.next)
+                         initialization (list.each' ! (expression archive) initialization)
+                         body (translation.with_anchor [start @scope]
+                                (statement expression archive body))
+                         $iteration_parameters (by ! each ..$iteration_parameters translation.next)]
+                        (pure (..setup $iteration_parameters
+                                       true start
+                                       initialization
+                                       (all _.then
+                                            (_.set_label @scope)
+                                            body))))))))

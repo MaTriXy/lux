@@ -11,7 +11,7 @@
     ["[0]" exception]]
    [data
     ["[0]" maybe]
-    ["[0]" product]
+    ["[0]" pair]
     [collection
      ["[0]" list (.use mix functor monoid)]
      ["[0]" array
@@ -275,7 +275,7 @@
   (for_any (_ key value)
     (-> (Hash key) key (Collisions key value)
         (Maybe Index)))
-  (by maybe.monad each product.left
+  (by maybe.monad each pair.left
       (array.example' (function (_ idx [key' val'])
                         (by hash_of_key = key key'))
                       colls)))
@@ -286,18 +286,18 @@
   (for_any (_ key value)
     (-> Index (Hierarchy key value)
         [Bit_Map (Base key value)]))
-  (product.right (list:mix (function (_ idx [insertion_idx node])
-                             (let [[bitmap base] node]
-                               (if (array.lacks? idx h_array)
-                                   [insertion_idx node]
-                                   (if (n.= except_idx idx)
-                                       [insertion_idx node]
-                                       [(++ insertion_idx)
-                                        [(with_bit_position (to_bit_position idx) bitmap)
-                                         (array.has! insertion_idx {.:Left (array.item idx h_array)} base)]]))))
-                           [0 [clean_bitmap
-                               (array.empty (-- h_size))]]
-                           (list.domain (array.size h_array)))))
+  (pair.right (list:mix (function (_ idx [insertion_idx node])
+                          (let [[bitmap base] node]
+                            (if (array.lacks? idx h_array)
+                                [insertion_idx node]
+                                (if (n.= except_idx idx)
+                                    [insertion_idx node]
+                                    [(++ insertion_idx)
+                                     [(with_bit_position (to_bit_position idx) bitmap)
+                                      (array.has! insertion_idx {.:Left (array.item idx h_array)} base)]]))))
+                        [0 [clean_bitmap
+                            (array.empty (-- h_size))]]
+                        (list.domain (array.size h_array)))))
 
 ... When :Base nodes grow too large, they're promoted to :Hierarchy to
 ... add some depth to the tree and help keep its balance.
@@ -310,22 +310,22 @@
     (-> (-> Level Hash_Code key value (Hash key) (Node key value) (Node key value))
         (Hash key) Level Bit_Map (Base key value)
         (Array (Node key value))))
-  (product.right (list:mix (function (_ hierarchy_idx (^.let default [base_idx h_array]))
-                             (if (with_bit_position? (to_bit_position hierarchy_idx)
-                                   bitmap)
-                                 [(++ base_idx)
-                                  (when (array.item base_idx base)
-                                    {.:Left sub_node}
-                                    (array.has! hierarchy_idx sub_node h_array)
+  (pair.right (list:mix (function (_ hierarchy_idx (^.let default [base_idx h_array]))
+                          (if (with_bit_position? (to_bit_position hierarchy_idx)
+                                bitmap)
+                              [(++ base_idx)
+                               (when (array.item base_idx base)
+                                 {.:Left sub_node}
+                                 (array.has! hierarchy_idx sub_node h_array)
 
-                                    {.:Right [key' val']}
-                                    (array.has! hierarchy_idx
-                                                (node:has (level_up level) (by hash_of_key hash key') key' val' hash_of_key ..empty_node)
-                                                h_array))]
-                                 default))
-                           [0
-                            (array.empty hierarchy_nodes_size)]
-                           domain_of_hierarchy)))
+                                 {.:Right [key' val']}
+                                 (array.has! hierarchy_idx
+                                             (node:has (level_up level) (by hash_of_key hash key') key' val' hash_of_key ..empty_node)
+                                             h_array))]
+                              default))
+                        [0
+                         (array.empty hierarchy_nodes_size)]
+                        domain_of_hierarchy)))
 
 ... All empty nodes look the same (a :Base node with clean bitmap is
 ... used).
@@ -552,8 +552,8 @@
     ... For :Collisions nodes, do a linear scan of all the known KV-pairs.
     {:Collisions _hash _colls}
     (|> _colls
-        (array.example (|>> product.left (by hash_of_key = key)))
-        (by maybe.monad each product.right)
+        (array.example (|>> pair.left (by hash_of_key = key)))
+        (by maybe.monad each pair.right)
         (try.of_maybe error.not_known))))
 
 (the (node:size node)
@@ -706,7 +706,7 @@
        (n.= 0)))
 
 (the list:of
-  (.in_module# (product.left (name list._))
+  (.in_module# (pair.left (name list._))
                list.of))
 (the .public (entries it)
   (for_any (_ key value)
@@ -717,7 +717,7 @@
         (node:mix (function (_ value [it @])
                     [(array.has! @ value it) (++ @)])
                   [(array.empty (node:size it)) 0])
-        product.left
+        pair.left
         list:of)))
 
 (the .public (of_list hash_of_key kvs)
@@ -739,7 +739,7 @@
            (node:mix (function (_ [key value] [it @])
                        [(array.has! @ <side> it) (++ @)])
                      [(array.empty (node:size it)) 0])
-           product.left
+           pair.left
            list:of)))]
 
   [[key   domain]

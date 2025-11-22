@@ -6,7 +6,7 @@
    [abstract
     ["[0]" monad]]
    [data
-    ["[0]" product]
+    ["[0]" pair]
     [text
      ["%" \\injection]
      [encoding
@@ -647,10 +647,10 @@
                                       (_.constant last_index_right //type.lefts (..last_index it))
                                       (_.set_label @loop)
                                       (_.if (_.> lefts last_index_right)
-                                            ... No need for recursion
-                                            (_.return (_.item lefts (_.its <Tuple:values> it)))
-                                            ... Needs recursion
-                                            {.:Some next!}))))
+                                            (comment "No need for recursion"
+                                                     (_.return (_.item lefts (_.its <Tuple:values> it))))
+                                            (comment "Needs recursion"
+                                                     {.:Some next!})))))
 
                            (let [new_length (_.local (..name))
                                  output (_.local (..name))
@@ -694,8 +694,8 @@
                                                   (_.return (_.item right_index (_.its <Tuple:values> it))))
                                             {.:Some}
                                             (_.if (_.> last_index_right right_index)
-                                                  ... Needs recursion.
-                                                  next!)
+                                                  (comment "Needs recursion."
+                                                           next!))
                                             {.:Some}
                                             (_.return (skip right_index it)))))))
                            )))))
@@ -944,13 +944,13 @@
 
                              stack_definition
 
-                             ... Out functions
-                             (let [it (_.local (..name))]
-                               (_.function (_.local <object_tag>)
-                                 (list)
-                                 (list [it ..value_type])
-                                 //type.i64
-                                 (_.return (_.its* <Object:tag> it))))
+                             (comment "Out functions"
+                                      (let [it (_.local (..name))]
+                                        (_.function (_.local <object_tag>)
+                                          (list)
+                                          (list [it ..value_type])
+                                          //type.i64
+                                          (_.return (_.its* <Object:tag> it)))))
 
                              (,, (template.with [<name> <type>]
                                    [(let [it (_.local (..name))]
@@ -1035,6 +1035,6 @@
      _ (translation.save! ..id {.:None} ..declaration)]
     (pure [(|> registry.empty
                (registry.resource .true unit.none)
-               product.right)
+               pair.right)
            (sequence.new [..id {.:None}
                           (by utf8.binary as (_.code ..declaration))])])))

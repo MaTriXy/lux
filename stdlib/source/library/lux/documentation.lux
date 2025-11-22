@@ -12,8 +12,8 @@
     ["[0]" try]
     ["[0]" exception (.only Exception)]]
    [data
-    ["[0]" sum]
-    ["[0]" product]
+    ["[0]" case]
+    ["[0]" pair]
     ["[0]" text (.only \n) (.use order)
      ["%" \\injection]]
     [collection
@@ -171,7 +171,7 @@
       (let [reference_column (..reference_column it)]
         (|> it
             (..code_documentation module (has .:column reference_column (code.provenance it)) reference_column)
-            product.right))))
+            pair.right))))
 
 (the .public (deprecated when module)
   (-> Text
@@ -466,14 +466,14 @@
 
           ... Recursive call
           {.:Reification (|recursion_dummy|) {.:Parameter .abstraction 0}}
-          (product.left type_function_info)
+          (pair.left type_function_info)
 
           {.:Reification (|recursion_dummy|) {.:Quantification .universal _ body}}
           (|> (type_definition' nestable? level arity type_function_info tags module body)
               (text.all_split_by \n)
               (list:each (text.prefix " "))
               (text.interposed \n)
-              (text.enclosed [(text "(Rec " (product.left type_function_info) \n)
+              (text.enclosed [(text "(Rec " (pair.left type_function_info) \n)
                               ")"]))
 
           {.:Reification param fun}
@@ -531,7 +531,7 @@
 
 (syntax.the (minimal_definition_documentation [[name parameters] ..declaration])
   (monad.let meta.monad
-    [.let ['module (code.text (product.left name))]
+    [.let ['module (code.text (pair.left name))]
      [def_type def_value] (binding.export name)
      tags (meta.try
            (meta.either (label.tags name)
@@ -543,7 +543,7 @@
                               (md.and (md.anchor (, (let [[module proper] name]
                                                       (code.text (text module ":" proper))))))
                               md.text
-                              (, (code.text (code.as_text (let ['name (|> name product.right code.local)]
+                              (, (code.text (code.as_text (let ['name (|> name pair.right code.local)]
                                                             (when parameters
                                                               (list)
                                                               'name
@@ -560,7 +560,7 @@
                                           type.anonymous
                                           ((debug.private ..type_definition)
                                            (, 'module)
-                                           [(, (code.text (product.right name))) (list (,* (list:each code.text parameters)))]
+                                           [(, (code.text (pair.right name))) (list (,* (list:each code.text parameters)))]
                                            (.list (,* (|> tags
                                                           (try.else (list))
                                                           (list:each (|>> name.proper code.text))))))
@@ -576,7 +576,7 @@
                         ... Name
                         (md.heading/4 (md.and (md.anchor (, (let [[module proper] name]
                                                               (code.text (text module ":" proper)))))
-                                              (md.text (, (code.text (code.as_text (|> name product.right code.local)))))))
+                                              (md.text (, (code.text (code.as_text (|> name pair.right code.local)))))))
                         (md.paragraph
                          (all md.and
                               (md.text (, (code.text "Alias for")))
@@ -588,7 +588,7 @@
                                        description ..description
                                        examples (<>.some ?list.any)])
   (monad.let meta.monad
-    [.let [module (product.left name)]
+    [.let [module (pair.left name)]
      minimal (expansion.single (` (..minimal_definition_documentation
                                    ((, (code.name name))
                                     (,* (list:each code.local parameters))))))]
@@ -709,7 +709,7 @@
       (monad.let [! meta.monad]
         [coverage (|> (binding.globals name)
                       (by ! each (|>> (list.only exported_non_default?)
-                                      (list:each product.left))))
+                                      (list:each pair.left))))
          dependees (import.all name)]
         (pure (list (` (is Documentation
                            {:Module [..:module (, (code.text name))
@@ -843,7 +843,7 @@
                                      (dictionary.has (its :module doc) [doc (list)] it)))
                                (is (Dictionary Text [Module (List Definition)])
                                    (dictionary.empty text.hash))
-                               (sum.rights it))
+                               (case.rights it))
         with_definitions (list:mix (function (_ doc it)
                                      (let [module (name.module (its :global doc))]
                                        (if (dictionary.in_domain? it module)
@@ -853,7 +853,7 @@
                                                                it)
                                            it)))
                                    with_modules
-                                   (sum.lefts it))
+                                   (case.lefts it))
         dependers (|> with_modules
                       dictionary.entries
                       (list:each (function (_ [name [module definitons]])
@@ -862,8 +862,8 @@
         it (|> with_definitions
                dictionary.values
                (list.in_order (function (_ left right)
-                                (text:< (its :module (product.left right))
-                                        (its :module (product.left left))))))]
+                                (text:< (its :module (pair.left right))
+                                        (its :module (pair.left left))))))]
     (md.markdown
      (all md.then
           (index it)

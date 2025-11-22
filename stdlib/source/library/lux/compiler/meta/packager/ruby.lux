@@ -7,7 +7,7 @@
     ["[0]" try (.only Try)]]
    [data
     [binary (.only Binary)]
-    ["[0]" product]
+    ["[0]" pair]
     ["[0]" text (.only)
      ["%" \\injection]
      [encoding
@@ -70,7 +70,7 @@
                                                 so_far))
                                           (_.then so_far)))))
                            (_.comment "Lux module"
-                             (_.; (_.string "")))
+                                      (_.; (_.string "")))
                            artifacts)]
         (pure {.:Some bundle})))))
 
@@ -115,7 +115,7 @@
   (for_any (_ it)
     (-> (List [module.ID it])
         (Set module.ID)))
-  (|>> (list:each product.left)
+  (|>> (list:each pair.left)
        (set.of_list natural.hash)))
 
 (the .public (package host_dependencies archive program)
@@ -130,7 +130,7 @@
                         order)
      .let [included_modules (..included_modules entries)
            imports (|> order
-                       (list.only (|>> product.right product.left (set.member? included_modules)))
+                       (list.only (|>> pair.right pair.left (set.member? included_modules)))
                        list.in_reverse
                        (list:each (function (_ [module [module_id entry]])
                                     (let [relative_path (_.do "gsub" (list (_.string main_file)
@@ -139,11 +139,11 @@
                                                           (is _.CVar (_.manual "__FILE__")))]
                                       (_.; (_.require/1 relative_path)))))
                        (list:mix _.then (_.comment "Lux program"
-                                          (_.; (_.string ""))))
+                                                   (_.; (_.string ""))))
                        (is _.Statement)
                        _.code
                        (by utf8.binary as))]]
     (pure (|> entries
-              (list:each product.right)
+              (list:each pair.right)
               (list:composite (list [..main_file imports]))
               {.:Right}))))

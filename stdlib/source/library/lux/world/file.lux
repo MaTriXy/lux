@@ -16,7 +16,7 @@
    ["[0]" function]
    [data
     ["[0]" maybe (.use functor)]
-    ["[0]" product]
+    ["[0]" pair]
     ["[0]" binary (.only Binary)]
     ["[0]" text (.only)
      ["%" \\injection]]
@@ -112,7 +112,7 @@
         (Maybe Path)))
   (|> path
       (..un_rooted fs)
-      (maybe:each product.left)))
+      (maybe:each pair.left)))
 
 (the .public (name fs path)
   (for_any (_ !)
@@ -120,7 +120,7 @@
         Text))
   (|> path
       (..un_rooted fs)
-      (maybe:each product.right)
+      (maybe:each pair.right)
       (maybe.else path)))
 
 (the .public (future fs)
@@ -434,8 +434,8 @@
                                                                         (with_future write! (Try Stats)
                                                                           (Fs:stat [sub (..value_callback write!)]
                                                                                    node_fs)))))
-                                                    (by ! each (|>> (list.only product.right)
-                                                                    (list:each product.left))))))]
+                                                    (by ! each (|>> (list.only pair.right)
+                                                                    (list:each pair.left))))))]
 
                                            [[directory_files Stats:isFile]
                                             [sub_directories Stats:isDirectory]]))
@@ -574,8 +574,8 @@
                                                         (list:each (|>> (text path ..python_delimiter)))
                                                         (list.each' ! (function (_ sub)
                                                                         (by ! each (|>> [sub]) (<method> [sub]))))
-                                                        (by ! each (|>> (list.only product.right)
-                                                                        (list:each product.left)))))
+                                                        (by ! each (|>> (list.only pair.right)
+                                                                        (list:each pair.left)))))
                                         (by ! conjoint))))]
 
                                [[directory_files os/path:isfile]
@@ -1210,7 +1210,7 @@
               [|store| (stm.read store)]
               (pure (|> |store|
                         (..retrieve_memory_file! delimiter path)
-                        (try:each (|>> product.right
+                        (try:each (|>> pair.right
                                        (its :memory_content)
                                        binary.size)))))))
 
@@ -1220,7 +1220,7 @@
               [|store| (stm.read store)]
               (pure (|> |store|
                         (..retrieve_memory_file! delimiter path)
-                        (try:each (|>> product.right
+                        (try:each (|>> pair.right
                                        (its :memory_last_modified))))))))
 
          (the (can_execute? path)
@@ -1229,7 +1229,7 @@
               [|store| (stm.read store)]
               (pure (|> |store|
                         (..retrieve_memory_file! delimiter path)
-                        (try:each (|>> product.right
+                        (try:each (|>> pair.right
                                        (its :memory_can_execute))))))))
 
          (the (read path)
@@ -1238,7 +1238,7 @@
               [|store| (stm.read store)]
               (pure (|> |store|
                         (..retrieve_memory_file! delimiter path)
-                        (try:each (|>> product.right
+                        (try:each (|>> pair.right
                                        (its :memory_content)
                                        (composite identity)
                                        (with binary.monoid))))))))

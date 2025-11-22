@@ -7,7 +7,7 @@
     ["[0]" try (.only Try)]]
    [data
     ["[0]" maybe]
-    ["[0]" product]
+    ["[0]" pair]
     ["[0]" text (.only \n)]
     [collection
      ["[0]" list (.use monad)
@@ -91,7 +91,7 @@
                             (maybe.else "???"))
         every_known (|> lux
                         (its .:modules)
-                        (list:each product.left)
+                        (list:each pair.left)
                         ..module_listing)
         this_module (|> lux
                         (its .:modules)
@@ -170,7 +170,7 @@
       {.:Definition it}
       (if (.or exported?
                (text.= expected actual))
-          (if (default? (product.left it))
+          (if (default? (pair.left it))
               (//.failure (text "Defaults are not considered exports: "
                                 (name:as name)))
               (pure it))
@@ -190,7 +190,7 @@
      [exported? definition] (..definition name)]
     (when definition
       {.:Definition it}
-      (if (default? (product.left it))
+      (if (default? (pair.left it))
           (if exported?
               (pure it)
               (monad.let !
@@ -301,7 +301,7 @@
       (real_definition lux it)
       
       {.:Definition it}
-      (if (default? (product.left it))
+      (if (default? (pair.left it))
           {try.:Failure ..cannot_de-alias_a_default}
           {try.:Success it}))
     
@@ -329,7 +329,7 @@
                                     {.:None})
                                   
                                   {.:Definition it}
-                                  (if (default? (product.left it))
+                                  (if (default? (pair.left it))
                                       {.:None}
                                       {.:Some [name exported? it]})))
                               it))

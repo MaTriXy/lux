@@ -16,7 +16,7 @@
     ["[0]" exception]]
    [data
     ["[0]" maybe]
-    ["[0]" product]
+    ["[0]" pair]
     [text
      ["%" \\injection]]
     [collection
@@ -1027,7 +1027,7 @@
                         (let [address (is (-> Label (Try Address))
                                           (function (_ label)
                                             (|> (dictionary.value label resolver)
-                                                (monad.then try.monad (|>> product.right
+                                                (monad.then try.monad (|>> pair.right
                                                                            (try.of_maybe (exception.error ..unknown_label [label])))))))]
                           (when (monad.let [! try.monad]
                                   [@default (address default)
@@ -1064,24 +1064,24 @@
           (try|in (let [@from (its :program_counter tracker)]
                     [[pool
                       environment'
-                      (|> (list:mix (..acknowledge_label actual) tracker (list:composite (list default) (list:each product.right cases)))
+                      (|> (list:mix (..acknowledge_label actual) tracker (list:composite (list default) (list:each pair.right cases)))
                           (has :program_counter program_counter'))]
                      [(function (_ resolver)
                         (let [address (is (-> Label (Try Address))
                                           (function (_ label)
                                             (|> (dictionary.value label resolver)
-                                                (monad.then try.monad (|>> product.right
+                                                (monad.then try.monad (|>> pair.right
                                                                            (try.of_maybe (exception.error ..unknown_label [label])))))))]
                           (when (monad.let [! try.monad]
                                   [@default (address default)]
                                   (|> cases
-                                      (list.each' ! (|>> product.right address))
+                                      (list.each' ! (|>> pair.right address))
                                       (by ! each (|>> [@default]))))
                             {try.:Success [@default @cases]}
                             (<| (try|do >default (try:each ..big_jump (..jump @from @default)))
                                 (try|do >cases (|> @cases
                                                    (list.each' try.monad (|>> (..jump @from) (try:each ..big_jump)))
-                                                   (try:each (|>> (list.zipped_2 (list:each product.left cases))))))
+                                                   (try:each (|>> (list.zipped_2 (list:each pair.left cases))))))
                                 (try|in [..no_exceptions (bytecode >default >cases)]))
 
                             failure

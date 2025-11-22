@@ -16,7 +16,7 @@
     ["[0]" predicate]]
    [data
     ["[0]" maybe]
-    ["[0]" product]
+    ["[0]" pair]
     [binary (.only Binary)
      ["[0]" \\injection]]
     ["[0]" text (.only)
@@ -664,7 +664,7 @@
         
         {.:Nominal name parameters}
         (monad.let [! phase.monad]
-          [parameters (list.each' ! (|>> product.right check_parameter) parameters)]
+          [parameters (list.each' ! (|>> pair.right check_parameter) parameters)]
           (phase:pure (jvm.class parameters name)))
 
         {.:Named name anonymous}
@@ -1022,8 +1022,8 @@
                                              [candidate_parents (is (Operation (List [[Text .Type] Bit]))
                                                                     (class_candidate_parents class_loader current_name currentT to_name to_class))]
                                              (when (|> candidate_parents
-                                                       (list.only product.right)
-                                                       (list:each product.left)
+                                                       (list.only pair.right)
+                                                       (list:each pair.left)
                                                        (list.item 0))
                                                {try.:Success [next_name nextT]}
                                                (of [next_name nextT])
@@ -1283,7 +1283,7 @@
         num_owner_tvars (list.size owner_tvars)
         owner_tvarsT (|> lux_tvars
                          (list.first num_owner_tvars)
-                         (list:each product.right))
+                         (list:each pair.right))
         mapping (dictionary.of_list text.hash lux_tvars)]
     [owner_tvarsT mapping]))
 
@@ -1601,12 +1601,12 @@
     (function (_ extension_name analyse archive [class_tvars [class method] method_tvars argsTC])
       (monad.let phase.monad
         [_ (..ensure_fresh_class! class_loader class)
-         .let [argsT (list:each product.left argsTC)]
+         .let [argsT (list:each pair.left argsTC)]
          method_candidate (..method_candidate false class_loader class_tvars class method_tvars method {:Static} argsT)
          .let [method_type (its :method method_candidate)]
          _ (phase.warning ..deprecated_method [class method method_type]
                           (not (its :deprecated? method_candidate)))
-         [outputT argsA] (inference.general archive analyse method_type (view.as list.stack (list:each product.right argsTC)))
+         [outputT argsA] (inference.general archive analyse method_type (view.as list.stack (list:each pair.right argsTC)))
          outputJT (check_return outputT)
          @ analysis.provenance]
         (pure {@type.:Extension @ [.prelude (extension.synthesis extension_name)]
@@ -1623,12 +1623,12 @@
     (function (_ extension_name analyse archive [class_tvars [class method] method_tvars objectC argsTC])
       (monad.let phase.monad
         [_ (..ensure_fresh_class! class_loader class)
-         .let [argsT (list:each product.left argsTC)]
+         .let [argsT (list:each pair.left argsTC)]
          method_candidate (..method_candidate true class_loader class_tvars class method_tvars method {:Virtual} argsT)
          .let [method_type (its :method method_candidate)]
          _ (phase.warning ..deprecated_method [class method method_type]
                           (not (its :deprecated? method_candidate)))
-         [outputT allA] (inference.general archive analyse method_type (stack.partial objectC (view.as list.stack (list:each product.right argsTC))))
+         [outputT allA] (inference.general archive analyse method_type (stack.partial objectC (view.as list.stack (list:each pair.right argsTC))))
          .let [[objectA argsA] (when allA
                                  {.:Top objectA argsA}
                                  [objectA argsA]
@@ -1652,12 +1652,12 @@
     (function (_ extension_name analyse archive [class_tvars [class method] method_tvars objectC argsTC])
       (monad.let phase.monad
         [_ (..ensure_fresh_class! class_loader class)
-         .let [argsT (list:each product.left argsTC)]
+         .let [argsT (list:each pair.left argsTC)]
          method_candidate (..method_candidate false class_loader class_tvars class method_tvars method {:Special} argsT)
          .let [method_type (its :method method_candidate)]
          _ (phase.warning ..deprecated_method [class method method_type]
                           (not (its :deprecated? method_candidate)))
-         [outputT allA] (inference.general archive analyse method_type (stack.partial objectC (view.as list.stack (list:each product.right argsTC))))
+         [outputT allA] (inference.general archive analyse method_type (stack.partial objectC (view.as list.stack (list:each pair.right argsTC))))
          .let [[objectA argsA] (when allA
                                  {.:Top objectA argsA}
                                  [objectA argsA]
@@ -1681,7 +1681,7 @@
     (function (_ extension_name analyse archive [class_tvars [class_name method] method_tvars objectC argsTC])
       (monad.let phase.monad
         [_ (..ensure_fresh_class! class_loader class_name)
-         .let [argsT (list:each product.left argsTC)]
+         .let [argsT (list:each pair.left argsTC)]
          class (phase.of_try (reflection!.load class_loader class_name))
          _ (phase.assertion non_interface class_name
                             (|> class
@@ -1692,7 +1692,7 @@
          .let [method_type (its :method method_candidate)]
          _ (phase.warning ..deprecated_method [class_name method method_type]
                           (not (its :deprecated? method_candidate)))
-         [outputT allA] (inference.general archive analyse method_type (stack.partial objectC (view.as list.stack (list:each product.right argsTC))))
+         [outputT allA] (inference.general archive analyse method_type (stack.partial objectC (view.as list.stack (list:each pair.right argsTC))))
          .let [[objectA argsA] (when allA
                                  {.:Top objectA argsA}
                                  [objectA argsA]
@@ -1716,12 +1716,12 @@
     (function (_ extension_name analyse archive [class_tvars class method_tvars argsTC])
       (monad.let phase.monad
         [_ (..ensure_fresh_class! class_loader class)
-         .let [argsT (list:each product.left argsTC)]
+         .let [argsT (list:each pair.left argsTC)]
          method_candidate (..constructor_candidate class_loader class_tvars class method_tvars argsT)
          .let [method_type (its :method method_candidate)]
          _ (phase.warning ..deprecated_method [class ..constructor_method method_type]
                           (not (its :deprecated? method_candidate)))
-         [outputT argsA] (inference.general archive analyse method_type (view.as list.stack (list:each product.right argsTC)))
+         [outputT argsA] (inference.general archive analyse method_type (view.as list.stack (list:each pair.right argsTC)))
          @ analysis.provenance]
         (pure {@type.:Extension @ [.prelude (extension.synthesis extension_name)]
                                 (list:composite (list (analysis.text @ (..signature (jvm.class (list) class))))
@@ -2399,7 +2399,7 @@
   (exception.Exception [Text (List (Type Class))])
   (exception.report
    (list ["Name" (%.text name)]
-         ["Available" (exception.listing (|>> projection.read_class product.right)
+         ["Available" (exception.listing (|>> projection.read_class pair.right)
                                          supers)])))
 
 (exception.the .public (mismatched_super_parameters [name expected actual])
@@ -2567,7 +2567,7 @@
                                        (monad.let !
                                          [aliasing (super_aliasing class_loader parent_type)]
                                          (pure (|> (jvm.method [type_vars
-                                                                (list:each product.right arguments)
+                                                                (list:each pair.right arguments)
                                                                 return
                                                                 exceptions])
                                                    (alias.method aliasing)
@@ -2605,7 +2605,7 @@
 
 (the class_name
   (|>> projection.read_class
-       product.right
+       pair.right
        internal.name))
 
 (the (mock_class [name parameters] super interfaces fields methods modifier)
@@ -2741,14 +2741,14 @@
                             method.strict
                             modifier.empty))
       ..constructor_name
-      false (jvm.method [variables (list:each product.right arguments) jvm.void exceptions])
+      false (jvm.method [variables (list:each pair.right arguments) jvm.void exceptions])
       (list)
       {.:Some (all _.composite
                    (_.aload 0)
                    (|> constructor_arguments
-                       (list:each (|>> product.left ..mock_value))
+                       (list:each (|>> pair.left ..mock_value))
                        (list.complete _.monad))
-                   (|> (jvm.method [(list) (list:each product.left constructor_arguments) jvm.void (list)])
+                   (|> (jvm.method [(list) (list:each pair.left constructor_arguments) jvm.void (list)])
                        (_.invokespecial super ..constructor_name))
                    _.return
                    )})
@@ -2762,7 +2762,7 @@
                             method.strict
                             modifier.empty))
       name
-      false (jvm.method [variables (list:each product.right arguments) return exceptions])
+      false (jvm.method [variables (list:each pair.right arguments) return exceptions])
       (list)
       {.:Some (..mock_return return)})
 
@@ -2778,7 +2778,7 @@
                             method.final
                             modifier.empty))
       name
-      false (jvm.method [variables (list:each product.right arguments) return exceptions])
+      false (jvm.method [variables (list:each pair.right arguments) return exceptions])
       (list)
       {.:Some (..mock_return return)})
 
@@ -2792,7 +2792,7 @@
                             method.strict
                             modifier.empty))
       name
-      false (jvm.method [variables (list:each product.right arguments) return exceptions])
+      false (jvm.method [variables (list:each pair.right arguments) return exceptions])
       (list)
       {.:Some (..mock_return return)})
 
@@ -2802,7 +2802,7 @@
                         method.abstract
                         (..method_privacy privacy))
       name
-      false (jvm.method [variables (list:each product.right arguments) return exceptions])
+      false (jvm.method [variables (list:each pair.right arguments) return exceptions])
       (list)
       {.:None})
     ))

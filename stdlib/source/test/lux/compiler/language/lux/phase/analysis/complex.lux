@@ -9,7 +9,7 @@
     ["[0]" try (.only Try) (.use functor)]
     ["[0]" exception (.only Exception)]]
    [data
-    ["[0]" product]
+    ["[0]" pair]
     ["[0]" text]
     [collection
      ["[0]" list (.use monad monoid)]
@@ -150,7 +150,7 @@
                            (try.else [Any (' [])]))]]
     (all _.and
          (_.coverage [/.sum]
-           (let [variantT (type.variant (view.as list.stack (list:each product.left types/*,terms/*)))
+           (let [variantT (type.variant (view.as list.stack (list:each pair.left types/*,terms/*)))
                  sum? (is (-> Type Natural Bit Code Bit)
                           (function (_ type lefts right? code)
                             (|> (monad.let //phase.monad
@@ -164,8 +164,8 @@
 
                                           _
                                           false)))
-                                (//module.with 0 (product.left name))
-                                (//phase:each product.right)
+                                (//module.with 0 (pair.left name))
+                                (//phase:each pair.right)
                                 (//phase.value state)
                                 (try.else false))))]
              (and (sum? variantT lefts right? tagC)
@@ -183,8 +183,8 @@
 
                                 _
                                 false)))
-                      (//module.with 0 (product.left name))
-                      (//phase:each product.right)
+                      (//module.with 0 (pair.left name))
+                      (//phase:each pair.right)
                       (//phase.value state)
                       (try.else false))
                   (and (sum? (type (Maybe tagT)) 0 false (` []))
@@ -231,8 +231,8 @@
      tags (|> (random.lower_cased 1)
               (random.set text.hash arity)
               (by ! each set.as_list))
-     .let [module (product.left name)
-           sumT (type.variant (view.as list.stack (list:each product.left types/*,terms/*)))
+     .let [module (pair.left name)
+           sumT (type.variant (view.as list.stack (list:each pair.left types/*,terms/*)))
            variantT {.:Named name sumT}
            [tagT tagC] (|> types/*,terms/*
                            (list.item tag)
@@ -257,7 +257,7 @@
                                                        _
                                                        false)))
                                              (//module.with 0 module)
-                                             (//phase:each product.right)
+                                             (//phase:each pair.right)
                                              (//phase.value state)
                                              (try.else false))))
                  inferred_variant? (is (-> Name Bit)
@@ -276,7 +276,7 @@
                                                        _
                                                        false)))
                                              (//module.with 0 module)
-                                             (//phase:each product.right)
+                                             (//phase:each pair.right)
                                              (//phase.value state)
                                              (try.else false))))]
              (and (expected_variant? [module tag])
@@ -291,7 +291,7 @@
 (every (Triple a)
   [a a a])
 
-(the test|product
+(the test|pair
   (monad.let [! random.monad]
     [lux ..random_state
      .let [state [//extension.:bundle (//extension/analysis.bundle ..eval)
@@ -302,9 +302,9 @@
      [type/0 term/0] ..simple_parameter
      [type/1 term/1] ..simple_parameter
      [type/2 term/2] ..simple_parameter
-     .let [module (product.left name)
-           productT (type.tuple (view.as list.stack (list:each product.left types/*,terms/*)))
-           expected (list:each product.right types/*,terms/*)]]
+     .let [module (pair.left name)
+           pairT (type.tuple (view.as list.stack (list:each pair.left types/*,terms/*)))
+           expected (list:each pair.right types/*,terms/*)]]
     (all _.and
          (_.coverage [/.product]
            (let [product? (is (-> Type (List Code) Bit)
@@ -326,7 +326,7 @@
                                               _
                                               false)))
                                     (//module.with 0 module)
-                                    (//phase:each product.right)
+                                    (//phase:each pair.right)
                                     (//phase.value state)
                                     (try.else false))))]
              (and (product? productT expected)
@@ -353,7 +353,7 @@
                                 _
                                 false)))
                       (//module.with 0 module)
-                      (//phase:each product.right)
+                      (//phase:each pair.right)
                       (//phase.value state)
                       (try.else false))
                   (|> (monad.let //phase.monad
@@ -374,7 +374,7 @@
                                 _
                                 false)))
                       (//module.with 0 module)
-                      (//phase:each product.right)
+                      (//phase:each pair.right)
                       (//phase.value state)
                       (try.else false))
                   (|> (monad.let [! //phase.monad]
@@ -398,7 +398,7 @@
                                 _
                                 false)))
                       (//module.with 0 module)
-                      (//phase:each product.right)
+                      (//phase:each pair.right)
                       (//phase.value state)
                       (try.else false))
                   (|> (monad.let [! //phase.monad]
@@ -416,7 +416,7 @@
                                 _
                                 false)))
                       (//module.with 0 module)
-                      (//phase:each product.right)
+                      (//phase:each pair.right)
                       (//phase.value state)
                       (try.else false)))))
          (_.for [/.cannot_analyse_tuple]
@@ -430,7 +430,7 @@
                              (/.product ..analysis archive.empty)
                              (//type.with (|> types/*,terms/*
                                               list.head
-                                              (try:each product.left)
+                                              (try:each pair.left)
                                               (try.else .Any)))
                              (failure? /.invalid_tuple_type))
                          (|> (monad.let //phase.monad
@@ -459,9 +459,9 @@
                  (random.set text.hash arity))
      .let [slots/0 (set.as_list slots/0)
            slots/1 (set.as_list slots/1)
-           module (product.left name)
-           :record: {.:Named name (type.tuple (view.as list.stack (list:each product.left types/*,terms/*)))}
-           tuple (list:each product.right types/*,terms/*)
+           module (pair.left name)
+           :record: {.:Named name (type.tuple (view.as list.stack (list:each pair.left types/*,terms/*)))}
+           tuple (list:each pair.right types/*,terms/*)
            local_record (|> tuple
                             (list.zipped_2 (list:each (|>> [""] code.name) slots/0))
                             (list:each (function (_ [slot value])
@@ -475,7 +475,7 @@
            expected_record (list.zipped_2 (list:each (|>> [module]) slots/0)
                                           tuple)
            head_slot/0 (|> slots/0 (list.item 0) try.trusted)
-           head_term/0 (|> types/*,terms/* (list.item 0) try.trusted product.right)
+           head_term/0 (|> types/*,terms/* (list.item 0) try.trusted pair.right)
            head_slot/1 (|> slots/1 (list.item 0) try.trusted)
            slots/01 (when slots/1
                       {.:Top _ tail}
@@ -491,11 +491,11 @@
                                      [_ (//module.declare_labels true slots/0 false :record:)]
                                      (/.normal false input))
                                    (//module.with 0 module)
-                                   (//phase:each product.right)
+                                   (//phase:each pair.right)
                                    (//phase.value state)
                                    (pipe.when
                                      {try.:Success {.:Some actual}}
-                                     (let [(open "list:[0]") (list.equality (product.equality name.equality code.equality))]
+                                     (let [(open "list:[0]") (list.equality (pair.equality name.equality code.equality))]
                                        (list:= expected (list.in_reverse actual)))
                                      
                                      _
@@ -521,7 +521,7 @@
                                       (/.order pattern_matching? input))
                                     //scope.with
                                     (//module.with 0 module)
-                                    (//phase:each (|>> product.right product.right))
+                                    (//phase:each (|>> pair.right pair.right))
                                     (//phase.value state)
                                     (pipe.when
                                       {try.:Success {.:Some [actual_arity actual_tuple actual_type]}}
@@ -563,7 +563,7 @@
                                        [_ (//module.declare_labels true slots/0 false :record:)]
                                        (/.order pattern_matching? (list.repeated arity [[module head_slot/0] head_term/0])))
                                      (//module.with 0 module)
-                                     (//phase:each product.right)
+                                     (//phase:each pair.right)
                                      (//phase.value state)
                                      (..failure? /.cannot_repeat_slot))))]
              (and (repeated? false)
@@ -613,7 +613,7 @@
                                    (//type.with type)
                                    //scope.with
                                    (//module.with 0 module)
-                                   (//phase:each (|>> product.right product.right))
+                                   (//phase:each (|>> pair.right pair.right))
                                    (//phase.value state)
                                    (try:each (analysed? expected))
                                    (try.else false))))
@@ -625,7 +625,7 @@
                                         (/.record ..analysis archive.empty record)))
                                      //scope.with
                                      (//module.with 0 module)
-                                     (//phase:each (|>> product.right product.right))
+                                     (//phase:each (|>> pair.right pair.right))
                                      (//phase.value state)
                                      (try:each (function (_ [actual_type actual_term])
                                                  (and (identical? :record: actual_type)
@@ -664,7 +664,7 @@
                         (//phase.value state)
                         (..failure? /.not_a_quantified_type))
                     (|> types/*,terms/*
-                        (list:each product.right)
+                        (list:each pair.right)
                         (/.product ..analysis archive.empty)
                         (//type.with (type (type/0 type/1)))
                         (//phase.value state)

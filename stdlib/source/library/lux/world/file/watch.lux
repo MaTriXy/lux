@@ -16,7 +16,7 @@
     [predicate (.only Predicate)]]
    [data
     ["[0]" maybe]
-    ["[0]" product]
+    ["[0]" pair]
     ["[0]" text (.only)
      ["%" \\injection]]
     [collection
@@ -166,15 +166,15 @@
   (monad.let [! (try.with future.monad)]
     [current_files (..available_files fs directory)
      .let [creations (if (..creation? the_concern)
-                         (list.only (|>> product.left (dictionary.in_domain? file_tracker) not)
+                         (list.only (|>> pair.left (dictionary.in_domain? file_tracker) not)
                                     current_files)
                          (list))
            available (|> current_files
-                         (list:each product.left)
+                         (list:each pair.left)
                          (set.of_list text.hash))
            deletions (if (..deletion? the_concern)
                          (|> (dictionary.entries file_tracker)
-                             (list:each product.left)
+                             (list:each pair.left)
                              (list.only (|>> (set.member? available) not)))
                          (list))
            modifications (list.all (function (_ [path current_modification])
@@ -249,7 +249,7 @@
                         (list.each' ! (..available_directory_changes fs)))
             _ (monad.let future.monad
                 [_ (stm.commit! (stm.write (|> changes
-                                               (list:each product.left)
+                                               (list:each pair.left)
                                                (dictionary.of_list text.hash))
                                            tracker))]
                 (pure {try.:Success []}))
@@ -265,11 +265,11 @@
                                 [(list) (list) (list)]
                                 changes))]]
            (pure (.all list:composite
-                       (list:each (|>> product.left [..creation]) creations)
+                       (list:each (|>> pair.left [..creation]) creations)
                        (|> modifications
                            (list.only (function (_ [path previous_modification current_modification])
                                         (not (instant.= previous_modification current_modification))))
-                           (list:each (|>> product.left [..modification])))
+                           (list:each (|>> pair.left [..modification])))
                        (list:each (|>> [..deletion]) deletions)
                        )))))
      )))

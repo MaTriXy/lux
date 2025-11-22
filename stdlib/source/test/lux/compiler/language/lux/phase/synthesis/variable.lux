@@ -6,7 +6,7 @@
    [error
     ["[0]" try]]
    [data
-    ["[0]" product]
+    ["[0]" pair]
     [number
      ["n" natural]]
     [collection
@@ -99,8 +99,8 @@
   (Scenario Synthesis)
   (let [registers (dictionary.entries (its :necessary context))]
     (by random.monad pure
-        [(synthesis.tuple (stack:each (|>> product.left synthesis.local) registers))
-         (synthesis.tuple (stack:each (|>> product.right synthesis.local) registers))])))
+        [(synthesis.tuple (stack:each (|>> pair.left synthesis.local) registers))
+         (synthesis.tuple (stack:each (|>> pair.right synthesis.local) registers))])))
 
 (the (structure_scenario context)
   (Scenario Synthesis)
@@ -252,16 +252,16 @@
                                                                            necessary
                                                                            (stack.enumeration inits)))
                                                               context))]
-    (pure [(synthesis.scope [real_start (stack:each product.left inits) expected_iteration])
-           (synthesis.scope [fake_start (stack:each product.right inits) actual_iteration])])))
+    (pure [(synthesis.scope [real_start (stack:each pair.left inits) expected_iteration])
+           (synthesis.scope [fake_start (stack:each pair.right inits) actual_iteration])])))
 
 (the (again_scenario scenario context)
   (-> (Scenario Synthesis) (Scenario Synthesis))
   (monad.let [! random.monad]
     [_ (pure [])
      resets (random.stack ..scope_arity (scenario context))]
-    (pure [(synthesis.again (stack:each product.left resets))
-           (synthesis.again (stack:each product.right resets))])))
+    (pure [(synthesis.again (stack:each pair.left resets))
+           (synthesis.again (stack:each pair.right resets))])))
 
 (the (loop_scenario scenario context)
   (-> (Scenario Synthesis) (Scenario Synthesis))
@@ -275,8 +275,8 @@
   (monad.let [! random.monad]
     [_ (pure [])
      .let [registers (dictionary.entries (its :necessary context))
-           expected_environment (stack:each (|>> product.left {variable.:Local}) registers)
-           actual_environment (stack:each (|>> product.right {variable.:Local}) registers)]
+           expected_environment (stack:each (|>> pair.left {variable.:Local}) registers)
+           actual_environment (stack:each (|>> pair.right {variable.:Local}) registers)]
      [expected_body actual_body] (..primitive_scenario context)]
     (pure [(synthesis.abstraction [expected_environment 1 expected_body])
            (synthesis.abstraction [actual_environment 1 actual_body])])))
@@ -288,8 +288,8 @@
                      (random.and (random.unicode 1)
                                  (random.unicode 1)))
      inputs (random.stack ..scope_arity (scenario context))]
-    (pure [(synthesis.reification [abstraction (stack:each product.left inputs)])
-           (synthesis.reification [abstraction (stack:each product.right inputs)])])))
+    (pure [(synthesis.reification [abstraction (stack:each pair.left inputs)])
+           (synthesis.reification [abstraction (stack:each pair.right inputs)])])))
 
 (the (function_scenario scenario context)
   (-> (Scenario Synthesis) (Scenario Synthesis))

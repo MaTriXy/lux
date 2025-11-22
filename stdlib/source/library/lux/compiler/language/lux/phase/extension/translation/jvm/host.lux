@@ -10,7 +10,7 @@
     ["[0]" exception (.only Exception)]]
    [data
     ["[0]" maybe (.use functor)]
-    ["[0]" product]
+    ["[0]" pair]
     [binary
      ["[0]" \\injection]]
     ["[0]" text (.only)
@@ -713,8 +713,8 @@
       (monad.let [! phase.monad]
         [inputsTG (list.each' ! (translate_input translate archive) inputsTS)]
         (pure (all _.composite
-                   (list.each' _.monad product.right inputsTG)
-                   (_.invokestatic class method (type.method [(list) (list:each product.left inputsTG) outputT (list)]))
+                   (list.each' _.monad pair.right inputsTG)
+                   (_.invokestatic class method (type.method [(list) (list:each pair.left inputsTG) outputT (list)]))
                    (prepare_output outputT)))))]))
 
 (template.with [<check_cast?> <name> <invoke>]
@@ -731,8 +731,8 @@
                       (if <check_cast?>
                           (_.checkcast class)
                           (_:pure []))
-                      (list.each' _.monad product.right inputsTG)
-                      (<invoke> class method (type.method [(list) (list:each product.left inputsTG) outputT (list)]))
+                      (list.each' _.monad pair.right inputsTG)
+                      (<invoke> class method (type.method [(list) (list:each pair.left inputsTG) outputT (list)]))
                       (prepare_output outputT)))))]))]
 
   [[1b invoke:virtual _.invokevirtual]
@@ -749,8 +749,8 @@
         (pure (all _.composite
                    (_.new class)
                    _.dup
-                   (list.each' _.monad product.right inputsTG)
-                   (_.invokespecial class "<init>" (type.method [(list) (list:each product.left inputsTG) type.void (list)]))))))]))
+                   (list.each' _.monad pair.right inputsTG)
+                   (_.invokespecial class "<init>" (type.method [(list) (list:each pair.left inputsTG) type.void (list)]))))))]))
 
 (the with_member
   (Change Bundle)
@@ -1028,7 +1028,7 @@
   (-> (Environment Term) (List (Typed (Bytecode Any)))
       (Type category.Method))
   (type.method [(list)
-                (list:composite (list:each product.left inputsTI)
+                (list:composite (list:each pair.left inputsTI)
                                 (list.repeated (list.size env) ..$Object))
                 type.void
                 (list)]))
@@ -1075,7 +1075,7 @@
       {.:Some (all _.composite
                    (_.aload 0)
                    inputs!
-                   (_.invokespecial super_class "<init>" (type.method [(list) (list:each product.left inputsTG) type.void (list)]))
+                   (_.invokespecial super_class "<init>" (type.method [(list) (list:each pair.left inputsTG) type.void (list)]))
                    store_captured!
                    _.return)})))
 
@@ -1088,7 +1088,7 @@
                (_.new class)
                _.dup
                (|> inputsTI
-                   (list:each product.right)
+                   (list:each pair.right)
                    list.in_reverse
                    (list:mix _.composite (_:pure [])))
                (list.complete _.monad captureG+)
@@ -1144,12 +1144,12 @@
   (-> Archive (List Input) (List [(Environment Term) (/.Overriden_Method Term)])
       (Operation (Set unit.ID)))
   (monad.let [! phase.monad]
-    [all_input_dependencies (list.each' ! (|>> product.right (cache/artifact.dependencies archive)) inputsTS)
+    [all_input_dependencies (list.each' ! (|>> pair.right (cache/artifact.dependencies archive)) inputsTS)
      all_closure_dependencies (|> overriden_methods
-                                  (list:each product.left)
+                                  (list:each pair.left)
                                   list:conjoint
                                   (list.each' ! (cache/artifact.dependencies archive)))
-     all_method_dependencies (list.each' ! (|>> product.right (method_dependencies archive)) overriden_methods)]
+     all_method_dependencies (list.each' ! (|>> pair.right (method_dependencies archive)) overriden_methods)]
     (pure (<| cache/artifact.all
               (all list:composite
                    all_input_dependencies
@@ -1203,7 +1203,7 @@
                 (is [Register (Bytecode Any)]
                     [offset
                      (_:pure [])]))
-      product.right))
+      pair.right))
 
 (the (normalized_method global_mapping [environment method])
   (-> Mapping [(Environment Term) (/.Overriden_Method Term)]
@@ -1227,7 +1227,7 @@
       (List Term))
   (|> overriden_methods
       (comment "Get all the environments.")
-      (list:each product.left)
+      (list:each pair.left)
       (comment "Combine them.")
       list:conjoint
       (comment "Remove duplicates.")
@@ -1251,7 +1251,7 @@
     (monad.let phase.monad
       [bodyG (//////translation.with_context artifact_id
                (phase archive bodyS))
-       .let [argumentsT (list:each product.right arguments)
+       .let [argumentsT (list:each pair.right arguments)
              methodT (type.method [vars argumentsT returnT exceptionsT])]]
       (pure (method.method (all modifier:composite
                                 method.public

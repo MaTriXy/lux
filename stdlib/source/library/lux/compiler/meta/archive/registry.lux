@@ -10,7 +10,7 @@
     ["[0]" exception (.only Exception)]]
    [data
     ["[0]" maybe (.use functor)]
-    ["[0]" product]
+    ["[0]" pair]
     ["[0]" binary
      ["[1]" \\injection (.only Injection)]
      ["<[1]>" \\projection (.only Projection)]]
@@ -84,14 +84,14 @@
            nominal.as
            (its :artifacts)
            sequence.as_list
-           (list.all (|>> product.left
+           (list.all (|>> pair.left
                           (its //.:category)
                           (pipe.when
                             {<tag> it} {.:Some it}
                             _ {.:None})))))]
 
     [[//category.:Definition definition definitions //definition.Definition
-      product.left {.:Some it}]
+      pair.left {.:Some it}]
      [//category.:Custom custom customs Text |> {.:None}]]
     )
 
@@ -103,7 +103,7 @@
 
   (the .public (id name registry)
     (-> Text Registry (Maybe ID))
-    (maybe:each product.left (find_definition name registry)))
+    (maybe:each pair.left (find_definition name registry)))
 
   (the .public as_binary
     (Injection Registry)
@@ -180,17 +180,16 @@
                            (<binary>.set unit.hash dependency))]
       (|> (<binary>.sequence_64 (all <>.and category mandatory? dependencies))
           (by <>.monad each (sequence:mix (function (_ [category mandatory? dependencies] registry)
-                                            (product.right
-                                             (`` (when category
-                                                   {//category.:Anonymous}
-                                                   (..resource mandatory? dependencies registry)
+                                            (pair.right (`` (when category
+                                                              {//category.:Anonymous}
+                                                              (..resource mandatory? dependencies registry)
 
-                                                   (,, (template.with [<tag> <create>]
-                                                         [{<tag> name}
-                                                          (<create> name mandatory? dependencies registry)]
+                                                              (,, (template.with [<tag> <create>]
+                                                                    [{<tag> name}
+                                                                     (<create> name mandatory? dependencies registry)]
 
-                                                         [[//category.:Definition ..definition]
-                                                          [//category.:Custom ..custom]]))
-                                                   ))))
+                                                                    [[//category.:Definition ..definition]
+                                                                     [//category.:Custom ..custom]]))
+                                                              ))))
                                           ..empty)))))
   )

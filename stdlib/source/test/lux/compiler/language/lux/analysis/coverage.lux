@@ -13,7 +13,7 @@
    [function
     ["[0]" predicate]]
    [data
-    ["[0]" product]
+    ["[0]" pair]
     ["[0]" text (.only)
      ["%" \\injection]]
     [collection
@@ -119,7 +119,7 @@
                  [arity (..ranged 2 (n.- 2 ..spread))
                   it (random.list arity again)]
                  (pure [(when (|> it
-                                  (list:each product.left)
+                                  (list:each pair.left)
                                   list.in_reverse
                                   (list.until (|>> /.exhaustive? not)))
                           {.:Empty}
@@ -130,7 +130,7 @@
                                       {/.:And left right})
                                     last
                                     prevs))
-                        {//pattern.:Complex {//complex.:Tuple (list:each product.right it)}}]))
+                        {//pattern.:Complex {//complex.:Tuple (list:each pair.right it)}}]))
                
                (monad.let random.monad
                  [register random.natural]
@@ -200,7 +200,7 @@
 
 (the random_partial_pattern
   (Random [/.Coverage Pattern])
-  (random.only (|>> product.left /.exhaustive? not)
+  (random.only (|>> pair.left /.exhaustive? not)
                ..random_pattern))
 
 (the test|variant
@@ -208,7 +208,7 @@
   (<| (let [(open "/:[0]") /.equality])
       (monad.let [! random.monad]
         [[expected/0 pattern/0] ..random_partial_pattern
-         [expected/1 pattern/1] (random.only (|>> product.left (/:= expected/0) not)
+         [expected/1 pattern/1] (random.only (|>> pair.left (/:= expected/0) not)
                                              ..random_partial_pattern)
          expected_maximum (by ! each (n.+ 2) ..random_tag)
          .let [random_tag (random:each (n.% expected_maximum) random.natural)]
@@ -242,12 +242,12 @@
   (<| (let [(open "/:[0]") /.equality])
       (monad.let [! random.monad]
         [[expected/0 pattern/0] ..random_value_pattern
-         [expected/1 pattern/1] (random.only (|>> product.left (/:= expected/0) not)
+         [expected/1 pattern/1] (random.only (|>> pair.left (/:= expected/0) not)
                                              ..random_value_pattern)
          [expected/2 pattern/2] (random.only (all predicate.and
-                                                  (|>> product.left (/:= expected/0) not)
-                                                  (|>> product.left (/:= expected/1) not)
-                                                  (|>> product.left (pipe.when {/.:Variant _} false _ true)))
+                                                  (|>> pair.left (/:= expected/0) not)
+                                                  (|>> pair.left (/:= expected/1) not)
+                                                  (|>> pair.left (pipe.when {/.:Variant _} false _ true)))
                                              ..random_value_pattern)
 
          bit random.bit

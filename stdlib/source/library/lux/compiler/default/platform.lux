@@ -12,8 +12,8 @@
     ["[0]" exception (.only Exception)]]
    ["[0]" function]
    [data
-    ["[0]" sum]
-    ["[0]" product]
+    ["[0]" case]
+    ["[0]" pair]
     ["[0]" binary (.only Binary)
      ["_" \\injection (.only Injection)]]
     ["[0]" text (.only)
@@ -250,7 +250,7 @@
                                  (function (_ all_extensions state)
                                    (|> (initialize_state analysis_state all_extensions)
                                        (phase.value' state)
-                                       (try:each product.left)
+                                       (try:each pair.left)
                                        future:pure)))]]
                       (if (archive.archived? archive descriptor.runtime)
                           (monad.let !
@@ -496,14 +496,14 @@
                                                                        (pure [module it])))
                                                                  (archive.archived archive)))
                                          .let [additions (|> modules
-                                                             (list:each product.left)
+                                                             (list:each pair.left)
                                                              (set.of_list text.hash))
                                                with_modules (is (for_any (_ <type_vars>)
                                                                   (Change <State>))
                                                                 (revised [///declaration.:analysis
                                                                           ///declaration.:state
                                                                           @type.:modules]
-                                                                         (|>> (list.only (|>> product.left
+                                                                         (|>> (list.only (|>> pair.left
                                                                                               (set.member? additions)
                                                                                               not))
                                                                               (list:composite modules))))]]
@@ -516,7 +516,7 @@
                              (|> (///declaration.set_current_module module)
                                  (phase.value' state)
                                  try.trusted
-                                 product.left))
+                                 pair.left))
 
                            (comment "TODO: Come up with a less hacky way to prevent duplicate imports."
                                     "This currently assumes that all imports will be specified once in a single .using form."
@@ -553,11 +553,11 @@
                                      [attempts (|> new_dependencies
                                                    (list:each (import! customs module))
                                                    (list.complete !))
-                                      .let [[failures successes] (sum.partition attempts)]]
+                                      .let [[failures successes] (case.partition attempts)]]
                                      (pure {try.:Success [(|> successes
-                                                              (list:each product.left)
+                                                              (list:each pair.left)
                                                               (list:mix archive.composite archive))
-                                                          (list:each product.right successes)
+                                                          (list:each pair.right successes)
                                                           failures]})))
                                  (future:pure (exception.except ..cannot_import_twice [module duplicates]))))
 
@@ -592,7 +592,7 @@
                                        (|> (///declaration.set_current_module module)
                                            (phase.value' state)
                                            try.trusted
-                                           product.left))
+                                           pair.left))
                               archive))
 
                            (the (compiler program global phase_wrapper extender expander platform program_module program_definition

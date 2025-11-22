@@ -8,7 +8,7 @@
     ["[0]" exception (.only Exception)]]
    [data
     ["[0]" maybe (.use functor)]
-    ["[0]" product]
+    ["[0]" pair]
     ["[0]" text]
     [collection
      ["[0]" stack (.use functor)]]]
@@ -113,17 +113,17 @@
          (_.coverage [/.general]
            (and (|> (/.general archive.empty ..analysis expected (stack))
                     (//type.with expected)
-                    (//module.with 0 (product.left name))
-                    (phase:each product.right)
+                    (//module.with 0 (pair.left name))
+                    (phase:each pair.right)
                     (phase.value state)
-                    (try:each (|>> product.left (type.= expected)))
+                    (try:each (|>> pair.left (type.= expected)))
                     (try.else false))
                 (|> (/.general archive.empty ..analysis
                                (type.function (stack.repeated arity .Natural) expected)
                                (stack:each code.natural naturals))
                     (//type.with expected)
-                    (//module.with 0 (product.left name))
-                    (phase:each product.right)
+                    (//module.with 0 (pair.left name))
+                    (phase:each pair.right)
                     (phase.value state)
                     (try:each (function (_ [actual analysis/*])
                                 (and (type.= expected actual)
@@ -135,27 +135,27 @@
                                (type (-> type/0 expected))
                                (stack term/0))
                     (//type.with expected)
-                    (//module.with 0 (product.left name))
-                    (phase:each product.right)
+                    (//module.with 0 (pair.left name))
+                    (phase:each pair.right)
                     (phase.value state)
-                    (try:each (|>> product.left (type.= expected)))
+                    (try:each (|>> pair.left (type.= expected)))
                     (try.else false))
                 (|> (/.general archive.empty ..analysis
                                (type {.:Named name (-> type/0 expected)})
                                (stack term/0))
                     (//type.with expected)
-                    (//module.with 0 (product.left name))
-                    (phase:each product.right)
+                    (//module.with 0 (pair.left name))
+                    (phase:each pair.right)
                     (phase.value state)
-                    (try:each (|>> product.left (type.= expected)))
+                    (try:each (|>> pair.left (type.= expected)))
                     (try.else false))
                 (|> (/.general archive.empty ..analysis
                                (type (for_any (_ a) (-> a a)))
                                (stack term/0))
                     (//type.with type/0)
-                    (//module.with 0 (product.left name))
-                    (phase:each product.right)
-                    (phase:each (|>> product.left (check.clean (stack)) //type.check))
+                    (//module.with 0 (pair.left name))
+                    (phase:each pair.right)
+                    (phase:each (|>> pair.left (check.clean (stack)) //type.check))
                     phase:conjoint
                     (phase.value state)
                     (try:each (type.= type/0))
@@ -164,19 +164,19 @@
                                (type ((for_any (_ a) (-> a a)) type/0))
                                (stack term/0))
                     (//type.with type/0)
-                    (//module.with 0 (product.left name))
-                    (phase:each product.right)
+                    (//module.with 0 (pair.left name))
+                    (phase:each pair.right)
                     (phase.value state)
-                    (try:each (|>> product.left (type.= type/0)))
+                    (try:each (|>> pair.left (type.= type/0)))
                     (try.else false))
                 (|> (monad.let phase.monad
                       [[@var varT] (//type.check check.var)
                        _ (//type.check (check.check varT (type (-> type/0 expected))))]
                       (/.general archive.empty ..analysis varT (stack term/0)))
                     (//type.with expected)
-                    (//module.with 0 (product.left name))
-                    (phase:each product.right)
-                    (phase:each (|>> product.left (check.clean (stack)) //type.check))
+                    (//module.with 0 (pair.left name))
+                    (phase:each pair.right)
+                    (phase:each (|>> pair.left (check.clean (stack)) //type.check))
                     phase:conjoint
                     (phase.value state)
                     (try:each (type.= expected))
@@ -185,8 +185,8 @@
                                (type (for_some (_ a) (-> a a)))
                                (stack (` (.error# ""))))
                     //type.inferring
-                    (//module.with 0 (product.left name))
-                    (phase:each (|>> product.right product.left (check.clean (stack)) //type.check))
+                    (//module.with 0 (pair.left name))
+                    (phase:each (|>> pair.right pair.left (check.clean (stack)) //type.check))
                     phase:conjoint
                     (phase.value state)
                     (try:each //type.existential?)
@@ -208,7 +208,7 @@
                           (type (-> expected expected))
                           (stack term/0))
                (//type.with expected)
-               (//module.with 0 (product.left name))
+               (//module.with 0 (pair.left name))
                (phase.value state)
                (..fails? /.cannot_infer_argument)))
          )))
@@ -222,7 +222,7 @@
      name ($name.random 1 1)
      arity (by ! each (|>> (n.% 5) (n.+ 2)) random.natural)
      [type/0 term/0] ..simple_parameter
-     [type/1 term/1] (random.only (|>> product.left (identical? type/0) not)
+     [type/1 term/1] (random.only (|>> pair.left (identical? type/0) not)
                                   ..simple_parameter)
      types/*,terms/* (random.stack arity ..simple_parameter)
      tag (by ! each (n.% arity) random.natural)
@@ -230,7 +230,7 @@
      arbitrary_right? random.bit]
     (all _.and
          (_.coverage [/.variant]
-           (let [variantT (type.variant (stack:each product.left types/*,terms/*))
+           (let [variantT (type.variant (stack:each pair.left types/*,terms/*))
                  [tagT tagC] (|> types/*,terms/*
                                  (stack.item tag)
                                  (maybe.else [Any (' [])]))
@@ -250,8 +250,8 @@
                                          
                                          {.:None}
                                          (pure true)))
-                                     (//module.with 0 (product.left name))
-                                     (phase:each product.right)
+                                     (//module.with 0 (pair.left name))
+                                     (phase:each pair.right)
                                      (phase.value state)
                                      (try.else false))))
                  variant? (is (-> Type Natural Bit Code Bit)
@@ -331,7 +331,7 @@
      name ($name.random 1 1)
      arity (by ! each (|>> (n.% 5) (n.+ 2)) random.natural)
      [type/0 term/0] ..simple_parameter
-     [type/1 term/1] (random.only (|>> product.left (identical? type/0) not)
+     [type/1 term/1] (random.only (|>> pair.left (identical? type/0) not)
                                   ..simple_parameter)
      types/*,terms/* (random.stack arity ..simple_parameter)
      .let [record? (is (-> Type (Maybe Type) Natural (Stack Code) Bit)
@@ -350,12 +350,12 @@
                                  
                                  {.:None}
                                  (pure true)))
-                             (//module.with 0 (product.left name))
-                             (phase:each product.right)
+                             (//module.with 0 (pair.left name))
+                             (phase:each pair.right)
                              (phase.value state)
                              (try.else false))))
-           record (type.tuple (stack:each product.left types/*,terms/*))
-           terms (stack:each product.right types/*,terms/*)]]
+           record (type.tuple (stack:each pair.left types/*,terms/*))
+           terms (stack:each pair.right types/*,terms/*)]]
     (all _.and
          (_.coverage [/.record]
            (let [can_infer_record!
@@ -404,7 +404,7 @@
          .let [state [extension.:bundle (extension/analysis.bundle ..eval)
                       extension.:state lux]]
          [type/0 term/0] ..simple_parameter
-         [type/1 term/1] (random.only (|>> product.left (identical? type/0) not)
+         [type/1 term/1] (random.only (|>> pair.left (identical? type/0) not)
                                       ..simple_parameter)
          lefts (by ! each (n.% 10) random.natural)
          right? random.bit]

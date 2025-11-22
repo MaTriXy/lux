@@ -12,7 +12,7 @@
     ["[0]" try (.only Try) (.use functor)]
     ["[0]" exception]]
    [data
-    ["[0]" product]
+    ["[0]" pair]
     [binary (.only Binary)
      ["[0]" \\injection]]
     ["[0]" text
@@ -356,7 +356,7 @@
                   (pure args)
                   ..return_type_synthesis
                   (<synthesis>.tuple (<>.some ..class_type_synthesis))
-                  (by ! each product.right
+                  (by ! each pair.right
                       (..method_body (list.size args)
                                      (pure [])))))
            )))
@@ -379,7 +379,7 @@
                   (pure args)
                   ..return_type_synthesis
                   (<synthesis>.tuple (<>.some ..class_type_synthesis))
-                  (by ! each product.right
+                  (by ! each pair.right
                       (..method_body (list.size args)
                                      (pure [])))))
            )))
@@ -400,7 +400,7 @@
                   (pure args)
                   ..return_type_synthesis
                   (<synthesis>.tuple (<>.some ..class_type_synthesis))
-                  (by ! each product.right
+                  (by ! each pair.right
                       (..method_body (list.size args)
                                      (pure [])))))
            )))
@@ -481,7 +481,7 @@
                   (let [[jvm_register' after] (method_argument (n.+ offset lux_register) type jvm_register)]
                     [jvm_register' (all _.composite before after)]))
                 (is [Register (Bytecode Any)] [offset (_:pure [])]))
-      product.right))
+      pair.right))
 
 (the (constructor_method_translation translation archive super_class method)
   (-> (translation.Phase Anchor (Bytecode Any) Definition) Archive (Type Class) (jvm.Constructor synthesis.Term)
@@ -494,16 +494,16 @@
                      _ bodyS)])
       declaration.of_translation
       (monad.let [! phase.monad]
-        [constructor_argumentsG (list.each' ! (|>> product.right (translation archive))
+        [constructor_argumentsG (list.each' ! (|>> pair.right (translation archive))
                                             constructor_argumentsS)
          [interim_artifacts bodyG] (translation.with_interim_artifacts archive
                                      (translation archive bodyS))
          .let [[super_vars super_name] (projection.read_class super_class)
                super_constructorT (type.method [(list)
-                                                (list:each product.left constructor_argumentsS)
+                                                (list:each pair.left constructor_argumentsS)
                                                 type.void
                                                 (list)])
-               argumentsT (list:each product.right arguments)]]
+               argumentsT (list:each pair.right arguments)]]
         (pure [interim_artifacts (method.method (all modifier:composite
                                                      (..method_privacy privacy)
                                                      (if strict_floating_point?
@@ -573,7 +573,7 @@
       (monad.let [! phase.monad]
         [[interim_artifacts bodyG] (translation.with_interim_artifacts archive
                                      (translation archive bodyS))
-         .let [argumentsT (list:each product.right arguments)]]
+         .let [argumentsT (list:each pair.right arguments)]]
         (pure [interim_artifacts (method.method (all modifier:composite
                                                      method.public
                                                      (if strict_floating_point?
@@ -600,7 +600,7 @@
       (monad.let [! phase.monad]
         [[interim_artifacts bodyG] (translation.with_interim_artifacts archive
                                      (translation archive bodyS))
-         .let [argumentsT (list:each product.right arguments)]]
+         .let [argumentsT (list:each pair.right arguments)]]
         (pure [interim_artifacts (method.method (all modifier:composite
                                                      (..method_privacy privacy)
                                                      (if strict_floating_point?
@@ -627,7 +627,7 @@
       (monad.let [! phase.monad]
         [[interim_artifacts bodyG] (translation.with_interim_artifacts archive
                                      (translation archive bodyS))
-         .let [argumentsT (list:each product.right arguments)]]
+         .let [argumentsT (list:each pair.right arguments)]]
         (pure [interim_artifacts (method.method (all modifier:composite
                                                      (..method_privacy privacy)
                                                      method.static
@@ -651,7 +651,7 @@
                                         (..method_privacy privacy)
                                         method.abstract)
                       name
-                      true (type.method [variables (list:each product.right arguments) return exceptions])
+                      true (type.method [variables (list:each pair.right arguments) return exceptions])
                       (list)
                       {.:None})]))
 
@@ -715,7 +715,7 @@
              methodG]))))
 
 (the class_name
-  (|>> projection.read_class product.right internal.name))
+  (|>> projection.read_class pair.right internal.name))
 
 (the (mock_class [parameters name] super interfaces fields methods modifier)
   (-> Declaration (Type Class) (List (Type Class))
@@ -797,14 +797,14 @@
                             method.strict
                             modifier.empty))
       ..constructor_name
-      true (type.method [variables (list:each product.right arguments) type.void exceptions])
+      true (type.method [variables (list:each pair.right arguments) type.void exceptions])
       (list)
       {.:Some (all _.composite
                    (_.aload 0)
                    (|> constructor_arguments
-                       (list:each (|>> product.left ..mock_value))
+                       (list:each (|>> pair.left ..mock_value))
                        (list.complete _.monad))
-                   (|> (type.method [(list) (list:each product.left constructor_arguments) type.void (list)])
+                   (|> (type.method [(list) (list:each pair.left constructor_arguments) type.void (list)])
                        (_.invokespecial super ..constructor_name))
                    _.return
                    )})
@@ -818,7 +818,7 @@
                             method.strict
                             modifier.empty))
       name
-      true (type.method [variables (list:each product.right arguments) return exceptions])
+      true (type.method [variables (list:each pair.right arguments) return exceptions])
       (list)
       {.:Some (..mock_return return)})
 
@@ -834,7 +834,7 @@
                             method.final
                             modifier.empty))
       name
-      true (type.method [variables (list:each product.right arguments) return exceptions])
+      true (type.method [variables (list:each pair.right arguments) return exceptions])
       (list)
       {.:Some (..mock_return return)})
 
@@ -848,7 +848,7 @@
                             method.strict
                             modifier.empty))
       name
-      true (type.method [variables (list:each product.right arguments) return exceptions])
+      true (type.method [variables (list:each pair.right arguments) return exceptions])
       (list)
       {.:Some (..mock_return return)})
 
@@ -858,7 +858,7 @@
                         method.abstract
                         (..method_privacy privacy))
       name
-      true (type.method [variables (list:each product.right arguments) return exceptions])
+      true (type.method [variables (list:each pair.right arguments) return exceptions])
       (list)
       {.:None})))
 
@@ -933,7 +933,7 @@
                                             (dictionary.has (projection.name parameterJ) parameterT mapping))
                                           luxT.fresh
                                           parameters)
-                        selfT {.:Nominal name (list:each (|>> product.right
+                        selfT {.:Nominal name (list:each (|>> pair.right
                                                               [.co_variant])
                                                          parameters)}]
                   state phase.state
@@ -943,7 +943,7 @@
                                                                 ((its [declaration.:synthesis declaration.:phase] state) analysis_state)
                                                                 ((its [declaration.:translation declaration.:phase] state) analysis_state)]))
                                       methods)
-                  .let [all_dependencies (cache.all (list:each product.left methods))]
+                  .let [all_dependencies (cache.all (list:each pair.left methods))]
                   bytecode (<| (by ! each (\\injection.value class.as_binary))
                                phase.of_try
                                (class.class version.v6_0
@@ -955,7 +955,7 @@
                                             (..class_name super)
                                             (list:each ..class_name interfaces)
                                             (list:each ..field_definition fields)
-                                            (list:each product.right methods)
+                                            (list:each pair.right methods)
                                             (list)))
                   _ (..save_class! name bytecode all_dependencies)]
                  (pure declaration.no_requirements))))]))

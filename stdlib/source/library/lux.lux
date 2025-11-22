@@ -1,30 +1,20 @@
-(.def# prelude
+(.the# 1b prelude
        (.is# (.type# "name_of_module")
-             "library/lux")
-       1b)
+             "library/lux"))
 
-(.def# Type
+(.the# 1b Type
        (.is# (.type# "type")
              {4 1b
                 [..prelude "Type"]
-                (.type# "type")})
-       1b)
+                (.type# "type")}))
 
-(.def# Name
-       (.is# Type
-             {4 1b
-                [..prelude "Name"]
-                (.type# "name")})
-       1b)
-
-(.def# Bit
+(.the# 1b Bit
        (.is# Type
              {4 1b
                 [..prelude "Bit"]
-                {0 0b (.type_name# "bit") (.list#)}})
-       1b)
+                {0 0b (.type_name# "bit") (.list#)}}))
 
-(.def# not
+(.the# 1b not
        (.is# {0 0b
                 (.type_name# "function")
                 (.list# [0b ..Bit]
@@ -32,124 +22,109 @@
              (.function# _ it
                          (.if# it
                                0b
-                               1b)))
-       1b)
+                               1b))))
 
-(.def# false
+(.the# 1b false
        (.is# Bit
-             0b)
-       1b)
+             0b))
 
-(.def# true
+(.the# 1b true
        (.is# Bit
-             (..not ..false))
-       1b)
+             (..not ..false)))
 
-(.def# public
-       ..true
-       1b)
+(.the# 1b public
+       ..true)
 
-(.def# private
-       (..not ..public)
-       ..public)
+(.the# .public private
+       (..not ..public))
 
-(.def# local
-       ..private
-       ..public)
-
-(.def# global
-       (not ..local)
-       ..public)
-
-(.def# Polarity
+(.the# .public Name
        (.is# Type
-             ..Bit)
-       ..public)
+             {4 1b
+                [..prelude "Name"]
+                (.type# "name")}))
 
-(.def# contra_variant
-       (.is# Polarity
-             ..false)
-       ..public)
+(.the# .public local
+       ..private)
 
-(.def# co_variant
+(.the# .public global
+       (not ..local))
+
+(.the# .public Polarity
+       (.is# Type
+             ..Bit))
+
+(.the# .public contra_variant
        (.is# Polarity
-             (..not ..contra_variant))
-       ..public)
+             ..false))
+
+(.the# .public co_variant
+       (.is# Polarity
+             (..not ..contra_variant)))
 
 ... https://en.wikipedia.org/wiki/Quantifier_(logic)
-(.def# Quantification
+(.the# .public Quantification
        (.is# Type
-             ..Bit)
-       ..public)
+             ..Bit))
 
 ... https://en.wikipedia.org/wiki/Universal_quantification
-(.def# universal
+(.the# .public universal
        (.is# Quantification
-             ..false)
-       ..public)
+             ..false))
 
 ... https://en.wikipedia.org/wiki/Existential_quantification
-(.def# existential
+(.the# .public existential
        (.is# Quantification
-             (..not ..universal))
-       ..public)
+             (..not ..universal)))
 
-(.def# Parameter
+(.the# .public Parameter
        (.is# Type
-             ..Bit)
-       ..public)
+             ..Bit))
 
-(.def# abstraction
+(.the# .public abstraction
        (.is# Parameter
-             0b)
-       ..public)
+             0b))
 
-(.def# argument
+(.the# .public argument
        (.is# Parameter
-             (..not ..abstraction))
-       ..public)
+             (..not ..abstraction)))
 
 ... https://en.wikipedia.org/wiki/Quality_(philosophy)
-(.def# Quality
+(.the# .public Quality
        (.is# Type
-             ..Bit)
-       ..public)
+             ..Bit))
 
-(.def# general
+(.the# .public general
        (.is# Quality
-             ..universal)
-       ..public)
+             ..universal))
 
-(.def# special
+(.the# .public special
        (.is# Quality
-             ..existential)
-       ..public)
+             ..existential))
 
-(.def# Natural
+(.the# .public Natural
        (.is# Type
              {4 1b
                 [..prelude "Natural"]
                 {0 0b (.type_name# "i64")
-                   (.list# [..co_variant {0b (.type_name# "natural") (.list#)}])}})
-       ..public)
+                   (.list# [..co_variant {0b (.type_name# "natural") (.list#)}])}}))
 
 ... (every .public Any
 ...   (for_some (_ it) it))
-(.def# Any
+(.the# .public Any
        (.is# Type
              {4 1b
                 [..prelude "Any"]
                 {3 0b
                    .existential
                    {0b}
-                   {1 0b ..argument 0}}})
-       ..public)
+                   {1 0b ..argument 0}}}))
 
 ... (every .public (Stack it)
 ...   (Variant
 ...    {:Empty}
 ...    {:Top it (Stack it)}))
-(.def# Stack
+(.the# .public Stack
        (.is# Type
              {4 1b
                 [..prelude "Stack"]
@@ -164,14 +139,13 @@
                                                (.list# [..co_variant {1 0b ..argument 0}]
                                                        [..co_variant {4 0b
                                                                         {1 0b ..argument 0}
-                                                                        {1 0b ..abstraction 0}}])}])}}})
-       ..public)
+                                                                        {1 0b ..abstraction 0}}])}])}}}))
 
 ... (every .public (Maybe it)
 ...   (Variant
 ...    {:None}
 ...    {:Some it}))
-(.def# Maybe
+(.the# .public Maybe
        (.is# Type
              {4 1b
                 [..prelude "Maybe"]
@@ -181,28 +155,24 @@
                    {0 0b
                       (.type_name# "sum")
                       (.list# [..co_variant Any]
-                              [..co_variant {1 0b ..argument 0}])}}})
-       ..public)
+                              [..co_variant {1 0b ..argument 0}])}}}))
 
-(.def# Label
+(.the# .public Label
        (.is# Type
              {4 1b [..prelude "Label"]
-                (.type# "label")})
-       ..public)
+                (.type# "label")}))
 
-(.def# Tag
+(.the# .public Tag
        (.is# Type
              {4 1b [..prelude "Tag"]
-                {0b (.type_name# "tag") (.list#)}})
-       ..public)
+                {0b (.type_name# "tag") (.list#)}}))
 
-(.def# Slot
+(.the# .public Slot
        (.is# Type
              {4 1b [..prelude "Slot"]
-                {0b (.type_name# "slot") (.list#)}})
-       ..public)
+                {0b (.type_name# "slot") (.list#)}}))
 
-(.def# Sum
+(.the# .private Sum
        (.is# {0 0b
                 (.type_name# "function")
                 (.list# [..contra_variant ..Type]
@@ -215,10 +185,9 @@
                                      {0 0b
                                         (.type_name# "sum")
                                         (.list# [..co_variant left]
-                                                [..co_variant right])})))
-       ..private)
+                                                [..co_variant right])}))))
 
-(.def# Product
+(.the# .private Product
        (.is# {0 0b
                 (.type_name# "function")
                 (.list# [..contra_variant ..Type]
@@ -231,10 +200,9 @@
                                      {0 0b
                                         (.type_name# "product")
                                         (.list# [..co_variant left]
-                                                [..co_variant right])})))
-       ..private)
+                                                [..co_variant right])}))))
 
-(.def# Function
+(.the# .private Function
        (.is# {0 0b
                 (.type_name# "function")
                 (.list# [..contra_variant ..Type]
@@ -247,174 +215,152 @@
                                      {0 0b
                                         (.type_name# "function")
                                         (.list# [..contra_variant left]
-                                                [..co_variant right])})))
-       ..private)
+                                                [..co_variant right])}))))
 
-(.def# tag
+(.the# .private tag
        (.is# (Function Label
                        Tag)
-             (.function# _ it (.as# (Function Label Tag) it)))
-       ..private)
+             (.function# _ it (.as# (Function Label Tag) it))))
 
-(.def# slot
+(.the# .private slot
        (.is# (Function Label
                        Slot)
-             (.function# _ it (.as# (Function Label Slot) it)))
-       ..private)
+             (.function# _ it (.as# (Function Label Slot) it))))
 
-(.def# Array'
+(.the# .public Array'
        (.is# Type
              {4 1b [..prelude "Array'"]
                 {3 0b .universal {0b}
                    {3 0b .universal {0b}
                       {0 0b (.type_name# "array") (.list# [..contra_variant {1 0b ..argument 1}]
-                                                          [..co_variant {1 0b ..argument 0}])}}}})
-       .public)
+                                                          [..co_variant {1 0b ..argument 0}])}}}}))
 
-(.def# Array
+(.the# .public Array
        (.is# Type
              {4 1b [..prelude "Array"]
                 {3 0b .universal {0b}
                    {0 0b (.type_name# "array") (.list# [..contra_variant {1 0b ..argument 0}]
-                                                       [..co_variant {1 0b ..argument 0}])}}})
-       .public)
+                                                       [..co_variant {1 0b ..argument 0}])}}}))
 
-(.def# List
+(.the# .public List
        (.is# Type
              {4 1b [..prelude "List"]
                 {3 0b .universal {0b}
-                   {0 0b (.type_name# "list") (.list# [..co_variant {1 0b ..argument 0}])}}})
-       .public)
+                   {0 0b (.type_name# "list") (.list# [..co_variant {1 0b ..argument 0}])}}}))
 
-(.def# every_tag_of_maybe
+(.the# .private every_tag_of_maybe
        (.is# {4 0b Name List}
              (.list# [..prelude ":None"]
-                     [..prelude ":Some"]))
-       ..private)
-(.def# :None (..tag [{1b [0 0b ..every_tag_of_maybe]} Maybe]) ..public)
-(.def# :Some (..tag [{1b [0 1b ..every_tag_of_maybe]} Maybe]) ..public)
+                     [..prelude ":Some"])))
+(.the# .public :None (..tag [{1b [0 0b ..every_tag_of_maybe]} Maybe]))
+(.the# .public :Some (..tag [{1b [0 1b ..every_tag_of_maybe]} Maybe]))
 
-(.def# every_tag_of_stack
+(.the# .private every_tag_of_stack
        (.is# {4 0b Name List}
              (.list# [..prelude ":Empty"]
-                     [..prelude ":Top"]))
-       ..private)
-(.def# :Empty (..tag [{1b [0 0b ..every_tag_of_stack]} Stack]) ..public)
-(.def# :Top (..tag [{1b [0 1b ..every_tag_of_stack]} Stack]) ..public)
+                     [..prelude ":Top"])))
+(.the# .public :Empty (..tag [{1b [0 0b ..every_tag_of_stack]} Stack]))
+(.the# .public :Top (..tag [{1b [0 1b ..every_tag_of_stack]} Stack]))
 
-(.def# every_tag_of_type
+(.the# .private every_tag_of_type
        (.is# {4 0b Name List}
              (.list# [..prelude ":Nominal"]
                      [..prelude ":Parameter"]
                      [..prelude ":Variable"]
                      [..prelude ":Quantification"]
                      [..prelude ":Reification"]
-                     [..prelude ":Named"]))
-       ..private)
-(.def# :Nominal (..tag [{:Some [0 0b ..every_tag_of_type]} Type]) ..public)
-(.def# :Parameter (..tag [{:Some [1 0b ..every_tag_of_type]} Type]) ..public)
-(.def# :Variable (..tag [{:Some [2 0b ..every_tag_of_type]} Type]) ..public)
-(.def# :Quantification (..tag [{:Some [3 0b ..every_tag_of_type]} Type]) ..public)
-(.def# :Reification (..tag [{:Some [4 0b ..every_tag_of_type]} Type]) ..public)
-(.def# :Named (..tag [{:Some [4 1b ..every_tag_of_type]} Type]) ..public)
+                     [..prelude ":Named"])))
+(.the# .public :Nominal (..tag [{:Some [0 0b ..every_tag_of_type]} Type]))
+(.the# .public :Parameter (..tag [{:Some [1 0b ..every_tag_of_type]} Type]))
+(.the# .public :Variable (..tag [{:Some [2 0b ..every_tag_of_type]} Type]))
+(.the# .public :Quantification (..tag [{:Some [3 0b ..every_tag_of_type]} Type]))
+(.the# .public :Reification (..tag [{:Some [4 0b ..every_tag_of_type]} Type]))
+(.the# .public :Named (..tag [{:Some [4 1b ..every_tag_of_type]} Type]))
 
-(.def# provenance:dummy
+(.the# .private provenance:dummy
        (.is# (.type# "provenance")
-             ["" 0 0])
-       ..private)
+             ["" 0 0]))
 
 ... (every .public Nothing
 ...   (for_any (_ it) it))
-(.def# Nothing
+(.the# .public Nothing
        (.is# Type
              {:Named [..prelude "Nothing"]
                      {:Quantification .universal {:Empty}
-                                      {:Parameter ..argument 0}}})
-       ..public)
+                                      {:Parameter ..argument 0}}}))
 
-(.def# I64
+(.the# .public I64
        (.is# Type
              {:Named [..prelude "I64"]
                      {:Quantification .universal {:Empty}
-                                      {:Nominal (.type_name# "i64") (.list# [..co_variant {:Parameter ..argument 0}])}}})
-       ..public)
+                                      {:Nominal (.type_name# "i64") (.list# [..co_variant {:Parameter ..argument 0}])}}}))
 
-(.def# Integer
+(.the# .public Integer
        (.is# Type
              {:Named [..prelude "Integer"]
-                     {:Nominal (.type_name# "i64") (.list# [..co_variant {:Nominal (.type_name# "integer") (.list#)}])}})
-       ..public)
+                     {:Nominal (.type_name# "i64") (.list# [..co_variant {:Nominal (.type_name# "integer") (.list#)}])}}))
 
-(.def# Revolution
+(.the# .public Revolution
        (.is# Type
              {:Named [..prelude "Revolution"]
-                     {:Nominal (.type_name# "i64") (.list# [..co_variant {:Nominal (.type_name# "revolution") (.list#)}])}})
-       ..public)
+                     {:Nominal (.type_name# "i64") (.list# [..co_variant {:Nominal (.type_name# "revolution") (.list#)}])}}))
 
-(.def# Real
+(.the# .public Real
        (.is# Type
              {:Named [..prelude "Real"]
-                     {:Nominal (.type_name# "real") (.list#)}})
-       ..public)
+                     {:Nominal (.type_name# "real") (.list#)}}))
 
-(.def# Text
+(.the# .public Text
        (.is# Type
              {:Named [..prelude "Text"]
-                     {:Nominal (.type_name# "text") (.list#)}})
-       ..public)
+                     {:Nominal (.type_name# "text") (.list#)}}))
 
-(.def# Error
+(.the# .public Error
        (.is# Type
              {:Named [..prelude "Error"]
-                     ..Text})
-       ..public)
+                     ..Text}))
 
 ... (every .public Provenance
 ...   (Record
 ...    [:module Text
 ...     :line   Natural
 ...     :column Natural]))
-(.def# Provenance
+(.the# .public Provenance
        (.is# Type
              {:Named [..prelude "Provenance"]
-                     (.type# "provenance")})
-       ..public)
-(.def# every_slot_of_provenance
+                     (.type# "provenance")}))
+(.the# .private every_slot_of_provenance
        (.is# {:Reification Name List}
              (.list# [..prelude ":module"]
                      [..prelude ":line"]
-                     [..prelude ":column"]))
-       ..private)
-(.def# :module (slot [{:Some [0 0b ..every_slot_of_provenance]} Provenance]) ..public)
-(.def# :line (slot [{:Some [1 0b ..every_slot_of_provenance]} Provenance]) ..public)
-(.def# :column (slot [{:Some [1 1b ..every_slot_of_provenance]} Provenance]) ..public)
+                     [..prelude ":column"])))
+(.the# .public :module (slot [{:Some [0 0b ..every_slot_of_provenance]} Provenance]))
+(.the# .public :line (slot [{:Some [1 0b ..every_slot_of_provenance]} Provenance]))
+(.the# .public :column (slot [{:Some [1 1b ..every_slot_of_provenance]} Provenance]))
 
 ... (every .public (Annotated m v)
 ...   (Record
 ...    [:meta  m
 ...     :datum v]))
-(.def# Annotated
+(.the# .public Annotated
        (.is# Type
              {:Named [..prelude "Annotated"]
                      {:Quantification .universal {:Empty}
                                       {:Quantification .universal {:Empty}
                                                        (Product {:Parameter ..argument 1}
-                                                                {:Parameter ..argument 0})}}})
-       ..public)
-(.def# every_slot_of_ann
+                                                                {:Parameter ..argument 0})}}}))
+(.the# .private every_slot_of_ann
        (.is# {:Reification Name List}
              (.list# [..prelude ":meta"]
-                     [..prelude ":datum"]))
-       ..private)
-(.def# :meta (slot [{:Some [0 0b ..every_slot_of_ann]} Annotated]) ..public)
-(.def# :datum (slot [{:Some [0 1b ..every_slot_of_ann]} Annotated]) ..public)
+                     [..prelude ":datum"])))
+(.the# .public :meta (slot [{:Some [0 0b ..every_slot_of_ann]} Annotated]))
+(.the# .public :datum (slot [{:Some [0 1b ..every_slot_of_ann]} Annotated]))
 
-(.def# Code
+(.the# .public Code
        (.is# Type
              {:Named [..prelude "Code"]
-                     (.type# "code")})
-       ..public)
-(.def# every_tag_of_code
+                     (.type# "code")}))
+(.the# .private every_tag_of_code
        (.is# {:Reification Name List}
              (.list# [..prelude ":Bit"]
                      [..prelude ":Natural"]
@@ -425,306 +371,268 @@
                      [..prelude ":Name"]
                      [..prelude ":Form"]
                      [..prelude ":Variant"]
-                     [..prelude ":Tuple"]))
-       ..private)
-(.def# :Bit (tag [{:Some [0 0b ..every_tag_of_code]} Code]) ..public)
-(.def# :Natural (tag [{:Some [1 0b ..every_tag_of_code]} Code]) ..public)
-(.def# :Integer (tag [{:Some [2 0b ..every_tag_of_code]} Code]) ..public)
-(.def# :Revolution (tag [{:Some [3 0b ..every_tag_of_code]} Code]) ..public)
-(.def# :Real (tag [{:Some [4 0b ..every_tag_of_code]} Code]) ..public)
-(.def# :Text (tag [{:Some [5 0b ..every_tag_of_code]} Code]) ..public)
-(.def# :Name (tag [{:Some [6 0b ..every_tag_of_code]} Code]) ..public)
-(.def# :Form (tag [{:Some [7 0b ..every_tag_of_code]} Code]) ..public)
-(.def# :Variant (tag [{:Some [8 0b ..every_tag_of_code]} Code]) ..public)
-(.def# :Tuple (tag [{:Some [8 1b ..every_tag_of_code]} Code]) ..public)
+                     [..prelude ":Tuple"])))
+(.the# .public :Bit (tag [{:Some [0 0b ..every_tag_of_code]} Code]))
+(.the# .public :Natural (tag [{:Some [1 0b ..every_tag_of_code]} Code]))
+(.the# .public :Integer (tag [{:Some [2 0b ..every_tag_of_code]} Code]))
+(.the# .public :Revolution (tag [{:Some [3 0b ..every_tag_of_code]} Code]))
+(.the# .public :Real (tag [{:Some [4 0b ..every_tag_of_code]} Code]))
+(.the# .public :Text (tag [{:Some [5 0b ..every_tag_of_code]} Code]))
+(.the# .public :Name (tag [{:Some [6 0b ..every_tag_of_code]} Code]))
+(.the# .public :Form (tag [{:Some [7 0b ..every_tag_of_code]} Code]))
+(.the# .public :Variant (tag [{:Some [8 0b ..every_tag_of_code]} Code]))
+(.the# .public :Tuple (tag [{:Some [8 1b ..every_tag_of_code]} Code]))
 
-(.def# annotated
+(.the# .private annotated
        (.is# {:Quantification .universal {:Empty}
                               (Function {:Parameter ..argument 0}
                                         (Product Provenance {:Parameter ..argument 0}))}
              (.function# _ it
-                         [provenance:dummy it]))
-       ..private)
+                         [provenance:dummy it])))
 
-(.def# code:bit
+(.the# .private code:bit
        (.is# (Function Bit
                        Code)
-             (.function# _ value {:Bit (annotated value)}))
-       ..private)
+             (.function# _ value {:Bit (annotated value)})))
 
-(.def# code:natural
+(.the# .private code:natural
        (.is# (Function Natural
                        Code)
-             (.function# _ value {:Natural (annotated value)}))
-       ..private)
+             (.function# _ value {:Natural (annotated value)})))
 
-(.def# code:integer
+(.the# .private code:integer
        (.is# (Function Integer
                        Code)
-             (.function# _ value {:Integer (annotated value)}))
-       ..private)
+             (.function# _ value {:Integer (annotated value)})))
 
-(.def# code:revolution
+(.the# .private code:revolution
        (.is# (Function Revolution
                        Code)
-             (.function# _ value {:Revolution (annotated value)}))
-       ..private)
+             (.function# _ value {:Revolution (annotated value)})))
 
-(.def# code:real
+(.the# .private code:real
        (.is# (Function Real
                        Code)
-             (.function# _ value {:Real (annotated value)}))
-       ..private)
+             (.function# _ value {:Real (annotated value)})))
 
-(.def# code:text
+(.the# .private code:text
        (.is# (Function Text
                        Code)
-             (.function# _ text {:Text (annotated text)}))
-       ..private)
+             (.function# _ text {:Text (annotated text)})))
 
-(.def# code:name
+(.the# .private code:name
        (.is# (Function Name
                        Code)
-             (.function# _ name {:Name (annotated name)}))
-       ..private)
+             (.function# _ name {:Name (annotated name)})))
 
-(.def# code:local
+(.the# .private code:local
        (.is# (Function Text
                        Code)
-             (.function# _ name (code:name ["" name])))
-       ..private)
+             (.function# _ name (code:name ["" name]))))
 
-(.def# 'prelude
+(.the# .private 'prelude
        (.is# (Function Text
                        Code)
-             (.function# _ it (code:name [..prelude it])))
-       ..private)
+             (.function# _ it (code:name [..prelude it]))))
 
-(.def# code:form
+(.the# .private code:form
        (.is# (Function {:Reification Code List}
                        Code)
-             (.function# _ tokens {:Form (annotated tokens)}))
-       ..private)
+             (.function# _ tokens {:Form (annotated tokens)})))
 
-(.def# code:variant
+(.the# .private code:variant
        (.is# (Function {:Reification Code List}
                        Code)
-             (.function# _ tokens {:Variant (annotated tokens)}))
-       ..private)
+             (.function# _ tokens {:Variant (annotated tokens)})))
 
-(.def# code:tuple
+(.the# .private code:tuple
        (.is# (Function {:Reification Code List}
                        Code)
-             (.function# _ tokens {:Tuple (annotated tokens)}))
-       ..private)
+             (.function# _ tokens {:Tuple (annotated tokens)})))
 
-(.def# 'list
+(.the# .private 'list
        (.is# (Function {:Reification Code List}
                        Code)
              (.let# 'list# ('prelude "list#")
                     (.function# _ tokens
-                                (code:form (.list_composite# (.list# 'list#) tokens)))))
-       ..private)
+                                (code:form (.list_composite# (.list# 'list#) tokens))))))
 
-(.def# Definition
+(.the# .public Definition
        (.is# Type
              {:Named [..prelude "Definition"]
-                     (.type# "definition")})
-       .public)
+                     (.type# "definition")}))
 
-(.def# Alias
+(.the# .public Alias
        (.is# Type
              {:Named [..prelude "Alias"]
-                     (.type# "alias")})
-       .public)
+                     (.type# "alias")}))
 
-(.def# Global
+(.the# .public Global
        (.is# Type
              {:Named [..prelude "Global"]
-                     (.type# "global")})
-       .public)
+                     (.type# "global")}))
 
-(.def# every_tag_of_global
+(.the# .private every_tag_of_global
        (.is# {:Reification Name List}
              (.list# [..prelude ":Alias"]
-                     [..prelude ":Definition"]))
-       ..private)
-(.def# :Alias (tag [{:Some [0 0b ..every_tag_of_global]} Global]) .public)
-(.def# :Definition (tag [{:Some [0 1b ..every_tag_of_global]} Global]) .public)
+                     [..prelude ":Definition"])))
+(.the# .public :Alias (tag [{:Some [0 0b ..every_tag_of_global]} Global]))
+(.the# .public :Definition (tag [{:Some [0 1b ..every_tag_of_global]} Global]))
 
-(.def# Bindings
+(.the# .public Bindings
        (.is# Type
              {:Named [..prelude "Bindings"]
-                     (.type# "bindings")})
-       .public)
+                     (.type# "bindings")}))
 
-(.def# every_slot_of_bindings
+(.the# .private every_slot_of_bindings
        (.is# {:Reification Name List}
              (.list# [..prelude ":counter"]
-                     [..prelude ":mappings"]))
-       ..private)
-(.def# :counter (slot [{:Some [0 0b ..every_slot_of_bindings]} Bindings]) .public)
-(.def# :mappings (slot [{:Some [0 1b ..every_slot_of_bindings]} Bindings]) .public)
+                     [..prelude ":mappings"])))
+(.the# .public :counter (slot [{:Some [0 0b ..every_slot_of_bindings]} Bindings]))
+(.the# .public :mappings (slot [{:Some [0 1b ..every_slot_of_bindings]} Bindings]))
 
 ... (every .public Ref
 ...   {:Local Natural}
 ...   {:Captured Natural})
-(.def# Ref
+(.the# .public Ref
        (.is# Type
              {:Named [..prelude "Ref"]
                      (Sum Natural
-                          Natural)})
-       .public)
+                          Natural)}))
 
-(.def# every_tag_of_ref
+(.the# .private every_tag_of_ref
        (.is# {:Reification Name List}
              (.list# [..prelude ":Local"]
-                     [..prelude ":Captured"]))
-       ..private)
-(.def# :Local (tag [{:Some [0 0b ..every_tag_of_ref]} Ref]) .public)
-(.def# :Captured (tag [{:Some [0 1b ..every_tag_of_ref]} Ref]) .public)
+                     [..prelude ":Captured"])))
+(.the# .public :Local (tag [{:Some [0 0b ..every_tag_of_ref]} Ref]))
+(.the# .public :Captured (tag [{:Some [0 1b ..every_tag_of_ref]} Ref]))
 
-(.def# Scope
+(.the# .public Scope
        (.is# Type
              {:Named [..prelude "Scope"]
-                     (.type# "scope")})
-       .public)
+                     (.type# "scope")}))
 
-(.def# every_slot_of_scope
+(.the# .private every_slot_of_scope
        (.is# {:Reification Name List}
              (.list# [..prelude ":locals"]
-                     [..prelude ":captured"]))
-       ..private)
-(.def# :locals (slot [{:Some [0 0b ..every_slot_of_scope]} Scope]) .public)
-(.def# :captured (slot [{:Some [0 1b ..every_slot_of_scope]} Scope]) .public)
+                     [..prelude ":captured"])))
+(.the# .public :locals (slot [{:Some [0 0b ..every_slot_of_scope]} Scope]))
+(.the# .public :captured (slot [{:Some [0 1b ..every_slot_of_scope]} Scope]))
 
 ... (every .public (Either l r)
 ...   (Variant
 ...    {:Left l}
 ...    {:Right r}))
-(.def# Either
+(.the# .public Either
        (.is# Type
              {:Named [..prelude "Either"]
                      {:Quantification .universal {:Empty}
                                       {:Quantification .universal {:Empty}
                                                        (Sum {:Parameter ..argument 1}
-                                                            {:Parameter ..argument 0})}}})
-       .public)
+                                                            {:Parameter ..argument 0})}}}))
 
-(.def# every_tag_of_either
+(.the# .private every_tag_of_either
        (.is# {:Reification Name List}
              (.list# [..prelude ":Left"]
-                     [..prelude ":Right"]))
-       ..private)
-(.def# :Left (tag [{:Some [0 0b ..every_tag_of_either]} Either]) .public)
-(.def# :Right (tag [{:Some [0 1b ..every_tag_of_either]} Either]) .public)
+                     [..prelude ":Right"])))
+(.the# .public :Left (tag [{:Some [0 0b ..every_tag_of_either]} Either]))
+(.the# .public :Right (tag [{:Some [0 1b ..every_tag_of_either]} Either]))
 
 ... (every .public Source
 ...   [Provenance Natural Text])
-(.def# Source
+(.the# .public Source
        (.is# Type
              {:Named [..prelude "Source"]
-                     (Product Provenance (Product Natural Text))})
-       .public)
+                     (Product Provenance (Product Natural Text))}))
 
 ... (every .public Module_State
 ...   (Variant
 ...    {:Active}
 ...    {:Compiled}
 ...    {:Cached}))
-(.def# Module_State
+(.the# .public Module_State
        (.is# Type
              {:Named [..prelude "Module_State"]
                      (Sum Any
                           (Sum Any
-                               Any))})
-       .public)
+                               Any))}))
 
-(.def# every_tag_of_module_state
+(.the# .private every_tag_of_module_state
        (.is# {:Reification Name List}
              (.list# [..prelude ":Active"]
                      [..prelude ":Compiled"]
-                     [..prelude ":Cached"]))
-       ..private)
-(.def# :Active (tag [{:Some [0 0b ..every_tag_of_module_state]} Module_State]) .public)
-(.def# :Compiled (tag [{:Some [1 0b ..every_tag_of_module_state]} Module_State]) .public)
-(.def# :Cached (tag [{:Some [1 1b ..every_tag_of_module_state]} Module_State]) .public)
+                     [..prelude ":Cached"])))
+(.the# .public :Active (tag [{:Some [0 0b ..every_tag_of_module_state]} Module_State]))
+(.the# .public :Compiled (tag [{:Some [1 0b ..every_tag_of_module_state]} Module_State]))
+(.the# .public :Cached (tag [{:Some [1 1b ..every_tag_of_module_state]} Module_State]))
 
-(.def# Module
+(.the# .public Module
        (.is# Type
              {:Named [..prelude "Module"]
-                     (.type# "module")})
-       .public)
+                     (.type# "module")}))
 
-(.def# every_slot_of_module
+(.the# .private every_slot_of_module
        (.is# {:Reification Name List}
              (.list# [..prelude ":module_hash"]
                      [..prelude ":module_aliases"]
                      [..prelude ":definitions"]
                      [..prelude ":imports"]
-                     [..prelude ":module_state"]))
-       ..private)
-(.def# :module_hash (slot [{:Some [0 0b ..every_slot_of_module]} Module]) .public)
-(.def# :module_aliases (slot [{:Some [1 0b ..every_slot_of_module]} Module]) .public)
-(.def# :definitions (slot [{:Some [2 0b ..every_slot_of_module]} Module]) .public)
-(.def# :imports (slot [{:Some [3 0b ..every_slot_of_module]} Module]) .public)
-(.def# :module_state (slot [{:Some [3 1b ..every_slot_of_module]} Module]) .public)
+                     [..prelude ":module_state"])))
+(.the# .public :module_hash (slot [{:Some [0 0b ..every_slot_of_module]} Module]))
+(.the# .public :module_aliases (slot [{:Some [1 0b ..every_slot_of_module]} Module]))
+(.the# .public :definitions (slot [{:Some [2 0b ..every_slot_of_module]} Module]))
+(.the# .public :imports (slot [{:Some [3 0b ..every_slot_of_module]} Module]))
+(.the# .public :module_state (slot [{:Some [3 1b ..every_slot_of_module]} Module]))
 
-(.def# Type_Context
+(.the# .public Type_Context
        (.is# Type
              {:Named [..prelude "Type_Context"]
-                     (.type# "type_context")})
-       .public)
+                     (.type# "type_context")}))
 
-(.def# every_slot_of_type_context
+(.the# .private every_slot_of_type_context
        (.is# {:Reification Name List}
              (.list# [..prelude ":for_all"]
-                     [..prelude ":there_exists"]))
-       ..private)
-(.def# :for_all (slot [{:Some [0 0b ..every_slot_of_type_context]} Type_Context]) .public)
-(.def# :there_exists (slot [{:Some [0 1b ..every_slot_of_type_context]} Type_Context]) .public)
+                     [..prelude ":there_exists"])))
+(.the# .public :for_all (slot [{:Some [0 0b ..every_slot_of_type_context]} Type_Context]))
+(.the# .public :there_exists (slot [{:Some [0 1b ..every_slot_of_type_context]} Type_Context]))
 
 ... (every .public Mode
 ...   (Variant
 ...    {:Build}
 ...    {:Eval}
 ...    {:Interpreter}))
-(.def# Mode
+(.the# .public Mode
        (.is# Type
              {:Named [..prelude "Mode"]
                      (Sum Any
                           (Sum Any
-                               Any))})
-       .public)
+                               Any))}))
 
-(.def# every_tag_of_mode
+(.the# .private every_tag_of_mode
        (.is# {:Reification Name List}
              (.list# [..prelude ":Build"]
                      [..prelude ":Eval"]
-                     [..prelude ":Interpreter"]))
-       ..private)
-(.def# :Build (tag [{:Some [0 0b ..every_tag_of_mode]} Mode]) .public)
-(.def# :Eval (tag [{:Some [1 0b ..every_tag_of_mode]} Mode]) .public)
-(.def# :Interpreter (tag [{:Some [1 1b ..every_tag_of_mode]} Mode]) .public)
+                     [..prelude ":Interpreter"])))
+(.the# .public :Build (tag [{:Some [0 0b ..every_tag_of_mode]} Mode]))
+(.the# .public :Eval (tag [{:Some [1 0b ..every_tag_of_mode]} Mode]))
+(.the# .public :Interpreter (tag [{:Some [1 1b ..every_tag_of_mode]} Mode]))
 
-(.def# Info
+(.the# .public Info
        (.is# Type
-             (.type# "info"))
-       .public)
+             (.type# "info")))
 
-(.def# every_slot_of_info
+(.the# .private every_slot_of_info
        (.is# {:Reification Name List}
              (.list# [..prelude ":target"]
                      [..prelude ":version"]
                      [..prelude ":mode"]
-                     [..prelude ":configuration"]))
-       ..private)
-(.def# :target (slot [{:Some [0 0b ..every_slot_of_info]} Info]) .public)
-(.def# :version (slot [{:Some [1 0b ..every_slot_of_info]} Info]) .public)
-(.def# :mode (slot [{:Some [2 0b ..every_slot_of_info]} Info]) .public)
-(.def# :configuration (slot [{:Some [2 1b ..every_slot_of_info]} Info]) .public)
+                     [..prelude ":configuration"])))
+(.the# .public :target (slot [{:Some [0 0b ..every_slot_of_info]} Info]))
+(.the# .public :version (slot [{:Some [1 0b ..every_slot_of_info]} Info]))
+(.the# .public :mode (slot [{:Some [2 0b ..every_slot_of_info]} Info]))
+(.the# .public :configuration (slot [{:Some [2 1b ..every_slot_of_info]} Info]))
 
-(.def# Lux
+(.the# .public Lux
        (.is# Type
              {:Named [..prelude "Lux"]
                      (.type# "lux")
@@ -738,10 +646,9 @@
                      ...                                                                (Product {:Reification ..Type Maybe}
                      ...                                                                         (Product ..Natural
                      ...                                                                                  (.type# "eval"))))))))))
-                     })
-       .public)
+                     }))
 
-(.def# every_slot_of_lux
+(.the# .private every_slot_of_lux
        (.is# {:Reification Name List}
              (.list# [..prelude ":info"]
                      [..prelude ":source"]
@@ -752,72 +659,65 @@
                      [..prelude ":type_context"]
                      [..prelude ":expected"]
                      [..prelude ":seed"]
-                     [..prelude ":eval"]))
-       ..private)
-(.def# :info (slot [{:Some [0 0b ..every_slot_of_lux]} Lux]) .public)
-(.def# :source (slot [{:Some [1 0b ..every_slot_of_lux]} Lux]) .public)
-(.def# :provenance (slot [{:Some [2 0b ..every_slot_of_lux]} Lux]) .public)
-(.def# :current_module (slot [{:Some [3 0b ..every_slot_of_lux]} Lux]) .public)
-(.def# :modules (slot [{:Some [4 0b ..every_slot_of_lux]} Lux]) .public)
-(.def# :scopes (slot [{:Some [5 0b ..every_slot_of_lux]} Lux]) .public)
-(.def# :type_context (slot [{:Some [6 0b ..every_slot_of_lux]} Lux]) .public)
-(.def# :expected (slot [{:Some [7 0b ..every_slot_of_lux]} Lux]) .public)
-(.def# :seed (slot [{:Some [8 0b ..every_slot_of_lux]} Lux]) .public)
-(.def# :eval (slot [{:Some [8 1b ..every_slot_of_lux]} Lux]) .public)
+                     [..prelude ":eval"])))
+(.the# .public :info (slot [{:Some [0 0b ..every_slot_of_lux]} Lux]))
+(.the# .public :source (slot [{:Some [1 0b ..every_slot_of_lux]} Lux]))
+(.the# .public :provenance (slot [{:Some [2 0b ..every_slot_of_lux]} Lux]))
+(.the# .public :current_module (slot [{:Some [3 0b ..every_slot_of_lux]} Lux]))
+(.the# .public :modules (slot [{:Some [4 0b ..every_slot_of_lux]} Lux]))
+(.the# .public :scopes (slot [{:Some [5 0b ..every_slot_of_lux]} Lux]))
+(.the# .public :type_context (slot [{:Some [6 0b ..every_slot_of_lux]} Lux]))
+(.the# .public :expected (slot [{:Some [7 0b ..every_slot_of_lux]} Lux]))
+(.the# .public :seed (slot [{:Some [8 0b ..every_slot_of_lux]} Lux]))
+(.the# .public :eval (slot [{:Some [8 1b ..every_slot_of_lux]} Lux]))
 
 ... (every .public (Meta a)
 ...   (-> Lux (Either Text [Lux a])))
-(.def# Meta
+(.the# .public Meta
        (.is# Type
              {:Named [..prelude "Meta"]
                      {:Quantification .universal {:Empty}
                                       (Function Lux
                                                 {:Reification (Product Lux {:Parameter ..argument 0})
-                                                              {:Reification Text Either}})}})
-       .public)
+                                                              {:Reification Text Either}})}}))
 
 ... (every .public Macro'
 ...   (-> (List Code)
 ...       (Meta (List Code))))
-(.def# Macro'
+(.the# .public Macro'
        (.is# Type
              {:Named [..prelude "Macro'"]
                      (Function {:Reification Code List}
-                               {:Reification {:Reification Code List} Meta})})
-       .public)
+                               {:Reification {:Reification Code List} Meta})}))
 
-(.def# Macro
+(.the# .public Macro
        (.is# Type
              {:Named [..prelude "Macro"]
-                     {:Nominal (.type_name# "macro") (.list#)}})
-       .public)
+                     {:Nominal (.type_name# "macro") (.list#)}}))
 
 ... Base functions & macros
-(.def# meta:pure
+(.the# .private meta:pure
        (.is# {:Quantification .universal {:Empty}
                               (Function {:Parameter ..argument 0}
                                         {:Reification {:Parameter ..argument 0} Meta})}
              (.function# _ val
                          (.function# _ state
-                                     {:Right [state val]})))
-       ..private)
+                                     {:Right [state val]}))))
 
-(.def# failure
+(.the# .private failure
        (.is# {:Quantification .universal {:Empty}
                               (Function Text
                                         {:Reification {:Parameter ..argument 0} Meta})}
              (.function# _ msg
                          (.function# _ state
-                                     {:Left msg})))
-       ..private)
+                                     {:Left msg}))))
 
-(.def# list
+(.the# .public list
        (.as# (Function Macro' Macro)
              (.function# _ tokens
-                         (meta:pure (.list# ('list tokens)))))
-       .public)
+                         (meta:pure (.list# ('list tokens))))))
 
-(.def# list:as_stack
+(.the# .private list:as_stack
        (.is# {:Quantification .universal {:Empty}
                               (Function {:Reification {:Parameter ..argument 0} List}
                                         {:Reification {:Parameter ..argument 0} Stack})}
@@ -838,15 +738,13 @@
                                                                                                  value})))))))
                           it
                           (.list_size# it)
-                          {:Empty})))
-       .private)
+                          {:Empty}))))
 
-(.def# \''
+(.the# .private \''
        (.is# Text
-             (.int_char# +34))
-       ..private)
+             (.int_char# +34)))
 
-(.def# 'function
+(.the# .private 'function
        (.is# (Function Code (Function {:Reification Code Stack} (Function Code Code)))
              (.let# 'extension ('prelude "function#")
                     (.function# 'function self
@@ -860,10 +758,9 @@
                                                                 (code:form (list 'extension
                                                                                  self
                                                                                  head
-                                                                                 ('function (code:name ["" ""]) tail output)))))))))
-       ..private)
+                                                                                 ('function (code:name ["" ""]) tail output))))))))))
 
-(.def# function'
+(.the# .private function'
        (.as# (Function Macro' Macro)
              (.function# _ tokens
                          (.when# tokens
@@ -877,46 +774,38 @@
                                          (failure ""))
 
                                  _
-                                 (failure ""))))
-       ..private)
+                                 (failure "")))))
 
-(.def# 'when
+(.the# .private 'when
        (.is# (Function Code (Function Code (Function Code Code)))
              (function' (_ binding value body)
                         (code:form (list ('prelude "when#")
                                          value
                                          binding
-                                         body))))
-       .private)
+                                         body)))))
 
-(.def# 'let
+(.the# .private 'let
        (.is# (Function Code (Function Code (Function Code Code)))
              (function' (_ binding value body)
                         (code:form (list ('prelude "let#")
                                          binding
                                          value
-                                         body))))
-       .private)
+                                         body)))))
 
-(.def# code:def
-       (.is# (Function Code (Function Code (Function Code Code)))
-             (function' (_ name value export_policy)
-                        (code:form (list ('prelude "def#")
-                                         name
-                                         value
-                                         export_policy))))
-       ..private)
-
-(.def# code:is
+(.the# .private 'is#
        (.is# (Function Code (Function Code Code))
              (.let# 'is# ('prelude "is#")
                     (function' (_ type value)
                                (code:form (list 'is#
                                                 type
-                                                value)))))
-       ..private)
+                                                value))))))
 
-(.def# the'
+(.the# ..private 'the#
+       (.is# (Function Code (Function Code (Function Code (Function Code Code))))
+             (function' (_ export_policy name type value)
+                        (code:form (list ('prelude "the#") export_policy name ('is# type value))))))
+
+(.the# .private the'
        (.as# (Function Macro' Macro)
              (function' (_ tokens)
                         (.when# tokens
@@ -926,95 +815,83 @@
                                         body)
                                 (.when# (list:as_stack name,arguments)
                                         {:Top name arguments}
-                                        (meta:pure (list (code:def name
-                                                                   (code:is type
-                                                                            ('function name arguments
-                                                                                       body))
-                                                                   export_policy)))
+                                        (meta:pure (list ('the# export_policy name
+                                                                type
+                                                                ('function name arguments
+                                                                           body))))
                                         
                                         else
                                         (failure ""))
 
                                 (.list# export_policy name type body)
-                                (meta:pure (list (code:def name
-                                                           (code:is type
-                                                                    body)
-                                                           export_policy)))
+                                (meta:pure (list ('the# export_policy name
+                                                        type
+                                                        body)))
 
                                 _
-                                (failure ""))))
-       ..private)
+                                (failure "")))))
 
-(.def# ':Nominal
-       (.is# Code
-             ('prelude ":Nominal"))
-       .private)
+(the' .private ':Nominal
+      Code
+      ('prelude ":Nominal"))
 
-(.def# 'Function
-       (.is# (Function Code (Function Code Code))
-             (function' (_ domain co_domain)
-                        (code:variant (list ':Nominal
-                                            (code:text (.type_name# "function"))
-                                            ('list (list (code:tuple (list (code:bit ..contra_variant)
-                                                                           domain))
-                                                         (code:tuple (list (code:bit ..co_variant)
-                                                                           co_domain))))))))
-       ..private)
+(the' .private ('Function domain co_domain)
+      (Function Code (Function Code Code))
+      (code:variant (list ':Nominal
+                          (code:text (.type_name# "function"))
+                          ('list (list (code:tuple (list (code:bit ..contra_variant)
+                                                         domain))
+                                       (code:tuple (list (code:bit ..co_variant)
+                                                         co_domain)))))))
 
-(.def# 'Bit
-       (.is# Code
-             ('prelude "Bit"))
-       ..private)
+(the' .private 'Bit
+      Code
+      ('prelude "Bit"))
 
-(.def# 'Predicate
-       (.is# (Function Code Code)
-             (function' (_ it)
-                        ('Function it 'Bit)))
-       ..private)
+(the' .private 'Predicate
+      (Function Code Code)
+      (function' (_ it)
+                 ('Function it 'Bit)))
 
-(.def# Predicate
-       (.as# (Function Macro' Macro)
-             (function' (_ tokens)
-                        (.when# tokens
-                                (.list# it)
-                                (meta:pure (list ('Predicate it)))
+(the' .private Predicate
+      Macro
+      (.as# (Function Macro' Macro)
+            (function' (_ tokens)
+                       (.when# tokens
+                               (.list# it)
+                               (meta:pure (list ('Predicate it)))
 
-                                _
-                                (failure ""))))
-       ..private)
+                               _
+                               (failure "")))))
 
-(.def# 'as#
-       (.is# (Function Code (Function Code Code))
-             (function' (_ 'coercion 'it)
-                        (code:form (list ('prelude "as#")
-                                         'coercion
-                                         'it))))
-       ..private)
+(the' .private ('as# 'coercion 'it)
+      (Function Code (Function Code Code))
+      (code:form (list ('prelude "as#")
+                       'coercion
+                       'it)))
 
-(.def# 'macro
-       (.is# (Function Code
-                       Code)
-             (function' (_ expression)
-                        ('as# ('Function ('prelude "Macro'")
-                                         ('prelude "Macro"))
-                              expression)))
-       ..private)
+(the' .private ('macro expression)
+      (Function Code
+                Code)
+      ('as# ('Function ('prelude "Macro'")
+                       ('prelude "Macro"))
+            expression))
 
-(.def# macro
-       (.as# (Function Macro' Macro)
-             (function' (_ tokens)
-                        (.when# tokens
-                                (.list# {:Form _ name,arguments} body)
-                                (.when# (list:as_stack name,arguments)
-                                        {:Top name arguments}
-                                        (meta:pure (list ('macro ('function name arguments body))))
+(the' .public macro
+      Macro
+      (.as# (Function Macro' Macro)
+            (function' (_ tokens)
+                       (.when# tokens
+                               (.list# {:Form _ name,arguments} body)
+                               (.when# (list:as_stack name,arguments)
+                                       {:Top name arguments}
+                                       (meta:pure (list ('macro ('function name arguments body))))
 
-                                        else
-                                        (failure ""))
+                                       else
+                                       (failure ""))
 
-                                _
-                                (failure ""))))
-       ..public)
+                               _
+                               (failure "")))))
 
 (the' .private (stack:mix f init xs)
       ... (for_any (_ a b) (-> (-> b a a) a (Stack b) a))
@@ -1672,24 +1549,22 @@
 ...        :pure)
 ...    (is (for_any (_ a b) (-> (-> a (m b)) (m a) (m b)))
 ...        :then)))
-(.def# Monad
-       (.is# Type
-             {:Named [..prelude "Monad"]
-                     (for_any (_ !)
-                       (Tuple (for_any (_ a)
-                                (-> a ($ ! a)))
-                              (for_any (_ a b)
-                                (-> (-> a ($ ! b))
-                                    (-> ($ ! a) ($ ! b))))))})
-       0b)
+(the' .private Monad
+      Type
+      {:Named [..prelude "Monad"]
+              (for_any (_ !)
+                (Tuple (for_any (_ a)
+                         (-> a ($ ! a)))
+                       (for_any (_ a b)
+                         (-> (-> a ($ ! b))
+                             (-> ($ ! a) ($ ! b))))))})
 
-(.def# every_slot_of_monad
-       (.is# {:Reification Name List}
-             (.list# [..prelude ":pure"]
-                     [..prelude ":then"]))
-       ..private)
-(.def# :pure (slot [{:Some [0 0b ..every_slot_of_monad]} Monad]) .private)
-(.def# :then (slot [{:Some [0 1b ..every_slot_of_monad]} Monad]) .private)
+(the' .private every_slot_of_monad
+      {:Reification Name List}
+      (.list# [..prelude ":pure"]
+              [..prelude ":then"]))
+(the' .private :pure Slot (slot [{:Some [0 0b ..every_slot_of_monad]} Monad]))
+(the' .private :then Slot (slot [{:Some [0 1b ..every_slot_of_monad]} Monad]))
 
 (the' .private maybe:monad
       ($ Monad Maybe)
@@ -2478,7 +2353,7 @@
                 (with_monad meta:monad
                   [current_module current_module_name
                    =template (untemplated 1b current_module template)]
-                  (pure (list (code:is ..'Code =template))))
+                  (pure (list ('is# ..'Code =template))))
 
                 _
                 (failure ""))))
@@ -2492,7 +2367,7 @@
                 (.list# template)
                 (with_monad meta:monad
                   [=template (untemplated 1b "" template)]
-                  (pure (list (code:is ..'Code =template))))
+                  (pure (list ('is# ..'Code =template))))
 
                 _
                 (failure ""))))
@@ -2506,7 +2381,7 @@
                 (.list# template)
                 (with_monad meta:monad
                   [=template (untemplated 0b "" template)]
-                  (pure (list (code:is ..'Code =template))))
+                  (pure (list ('is# ..'Code =template))))
 
                 _
                 (failure ""))))
@@ -2519,7 +2394,7 @@
        (macro (_ tokens)
          (.when# tokens
                  (.list# it)
-                 (meta:pure (list (code:is ..'Code it)))
+                 (meta:pure (list ('is# ..'Code it)))
 
                  _
                  (failure "")))))
@@ -4289,9 +4164,8 @@
                        
                        {:None}
                        body)]
-            (meta:pure (list (` (.def# (, (code:local name))
-                                       (, body)
-                                       (, export_policy))))))
+            (meta:pure (list (` (.the# (, export_policy) (, (code:local name))
+                                       (, body))))))
           
           {:None}
           (failure ""))))
@@ -4566,10 +4440,10 @@
                            (is (-> Code (Meta (List Code)))
                                (function (_ token)
                                  (when token
-                                   {:Form _ (list {:Name _ [..prelude "def#"]}
+                                   {:Form _ (list {:Name _ [..prelude "the#"]}
+                                                  export_policy
                                                   {:Name _ ["" slot_name]}
-                                                  value
-                                                  export_policy)}
+                                                  value)}
                                    (when (property:value slot_name tag_mappings)
                                      {:Some tag}
                                      (pure (list tag value))
@@ -5094,9 +4968,8 @@
 (the (alias_definition imported_module def)
   (-> Text Text
       Code)
-  (` (.def# (, (code:local def))
-            (, (code:name [imported_module def]))
-            .private)))
+  (` (.the# .private (, (code:local def))
+            (, (code:name [imported_module def])))))
 
 (the .public only
   (macro (_ tokens)
@@ -5458,9 +5331,8 @@
         (pure (list:conjoint decls')))
 
       _
-      (pure (list (` (.def# (, (code:local (..module_alias (stack proper imported_module) alias)))
-                            (, source+)
-                            ..private)))))))
+      (pure (list (` (.the# .private (, (code:local (..module_alias (stack proper imported_module) alias)))
+                            (, source+))))))))
 
 (the (implementation_declarations imported_module alias implementation)
   (-> Text Text Name
@@ -5534,7 +5406,7 @@
                                                          _
                                                          (with_monad meta:monad
                                                            ['implementation (..generated_name "implementation")]
-                                                           (pure [(.list_composite# (list (` (.def# (, 'implementation) (, it) ..private)))
+                                                           (pure [(.list_composite# (list (` (.the# .private (, 'implementation) (, it))))
                                                                                     pre_defs)
                                                                   (.list_composite# (list 'implementation) implementations)]))))
                                                      [(list) (list)]

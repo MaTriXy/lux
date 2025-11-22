@@ -61,11 +61,11 @@
 (the .public (statement expression archive synthesis)
   Phase!
   (`` (when synthesis
-        ... TODO: Get rid of this ASAP
         [@ {synthesis.:Extension [.prelude (,, (static.text (extension.synthesis extension/lux.when_char)))] parameters}]
-        (monad.let phase.monad
-          [body (expression archive synthesis)]
-          (pure (as (-> _.Expression _.Statement) body)))
+        (comment "TODO: Get rid of this ASAP"
+                 (monad.let phase.monad
+                   [body (expression archive synthesis)]
+                   (pure (as (-> _.Expression _.Statement) body))))
         
         (,, (template.with [<tag>]
               [(<tag> @ value)
@@ -132,59 +132,40 @@
         (phase:each _.return (//function.function statement expression archive abstraction))
         )))
 
-... TODO: Get rid of this ASAP
-(the lux:syntax_char_case!
-  (..custom [(all <>.and
-                  ?list.any
-                  ?list.any
-                  (<>.some (?synthesis.tuple (all <>.and
-                                                  (?synthesis.tuple (<>.many ?synthesis.i64))
-                                                  ?list.any))))
-             (function (_ phase archive [input else conditionals])
-               (monad.let [! phase.monad]
-                 [inputG (phase archive input)
-                  else! (..statement phase archive else)
-                  @input (by ! each _.var (translation.name "input"))
-                  conditionals! (is (Operation (List [_.Expression
-                                                      _.Statement]))
-                                    (list.each' ! (function (_ [chars branch])
-                                                    (monad.let !
-                                                      [branch! (..statement phase archive branch)]
-                                                      (pure [(|> chars
-                                                                 (list:each (|>> .integer _.int (_.= @input)))
-                                                                 (list:mix (function (_ clause total)
-                                                                             (if (identical? _.none total)
-                                                                                 clause
-                                                                                 (_.or clause total)))
-                                                                           _.none))
-                                                             branch!])))
-                                                conditionals))
-                  ... .let [dependencies (//case.dependencies (list:mix (function (_ right left)
-                  ...                                                      (synthesis.path/seq left right))
-                  ...                                                    (synthesis.path/then input)
-                  ...                                                    {.:Top (synthesis.path/then else)
-                  ...                                                     (list:each (|>> product.right
-                  ...                                                                     synthesis.path/then)
-                  ...                                                                conditionals)}))
-                  ...       @closure (_.var (reference.artifact artifact_id))
-                  ...       closure (_.def @closure dependencies
-                  ...                      (all _.then
-                  ...                          (_.set (.list @input) inputG)
-                  ...                          (list:mix (function (_ [test then!] else!)
-                  ...                                       (_.if test then! else!))
-                  ...                                     else!
-                  ...                                     conditionals!)))]
-                  ... _ (translation.execute! closure)
-                  ... _ (translation.save! (product.right artifact_id) {.:None} closure)
-                  ]
-                 ... (pure (_.of @closure dependencies))
-                 (pure (<| (as (-> _.Statement _.Expression))
-                           (all _.then
-                                (_.set (.list @input) inputG)
-                                (list:mix (function (_ [test then!] else!)
-                                            (_.if test then! else!))
-                                          else!
-                                          conditionals!))))))]))
+(comment "TODO: Get rid of this ASAP"
+         (the lux:syntax_char_case!
+           (..custom [(all <>.and
+                           ?list.any
+                           ?list.any
+                           (<>.some (?synthesis.tuple (all <>.and
+                                                           (?synthesis.tuple (<>.many ?synthesis.i64))
+                                                           ?list.any))))
+                      (function (_ phase archive [input else conditionals])
+                        (monad.let [! phase.monad]
+                          [inputG (phase archive input)
+                           else! (..statement phase archive else)
+                           @input (by ! each _.var (translation.name "input"))
+                           conditionals! (is (Operation (List [_.Expression
+                                                               _.Statement]))
+                                             (list.each' ! (function (_ [chars branch])
+                                                             (monad.let !
+                                                               [branch! (..statement phase archive branch)]
+                                                               (pure [(|> chars
+                                                                          (list:each (|>> .integer _.int (_.= @input)))
+                                                                          (list:mix (function (_ clause total)
+                                                                                      (if (identical? _.none total)
+                                                                                          clause
+                                                                                          (_.or clause total)))
+                                                                                    _.none))
+                                                                      branch!])))
+                                                         conditionals))]
+                          (pure (<| (as (-> _.Statement _.Expression))
+                                    (all _.then
+                                         (_.set (.list @input) inputG)
+                                         (list:mix (function (_ [test then!] else!)
+                                                     (_.if test then! else!))
+                                                   else!
+                                                   conditionals!))))))])))
 
 (the .public (with name anonymous)
   (-> extension.Name Handler

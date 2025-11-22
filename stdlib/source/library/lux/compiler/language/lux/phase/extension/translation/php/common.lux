@@ -42,50 +42,50 @@
   (template.macro (_ function)
     (|>> stack _.of (|> (_.constant function)))))
 
-... TODO: Get rid of this ASAP
-(the lux:syntax_char_case!
-  (..custom [(all <>.and
-                  <s>.any
-                  <s>.any
-                  (<>.some (<s>.tuple (all <>.and
-                                           (<s>.tuple (<>.many <s>.i64))
-                                           <s>.any))))
-             (function (_ extension_name phase archive [input else conditionals])
-               (monad.let [! /////.monad]
-                 [inputG (phase archive input)
-                  [[context_module context_artifact] elseG] (translation.with_new_context archive
-                                                              (phase archive else))
-                  @input (by ! each _.var (translation.name "input"))
-                  conditionalsG (is (Operation (Stack [_.Expression _.Expression]))
-                                    (stack.each' ! (function (_ [chars branch])
-                                                     (monad.let !
-                                                       [branchG (phase archive branch)]
-                                                       (pure [(|> chars
-                                                                  (stack:each (|>> .integer _.int (_.=== @input)))
-                                                                  (stack:mix (function (_ clause total)
-                                                                               (if (identical? _.null total)
-                                                                                   clause
-                                                                                   (_.or clause total)))
-                                                                             _.null))
-                                                              branchG])))
-                                                 conditionals))
-                  .let [foreigns (|> conditionals
-                                     (stack:each (|>> product.right synthesis.path/then //when.dependencies))
-                                     (stack.partial (//when.dependencies (synthesis.path/then else)))
-                                     stack.together
-                                     (view.of list.stack)
-                                     (set.of_list _.hash)
-                                     set.as_list
-                                     (view.as list.stack))
-                        @expression (_.constant (reference.artifact [context_module context_artifact]))
-                        declaration (_.define_function @expression (stack.partial (_.parameter @input) (stack:each _.reference foreigns))
-                                                       (stack:mix (function (_ [test then] else)
-                                                                    (_.if test (_.return then) else))
-                                                                  (_.return elseG)
-                                                                  conditionalsG))]
-                  _ (translation.execute! declaration)
-                  _ (translation.save! context_artifact declaration)]
-                 (pure (_.of (stack.partial inputG foreigns) @expression))))]))
+(comment "TODO: Get rid of this ASAP"
+         (the lux:syntax_char_case!
+           (..custom [(all <>.and
+                           <s>.any
+                           <s>.any
+                           (<>.some (<s>.tuple (all <>.and
+                                                    (<s>.tuple (<>.many <s>.i64))
+                                                    <s>.any))))
+                      (function (_ extension_name phase archive [input else conditionals])
+                        (monad.let [! /////.monad]
+                          [inputG (phase archive input)
+                           [[context_module context_artifact] elseG] (translation.with_new_context archive
+                                                                       (phase archive else))
+                           @input (by ! each _.var (translation.name "input"))
+                           conditionalsG (is (Operation (Stack [_.Expression _.Expression]))
+                                             (stack.each' ! (function (_ [chars branch])
+                                                              (monad.let !
+                                                                [branchG (phase archive branch)]
+                                                                (pure [(|> chars
+                                                                           (stack:each (|>> .integer _.int (_.=== @input)))
+                                                                           (stack:mix (function (_ clause total)
+                                                                                        (if (identical? _.null total)
+                                                                                            clause
+                                                                                            (_.or clause total)))
+                                                                                      _.null))
+                                                                       branchG])))
+                                                          conditionals))
+                           .let [foreigns (|> conditionals
+                                              (stack:each (|>> product.right synthesis.path/then //when.dependencies))
+                                              (stack.partial (//when.dependencies (synthesis.path/then else)))
+                                              stack.together
+                                              (view.of list.stack)
+                                              (set.of_list _.hash)
+                                              set.as_list
+                                              (view.as list.stack))
+                                 @expression (_.constant (reference.artifact [context_module context_artifact]))
+                                 declaration (_.define_function @expression (stack.partial (_.parameter @input) (stack:each _.reference foreigns))
+                                                                (stack:mix (function (_ [test then] else)
+                                                                             (_.if test (_.return then) else))
+                                                                           (_.return elseG)
+                                                                           conditionalsG))]
+                           _ (translation.execute! declaration)
+                           _ (translation.save! context_artifact declaration)]
+                          (pure (_.of (stack.partial inputG foreigns) @expression))))])))
 
 (the lux_procs
   Bundle

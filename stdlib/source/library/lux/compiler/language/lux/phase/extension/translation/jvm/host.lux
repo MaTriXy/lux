@@ -596,7 +596,6 @@
                              [box.char    type.char]
                              [box.float   type.float]
                              [box.double  type.double]]))
-                      ... else
                       (all _.composite
                            valueG
                            (_.checkcast (type.class (list) to))))))))]))
@@ -796,10 +795,10 @@
           {path.:And _ next}
           (of next)
 
-          ... TO DO: Stop doing the ^.multi
           (^.multi {path.:Then path}
                    [path (synthesis.tuple @ (list _ hidden))])
-          hidden
+          (comment "TO DO: Stop doing the ^.multi"
+                   hidden)
           
           _
           <oops>))
@@ -1052,8 +1051,8 @@
                                                             (type.= type.long type)
                                                             _.lload
 
-                                                            ... else
-                                                            _.iload)]
+                                                            (comment "else"
+                                                                     _.iload))]
                                      (load_register! (++ register)))
                                    
                                    {.:Left type}
@@ -1130,9 +1129,8 @@
                        [_.ireturn type.char]
                        [_.freturn type.float]
                        [_.lreturn type.long]]))
-
-                ... (type.= type.double returnT)
-                (unwrap_primitive _.dreturn type.double)))))))
+                (comment (type.= type.double returnT)
+                         (unwrap_primitive _.dreturn type.double))))))))
 
 (the (method_dependencies archive method)
   (-> Archive (/.Overriden_Method Term)
@@ -1188,9 +1186,8 @@
                      [1 _.iload type.char]
                      [1 _.fload type.float]
                      [2 _.lload type.long]]))
-
-              ... (type.= type.double argumentT)
-              (wrap_primitive 2 _.dload type.double))))))
+              (comment (type.= type.double argumentT)
+                       (wrap_primitive 2 _.dload type.double)))))))
 
 (the .public (prepare_arguments offset types)
   (-> Natural (List (Type Value))
@@ -1229,11 +1226,11 @@
   (-> (List [(Environment Term) (/.Overriden_Method Term)])
       (List Term))
   (|> overriden_methods
-      ... Get all the environments.
+      (comment "Get all the environments.")
       (list:each product.left)
-      ... Combine them.
+      (comment "Combine them.")
       list:conjoint
-      ... Remove duplicates.
+      (comment "Remove duplicates.")
       (set.of_list synthesis.hash)
       set.as_list))
 
@@ -1241,7 +1238,7 @@
   (-> (List Term)
       Mapping)
   (|> total_environment
-      ... Give them names as "foreign" variables.
+      (comment "Give them names as foreign variables.")
       list.enumeration
       (list:each (function (_ [id capture])
                    [capture {@type.:Foreign id}]))

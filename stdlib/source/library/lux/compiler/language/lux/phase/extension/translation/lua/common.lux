@@ -67,11 +67,11 @@
 (the .public (statement expression archive synthesis)
   Phase!
   (`` (when synthesis
-        ... TODO: Get rid of this ASAP
         [@ {synthesis.:Extension [.prelude (,, (static.text (extension.synthesis extension/lux.when_char)))] parameters}]
-        (monad.let phase.monad
-          [body (expression archive synthesis)]
-          (pure (as (-> _.Expression _.Statement) body)))
+        (comment "TODO: Get rid of this ASAP"
+                 (monad.let phase.monad
+                   [body (expression archive synthesis)]
+                   (pure (as (-> _.Expression _.Statement) body))))
         
         (,, (template.with [<tag>]
               [(<tag> @ value)
@@ -138,35 +138,35 @@
         (phase:each _.return (//function.function statement expression archive abstraction))
         )))
 
-... TODO: Get rid of this ASAP
-(the lux//syntax_char_case!
-  (..custom [(all <>.and
-                  ?list.any
-                  ?list.any
-                  (<>.some (?synthesis.tuple (all <>.and
-                                                  (?synthesis.tuple (<>.many ?synthesis.i64))
-                                                  ?list.any))))
-             (function (_ phase archive [input else conditionals])
-               (|> conditionals
-                   (list:each (function (_ [chars branch])
-                                {path.:And (when (view.as list.stack chars)
-                                             {.:Empty}
-                                             {path.:Pop}
-                                             
-                                             {.:Top head tail}
-                                             {path.:I64_Fork
-                                              [head {path.:Pop}]
-                                              (list:each (function (_ char)
-                                                           [char {path.:Pop}])
-                                                         (view.of list.stack tail))})
-                                           {path.:Then branch}}))
-                   list.in_reverse
-                   (list:mix (function (_ pre post)
-                               {path.:Or pre post})
-                             {path.:Then else})
-                   [input]
-                   (//when.when! statement phase archive)
-                   (by phase.monad each (|>> (as (-> _.Statement _.Expression))))))]))
+(comment "TODO: Get rid of this ASAP"
+         (the lux//syntax_char_case!
+           (..custom [(all <>.and
+                           ?list.any
+                           ?list.any
+                           (<>.some (?synthesis.tuple (all <>.and
+                                                           (?synthesis.tuple (<>.many ?synthesis.i64))
+                                                           ?list.any))))
+                      (function (_ phase archive [input else conditionals])
+                        (|> conditionals
+                            (list:each (function (_ [chars branch])
+                                         {path.:And (when (view.as list.stack chars)
+                                                      {.:Empty}
+                                                      {path.:Pop}
+                                                      
+                                                      {.:Top head tail}
+                                                      {path.:I64_Fork
+                                                       [head {path.:Pop}]
+                                                       (list:each (function (_ char)
+                                                                    [char {path.:Pop}])
+                                                                  (view.of list.stack tail))})
+                                                    {path.:Then branch}}))
+                            list.in_reverse
+                            (list:mix (function (_ pre post)
+                                        {path.:Or pre post})
+                                      {path.:Then else})
+                            [input]
+                            (//when.when! statement phase archive)
+                            (by phase.monad each (|>> (as (-> _.Statement _.Expression))))))])))
 
 (the .public (with name anonymous)
   (-> extension.Name Handler
@@ -252,12 +252,10 @@
        (with extension/lux.text_composite (variadic ..text//composite))
        (with extension/lux.text_index (trinary ..text//index))
        (with extension/lux.text_size (unary //runtime.text//size))
-       ... TODO: Use version below once the Lua compiler becomes self-hosted.
-       ... (with extension/lux.text_size (unary (target.if target.lua
-       ...                                                 (!unary "utf8.len")
-
-       ...                                                 ... else
-       ...                                                 (!unary "string.len"))))
+       (comment "TODO: Use version below once the Lua compiler becomes self-hosted."
+                (with extension/lux.text_size (unary (target.if target.lua
+                                                                (!unary "utf8.len")
+                                                                (!unary "string.len")))))
        (with extension/lux.text_char (binary ..text//char))
        (with extension/lux.text_clip (trinary ..text//clip))
        ))

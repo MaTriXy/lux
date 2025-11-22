@@ -6,7 +6,7 @@
    [control
     ["[0]" io]]
    [concurrency
-    ["[0]" future (.only Future) (.use monad)]]
+    ["[0]" future (.only Future) (.open monad)]]
    [error
     ["[0]" try]
     ["[0]" exception]]
@@ -131,11 +131,11 @@
                                     "--manifest" (path.correct (its android.:manifest android))
                                     "--auto-add-overlay")]))
          [manifest resources] (future.soon (zip.with apk_from_aapt2
-                                             (function (_ zip_file)
-                                               (monad.let (try.with io.monad)
-                                                 [manifest (zip.in ..file_of_manifest zip_file)
-                                                  resources (zip.in ..file_of_resources zip_file)]
-                                                 (pure [manifest resources])))))
+                                                     (function (_ zip_file)
+                                                       (monad.let (try.with io.monad)
+                                                         [manifest (zip.in ..file_of_manifest zip_file)
+                                                          resources (zip.in ..file_of_resources zip_file)]
+                                                         (pure [manifest resources])))))
          _ (by fs delete apk_from_aapt2)
          module_zip (comment "Step 3: Make module for bundle."
                              (future:pure (zip.file (list [(text "dex" / ..file_of_dex)

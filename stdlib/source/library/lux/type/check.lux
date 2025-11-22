@@ -8,7 +8,7 @@
    [control
     ["[0]" state]]
    [error
-    ["[0]" try (.only Try) (.use functor)]
+    ["[0]" try (.only Try) (.open functor)]
     ["[0]" exception (.only Exception)]]
    [function
     [predicate (.only Predicate)]
@@ -16,17 +16,17 @@
    [data
     ["[0]" maybe]
     ["[0]" pair]
-    ["[0]" text (.use monoid)]
+    ["[0]" text (.open monoid)]
     [collection
-     ["[0]" list (.use monoid)]
-     ["[0]" stack (.use mix)]
+     ["[0]" list (.open monoid)]
+     ["[0]" stack (.open mix)]
      ["[0]" set (.only Set)]]]
    [logic
     ["[0]" bit]]
    [math
     [number
      ["[0]" /64 (.only)
-      ["n" natural (.use base_10)]]]]
+      ["n" natural (.open base_10)]]]]
    [macro
     ["^" pattern]
     ["[0]" template]]
@@ -64,7 +64,7 @@
   (Functor Check)
   (by ..monad functor))
 
-(use "/:[0]" ..monad)
+(.open "/:[0]" ..monad)
 
 ... https://en.wikipedia.org/wiki/Hypothesis
 (every Hypothesis
@@ -379,17 +379,17 @@
                         (pure hypotheses))))
 
                 (,, (template.with [<pattern> <id> <type>]
-                      [<pattern>
-                       (monad.let !
-                         [ring (..ring <id>)
-                          _ (stack.each' ! (function (_ variable)
-                                             (..changed variable (environment.bound <type>)))
-                                         ring)]
-                         (pure hypotheses))]
+                                   [<pattern>
+                                    (monad.let !
+                                      [ring (..ring <id>)
+                                       _ (stack.each' ! (function (_ variable)
+                                                          (..changed variable (environment.bound <type>)))
+                                                      ring)]
+                                      (pure hypotheses))]
 
-                      [[[{.:Variable .general _} _] idE atype]
-                       [[_ {.:Variable .general _}] idA etype]]
-                      ))
+                                   [[[{.:Variable .general _} _] idE atype]
+                                    [[_ {.:Variable .general _}] idA etype]]
+                                   ))
                 
                 _
                 (complete [hypotheses etype atype])))))))
@@ -588,18 +588,18 @@
              _
              (when [super_abstraction sub_abstraction]
                (,, (template.with [<fE> <fA>]
-                     [[<fE> <fA>]
-                      (reification_on_reification complete
-                                                  [hypotheses
-                                                   [super_parameter <fE>]
-                                                   [sub_parameter <fA>]])]
+                                  [[<fE> <fA>]
+                                   (reification_on_reification complete
+                                                               [hypotheses
+                                                                [super_parameter <fE>]
+                                                                [sub_parameter <fA>]])]
 
-                     [[fE {.:Variable .special ex}]
-                      [{.:Variable .special exE} fA]
-                      
-                      [fE {.:Variable .general idA}]
-                      [{.:Variable .general idE} fA]]
-                     ))
+                                  [[fE {.:Variable .special ex}]
+                                   [{.:Variable .special exE} fA]
+                                   
+                                   [fE {.:Variable .general idA}]
+                                   [{.:Variable .general idE} fA]]
+                                  ))
 
                _
                (super_reification complete hypotheses super_parameter super_abstraction sub))))
@@ -616,27 +616,27 @@
       (template.macro (_ hypotheses complete)
         [... TODO: Refactor-away as cold-code
          (,, (template.with [<tag> <instancer>]
-               [[{.:Quantification <tag> _} _]
-                (monad.let ..monad
-                  [[_ paramT] <instancer>
-                   super' (..of (list paramT) super)]
-                  (complete [hypotheses super' sub]))]
+                            [[{.:Quantification <tag> _} _]
+                             (monad.let ..monad
+                               [[_ paramT] <instancer>
+                                super' (..of (list paramT) super)]
+                               (complete [hypotheses super' sub]))]
 
-               [[.universal ..existential]
-                [.existential ..var]]
-               ))
+                            [[.universal ..existential]
+                             [.existential ..var]]
+                            ))
 
          ... TODO: Refactor-away as cold-code
          (,, (template.with [<tag> <instancer>]
-               [[_ {.:Quantification <tag> _}]
-                (monad.let ..monad
-                  [[_ paramT] <instancer>
-                   sub' (..of (list paramT) sub)]
-                  (complete [hypotheses super sub']))]
+                            [[_ {.:Quantification <tag> _}]
+                             (monad.let ..monad
+                               [[_ paramT] <instancer>
+                                sub' (..of (list paramT) sub)]
+                               (complete [hypotheses super sub']))]
 
-               [[.universal ..var]
-                [.existential ..existential]]
-               ))])))
+                            [[.universal ..var]
+                             [.existential ..existential]]
+                            ))])))
 
 (the subsumption
   (Checker Type)

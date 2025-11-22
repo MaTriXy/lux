@@ -9,14 +9,14 @@
    [control
     ["[0]" io]]
    [error
-    ["[0]" try (.use functor)]
+    ["[0]" try (.open functor)]
     ["[0]" exception]]
    [data
     ["[0]" text (.only)
      ["%" \\injection]]
     [collection
      ["[0]" array]
-     ["[0]" list (.use functor)
+     ["[0]" list (.open functor)
       ["?[1]" \\projection]]]]
    [logic
     ["[0]" bit]]
@@ -61,16 +61,16 @@
      sample_natural random.natural
      sample_revolution random.revolution]
     (pure (`` (and (,, (template.with [<type> <injection> <sample>]
-                         [(|> (/.representation <type> <sample>)
-                              (try:each (text.= (<injection> <sample>)))
-                              (try.else false))]
+                                      [(|> (/.representation <type> <sample>)
+                                           (try:each (text.= (<injection> <sample>)))
+                                           (try.else false))]
 
-                         [[Bit bit.as_text sample_bit]
-                          [Natural %.natural sample_natural]
-                          [Integer %.integer sample_integer]
-                          [Revolution %.revolution sample_revolution]
-                          [Real %.real sample_real]
-                          [Text %.text sample_text]]))
+                                      [[Bit bit.as_text sample_bit]
+                                       [Natural %.natural sample_natural]
+                                       [Integer %.integer sample_integer]
+                                       [Revolution %.revolution sample_revolution]
+                                       [Real %.real sample_real]
+                                       [Text %.text sample_text]]))
                    )))))
 
 (the can_represent_structure_types
@@ -91,17 +91,17 @@
                      {try.:Failure error}
                      false)
                    (,, (template.with [<lefts> <right?> <value> <injection>]
-                         [(|> (/.representation (type (Or Bit Integer Real))
-                                                (is (Or Bit Integer Real)
-                                                    {<lefts> <right?> <value>}))
-                              (try:each (text.= (text "{" (%.natural <lefts>)
-                                                      " " (bit.as_text <right?>)
-                                                      " " (<injection> <value>) "}")))
-                              (try.else false))]
+                                      [(|> (/.representation (type (Or Bit Integer Real))
+                                                             (is (Or Bit Integer Real)
+                                                                 {<lefts> <right?> <value>}))
+                                           (try:each (text.= (text "{" (%.natural <lefts>)
+                                                                   " " (bit.as_text <right?>)
+                                                                   " " (<injection> <value>) "}")))
+                                           (try.else false))]
 
-                         [[0 0b sample_bit bit.as_text]
-                          [1 0b sample_integer %.integer]
-                          [1 1b sample_real %.real]]))
+                                      [[0 0b sample_bit bit.as_text]
+                                       [1 0b sample_integer %.integer]
+                                       [1 1b sample_real %.real]]))
                    )))))
 
 (the can_represent_complex_types
@@ -113,15 +113,15 @@
      sample_type ($//type.random 0)
      sample_code $//code.random]
     (pure (`` (and (,, (template.with [<type> <injection> <sample>]
-                         [(|> (/.representation <type> <sample>)
-                              (try:each (text.= (<injection> <sample>)))
-                              (try.else false))]
+                                      [(|> (/.representation <type> <sample>)
+                                           (try:each (text.= (<injection> <sample>)))
+                                           (try.else false))]
 
-                         [[Fraction fraction.as_text sample_fraction]
-                          [Name name.as_text sample_name]
-                          [Provenance provenance.as_text sample_provenance]
-                          [Code code.as_text sample_code]
-                          [Type type.as_text sample_type]]))
+                                      [[Fraction fraction.as_text sample_fraction]
+                                       [Name name.as_text sample_name]
+                                       [Provenance provenance.as_text sample_provenance]
+                                       [Code code.as_text sample_code]
+                                       [Type type.as_text sample_type]]))
                    )))))
 
 (the representation
@@ -148,12 +148,12 @@
                         (try:each (text.= (list.as_text %.natural (list sample_natural))))
                         (try.else false))
                     (,, (template.with [<sample>]
-                          [(|> (/.representation (type (Maybe Natural)) (is (Maybe Natural) <sample>))
-                               (try:each (text.= (%.maybe %.natural <sample>)))
-                               (try.else false))]
-                          
-                          [[{.:Some sample_natural}]
-                           [{.:None}]]))
+                                       [(|> (/.representation (type (Maybe Natural)) (is (Maybe Natural) <sample>))
+                                            (try:each (text.= (%.maybe %.natural <sample>)))
+                                            (try.else false))]
+                                       
+                                       [[{.:Some sample_natural}]
+                                        [{.:None}]]))
                     )))
          (_.coverage [/.cannot_represent_value]
            (when (/.representation (-> Natural Natural) (|>>))
@@ -173,12 +173,12 @@
      sample_text (random.upper_cased 10)]
     (_.coverage [/.inspection]
       (`` (and (,, (template.with [<injection> <sample>]
-                     [(text.= (<injection> <sample>) (/.inspection <sample>))]
+                                  [(text.= (<injection> <sample>) (/.inspection <sample>))]
 
-                     [[bit.as_text sample_bit]
-                      [%.integer sample_integer]
-                      [%.real sample_real]
-                      [%.text sample_text]]))
+                                  [[bit.as_text sample_bit]
+                                   [%.integer sample_integer]
+                                   [%.real sample_real]
+                                   [%.text sample_text]]))
                (text.= (|> (list sample_bit sample_integer sample_real sample_text)
                            (is (List Any))
                            (list:each /.inspection)
@@ -230,7 +230,7 @@
 
                   (ffi.the sys
                     ("static" stdout io/StringIO)))
-           ... else
+
            (these))
 
 (the with_out
@@ -366,8 +366,6 @@
                (_.coverage [/.here]
                  (expansion.let [<no_parameters> (target.if target.js
                                                             (,, (these))
-
-                                                            ... else
                                                             (,, (these (/.here))))]
                    (`` (exec
                          <no_parameters>
@@ -384,15 +382,15 @@
                  true))
              (_.coverage [/.log!]
                (let [[actual_message _] (with_out
-                                          (/.log! expected_message))]
+                                         (/.log! expected_message))]
                  (text.= (text expected_message text.\n)
                          actual_message)))
              (_.coverage [/.also]
                (with (try.equality text.equality)
-                 (|> (is (Array Text)
-                         (array.empty 1))
-                     (/.also (|>> (array.has! 0 expected_message)
-                                  io.io))
-                     (array.item 0)
-                     (= {try.:Success expected_message}))))
+                     (|> (is (Array Text)
+                             (array.empty 1))
+                         (/.also (|>> (array.has! 0 expected_message)
+                                      io.io))
+                         (array.item 0)
+                         (= {try.:Success expected_message}))))
              ))))

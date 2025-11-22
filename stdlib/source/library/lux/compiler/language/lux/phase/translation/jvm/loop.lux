@@ -7,14 +7,14 @@
    [data
     ["[0]" pair]
     [collection
-     ["[0]" list (.use functor)]]]
+     ["[0]" list (.open functor)]]]
    [math
     [number
      [/64
       ["n" natural]]]]
    [target
     [jvm
-     ["_" bytecode (.only Bytecode) (.use monad)]]]]]
+     ["_" bytecode (.only Bytecode) (.open monad)]]]]]
  ["[0]" //
   ["[1][0]" runtime (.only Operation Phase Expression)]
   ["[1][0]" value]
@@ -55,17 +55,17 @@
                                          .let [storeG (_.astore register)]]
                                         (pure [fetchG storeG]))))))]
     (pure (all _.composite
-               ... It may look weird that first I fetch all the values separately,
-               ... and then I store them all.
-               ... It must be done that way in order to avoid a potential bug.
-               ... Let's say that you'll recur with 2 expressions: X and Y.
-               ... If Y depends on the value of X, and you don't perform fetches
-               ... and stores separately, then by the time Y is evaluated, it
-               ... will refer to the new value of X, instead of the old value, as
-               ... should be the case.
-               (|> updatesG
-                   (list:each pair.left)
-                   (list.complete _.monad))
+               (comment "It may look weird that first I fetch all the values separately,"
+                        "and then I store them all."
+                        "It must be done that way in order to avoid a potential bug."
+                        "Let's say that you'll recur with 2 expressions: X and Y."
+                        "If Y depends on the value of X, and you don't perform fetches"
+                        "and stores separately, then by the time Y is evaluated, it"
+                        "will refer to the new value of X, instead of the old value, as"
+                        "should be the case."
+                        (|> updatesG
+                            (list:each pair.left)
+                            (list.complete _.monad)))
                (|> updatesG
                    list.in_reverse
                    (list:each pair.right)
@@ -78,7 +78,7 @@
     [@begin //runtime.forge_label
      initsI+ (list.each' ! (next archive) initsS+)
      iterationG (translation.with_anchor [@begin offset]
-                  (next archive iterationS))
+                                         (next archive iterationS))
      .let [initializationG (list:each (function (_ [index initG])
                                         [initG (_.astore (n.+ offset index))])
                                       (list.enumeration initsI+))]]

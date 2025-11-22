@@ -12,7 +12,7 @@
     [binary (.only Binary)
      ["[0]" \\injection]]
     [collection
-     ["[0]" list (.use functor monoid)]
+     ["[0]" list (.open functor monoid)]
      ["[0]" sequence]]
     [text
      ["%" \\injection]]]
@@ -27,7 +27,7 @@
    [target
     ["[0]" jvm
      ["_" bytecode (.only Label Bytecode)]
-     ["[0]" modifier (.only Modifier) (.use monoid)]
+     ["[0]" modifier (.only Modifier) (.open monoid)]
      ["[0]" field (.only Field)]
      ["[0]" method (.only Method)]
      ["[1]/[0]" version]
@@ -83,15 +83,15 @@
   Definition)
 
 (template.with [<name> <base>]
-  [(every .public <name>
-     (<base> Anchor Value Declaration))]
+               [(every .public <name>
+                  (<base> Anchor Value Declaration))]
 
-  [[State translation.State]
-   [Operation translation.Operation]
-   [Phase translation.Phase]
-   [Handler translation.Handler]
-   [Bundle translation.Bundle]
-   [Extender translation.Extender]])
+               [[State translation.State]
+                [Operation translation.Operation]
+                [Phase translation.Phase]
+                [Handler translation.Handler]
+                [Bundle translation.Bundle]
+                [Extender translation.Extender]])
 
 (every .public (Expression i)
   (-> Phase Archive i
@@ -142,11 +142,10 @@
   (-> Value Value
       (Bytecode Any))
   (all _.composite
-       ... A
-       _.dup ... AA
-       index ... AAI
-       value ... AAIV
-       _.aastore ... A
+       _.dup
+       index
+       value
+       _.aastore
        ))
 
 (the .public unit (_.string synthesis.unit))
@@ -172,10 +171,10 @@
       .false ..variant:type
       (list)
       {.:Some (all _.composite
-                   new_variant                       ... A[3]
-                   (..set! ..variant_lefts $lefts)   ... A[3]
-                   (..set! ..variant_right? $right?) ... A[3]
-                   (..set! ..variant_value $value)   ... A[3]
+                   new_variant
+                   (..set! ..variant_lefts $lefts)
+                   (..set! ..variant_right? $right?)
+                   (..set! ..variant_value $value)
                    _.areturn)})))
 
 (the .public is_left _.aconst_null)
@@ -238,61 +237,30 @@
 (the .public head_of_stack _.iconst_0)
 (the .public tail_of_stack _.iconst_1)
 
-... (the stack:name "stack")
-... (the stack:type (type.method [(list) (list //type.stack //type.value) //type.stack (list)]))
-... (the .public stack' (..procedure ..stack:name ..stack:type))
-
-... (the stack:method
-...   (method.method ..modifier ..stack:name
-...     .false ..stack:type
-...     (list)
-...     {.:Some
-...      (let [new_stack_frame! (all _.composite
-...                                  _.iconst_2
-...                                  (_.anewarray //type.value))
-...            $head _.aload_1
-...            $tail _.aload_0]
-...        (all _.composite
-...             new_stack_frame!
-...             (..set! ..head_of_stack $head)
-...             (..set! ..tail_of_stack $tail)
-...             _.areturn))}))
-
 (the .public stack
   (let [new! (all _.composite
                   _.iconst_2
                   (_.anewarray //type.value))
         set_head! (all _.composite
-                       ... []SH
                        ..head_of_stack
-                       ... []SH@
                        _.swap
-                       ... []S@H
                        _.aastore
-                       ... []
                        )
         set_tail! (all _.composite
-                       ... []ST
                        ..tail_of_stack
-                       ... []ST@
                        _.swap
-                       ... []S@T
                        _.aastore
-                       ... []
                        )]
     (all _.composite
-         ... TH
          new!
-         ... THS
+
          _.dup_x2
          _.dup_x2
-         ... SSTHS
+
          _.swap
-         ... SSTSH
+
          set_head!
-         ... SST
          set_tail!
-         ... S
          )))
 
 (the when:name "when")
@@ -328,10 +296,9 @@
                                       (_.int (i/32.of +1))
                                       _.isub)
               super_nested (all _.composite
-                                ... lefts, sumT
-                                super_nested_lefts ... super_lefts
-                                $variant :right? ... super_lefts, super_right
-                                $variant :value ... super_lefts, super_right, super_value
+                                super_nested_lefts
+                                $variant :right?
+                                $variant :value
                                 ..variant)
 
               update_$variant (all _.composite
@@ -345,9 +312,8 @@
               again (is (-> Label (Bytecode Any))
                         (function (_ @)
                           (all _.composite
-                               ... lefts, sumT
-                               update_$variant ... lefts, sumT
-                               update_$lefts ... sub_lefts
+                               update_$variant
+                               update_$lefts
                                (_.goto @))))]]
        (all _.composite
             $lefts
@@ -355,23 +321,21 @@
             $variant :lefts
             _.dup2 (_.if_icmpeq @lefts_match!)
             _.dup2 (_.if_icmpgt @maybe_nested)
-            $right? (_.ifnull @mismatch!) ... lefts, sumT
-            super_nested                 ... super_variant
+            $right? (_.ifnull @mismatch!)
+            super_nested
             _.areturn
-            (_.set_label @lefts_match!) ... lefts, sumT
-            $right?            ... lefts, sumT, wants_right?
-            $variant :right? ... lefts, sumT, wants_right?, is_right?
-            (_.if_acmpeq @perfect_match!) ... lefts, sumT
-            (_.set_label @mismatch!) ... lefts, sumT
-            ... _.pop2
+            (_.set_label @lefts_match!)
+            $right?
+            $variant :right?
+            (_.if_acmpeq @perfect_match!)
+            (_.set_label @mismatch!)
             not_found
             _.areturn
-            (_.set_label @maybe_nested)   ... lefts, sumT
-            $variant :right?       ... lefts, sumT, right?
-            (_.ifnull @mismatch!)  ... lefts, sumT
+            (_.set_label @maybe_nested)
+            $variant :right?
+            (_.ifnull @mismatch!)
             (again @loop)
-            (_.set_label @perfect_match!) ... lefts, sumT
-            ... _.pop2
+            (_.set_label @perfect_match!)
             $variant :value
             _.areturn
             ))}))
@@ -428,7 +392,6 @@
                   $tuple :left
                   _.areturn
                   (_.set_label @recursive)
-                  ... Recursive
                   (recur @loop)))})
 
         right_of_tuple:method
@@ -458,12 +421,10 @@
                   (_.set_label @loop)
                   $last_right $right
                   _.dup2 (_.if_icmpne @not_tail)
-                  ... _.pop
                   $:nested
                   _.areturn
                   (_.set_label @not_tail)
                   (_.if_icmpgt @slice)
-                  ... Must recurse
                   (recur @loop)
                   (_.set_label @slice)
                   super_nested
@@ -519,25 +480,22 @@
 
               ^PrintWriter (type.class (list) "java.io.PrintWriter")
               print_writer (all _.composite
-                                ... WTW
-                                (_.new ^PrintWriter) ... WTWP
-                                _.dup_x1 ... WTPWP
-                                _.swap   ... WTPPW
-                                ..true   ... WTPPWZ
+                                (_.new ^PrintWriter)
+                                _.dup_x1
+                                _.swap
+                                ..true
                                 (_.invokespecial ^PrintWriter "<init>" (type.method [(list) (list (type.class (list) "java.io.Writer") type.boolean) type.void (list)]))
-                                ... WTP
                                 )
               unsafe_application (all _.composite
                                       $unsafe
                                       ..unit
                                       ..of)
               trace (all _.composite
-                         ... T
-                         string_writer          ... TW
-                         _.dup_x1               ... WTW
-                         print_writer           ... WTP
-                         (_.invokevirtual //type.error "printStackTrace" (type.method [(list) (list ^PrintWriter) type.void (list)])) ... W
-                         (_.invokevirtual ^StringWriter "toString" (type.method [(list) (list) //type.text (list)])) ... S
+                         string_writer
+                         _.dup_x1
+                         print_writer
+                         (_.invokevirtual //type.error "printStackTrace" (type.method [(list) (list ^PrintWriter) type.void (list)]))
+                         (_.invokevirtual ^StringWriter "toString" (type.method [(list) (list) //type.text (list)]))
                          )]]
        (all _.composite
             (_.try @try @handler @handler //type.error)
@@ -545,8 +503,8 @@
             unsafe_application
             ..right_case
             _.areturn
-            (_.set_label @handler) ... T
-            trace ... S
+            (_.set_label @handler)
+            trace
             (..left_case (all _.composite
                               _.dup2_x1
                               _.pop2))
@@ -581,7 +539,6 @@
 
                                           ..pm_failure:method
 
-                                          ... ..stack:method
                                           ..when:method
                                           left_of_tuple:method
                                           right_of_tuple:method
@@ -676,7 +633,7 @@
 (the .public forge_label
   (Operation Label)
   (let [shift (n./ 4 /64.width)]
-    ... This shift is done to avoid the possibility of forged labels
-    ... to be in the range of the labels that are generated automatically
-    ... during the evaluation of Bytecode expressions.
-    (by phase.monad each (|>> ++ (/64.<< shift)) translation.next)))
+    (comment "This shift is done to avoid the possibility of forged labels"
+             "to be in the range of the labels that are generated automatically"
+             "during the evaluation of Bytecode expressions."
+             (by phase.monad each (|>> ++ (/64.<< shift)) translation.next))))

@@ -9,9 +9,9 @@
     [equality (.only Equality)]
     ["[0]" monad]]
    [concurrency
-    ["[0]" future (.only Future) (.use monad)]]
+    ["[0]" future (.only Future) (.open monad)]]
    [error
-    ["[0]" try (.only Try) (.use functor)]
+    ["[0]" try (.only Try) (.open functor)]
     ["[0]" exception (.only Exception)]]
    [function
     ["[0]" predicate (.only Predicate)]]
@@ -27,7 +27,7 @@
     [collection
      ["[0]" dictionary (.only Dictionary)]
      ["[0]" set]
-     ["[0]" list (.use functor monoid)]]]
+     ["[0]" list (.open functor monoid)]]]
    [math
     [number
      [/64
@@ -60,15 +60,15 @@
     ["[1]/[0]" snapshot]]]])
 
 (template.with [<name>]
-  [(exception.the .public (<name> [artifact extension hash])
-     (Exception [Artifact Extension Text])
-     (exception.report
-      (list ["Artifact" (///artifact.as_text artifact)]
-            ["Extension" (%.text extension)]
-            ["Hash" (%.text hash)])))]
+               [(exception.the .public (<name> [artifact extension hash])
+                  (Exception [Artifact Extension Text])
+                  (exception.report
+                   (list ["Artifact" (///artifact.as_text artifact)]
+                         ["Extension" (%.text extension)]
+                         ["Hash" (%.text hash)])))]
 
-  [[sha1_does_not_match]
-   [md5_does_not_match]])
+               [[sha1_does_not_match]
+                [md5_does_not_match]])
 
 (ffi.the java/lang/String
   (trim [] java/lang/String))
@@ -182,19 +182,19 @@
          ["Type" (%.text (its //.:type dependency))])))
 
 (template.with [<sigil> <name> <doing> <at>]
-  [(the (<name> console repository artifact)
-     (-> (Console Future) (Repository Future) Artifact
-         (Future (Try Any)))
-     (by console write (text "[" <sigil> "]"
-                             " " <doing>
-                             " " (///artifact.as_text artifact)
-                             " " <at>
-                             " " (%.text (by repository description))
-                             \n)))]
+               [(the (<name> console repository artifact)
+                  (-> (Console Future) (Repository Future) Artifact
+                      (Future (Try Any)))
+                  (by console write (text "[" <sigil> "]"
+                                          " " <doing>
+                                          " " (///artifact.as_text artifact)
+                                          " " <at>
+                                          " " (%.text (by repository description))
+                                          \n)))]
 
-  [["?" announce_fetching "Fetching" "from"]
-   ["O" announce_success "Found" "at"]
-   ["X" announce_failure "Missed" "from"]])
+               [["?" announce_fetching "Fetching" "from"]
+                ["O" announce_success "Found" "at"]
+                ["X" announce_failure "Missed" "from"]])
 
 (the .public (any console repositories dependency)
   (-> (Console Future) (List (Repository Future)) Dependency

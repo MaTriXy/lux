@@ -6,20 +6,20 @@
     [order (.only Order)]
     ["[0]" monad]]
    [concurrency
-    ["[0]" future (.only Future) (.use monad)]]
+    ["[0]" future (.only Future) (.open monad)]]
    [control
     ["[0]" io (.only IO)]]
    [error
-    ["[0]" try (.only Try) (.use functor)]
+    ["[0]" try (.only Try) (.open functor)]
     ["[0]" exception]]
    [data
     ["[0]" binary (.only Binary)]
     ["[0]" pair]
-    ["[0]" maybe (.use functor)]
-    ["[0]" text (.use order)
+    ["[0]" maybe (.open functor)]
+    ["[0]" text (.open order)
      ["%" \\injection]]
     [collection
-     ["[0]" list (.use monad mix monoid)]
+     ["[0]" list (.open monad mix monoid)]
      ["[0]" dictionary (.only Dictionary)]
      ["[0]" set]]]
    [math
@@ -80,15 +80,15 @@
   "com.github.luxlang")
 
 (template.with [<dependency> <definition>]
-  [(the .public <definition>
-     Name
-     <dependency>)]
+               [(the .public <definition>
+                  Name
+                  <dependency>)]
 
-  [["lux-jvm" jvm_lux_name]
-   ["lux-js" js_lux_name]
-   ["lux-python" python_lux_name]
-   ["lux-lua" lua_lux_name]
-   ["lux-ruby" ruby_lux_name]])
+               [["lux-jvm" jvm_lux_name]
+                ["lux-js" js_lux_name]
+                ["lux-python" python_lux_name]
+                ["lux-lua" lua_lux_name]
+                ["lux-ruby" ruby_lux_name]])
 
 (exception.the .public no_available_lux)
 (exception.the .public no_specified_program)
@@ -114,15 +114,15 @@
       {.:Some dependency}
       (`` (when lux_name
             (,, (template.with [<tag> <name>]
-                  [<name>
-                   {try.:Success [(..remove_dependency dependency resolution)
-                                  {<tag> dependency}]}]
+                               [<name>
+                                {try.:Success [(..remove_dependency dependency resolution)
+                                               {<tag> dependency}]}]
 
-                  [[:JVM ..jvm_lux_name]
-                   [:JS ..js_lux_name]
-                   [:Python ..python_lux_name]
-                   [:Lua ..lua_lux_name]
-                   [:Ruby ..ruby_lux_name]]))
+                               [[:JVM ..jvm_lux_name]
+                                [:JS ..js_lux_name]
+                                [:Python ..python_lux_name]
+                                [:Lua ..lua_lux_name]
+                                [:Ruby ..ruby_lux_name]]))
             
             _
             (exception.except ..no_available_lux [])))
@@ -220,41 +220,41 @@
 (the .public failure "[BUILD FAILED]")
 
 (template.with [<name> <capability>]
-  [(the .public (<name> console process)
-     (-> (Console Future) (Process Future) (Future (Try Any)))
-     (comment "This is a very odd way of implementing this function."
-              "But it's written this way because the more straightforward way (i.e. by using (try.with future.monad))"
-              "eventually led to the function hanging/freezing."
-              "I'm not sure why it happened, but I got this weirder implementation to work."
-              "TODO: Improve this implementation."
-              (let [[read! write!] (is [(Future (Try Any))
-                                        (future.Resolver (Try Any))]
-                                       (future.future []))
-                    _ (|> (by process <capability> [])
-                          (future.upon! (function (of ?line)
-                                          (when ?line
-                                            {try.:Failure error}
-                                            (if (exception.is? shell.no_more_output error)
-                                                (write! {try.:Success []})
-                                                (future.upon! write! (is (Future (Try Any))
-                                                                         (console.write_line error console))))
-                                            
-                                            {try.:Success line}
-                                            (future.upon! (function (_ outcome)
-                                                            (when outcome
-                                                              {try.:Failure error}
-                                                              (write! {try.:Failure error})
+               [(the .public (<name> console process)
+                  (-> (Console Future) (Process Future) (Future (Try Any)))
+                  (comment "This is a very odd way of implementing this function."
+                           "But it's written this way because the more straightforward way (i.e. by using (try.with future.monad))"
+                           "eventually led to the function hanging/freezing."
+                           "I'm not sure why it happened, but I got this weirder implementation to work."
+                           "TODO: Improve this implementation."
+                           (let [[read! write!] (is [(Future (Try Any))
+                                                     (future.Resolver (Try Any))]
+                                                    (future.future []))
+                                 _ (|> (by process <capability> [])
+                                       (future.upon! (function (of ?line)
+                                                       (when ?line
+                                                         {try.:Failure error}
+                                                         (if (exception.is? shell.no_more_output error)
+                                                             (write! {try.:Success []})
+                                                             (future.upon! write! (is (Future (Try Any))
+                                                                                      (console.write_line error console))))
+                                                         
+                                                         {try.:Success line}
+                                                         (future.upon! (function (_ outcome)
+                                                                         (when outcome
+                                                                           {try.:Failure error}
+                                                                           (write! {try.:Failure error})
 
-                                                              {try.:Success _}
-                                                              (future.upon! of
-                                                                            (by process <capability> []))))
-                                                          (is (Future (Try Any))
-                                                              (console.write_line line console))))))
-                          io.value)]
-                read!)))]
+                                                                           {try.:Success _}
+                                                                           (future.upon! of
+                                                                                         (by process <capability> []))))
+                                                                       (is (Future (Try Any))
+                                                                           (console.write_line line console))))))
+                                       io.value)]
+                             read!)))]
 
-  [[log_output! read]
-   [log_error! fail]])
+               [[log_output! read]
+                [log_error! fail]])
 
 (ffi.the java/lang/System
   ("static" getProperty [java/lang/String] "io" "try" java/lang/String))
@@ -341,14 +341,14 @@
          ffi.of_string)))
 
 (template.with [,path ,name]
-  [(the .public ,name
-     file.Path
-     ,path)]
+               [(the .public ,name
+                  file.Path
+                  ,path)]
 
-  [["program.jar" jvm_artifact]
-   ["program.js" javascript_artifact]
-   ["program.py" python_artifact]
-   ["program.lua" lua_artifact]])
+               [["program.jar" jvm_artifact]
+                ["program.js" javascript_artifact]
+                ["program.py" python_artifact]
+                ["program.lua" lua_artifact]])
 
 (the .public (do! console environment fs shell resolution)
   (-> (Console Future) (Environment Future) (file.System Future) (Shell Future) Resolution (Command [Exit Lux file.Path]))
@@ -388,21 +388,21 @@
                           ..jvm_artifact])
                        
                        (,, (template.with [<tag> <runtime> <program> ,in_addition]
-                             [{<tag> dependency}
-                              [(|> dependency
-                                   (..path fs home)
-                                   (///runtime.for (its <runtime> profile))
-                                   ,in_addition)
-                               <program>]]
+                                          [{<tag> dependency}
+                                           [(|> dependency
+                                                (..path fs home)
+                                                (///runtime.for (its <runtime> profile))
+                                                ,in_addition)
+                                            <program>]]
 
-                             [[:JS ///.:js ..javascript_artifact
-                               |>]
-                              [:Python ///.:java ..python_artifact
-                               |>]
-                              [:Lua ///.:java ..lua_artifact
-                               |>]
-                              [:Ruby ///.:java (file.rooted fs "program" ruby_packager.main_file)
-                               ..with_jruby_class_path]]))))
+                                          [[:JS ///.:js ..javascript_artifact
+                                            |>]
+                                           [:Python ///.:java ..python_artifact
+                                            |>]
+                                           [:Lua ///.:java ..lua_artifact
+                                            |>]
+                                           [:Ruby ///.:java (file.rooted fs "program" ruby_packager.main_file)
+                                            ..with_jruby_class_path]]))))
                  / (by fs delimiter)
                  cache_directory (text working_directory / (its ///.:target profile))]
            _ (is (Future (Try Any))

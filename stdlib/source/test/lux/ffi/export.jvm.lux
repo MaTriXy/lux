@@ -10,7 +10,7 @@
    [logic
     ["[0]" bit]]
    [math
-    ["[0]" random (.only Random) (.use monad)]
+    ["[0]" random (.only Random) (.open monad)]
     ["[0]" number (.only)
      ["[0]" /64 (.only)
       ["[0]" integer]
@@ -38,7 +38,6 @@
 (the expected_string (//.as_string (static.random code.text (random.lower_cased 2))))
 
 (`` (`` (/.export Primitives
-                  ... Constants
                   (actual_boolean boolean ..expected_boolean)
                   (actual_byte byte ..expected_byte)
                   (actual_short short ..expected_short)
@@ -48,24 +47,23 @@
                   (actual_float float ..expected_float)
                   (actual_double double ..expected_double)
 
-                  ... Methods
                   (,, (template.with [<type> <+>]
-                        [(((,, (template.name [<type> "_method"]))
-                           [left <type>
-                            right <type>])
-                          <type>
-                          ((,, (template.name [//._] ["as_" <type>]))
-                           (<+> ((,, (template.name [//._] ["of_" <type>])) left)
-                                ((,, (template.name [//._] ["of_" <type>])) right))))]
+                                     [(((,, (template.name [<type> "_method"]))
+                                        [left <type>
+                                         right <type>])
+                                       <type>
+                                       ((,, (template.name [//._] ["as_" <type>]))
+                                        (<+> ((,, (template.name [//._] ["of_" <type>])) left)
+                                             ((,, (template.name [//._] ["of_" <type>])) right))))]
 
-                        [[boolean and]
-                         [byte integer.+]
-                         [short integer.+]
-                         [int integer.+]
-                         [long integer.+]
-                         [char integer.+]
-                         [float real.+]
-                         [double real.+]]))
+                                     [[boolean and]
+                                      [byte integer.+]
+                                      [short integer.+]
+                                      [int integer.+]
+                                      [long integer.+]
+                                      [char integer.+]
+                                      [float real.+]
+                                      [double real.+]]))
                   )))
 
 (`` (`` (//.the Primitives
@@ -79,16 +77,16 @@
           ("read_only" "static" actual_double double)
 
           (,, (template.with [<type>]
-                [("static" (,, (template.name [<type> "_method"])) [<type> <type>] <type>)]
+                             [("static" (,, (template.name [<type> "_method"])) [<type> <type>] <type>)]
 
-                [[boolean]
-                 [byte]
-                 [short]
-                 [int]
-                 [long]
-                 [char]
-                 [float]
-                 [double]]))
+                             [[boolean]
+                              [byte]
+                              [short]
+                              [int]
+                              [long]
+                              [char]
+                              [float]
+                              [double]]))
           )))
 
 (//.the java/lang/Long)
@@ -130,18 +128,18 @@
           (<| (_.covering /._)
               (monad.let [! random.monad]
                 [(,, (template.with [<type> <as> <random>]
-                       [(,, (template.name [left_ <type>])) (by ! each (|>> <as>) <random>)
-                        (,, (template.name [right_ <type>])) (by ! each (|>> <as>) <random>)]
+                                    [(,, (template.name [left_ <type>])) (by ! each (|>> <as>) <random>)
+                                     (,, (template.name [right_ <type>])) (by ! each (|>> <as>) <random>)]
 
-                       [[boolean //.as_boolean random.bit]
-                        [byte //.as_byte ..tiny_integer]
-                        [short //.as_short ..tiny_integer]
-                        [int //.as_int ..tiny_integer]
-                        [long //.as_long ..tiny_integer]
-                        [char //.as_char ..tiny_integer]
-                        [float //.as_float ..tiny_real]
-                        [double //.as_double ..tiny_real]
-                        [string //.as_string (random.lower_cased 1)]]))]
+                                    [[boolean //.as_boolean random.bit]
+                                     [byte //.as_byte ..tiny_integer]
+                                     [short //.as_short ..tiny_integer]
+                                     [int //.as_int ..tiny_integer]
+                                     [long //.as_long ..tiny_integer]
+                                     [char //.as_char ..tiny_integer]
+                                     [float //.as_float ..tiny_real]
+                                     [double //.as_double ..tiny_real]
+                                     [string //.as_string (random.lower_cased 1)]]))]
                 (all _.and
                      (_.coverage [/.export]
                        (and (bit.= (//.of_boolean ..expected_boolean) (//.of_boolean (Primitives:actual_boolean)))
@@ -154,21 +152,21 @@
                             (real.= (//.of_double ..expected_double) (//.of_double (Primitives:actual_double)))
 
                             (,, (template.with [<=> <+> <type>]
-                                  [(expansion.let [<left> (template.name ["left_" <type>])
-                                                   <right> (template.name ["right_" <type>])
-                                                   <of> (template.name [//._] ["of_" <type>])
-                                                   <method> (template.name ["Primitives:" <type> "_method"])]
-                                     (<=> (<+> (<of> <left>) (<of> <right>))
-                                          (<of> (<method> [<left> <right>]))))]
+                                               [(expansion.let [<left> (template.name ["left_" <type>])
+                                                                <right> (template.name ["right_" <type>])
+                                                                <of> (template.name [//._] ["of_" <type>])
+                                                                <method> (template.name ["Primitives:" <type> "_method"])]
+                                                  (<=> (<+> (<of> <left>) (<of> <right>))
+                                                       (<of> (<method> [<left> <right>]))))]
 
-                                  [[bit.= and boolean]
-                                   [integer.= integer.+ byte]
-                                   [integer.= integer.+ short]
-                                   [integer.= integer.+ int]
-                                   [integer.= integer.+ long]
-                                   [integer.= integer.+ char]
-                                   [real.= real.+ float]
-                                   [real.= real.+ double]]))
+                                               [[bit.= and boolean]
+                                                [integer.= integer.+ byte]
+                                                [integer.= integer.+ short]
+                                                [integer.= integer.+ int]
+                                                [integer.= integer.+ long]
+                                                [integer.= integer.+ char]
+                                                [real.= real.+ float]
+                                                [real.= real.+ double]]))
 
                             (text.= (//.of_string ..expected_string) (//.of_string (Objects:actual_string)))
                             

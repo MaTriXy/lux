@@ -5,7 +5,7 @@
     ["[0]" monad]]
    [data
     [collection
-     ["[0]" list (.use monoid functor)]]]
+     ["[0]" list (.open monoid functor)]]]
    [math
     [number
      ["[0]" /32
@@ -15,7 +15,7 @@
       ["i" integer]]]]
    [target
     [jvm
-     ["_" bytecode (.only Label Bytecode) (.use monad)]
+     ["_" bytecode (.only Label Bytecode) (.open monad)]
      ["[0]" method (.only Method)]
      [constant
       [pool (.only Resource)]]
@@ -108,9 +108,7 @@
                                                                              (list.complete _.monad))
                                                         already_partial? (n.> 0 stage)
                                                         exact_match? (i.= over_extent (.integer stage))
-                                                        has_less_than_necessary? (i.< over_extent (.integer stage))
-                                                        ... has_more_than_necessary? (i.> over_extent (.integer stage))
-                                                        ]
+                                                        has_less_than_necessary? (i.< over_extent (.integer stage))]
                                                     (all _.composite
                                                          (_.set_label @case)
                                                          (if exact_match?
@@ -144,18 +142,20 @@
                                                                     missing_partials
                                                                     (_.invokespecial class //init.name (//init.type environment_size function_arity))
                                                                     _.areturn))
-
-                                                             ... has_more_than_necessary?
-                                                             (let [arity_inputs (|> function_arity (n.- stage))
-                                                                   additional_inputs (|> of_arity (n.- arity_inputs))]
-                                                               (all _.composite
-                                                                    ////reference.this
-                                                                    (_.invokevirtual class //reset.name (//reset.type class))
-                                                                    current_partials
-                                                                    (..inputs ..this_offset arity_inputs)
-                                                                    (//implementation.call class function_arity)
-                                                                    (of (n.+ ..this_offset arity_inputs) additional_inputs)
-                                                                    _.areturn)))))))
+                                                             
+                                                             (comment has_more_than_necessary?
+                                                                      (i.> over_extent (.integer stage))
+                                                                      
+                                                                      (let [arity_inputs (|> function_arity (n.- stage))
+                                                                            additional_inputs (|> of_arity (n.- arity_inputs))]
+                                                                        (all _.composite
+                                                                             ////reference.this
+                                                                             (_.invokevirtual class //reset.name (//reset.type class))
+                                                                             current_partials
+                                                                             (..inputs ..this_offset arity_inputs)
+                                                                             (//implementation.call class function_arity)
+                                                                             (of (n.+ ..this_offset arity_inputs) additional_inputs)
+                                                                             _.areturn))))))))
                                      (list.complete _.monad))]]
                     (all _.composite
                          ////reference.this

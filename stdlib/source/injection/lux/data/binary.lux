@@ -215,31 +215,31 @@
        (-> (Injection it)
            (Injection (Sequence it))))
      (function (_ value)
-       (let [original_count (sequence.size value)
-             capped_count (/64.and (..mask <size>)
-                                   original_count)
-             value (if (n:= original_count capped_count)
-                       value
-                       (|> value
-                           sequence.as_list
-                           (list.first capped_count)
-                           sequence.of_list))
-             (open "specification:[0]") ..monoid
-             specification/* (sequence:each valueW value)
-             size (|> specification/*
-                      (by sequence.mix mix
-                          (function (_ post pre)
-                            (n.+ pre (pair.left post)))
-                          (pair.left specification:identity)))]
-         [(n:+ <size> size)
-          (function (_ [offset binary])
-            (by sequence.mix mix
-                (function (_ [_ post] pre)
-                  (post pre))
-                (|> binary
-                    (<write> offset capped_count)
-                    [(n:+ <size> offset)])
-                specification/*))])))]
+       (<| (with "specification:[0]" ..monoid)
+           (let [original_count (sequence.size value)
+                 capped_count (/64.and (..mask <size>)
+                                       original_count)
+                 value (if (n:= original_count capped_count)
+                           value
+                           (|> value
+                               sequence.as_list
+                               (list.first capped_count)
+                               sequence.of_list))
+                 specification/* (sequence:each valueW value)
+                 size (|> specification/*
+                          (by sequence.mix mix
+                              (function (_ post pre)
+                                (n.+ pre (pair.left post)))
+                              (pair.left specification:identity)))])
+           [(n:+ <size> size)
+            (function (_ [offset binary])
+              (by sequence.mix mix
+                  (function (_ [_ post] pre)
+                    (post pre))
+                  (|> binary
+                      (<write> offset capped_count)
+                      [(n:+ <size> offset)])
+                  specification/*))])))]
 
   [[sequence_08 </>.size_08 \\unsafe.has_08!]
    [sequence_16 </>.size_16 \\unsafe.has_16!]
@@ -251,20 +251,20 @@
     (-> (Injection it)
         (Injection (List it))))
   (function (_ value)
-    (let [(open "specification:[0]") ..monoid
-          specification/* (list:each it value)
-          size (|> specification/*
-                   (list.mix (function (_ post pre)
-                               (n.+ pre (pair.left post)))
-                             (pair.left specification:identity)))]
-      [(n:+ </>.size_64 size)
-       (function (_ [offset binary])
-         (list.mix (function (_ [_ post] pre)
-                     (post pre))
-                   (|> binary
-                       (\\unsafe.has_64! offset (list.size value))
-                       [(n:+ </>.size_64 offset)])
-                   specification/*))])))
+    (<| (with "specification:[0]" ..monoid)
+        (let [specification/* (list:each it value)
+              size (|> specification/*
+                       (list.mix (function (_ post pre)
+                                   (n.+ pre (pair.left post)))
+                                 (pair.left specification:identity)))])
+        [(n:+ </>.size_64 size)
+         (function (_ [offset binary])
+           (list.mix (function (_ [_ post] pre)
+                       (post pre))
+                     (|> binary
+                         (\\unsafe.has_64! offset (list.size value))
+                         [(n:+ </>.size_64 offset)])
+                     specification/*))])))
 
 (the .public maybe
   (for_any (_ it)

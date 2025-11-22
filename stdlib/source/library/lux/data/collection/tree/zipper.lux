@@ -131,7 +131,7 @@
   (<| (try.of_maybe error.not_valid)
       (monad.let maybe.monad
         [family (its :family zipper)]
-        (pure (let [(open "_[0]") family]
+        (pure (with "_[0]" family
                 (has [:node //.:children]
                      (list:composite (list.in_reverse (view.of list.stack _:lefts))
                                      (view.of list.stack {.:Top (its :node zipper)
@@ -324,13 +324,15 @@
 (the .public functor
   (Functor Zipper)
   (implementation
-   (the (each f (open "_[0]"))
-     [:family (maybe:each (function (_ (open "_[0]"))
-                            [:parent (each f _:parent)
-                             :lefts (stack:each (//:each f) _:lefts)
-                             :rights (stack:each (//:each f) _:rights)])
-                          _:family)
-      :node (//:each f _:node)])))
+   (the (each f it)
+     (with "_[0]" it
+       [:family (maybe:each (function (_ it)
+                              (with "_[0]" it
+                                [:parent (each f _:parent)
+                                 :lefts (stack:each (//:each f) _:lefts)
+                                 :rights (stack:each (//:each f) _:rights)]))
+                            _:family)
+        :node (//:each f _:node)]))))
 
 (the .public comonad
   (CoMonad Zipper)
@@ -341,18 +343,20 @@
    (the this
      (its [:node //.:value]))
 
-   (the (disjoint (open "_[0]"))
-     (let [tree_splitter (is (for_any (_ it)
-                               (-> (Tree it)
-                                   (Tree (Zipper it))))
-                             (function (tree_splitter tree)
-                               [//.:value (..zipper tree)
-                                //.:children (|> tree
-                                                 (its //.:children)
-                                                 (list:each tree_splitter))]))]
-       [:family (maybe:each (function (_ (open "_[0]"))
-                              [..:parent (disjoint _:parent)
-                               ..:lefts (stack:each tree_splitter _:lefts)
-                               ..:rights (stack:each tree_splitter _:rights)])
-                            _:family)
-        :node (tree_splitter _:node)]))))
+   (the (disjoint it)
+     (with "_[0]" it
+       (let [tree_splitter (is (for_any (_ it)
+                                 (-> (Tree it)
+                                     (Tree (Zipper it))))
+                               (function (tree_splitter tree)
+                                 [//.:value (..zipper tree)
+                                  //.:children (|> tree
+                                                   (its //.:children)
+                                                   (list:each tree_splitter))]))]
+         [:family (maybe:each (function (_ it)
+                                (with "_[0]" it
+                                  [..:parent (disjoint _:parent)
+                                   ..:lefts (stack:each tree_splitter _:lefts)
+                                   ..:rights (stack:each tree_splitter _:rights)]))
+                              _:family)
+          :node (tree_splitter _:node)])))))

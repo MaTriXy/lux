@@ -127,30 +127,32 @@
                                  integerLR))))
              ))))
 
-(the .public (spec (open "/:[0]") (open "/:[0]") random)
+(the .public (spec equality monoid random)
   (for_any (_ it)
     (-> (Equality it) (/.Monoid it) (Random it)
         Test))
-  (monad.let random.monad
-    [sample random
-     left random
-     mid random
-     right random]
-    (<| (_.for [/.Monoid])
-        (all _.and
-             (_.coverage [/.identity]
-               (let [left_identity!
-                     (/:= sample
-                          (/:composite /:identity sample))
-                     
-                     right_identity!
-                     (/:= sample
-                          (/:composite sample /:identity))]
-                 (and left_identity!
-                      right_identity!)))
-             (_.coverage [/.composite]
-               (let [associativity!
-                     (/:= (/:composite left (/:composite mid right))
-                          (/:composite (/:composite left mid) right))]
-                 (and associativity!)))
-             ))))
+  (<| (with "/:[0]" equality)
+      (with "/:[0]" monoid)
+      (_.for [/.Monoid])
+      (monad.let random.monad
+        [sample random
+         left random
+         mid random
+         right random])
+      (all _.and
+           (_.coverage [/.identity]
+             (let [left_identity!
+                   (/:= sample
+                        (/:composite /:identity sample))
+                   
+                   right_identity!
+                   (/:= sample
+                        (/:composite sample /:identity))]
+               (and left_identity!
+                    right_identity!)))
+           (_.coverage [/.composite]
+             (let [associativity!
+                   (/:= (/:composite left (/:composite mid right))
+                        (/:composite (/:composite left mid) right))]
+               (and associativity!)))
+           )))

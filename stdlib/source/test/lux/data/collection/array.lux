@@ -79,28 +79,28 @@
      the_array (random.array size random.natural)
      evens (random.array size (random.only n.even? random.natural))]
     (all _.and
-         (let [(open "/:[0]") /.functor
-               choice (is (-> (Predicate Natural) Natural
-                              (Maybe Text))
-                          (function (_ valid? value)
-                            (if (valid? value)
-                                {.:Some (by n.base_10 as value)}
-                                {.:None})))]
-           (all _.and
-                (_.coverage [/.one]
-                  (when [(|> evens
-                             (/:each (by n.base_10 as))
-                             (/.item 0))
-                         (/.one (choice n.even?) evens)]
-                    [{try.:Success expected} {try.:Success actual}]
-                    (text.= expected actual)
+         (<| (with "/:[0]" /.functor)
+             (let [choice (is (-> (Predicate Natural) Natural
+                                  (Maybe Text))
+                              (function (_ valid? value)
+                                (if (valid? value)
+                                    {.:Some (by n.base_10 as value)}
+                                    {.:None})))])
+             (all _.and
+                  (_.coverage [/.one]
+                    (when [(|> evens
+                               (/:each (by n.base_10 as))
+                               (/.item 0))
+                           (/.one (choice n.even?) evens)]
+                      [{try.:Success expected} {try.:Success actual}]
+                      (text.= expected actual)
 
-                    [{try.:Failure _} {try.:Failure _}]
-                    true
+                      [{try.:Failure _} {try.:Failure _}]
+                      true
 
-                    _
-                    false))
-                ))
+                      _
+                      false))
+                  ))
          (_.coverage [/.example]
            (by (maybe.equality n.equality) =
                (/.example n.even? the_array)
@@ -432,18 +432,18 @@
                             (list.of_array {.:None})
                             (by (list.equality n.equality) = evens))))))
              (_.coverage [/.array]
-               (expansion.let [<expected_size> (static.random code.natural
-                                                              (random:each (n.% 10) random.natural))
-                               <elements> (static.random (|>> (list:each code.natural)
-                                                              code.tuple)
-                                                         (random.list <expected_size> random.natural))]
-                 (let [it (is (.Array Natural)
-                              (`` (/.array (,, (template.spliced <elements>)))))
-                       (open "list:[0]") (list.equality n.equality)]
+               (<| (expansion.let [<expected_size> (static.random code.natural
+                                                                  (random:each (n.% 10) random.natural))
+                                   <elements> (static.random (|>> (list:each code.natural)
+                                                                  code.tuple)
+                                                             (random.list <expected_size> random.natural))])
+                   (with "list:[0]" (list.equality n.equality))
+                   (let [it (is (.Array Natural)
+                                (`` (/.array (,, (template.spliced <elements>)))))])
                    (and (n.= <expected_size> (/.size it))
                         (list:= (is (List Natural)
                                     (`` (list (,, (template.spliced <elements>)))))
-                                (list.of_array {.:None} it))))))
+                                (list.of_array {.:None} it)))))
 
              ..test|unsafe
              ))))

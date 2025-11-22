@@ -163,103 +163,103 @@
       (monad.let [! random.monad]
         [[size sample] (//.tree random.natural)
          expected random.natural
-         dummy (random.only (|>> (n.= expected) not) random.natural)
-         .let [(open "tree:[0]") (tree.equality n.equality)]]
-        (all _.and
-             (_.for [/.equality]
-                    (equalityT.spec (/.equality n.equality) (by ! each (|>> pair.right /.zipper) (//.tree random.natural))))
-             (_.for [/.functor]
-                    (functorT.spec (|>> tree.leaf /.zipper) /.equality /.functor))
-             (_.for [/.comonad]
-                    (comonadT.spec (|>> tree.leaf /.zipper) /.equality /.comonad))
-             
-             (_.coverage [/.zipper /.tree]
-               (|> sample /.zipper /.tree (tree:= sample)))
-             (_.coverage [/.start?]
-               (|> sample /.zipper /.start?))
-             (_.coverage [/.leaf?]
-               (/.leaf? (/.zipper (tree.leaf expected))))
-             (_.coverage [/.branch?]
-               (and (/.branch? (/.zipper (tree.branch expected (list (tree.leaf expected)))))
-                    (not (/.branch? (/.zipper (tree.branch expected (list)))))))
-             (_.coverage [/.value]
-               (and (n.= expected (/.value (/.zipper (tree.leaf expected))))
-                    (n.= expected (/.value (/.zipper (tree.branch expected (list (tree.leaf expected))))))))
-             (_.coverage [/.set]
-               (|> (/.zipper (tree.leaf dummy))
-                   (/.set expected)
-                   /.value
-                   (n.= expected)))
-             (_.coverage [/.update]
-               (|> (/.zipper (tree.leaf expected))
-                   (/.update ++)
-                   /.value
-                   (n.= (++ expected))))
-             ..move
-             (_.coverage [/.end?]
-               (or (/.end? (/.zipper sample))
-                   (|> sample
-                       /.zipper
-                       /.end
-                       (maybe:each /.end?)
-                       (maybe.else false))))
-             (_.coverage [/.interpose]
-               (let [cursor (|> (tree.branch dummy (list (tree.leaf dummy)))
-                                /.zipper
-                                (/.interpose expected))]
-                 (and (n.= dummy (/.value cursor))
-                      (|> cursor
-                          (pipe.with_monad maybe.monad
-                            [/.down]
-                            [/.value (n.= expected) pure])
-                          (maybe.else false))
-                      (|> cursor
-                          (pipe.with_monad maybe.monad
-                            [/.down]
-                            [/.down]
-                            [/.value (n.= dummy) pure])
-                          (maybe.else false)))))
-             (_.coverage [/.adopt]
-               (let [cursor (|> (tree.branch dummy (list (tree.leaf dummy)))
-                                /.zipper
-                                (/.adopt expected))]
-                 (and (n.= dummy (/.value cursor))
-                      (|> cursor
-                          (pipe.with_monad maybe.monad
-                            [/.down]
-                            [/.value (n.= expected) pure])
-                          (maybe.else false))
-                      (|> cursor
-                          (pipe.with_monad maybe.monad
-                            [/.down]
-                            [/.right]
-                            [/.value (n.= dummy) pure])
-                          (maybe.else false)))))
-             (_.coverage [/.insert_left]
-               (|> (tree.branch dummy (list (tree.leaf dummy)))
-                   /.zipper
-                   (pipe.with_monad maybe.monad
-                     [/.down]
-                     [(/.insert_left expected)]
-                     [/.left]
-                     [/.value (n.= expected) pure])
-                   (maybe.else false)))
-             (_.coverage [/.insert_right]
-               (|> (tree.branch dummy (list (tree.leaf dummy)))
-                   /.zipper
-                   (pipe.with_monad maybe.monad
-                     [/.down]
-                     [(/.insert_right expected)]
-                     [/.right]
-                     [/.value (n.= expected) pure])
-                   (maybe.else false)))
-             (_.coverage [/.remove]
-               (|> (tree.branch dummy (list (tree.leaf dummy)))
-                   /.zipper
-                   (pipe.with_monad maybe.monad
-                     [/.down]
-                     [(/.insert_left expected)]
-                     [/.remove]
-                     [/.value (n.= expected) pure])
-                   (maybe.else false)))
-             ))))
+         dummy (random.only (|>> (n.= expected) not) random.natural)])
+      (with "tree:[0]" (tree.equality n.equality))
+      (all _.and
+           (_.for [/.equality]
+                  (equalityT.spec (/.equality n.equality) (by ! each (|>> pair.right /.zipper) (//.tree random.natural))))
+           (_.for [/.functor]
+                  (functorT.spec (|>> tree.leaf /.zipper) /.equality /.functor))
+           (_.for [/.comonad]
+                  (comonadT.spec (|>> tree.leaf /.zipper) /.equality /.comonad))
+           
+           (_.coverage [/.zipper /.tree]
+             (|> sample /.zipper /.tree (tree:= sample)))
+           (_.coverage [/.start?]
+             (|> sample /.zipper /.start?))
+           (_.coverage [/.leaf?]
+             (/.leaf? (/.zipper (tree.leaf expected))))
+           (_.coverage [/.branch?]
+             (and (/.branch? (/.zipper (tree.branch expected (list (tree.leaf expected)))))
+                  (not (/.branch? (/.zipper (tree.branch expected (list)))))))
+           (_.coverage [/.value]
+             (and (n.= expected (/.value (/.zipper (tree.leaf expected))))
+                  (n.= expected (/.value (/.zipper (tree.branch expected (list (tree.leaf expected))))))))
+           (_.coverage [/.set]
+             (|> (/.zipper (tree.leaf dummy))
+                 (/.set expected)
+                 /.value
+                 (n.= expected)))
+           (_.coverage [/.update]
+             (|> (/.zipper (tree.leaf expected))
+                 (/.update ++)
+                 /.value
+                 (n.= (++ expected))))
+           ..move
+           (_.coverage [/.end?]
+             (or (/.end? (/.zipper sample))
+                 (|> sample
+                     /.zipper
+                     /.end
+                     (maybe:each /.end?)
+                     (maybe.else false))))
+           (_.coverage [/.interpose]
+             (let [cursor (|> (tree.branch dummy (list (tree.leaf dummy)))
+                              /.zipper
+                              (/.interpose expected))]
+               (and (n.= dummy (/.value cursor))
+                    (|> cursor
+                        (pipe.with_monad maybe.monad
+                          [/.down]
+                          [/.value (n.= expected) pure])
+                        (maybe.else false))
+                    (|> cursor
+                        (pipe.with_monad maybe.monad
+                          [/.down]
+                          [/.down]
+                          [/.value (n.= dummy) pure])
+                        (maybe.else false)))))
+           (_.coverage [/.adopt]
+             (let [cursor (|> (tree.branch dummy (list (tree.leaf dummy)))
+                              /.zipper
+                              (/.adopt expected))]
+               (and (n.= dummy (/.value cursor))
+                    (|> cursor
+                        (pipe.with_monad maybe.monad
+                          [/.down]
+                          [/.value (n.= expected) pure])
+                        (maybe.else false))
+                    (|> cursor
+                        (pipe.with_monad maybe.monad
+                          [/.down]
+                          [/.right]
+                          [/.value (n.= dummy) pure])
+                        (maybe.else false)))))
+           (_.coverage [/.insert_left]
+             (|> (tree.branch dummy (list (tree.leaf dummy)))
+                 /.zipper
+                 (pipe.with_monad maybe.monad
+                   [/.down]
+                   [(/.insert_left expected)]
+                   [/.left]
+                   [/.value (n.= expected) pure])
+                 (maybe.else false)))
+           (_.coverage [/.insert_right]
+             (|> (tree.branch dummy (list (tree.leaf dummy)))
+                 /.zipper
+                 (pipe.with_monad maybe.monad
+                   [/.down]
+                   [(/.insert_right expected)]
+                   [/.right]
+                   [/.value (n.= expected) pure])
+                 (maybe.else false)))
+           (_.coverage [/.remove]
+             (|> (tree.branch dummy (list (tree.leaf dummy)))
+                 /.zipper
+                 (pipe.with_monad maybe.monad
+                   [/.down]
+                   [(/.insert_left expected)]
+                   [/.remove]
+                   [/.value (n.= expected) pure])
+                 (maybe.else false)))
+           )))

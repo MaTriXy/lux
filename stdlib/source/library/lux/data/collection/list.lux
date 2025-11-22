@@ -199,56 +199,59 @@
                   (of (++ index)))
                 it)))))
 
-(the .public (complete (open "/:[0]") it)
+(the .public (complete monad it)
   (for_any (_ ! it)
     (-> (Monad !) (List (! it))
         (! (List it))))
-  (let [limit (.list_size# it)
-        value (/.empty limit)]
-    (loop (of [position 0])
-      (if (n.< limit position)
-          (|> it
-              (.list_item# position)
-              (/:each (function (_ item)
-                        (exec
-                          (/.has! position item value)
-                          (of (++ position)))))
-              /:conjoint)
-          (/:pure (..of value))))))
+  (with "/:[0]" monad
+    (let [limit (.list_size# it)
+          value (/.empty limit)]
+      (loop (of [position 0])
+        (if (n.< limit position)
+            (|> it
+                (.list_item# position)
+                (/:each (function (_ item)
+                          (exec
+                            (/.has! position item value)
+                            (of (++ position)))))
+                /:conjoint)
+            (/:pure (..of value)))))))
 
-(the .public (each' (open "/:[0]") on it)
+(the .public (each' monad on it)
   (for_any (_ ! before after)
     (-> (Monad !)
         (-> before
             (! after))
         (-> (List before)
             (! (List after)))))
-  (let [limit (.list_size# it)
-        value (/.empty limit)]
-    (loop (of [position 0])
-      (if (n.< limit position)
-          (|> it
-              (.list_item# position)
-              on
-              (/:each (function (_ item)
-                        (exec
-                          (/.has! position item value)
-                          (of (++ position)))))
-              /:conjoint)
-          (/:pure (..of value))))))
+  (with "/:[0]" monad
+    (let [limit (.list_size# it)
+          value (/.empty limit)]
+      (loop (of [position 0])
+        (if (n.< limit position)
+            (|> it
+                (.list_item# position)
+                on
+                (/:each (function (_ item)
+                          (exec
+                            (/.has! position item value)
+                            (of (++ position)))))
+                /:conjoint)
+            (/:pure (..of value)))))))
 
-(the .public (mix' (open "/:[0]") on initial_state it)
+(the .public (mix' monad on initial_state it)
   (for_any (_ ! it state)
     (-> (Monad !) (-> it state (! state)) state (List it)
         (! state)))
-  (let [limit (.list_size# it)]
-    (loop (of [position 0
-               state initial_state])
-      (if (n.< limit position)
-          (|> (on (.list_item# position it) state)
-              (/:each (of (++ position)))
-              /:conjoint)
-          (/:pure state)))))
+  (with "/:[0]" monad
+    (let [limit (.list_size# it)]
+      (loop (of [position 0
+                 state initial_state])
+        (if (n.< limit position)
+            (|> (on (.list_item# position it) state)
+                (/:each (of (++ position)))
+                /:conjoint)
+            (/:pure state))))))
 
 (the .public (repeated amount it)
   (for_any (_ it)
@@ -283,7 +286,7 @@
   (for_any (_ ! it)
     (-> (Monad !) (-> it (! Bit)) (List it)
         (! (List it))))
-  (let [(open "/:[0]") !]
+  (with "/:[0]" !
     (|> it
         (each' ! (function (_ item)
                    (/:each (|>> [item]) (? item))))

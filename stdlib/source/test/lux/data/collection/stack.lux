@@ -81,44 +81,44 @@
 
 (the whole
   Test
-  (monad.let [! random.monad]
-    [size ..bounded_size
-     .let [(open "/:[0]") (/.equality n.equality)]
-     sample (by ! each (|>> set.as_list (view.as list.stack)) (random.set n.hash size random.natural))
-     expected_head random.natural
-     expected_neck random.natural]
-    (all _.and
-         (_.coverage [/.size]
-           (n.= size (/.size sample)))
-         (_.coverage [/.empty?]
-           (by bit.equality =
-               (/.empty? sample)
-               (n.= 0 (/.size sample))))
-         (_.coverage [/.in_reverse]
-           (or (n.< 2 (/.size sample))
-               (let [not_same!
-                     (not (/:= sample
-                               (/.in_reverse sample)))
+  (<| (with "/:[0]" (/.equality n.equality))
+      (monad.let [! random.monad]
+        [size ..bounded_size
+         sample (by ! each (|>> set.as_list (view.as list.stack)) (random.set n.hash size random.natural))
+         expected_head random.natural
+         expected_neck random.natural])
+      (all _.and
+           (_.coverage [/.size]
+             (n.= size (/.size sample)))
+           (_.coverage [/.empty?]
+             (by bit.equality =
+                 (/.empty? sample)
+                 (n.= 0 (/.size sample))))
+           (_.coverage [/.in_reverse]
+             (or (n.< 2 (/.size sample))
+                 (let [not_same!
+                       (not (/:= sample
+                                 (/.in_reverse sample)))
 
-                     self_symmetry!
-                     (/:= sample
-                          (/.in_reverse (/.in_reverse sample)))]
-                 (and not_same!
-                      self_symmetry!))))
-         (_.coverage [/.every? /.any?]
-           (if (/.every? n.even? sample)
-               (not (/.any? (predicate.complement n.even?) sample))
-               (/.any? (predicate.complement n.even?) sample)))
-         (_.coverage [/.partial]
-           (when (/.partial expected_head expected_neck sample)
-             (/.partial actual_head actual_neck actual_sample)
-             (and (identical? expected_head actual_head)
-                  (identical? expected_neck actual_neck)
-                  (identical? sample actual_sample))
+                       self_symmetry!
+                       (/:= sample
+                            (/.in_reverse (/.in_reverse sample)))]
+                   (and not_same!
+                        self_symmetry!))))
+           (_.coverage [/.every? /.any?]
+             (if (/.every? n.even? sample)
+                 (not (/.any? (predicate.complement n.even?) sample))
+                 (/.any? (predicate.complement n.even?) sample)))
+           (_.coverage [/.partial]
+             (when (/.partial expected_head expected_neck sample)
+               (/.partial actual_head actual_neck actual_sample)
+               (and (identical? expected_head actual_head)
+                    (identical? expected_neck actual_neck)
+                    (identical? sample actual_sample))
 
-             else
-             false))
-         )))
+               else
+               false))
+           )))
 
 (the domain
   Test
@@ -139,14 +139,14 @@
 
 (the slice
   Test
-  (let [(open "/:[0]") (/.equality n.equality)
-        (open "/:[0]") /.monoid]
-    (monad.let [! random.monad]
-      [sample (random.only (|>> /.size (n.> 0))
-                           ..random)
-       .let [size (/.size sample)]
-       idx (by ! each (n.% size) random.natural)
-       sub_size (by ! each (|>> (n.% size) ++) random.natural)]
+  (<| (with "/:[0]" (/.equality n.equality))
+      (with "/:[0]" /.monoid)
+      (monad.let [! random.monad]
+        [sample (random.only (|>> /.size (n.> 0))
+                             ..random)
+         .let [size (/.size sample)]
+         idx (by ! each (n.% size) random.natural)
+         sub_size (by ! each (|>> (n.% size) ++) random.natural)])
       (all _.and
            (_.coverage [/.only]
              (let [positives (/.only n.even? sample)
@@ -161,11 +161,11 @@
              (let [[left right] (/.split_when n.even? sample)]
                (/:= sample
                     (/:composite left right))))
-           ))))
+           )))
 
 (the member
   Test
-  (let [(open "/:[0]") (/.equality n.equality)]
+  (with "/:[0]" (/.equality n.equality)
     (monad.let [! random.monad]
       [sample ..random]
       (`` (all _.and
@@ -201,15 +201,14 @@
 
 (the search
   Test
-  (let [(open "/:[0]") /.functor
-        
-        choice (is (-> Natural (Maybe Text))
-                   (function (_ value)
-                     (if (n.even? value)
-                         {.:Some (by n.base_10 as value)}
-                         {.:None})))]
-    (monad.let [! random.monad]
-      [sample ..random]
+  (<| (with "/:[0]" /.functor)
+      (let [choice (is (-> Natural (Maybe Text))
+                       (function (_ value)
+                         (if (n.even? value)
+                             {.:Some (by n.base_10 as value)}
+                             {.:None})))])
+      (monad.let [! random.monad]
+        [sample ..random])
       (all _.and
            (_.coverage [/.one]
              (when [(|> sample
@@ -266,7 +265,7 @@
                                       (|>> (n.+ difference)
                                            (by pure.monad pure))
                                       expected)))))))
-           ))))
+           )))
 
 (the .public test
   Test

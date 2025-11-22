@@ -48,17 +48,19 @@
             {try.:Failure error}
             false)))))
 
-(the .public (spec (open "/:[0]") (open "/:[0]") generator)
+(the .public (spec equality format generator)
   (for_any (_ m a)
     (-> (Equality a) (/.Format m a) (Random a)
         Test))
-  (monad.let random.monad
-    [expected generator]
-    (_.for [/.Format]
-           (_.coverage [/.as /.of]
-             (when (|> expected /:as /:of)
-               {try.:Success actual}
-               (/:= expected actual)
-               
-               {try.:Failure _}
-               false)))))
+  (<| (with "/:[0]" equality)
+      (with "/:[0]" format)
+      (_.for [/.Format])
+      (monad.let random.monad
+        [expected generator])
+      (_.coverage [/.as /.of]
+        (when (|> expected /:as /:of)
+          {try.:Success actual}
+          (/:= expected actual)
+          
+          {try.:Failure _}
+          false))))

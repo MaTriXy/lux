@@ -112,35 +112,35 @@
                                        (_.item (_.int +0)))
                                    road)})
 
-        ... Extra optimization
         (synthesis.path/seq
          (synthesis.left_member 0)
          (synthesis.!bind_top register then))
-        (monad.let phase.monad
-          [then! (of then)]
-          (pure {.:Some (all _.then
-                             (_.constant (reference.local register)
-                                         runtime.value_type
-                                         (|> (runtime.peek road)
-                                             runtime.tuple_values
-                                             (_.item (_.int +0))))
-                             then!)}))
+        (comment "Extra optimization"
+                 (monad.let phase.monad
+                   [then! (of then)]
+                   (pure {.:Some (all _.then
+                                      (_.constant (reference.local register)
+                                                  runtime.value_type
+                                                  (|> (runtime.peek road)
+                                                      runtime.tuple_values
+                                                      (_.item (_.int +0))))
+                                      then!)})))
 
-        ... Extra optimization
         (,, (template.with [<pm> <getter>]
               [(synthesis.path/seq
                 (<pm> lefts)
                 (synthesis.!bind_top register then))
-               (monad.let phase.monad
-                 [then! (of then)]
-                 (pure {.:Some (all _.then
-                                    (_.constant (reference.local register)
-                                                runtime.value_type
-                                                (|> (runtime.peek road)
-                                                    (runtime.host_value runtime.tuple_type)
-                                                    _.at
-                                                    (<getter> (_.int (.int lefts)))))
-                                    then!)}))]
+               (comment "Extra optimization"
+                        (monad.let phase.monad
+                          [then! (of then)]
+                          (pure {.:Some (all _.then
+                                             (_.constant (reference.local register)
+                                                         runtime.value_type
+                                                         (|> (runtime.peek road)
+                                                             (runtime.host_value runtime.tuple_type)
+                                                             _.at
+                                                             (<getter> (_.int (.int lefts)))))
+                                             then!)})))]
 
               [[synthesis.left_member  runtime.left]
                [synthesis.right_member runtime.right]]

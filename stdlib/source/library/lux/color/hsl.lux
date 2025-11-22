@@ -146,22 +146,23 @@
               
               p))))
 
-(the .public (rgb (open "/[0]"))
+(the .public (rgb it)
   (-> HSL
       RGB)
-  (if (r.= ..least /:saturation)
-      (comment "Achromatic"
-               (let [intensity (..up /:luminance)]
-                 (rgb.rgb intensity intensity intensity)))
-      (comment "Chromatic"
-               (let [q (if (r.< +0.5 /:luminance)
-                           (|> /:saturation (r.+ +1.0) (r.x /:luminance))
-                           (|> /:luminance (r.+ /:saturation) (r.- (r.x /:saturation /:luminance))))
-                     p (|> /:luminance (r.x +2.0) (r.- q))
-                     third (|> +1.0 (r./ +3.0))]
-                 (rgb.rgb (|> /:hue (r.+ third) (hue_rgb p q))
-                          (|> /:hue (hue_rgb p q))
-                          (|> /:hue (r.- third) (hue_rgb p q)))))))
+  (with "/[0]" it
+    (if (r.= ..least /:saturation)
+        (comment "Achromatic"
+                 (let [intensity (..up /:luminance)]
+                   (rgb.rgb intensity intensity intensity)))
+        (comment "Chromatic"
+                 (let [q (if (r.< +0.5 /:luminance)
+                             (|> /:saturation (r.+ +1.0) (r.x /:luminance))
+                             (|> /:luminance (r.+ /:saturation) (r.- (r.x /:saturation /:luminance))))
+                       p (|> /:luminance (r.x +2.0) (r.- q))
+                       third (|> +1.0 (r./ +3.0))]
+                   (rgb.rgb (|> /:hue (r.+ third) (hue_rgb p q))
+                            (|> /:hue (hue_rgb p q))
+                            (|> /:hue (r.- third) (hue_rgb p q))))))))
 
 (the (ratio it)
   (Change Real)
@@ -174,14 +175,15 @@
       it))
 
 (template.with [<op> <name>]
-  [(the .public (<name> ratio (open "/[0]"))
+  [(the .public (<name> ratio it)
      (-> Real
          (Change HSL))
-     (..hsl /:hue
-            (|> /:saturation
-                (r.x (|> +1.0 (<op> (..ratio ratio))))
-                (r.minor +1.0))
-            /:luminance))]
+     (with "/[0]" it
+       (..hsl /:hue
+              (|> /:saturation
+                  (r.x (|> +1.0 (<op> (..ratio ratio))))
+                  (r.minor +1.0))
+              /:luminance)))]
 
   [[r.+ saturated]
    [r.- un_saturated]])

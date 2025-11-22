@@ -45,13 +45,13 @@
   (|>> (///reference.local //reference.system)
        as_expected))
 
-... https://en.wikipedia.org/wiki/Comma_operator
-(the .public (exec next archive it)
-  (Expression synthesis.Exec)
-  (monad.let phase.monad
-    [before (next archive (.its synthesis.:exec_before it))
-     after (next archive (.its synthesis.:exec_after it))]
-    (pure (_., before after))))
+(comment "https://en.wikipedia.org/wiki/Comma_operator"
+         (the .public (exec next archive it)
+           (Expression synthesis.Exec)
+           (monad.let phase.monad
+             [before (next archive (.its synthesis.:exec_before it))
+              after (next archive (.its synthesis.:exec_after it))]
+             (pure (_., before after)))))
 
 (the .public (exec! statement expression archive it)
   (Statement synthesis.Exec)
@@ -62,24 +62,22 @@
                (_.; before)
                after))))
 
-... TODO: Find some way to do 'let' without paying the price of the closure.
-(the .public (let next archive [head_binding head_value body])
-  (Expression synthesis.Let)
-  (monad.let [! phase.monad]
-    [.let [[tail body] (synthesis.flat_let body)]
-     bindings (list.each' ! (function (_ [binding value])
-                              (phase:each (_.define (..register binding))
-                                          (next archive value)))
-                          (list:composite (list [head_binding head_value])
-                                          tail))
-     body (next archive body)]
-    ... (pure (list:mix _., body (list.in_reverse bindings)))
-    (pure (<| (_.of (list))
-              (_.closure (list))
-              (list:mix _.then
-                        (_.return body)
-                        (list.in_reverse bindings))))
-    ))
+(comment "TODO: Find some way to do 'let' without paying the price of the closure."
+         (the .public (let next archive [head_binding head_value body])
+           (Expression synthesis.Let)
+           (monad.let [! phase.monad]
+             [.let [[tail body] (synthesis.flat_let body)]
+              bindings (list.each' ! (function (_ [binding value])
+                                       (phase:each (_.define (..register binding))
+                                                   (next archive value)))
+                                   (list:composite (list [head_binding head_value])
+                                                   tail))
+              body (next archive body)]
+             (pure (<| (_.of (list))
+                       (_.closure (list))
+                       (list:mix _.then
+                                 (_.return body)
+                                 (list.in_reverse bindings)))))))
 
 (the .public (let! statement expression archive [register valueS bodyS])
   (Statement synthesis.Let)

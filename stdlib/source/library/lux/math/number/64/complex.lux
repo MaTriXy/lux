@@ -127,7 +127,7 @@
 (the .public (/ param input)
   (-> Complex Complex
       Complex)
-  (let [(open "/[0]") param]
+  (with "/[0]" param
     (if (r.< (r.absolute /:imaginary)
              (r.absolute /:real))
         (let [quot (r./ /:imaginary /:real)
@@ -142,7 +142,7 @@
 (the .public (/' param subject)
   (-> Real Complex
       Complex)
-  (let [(open "/[0]") subject]
+  (with "/[0]" subject
     [..:real (r./ param /:real)
      ..:imaginary (r./ param /:imaginary)]))
 
@@ -159,7 +159,7 @@
 (the .public (cos subject)
   (-> Complex
       Complex)
-  (let [(open "/[0]") subject]
+  (with "/[0]" subject
     [..:real (r.x (hyperbola.co_sine /:imaginary)
                   (circle.cos /:real))
      ..:imaginary (r.opposite (r.x (hyperbola.sine /:imaginary)
@@ -168,7 +168,7 @@
 (the .public (cosh subject)
   (-> Complex
       Complex)
-  (let [(open "/[0]") subject]
+  (with "/[0]" subject
     [..:real (r.x (circle.cos /:imaginary)
                   (hyperbola.co_sine /:real))
      ..:imaginary (r.x (circle.sin /:imaginary)
@@ -177,7 +177,7 @@
 (the .public (sin subject)
   (-> Complex
       Complex)
-  (let [(open "/[0]") subject]
+  (with "/[0]" subject
     [..:real (r.x (hyperbola.co_sine /:imaginary)
                   (circle.sin /:real))
      ..:imaginary (r.x (hyperbola.sine /:imaginary)
@@ -186,7 +186,7 @@
 (the .public (sinh subject)
   (-> Complex
       Complex)
-  (let [(open "/[0]") subject]
+  (with "/[0]" subject
     [..:real (r.x (circle.cos /:imaginary)
                   (hyperbola.sine /:real))
      ..:imaginary (r.x (circle.sin /:imaginary)
@@ -195,27 +195,27 @@
 (the .public (tan subject)
   (-> Complex
       Complex)
-  (let [(open "/[0]") subject
-        r2 (r.x +2.0 /:real)
-        i2 (r.x +2.0 /:imaginary)
-        d (r.+ (circle.cos r2) (hyperbola.co_sine i2))]
-    [..:real (r./ d (circle.sin r2))
-     ..:imaginary (r./ d (hyperbola.sine i2))]))
+  (<| (with "/[0]" subject)
+      (let [r2 (r.x +2.0 /:real)
+            i2 (r.x +2.0 /:imaginary)
+            d (r.+ (circle.cos r2) (hyperbola.co_sine i2))])
+      [..:real (r./ d (circle.sin r2))
+       ..:imaginary (r./ d (hyperbola.sine i2))]))
 
 (the .public (tanh subject)
   (-> Complex
       Complex)
-  (let [(open "/[0]") subject
-        r2 (r.x +2.0 /:real)
-        i2 (r.x +2.0 /:imaginary)
-        d (r.+ (hyperbola.co_sine r2) (circle.cos i2))]
-    [..:real (r./ d (hyperbola.sine r2))
-     ..:imaginary (r./ d (circle.sin i2))]))
+  (<| (with "/[0]" subject)
+      (let [r2 (r.x +2.0 /:real)
+            i2 (r.x +2.0 /:imaginary)
+            d (r.+ (hyperbola.co_sine r2) (circle.cos i2))])
+      [..:real (r./ d (hyperbola.sine r2))
+       ..:imaginary (r./ d (circle.sin i2))]))
 
 (the .public (absolute subject)
   (-> Complex
       Real)
-  (let [(open "/[0]") subject]
+  (with "/[0]" subject
     (if (r.< (r.absolute /:imaginary)
              (r.absolute /:real))
         (if (r.= r.zero /:imaginary)
@@ -232,15 +232,15 @@
 (the .public (exp subject)
   (-> Complex
       Complex)
-  (let [(open "/[0]") subject
-        r_exp (r.exp /:real)]
-    [..:real (r.x r_exp (circle.cos /:imaginary))
-     ..:imaginary (r.x r_exp (circle.sin /:imaginary))]))
+  (<| (with "/[0]" subject)
+      (let [r_exp (r.exp /:real)])
+      [..:real (r.x r_exp (circle.cos /:imaginary))
+       ..:imaginary (r.x r_exp (circle.sin /:imaginary))]))
 
 (the .public (log subject)
   (-> Complex
       Complex)
-  (let [(open "/[0]") subject]
+  (with "/[0]" subject
     [..:real (|> subject ..absolute r.log)
      ..:imaginary (circle.atan_2 /:real /:imaginary)]))
 
@@ -261,36 +261,37 @@
 (the .public (root_2 input)
   (-> Complex
       Complex)
-  (let [(open "/[0]") input
-        t (|> input ..absolute (r.+ (r.absolute /:real)) (r./ +2.0) (r.^ +0.5))]
-    (if (r.< r.zero /:real)
-        [..:real (r./ (r.x +2.0 t)
-                      (r.absolute /:imaginary))
-         ..:imaginary (r.x t (..with_sign /:imaginary r.positive_one))]
-        [..:real t
-         ..:imaginary (r./ (r.x +2.0 t)
-                           /:imaginary)])))
+  (<| (with "/[0]" input)
+      (let [t (|> input ..absolute (r.+ (r.absolute /:real)) (r./ +2.0) (r.^ +0.5))])
+      (if (r.< r.zero /:real)
+          [..:real (r./ (r.x +2.0 t)
+                        (r.absolute /:imaginary))
+           ..:imaginary (r.x t (..with_sign /:imaginary r.positive_one))]
+          [..:real t
+           ..:imaginary (r./ (r.x +2.0 t)
+                             /:imaginary)])))
 
 (the (root_2-1z input)
   (-> Complex
       Complex)
   (|> (complex r.positive_one) (- (x input input)) ..root_2))
 
-(the .public (reciprocal (open "/[0]"))
+(the .public (reciprocal it)
   (-> Complex
       Complex)
-  (if (r.< (r.absolute /:imaginary)
-           (r.absolute /:real))
-      (let [q (r./ /:imaginary /:real)
-            scale (r./ (|> /:real (r.x q) (r.+ /:imaginary))
-                       r.positive_one)]
-        [..:real (r.x q scale)
-         ..:imaginary (r.opposite scale)])
-      (let [q (r./ /:real /:imaginary)
-            scale (r./ (|> /:imaginary (r.x q) (r.+ /:real))
-                       r.positive_one)]
-        [..:real scale
-         ..:imaginary (|> scale r.opposite (r.x q))])))
+  (with "/[0]" it
+    (if (r.< (r.absolute /:imaginary)
+             (r.absolute /:real))
+        (let [q (r./ /:imaginary /:real)
+              scale (r./ (|> /:real (r.x q) (r.+ /:imaginary))
+                         r.positive_one)]
+          [..:real (r.x q scale)
+           ..:imaginary (r.opposite scale)])
+        (let [q (r./ /:real /:imaginary)
+              scale (r./ (|> /:imaginary (r.x q) (r.+ /:real))
+                         r.positive_one)]
+          [..:real scale
+           ..:imaginary (|> scale r.opposite (r.x q))]))))
 
 (the .public (acos input)
   (-> Complex
@@ -318,10 +319,11 @@
       ..log
       (..x (../ (..complex +2.0) ..i))))
 
-(the .public (argument (open "/[0]"))
+(the .public (argument it)
   (-> Complex
       Real)
-  (circle.atan_2 /:real /:imaginary))
+  (with "/[0]" it
+    (circle.atan_2 /:real /:imaginary)))
 
 (the .public (roots nth input)
   (-> Natural Complex

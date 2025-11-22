@@ -81,39 +81,39 @@
              [factor random.natural]
              (_.coverage [/.up /.down]
                (|> /.milli_second (/.up factor) (/.down factor) (/.= /.milli_second))))
-           (monad.let [! random.monad]
-             [.let [(open "/:[0]") /.order
-                    positive (|> /.random
-                                 (random.only (|>> (/.= /.empty) not))
-                                 (by ! each (function (_ duration)
-                                              (if (/.positive? duration)
-                                                  duration
-                                                  (/.inverse duration)))))]
-              sample positive
-              frame positive]
-             (`` (all _.and
-                      (_.coverage [/.%]
-                        (let [sample' (/.% frame sample)]
-                          (and (/:< frame sample')
-                               (bit.= (/:< frame sample)
-                                      (/.= sample sample')))))
-                      (_.coverage [/.ticks]
-                        (i.= +1 (/.ticks sample sample)))
-                      (_.coverage [/.milli_second]
-                        (/.= /.empty (by /.enum pred /.milli_second)))
-                      (,, (template.with [<factor> <big> <small>]
-                            [(_.coverage [<big>]
-                               (|> <big> (/.ticks <small>) (i.= <factor>)))]
+           (<| (with "/:[0]" /.order)
+               (monad.let [! random.monad]
+                 [.let [positive (|> /.random
+                                     (random.only (|>> (/.= /.empty) not))
+                                     (by ! each (function (_ duration)
+                                                  (if (/.positive? duration)
+                                                      duration
+                                                      (/.inverse duration)))))]
+                  sample positive
+                  frame positive]
+                 (`` (all _.and
+                          (_.coverage [/.%]
+                            (let [sample' (/.% frame sample)]
+                              (and (/:< frame sample')
+                                   (bit.= (/:< frame sample)
+                                          (/.= sample sample')))))
+                          (_.coverage [/.ticks]
+                            (i.= +1 (/.ticks sample sample)))
+                          (_.coverage [/.milli_second]
+                            (/.= /.empty (by /.enum pred /.milli_second)))
+                          (,, (template.with [<factor> <big> <small>]
+                                [(_.coverage [<big>]
+                                   (|> <big> (/.ticks <small>) (i.= <factor>)))]
 
-                            [[+1,000 /.second /.milli_second]
-                             [+60 /.minute /.second]
-                             [+60 /.hour /.minute]
-                             [+24 /.day /.hour]
+                                [[+1,000 /.second /.milli_second]
+                                 [+60 /.minute /.second]
+                                 [+60 /.hour /.minute]
+                                 [+24 /.day /.hour]
 
-                             [+7 /.week /.day]
-                             [+365 /.normal_year /.day]
-                             [+366 /.leap_year /.day]]))
-                      )))
+                                 [+7 /.week /.day]
+                                 [+365 /.normal_year /.day]
+                                 [+366 /.leap_year /.day]]))
+                          ))))
            (monad.let random.monad
              [expected /.random]
              (_.coverage [/.as_text /.of_text]

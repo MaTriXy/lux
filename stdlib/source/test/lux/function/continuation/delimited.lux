@@ -32,22 +32,22 @@
            (_.coverage [/.Static
                         /.reset /.context
                         /.shift /.exit]
-             (and (let [(open "//:[0]") //.monad
-                        (open "stack:[0]") (stack.equality n.equality)
-                        visit (is (-> (Stack Natural)
-                                      (//.Cont (Stack Natural) (Stack Natural)))
-                                  (function (visit it)
-                                    (when it
-                                      {.:Empty}
-                                      (//:pure {.:Empty})
+             (and (<| (with "//:[0]" //.monad)
+                      (with "stack:[0]" (stack.equality n.equality))
+                      (let [visit (is (-> (Stack Natural)
+                                          (//.Cont (Stack Natural) (Stack Natural)))
+                                      (function (visit it)
+                                        (when it
+                                          {.:Empty}
+                                          (//:pure {.:Empty})
 
-                                      {.:Top head tail}
-                                      (monad.let //.monad
-                                        [output (/.shift (function (_ after)
-                                                           (pure {.:Top head (after tail)})))]
-                                        (visit output)))))]
-                    (//.continued (stack:= elems)
-                                  (/.reset (visit elems))))
+                                          {.:Top head tail}
+                                          (monad.let //.monad
+                                            [output (/.shift (function (_ after)
+                                                               (pure {.:Top head (after tail)})))]
+                                            (visit output)))))])
+                      (//.continued (stack:= elems)
+                                    (/.reset (visit elems))))
                   (identical? /.reset /.context)
                   (identical? /.shift /.exit)))
            (_.coverage [/.Propagated

@@ -587,8 +587,6 @@ highlighted region)."
           (font-lock-mark-block-function . mark-defun)
           (font-lock-syntactic-face-function . lux-font-lock-syntactic-face-function))))
 
-(defvar withRE (concat "\\`" "with" (or* "_" "\\'")))
-
 (defun lux-indent-function (indent-point state)
   "When indenting a line within a function call, indent properly.
 
@@ -642,10 +640,7 @@ This function also returns nil meaning don't specify the indentation."
 												 ))
                (goto-char open-paren)
                (1+ (current-column)))
-              ((or (eq method 'defun)
-				   (and (null method)
-                        (> (length function) 2)
-						(string-match withRE function-tail)))
+              ((eq method 'defun)
                (lisp-indent-defform state indent-point))
               ((integerp method)
                (lisp-indent-specform method state

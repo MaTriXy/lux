@@ -103,32 +103,32 @@
 
 (the arithmetic
   Test
-  (monad.let random.monad
-    [.let [zero (by /.meter in +0)
-           (open "meter:[0]") (is (Equality (/.Measure Any /.Meter))
-                                  /.equality)]
-     left (random.only (|>> (meter:= zero) not) (..meter 1,000))
-     right (..meter 1,000)
-     extra (..second 1,000)]
-    (`` (all _.and
-             (,, (template.with [<q> <i>]
-                   [(_.coverage [<q>]
-                      (i.= (<i> (by /.meter out left) (by /.meter out right))
-                           (by /.meter out (<q> left right))))]
+  (<| (with "meter:[0]" (is (Equality (/.Measure Any /.Meter))
+                            /.equality))
+      (let [zero (by /.meter in +0)])
+      (monad.let random.monad
+        [left (random.only (|>> (meter:= zero) not) (..meter 1,000))
+         right (..meter 1,000)
+         extra (..second 1,000)])
+      (`` (all _.and
+               (,, (template.with [<q> <i>]
+                     [(_.coverage [<q>]
+                        (i.= (<i> (by /.meter out left) (by /.meter out right))
+                             (by /.meter out (<q> left right))))]
 
-                   [[/.+ i.+]
-                    [/.- i.-]]))
-             (_.coverage [/.x]
-               (let [expected (i.x (by /.meter out left) (by /.meter out right))
-                     actual (/.number (is (/.Measure Any [/.Meter /.Meter])
-                                          (/.x left right)))]
-                 (i.= expected actual)))
-             (_.coverage [/./]
-               (|> right
-                   (/.x left)
-                   (/./ left)
-                   (meter:= right)))
-             ))))
+                     [[/.+ i.+]
+                      [/.- i.-]]))
+               (_.coverage [/.x]
+                 (let [expected (i.x (by /.meter out left) (by /.meter out right))
+                       actual (/.number (is (/.Measure Any [/.Meter /.Meter])
+                                            (/.x left right)))]
+                   (i.= expected actual)))
+               (_.coverage [/./]
+                 (|> right
+                     (/.x left)
+                     (/./ left)
+                     (meter:= right)))
+               ))))
 
 (the .public test
   Test

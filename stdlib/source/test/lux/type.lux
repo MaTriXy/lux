@@ -397,34 +397,34 @@
                         (by /.equality = namedT (/.de_aliased aliasedT)))
                       (_.coverage [/.anonymous]
                         (by /.equality = anonymousT (/.anonymous aliasedT)))))
-               (monad.let [! random.monad]
-                 [size (|> random.natural (by ! each (n.% 3)))
-                  members (|> (..random 0)
-                              (random.only (function (_ type)
-                                             (when type
-                                               (^.or (/.Sum left right)
-                                                     (/.Product left right))
-                                               false
+               (<| (with "/:[0]" /.equality)
+                   (with "list:[0]" (list.equality /.equality))
+                   (monad.let [! random.monad]
+                     [size (|> random.natural (by ! each (n.% 3)))
+                      members (|> (..random 0)
+                                  (random.only (function (_ type)
+                                                 (when type
+                                                   (^.or (/.Sum left right)
+                                                         (/.Product left right))
+                                                   false
 
-                                               _
-                                               true)))
-                              (list.repeated size)
-                              (list.complete !))
-                  .let [(open "/:[0]") /.equality
-                        (open "list:[0]") (list.equality /.equality)]]
-                 (`` (all _.and
-                          (,, (template.with [<ctor> <dtor> <unit>]
-                                [(_.coverage [<ctor> <dtor>]
-                                   (let [flat (|> members
-                                                  <ctor>
-                                                  <dtor>)]
-                                     (or (list:= members flat)
-                                         (and (list:= (list) members)
-                                              (list:= (list <unit>) flat)))))]
+                                                   _
+                                                   true)))
+                                  (list.repeated size)
+                                  (list.complete !))])
+                   (`` (all _.and
+                            (,, (template.with [<ctor> <dtor> <unit>]
+                                  [(_.coverage [<ctor> <dtor>]
+                                     (let [flat (|> members
+                                                    <ctor>
+                                                    <dtor>)]
+                                       (or (list:= members flat)
+                                           (and (list:= (list) members)
+                                                (list:= (list <unit>) flat)))))]
 
-                                [[/.variant /.flat_variant Nothing]
-                                 [/.tuple   /.flat_tuple   Any]]))
-                          )))
+                                  [[/.variant /.flat_variant Nothing]
+                                   [/.tuple   /.flat_tuple   Any]]))
+                            )))
                (_.coverage [/.reified]
                  (and (<| (maybe.else false)
                           (monad.let maybe.monad
@@ -438,82 +438,82 @@
                             
                             _
                             false))))
-               (monad.let [! random.monad]
-                 [size (|> random.natural (by ! each (n.% 3)))
-                  members (list.complete ! (list.repeated size (..random 0)))
-                  extra (|> (..random 0)
-                            (random.only (function (_ type)
-                                           (when type
-                                             (/.Function left right)
-                                             false
-
-                                             {.:Reification _}
-                                             false
-
-                                             _
-                                             true))))
-                  .let [(open "/:[0]") /.equality
-                        (open "list:[0]") (list.equality /.equality)]]
-                 (all _.and
-                      (_.coverage [/.function /.flat_function]
-                        (let [[inputs output] (|> extra
-                                                  (/.function members)
-                                                  /.flat_function)]
-                          (and (list:= members inputs)
-                               (/.= extra output))))
-                      (_.coverage [/.reification /.flat_reification]
-                        (let [[tfunc tparams] (|> extra
-                                                  (/.reification members)
-                                                  /.flat_reification)]
-                          (n.= (list.size members)
-                               (list.size tparams))))
-                      ))
-               (monad.let [! random.monad]
-                 [size (|> random.natural (by ! each (|>> (n.% 3) ++)))
-                  body_type (|> (..random 0)
+               (<| (with "/:[0]" /.equality)
+                   (with "list:[0]" (list.equality /.equality))
+                   (monad.let [! random.monad]
+                     [size (|> random.natural (by ! each (n.% 3)))
+                      members (list.complete ! (list.repeated size (..random 0)))
+                      extra (|> (..random 0)
                                 (random.only (function (_ type)
                                                (when type
-                                                 (^.or {.:Quantification .universal _}
-                                                       {.:Quantification .existential _})
+                                                 (/.Function left right)
+                                                 false
+
+                                                 {.:Reification _}
                                                  false
 
                                                  _
-                                                 true))))
-                  .let [(open "/:[0]") /.equality]]
-                 (`` (all _.and
-                          (,, (template.with [<ctor> <dtor>]
-                                [(_.coverage [<ctor> <dtor>]
-                                   (let [[flat_size flat_body] (|> body_type (<ctor> size) <dtor>)]
-                                     (and (n.= size flat_size)
-                                          (/.= body_type flat_body))))]
+                                                 true))))])
+                   (all _.and
+                        (_.coverage [/.function /.flat_function]
+                          (let [[inputs output] (|> extra
+                                                    (/.function members)
+                                                    /.flat_function)]
+                            (and (list:= members inputs)
+                                 (/.= extra output))))
+                        (_.coverage [/.reification /.flat_reification]
+                          (let [[tfunc tparams] (|> extra
+                                                    (/.reification members)
+                                                    /.flat_reification)]
+                            (n.= (list.size members)
+                                 (list.size tparams))))
+                        ))
+               (<| (with "/:[0]" /.equality)
+                   (monad.let [! random.monad]
+                     [size (|> random.natural (by ! each (|>> (n.% 3) ++)))
+                      body_type (|> (..random 0)
+                                    (random.only (function (_ type)
+                                                   (when type
+                                                     (^.or {.:Quantification .universal _}
+                                                           {.:Quantification .existential _})
+                                                     false
 
-                                [[/.univ_q /.flat_univ_q]
-                                 [/.ex_q   /.flat_ex_q]]))
-                          (_.coverage [/.quantified?]
-                            (and (not (/.quantified? body_type))
-                                 (|> body_type (/.univ_q size) /.quantified?)
-                                 (|> body_type (/.ex_q size) /.quantified?)))
-                          )))
-               (monad.let [! random.monad]
-                 [depth (|> random.natural (by ! each (|>> (n.% 3) ++)))
-                  element_type (|> (..random 0)
-                                   (random.only (function (_ type)
-                                                  (when type
-                                                    (@type.Array to_write to_read)
-                                                    false
+                                                     _
+                                                     true))))])
+                   (`` (all _.and
+                            (,, (template.with [<ctor> <dtor>]
+                                  [(_.coverage [<ctor> <dtor>]
+                                     (let [[flat_size flat_body] (|> body_type (<ctor> size) <dtor>)]
+                                       (and (n.= size flat_size)
+                                            (/.= body_type flat_body))))]
 
-                                                    _
-                                                    true))))
-                  .let [(open "/:[0]") /.equality]]
-                 (all _.and
-                      (_.coverage [/.array /.flat_array]
-                        (let [[flat_depth flat_element] (|> element_type (/.array depth) /.flat_array)]
-                          (and (n.= depth flat_depth)
-                               (/.= element_type flat_element))))
-                      (_.coverage [/.array?]
-                        (and (not (/.array? element_type))
-                             (/.array? (/.array depth element_type))))
-                      ))
+                                  [[/.univ_q /.flat_univ_q]
+                                   [/.ex_q   /.flat_ex_q]]))
+                            (_.coverage [/.quantified?]
+                              (and (not (/.quantified? body_type))
+                                   (|> body_type (/.univ_q size) /.quantified?)
+                                   (|> body_type (/.ex_q size) /.quantified?)))
+                            )))
+               (<| (with "/:[0]" /.equality)
+                   (monad.let [! random.monad]
+                     [depth (|> random.natural (by ! each (|>> (n.% 3) ++)))
+                      element_type (|> (..random 0)
+                                       (random.only (function (_ type)
+                                                      (when type
+                                                        (@type.Array to_write to_read)
+                                                        false
+
+                                                        _
+                                                        true))))])
+                   (all _.and
+                        (_.coverage [/.array /.flat_array]
+                          (let [[flat_depth flat_element] (|> element_type (/.array depth) /.flat_array)]
+                            (and (n.= depth flat_depth)
+                                 (/.= element_type flat_element))))
+                        (_.coverage [/.array?]
+                          (and (not (/.array? element_type))
+                               (/.array? (/.array depth element_type))))
+                        ))
                (_.coverage [/.by_example]
                  (let [example (is (Maybe Natural)
                                    {.:None})]

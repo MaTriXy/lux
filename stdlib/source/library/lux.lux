@@ -2806,6 +2806,18 @@
                      {:None}
                      {:Some [tape {:None}]}))
 
+       (the' .private (?:default else it
+                                 tape)
+             (for_any (_ it)
+               (-> it
+                   ($ Change ($ Projection it))))
+             (.when# (it tape)
+                     {:Some [tape it]}
+                     {:Some [tape it]}
+
+                     {:None}
+                     {:Some [tape else]}))
+
        (the' .private (?:else else it
                               tape)
              (for_any (_ it)
@@ -5223,41 +5235,40 @@
                             (, sub_pattern)
                             (, sub_body)))])))))
 
-(the .public open
-  (pattern
-   (macro (_ tokens)
-     (when (|> (?:pattern (?:or ?:text
-                                (?:and ?:name ?:text))
-                          ?:any)
-               (?:value tokens))
-       {:Some [it body branches]}
-       (when it
-         {:Left alias}
-         (with_monad meta:monad
-           ['temp (..generated_name "temp")]
-           (pure (.list_composite# (list 'temp
-                                         (` (..when (, 'temp)
-                                              (..open (, 'temp) (, (code:text alias)))
-                                              (, body))))
-                                   branches)))
-         
-         {:Right [name alias]}
-         (with_monad meta:monad
-           [init_type (type_definition name)
-            implementation_evidence (every_slot init_type)]
-           (when implementation_evidence
-             {:None}
-             (failure (text "Can only 'open' implementations: " (type:as_text init_type)))
+(the .public with
+  (macro (_ tokens)
+    (when (?:value tokens
+                   (all ?:and
+                        (?:default (alias_stand_in 0) ?:text)
+                        ?:any
+                        ?:any))
+      {:Some [alias implementation 'body]}
+      (when implementation
+        {:Name _ name}
+        (with_monad meta:monad
+          [init_type (type_definition name)
+           implementation_evidence (every_slot init_type)]
+          (when implementation_evidence
+            {:None}
+            (failure (text "Can only 'open' implementations: " (type:as_text init_type)))
 
-             {:Some tags,members}
-             (with_monad meta:monad
-               [pattern,body (open_layers alias (list tags,members) body)
-                .let [[pattern body] pattern,body]]
-               (pure (.list_composite# (list pattern body)
-                                       branches))))))
+            {:Some tags,members}
+            (with_monad meta:monad
+              [pattern,body (open_layers alias (list tags,members) 'body)
+               .let [[pattern 'body] pattern,body]]
+              (pure (list (` (..when (, implementation)
+                               (, pattern)
+                               (, 'body))))))))
+        
+        else
+        (with_monad meta:monad
+          ['implementation (..generated_name "'implementation")]
+          (pure (list (` (<| (..let [(, 'implementation) (, implementation)])
+                             (..with (, (code:text alias)) (, 'implementation))
+                             (, 'body)))))))
 
-       else
-       (failure "")))))
+      {:None}
+      (failure ""))))
 
 (the .public its
   (macro (_ tokens)
@@ -5441,17 +5452,6 @@
                          referrals)))
 
       else
-      (failure ""))))
-
-(the .public with
-  (macro (_ tokens)
-    (when (?:value tokens
-                   (?:and ?:any ?:any))
-      {:Some [implementation expression]}
-      (meta:pure (list (` (..let [(..open (, (code:text (alias_stand_in 0)))) (, implementation)]
-                            (, expression)))))
-
-      {:None}
       (failure ""))))
 
 (the .public by

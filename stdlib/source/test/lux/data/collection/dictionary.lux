@@ -114,14 +114,14 @@
                 (list.size (/.values dict))))
 
          (_.coverage [/.composite]
-           (let [merging_with_oneself (let [(open "[0]") (/.equality n.equality)]
+           (let [merging_with_oneself (with "[0]" (/.equality n.equality)
                                         (= dict (/.composite dict dict)))
-                 overwritting_keys (let [dict' (|> dict
-                                                   /.entries
-                                                   (list:each (function (_ [k v]) [k (++ v)]))
-                                                   (/.of_list n.hash))
-                                         (open "[0]") (/.equality n.equality)]
-                                     (= dict' (/.composite dict' dict)))]
+                 overwritting_keys (<| (with "[0]" (/.equality n.equality))
+                                       (let [dict' (|> dict
+                                                       /.entries
+                                                       (list:each (function (_ [k v]) [k (++ v)]))
+                                                       (/.of_list n.hash))])
+                                       (= dict' (/.composite dict' dict)))]
              (and merging_with_oneself
                   overwritting_keys)))
          
@@ -131,7 +131,7 @@
                                        (/.values (/.composite_with n.+ dict dict)))))
 
          (_.coverage [/.of_list]
-           (let [(open "[0]") (/.equality n.equality)]
+           (with "[0]" (/.equality n.equality)
              (and (= dict dict)
                   (|> dict
                       /.entries

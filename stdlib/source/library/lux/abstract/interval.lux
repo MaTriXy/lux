@@ -45,19 +45,18 @@
   [(the .public (<name> interval)
      (for_any (_ it)
        (Predicate (Interval it)))
-     (let [(open ",:[0]") interval]
+     (with ",:[0]" interval
        (<comp> ,:minimum ,:maximum)))]
 
   [[inner?     (order.> ,:order)]
    [outer?     ,:<]
-   [singleton? ,:=]]
-  )
+   [singleton? ,:=]])
 
 (the .public (within? interval elem)
   (for_any (_ it)
     (-> (Interval it)
         (Predicate it)))
-  (let [(open ",:[0]") interval]
+  (with ",:[0]" interval
     (if (inner? interval)
         (and (order.>= ,:order ,:minimum elem)
              (order.<= ,:order ,:maximum elem))
@@ -75,7 +74,7 @@
      (for_any (_ it)
        (-> it
            (Predicate (Interval it))))
-     (let [(open "[0]") interval]
+     (with "[0]" interval
        (= <limit> elem)))]
 
   [[starts_with? minimum]
@@ -120,10 +119,10 @@
   (for_any (_ it)
     (-> (Interval it)
         (Predicate (Interval it))))
-  (let [(open "[0]") reference
-        limit (by reference minimum)]
-    (and (< limit (by it minimum))
-         (< limit (by it maximum)))))
+  (with "[0]" reference
+    (let [limit (by reference minimum)]
+      (and (< limit (by it minimum))
+           (< limit (by it maximum))))))
 
 (the .public (succeeds? reference it)
   (for_any (_ it)
@@ -136,7 +135,7 @@
      (for_any (_ it)
        (-> it
            (Predicate (Interval it))))
-     (let [(open ",:[0]") it]
+     (with ",:[0]" it
        (and (<comp> reference ,:minimum)
             (<comp> reference ,:maximum))))]
 
@@ -148,10 +147,10 @@
   (for_any (_ it)
     (-> (Interval it)
         (Predicate (Interval it))))
-  (let [(open ",:[0]") reference
-        limit (by reference minimum)]
-    (and (,:= limit (by it maximum))
-         (order.<= ,:order limit (by it minimum)))))
+  (with ",:[0]" reference
+    (let [limit (by reference minimum)]
+      (and (,:= limit (by it maximum))
+           (order.<= ,:order limit (by it minimum))))))
 
 (the .public (touches? reference it)
   (for_any (_ it)
@@ -165,7 +164,7 @@
      (for_any (_ it)
        (-> (Interval it)
            (Predicate (Interval it))))
-     (let [(open ",:[0]") reference]
+     (with ",:[0]" reference
        (and (,:= (by reference <eq_side>)
                  (by it <eq_side>))
             (<ineq> ,:order
@@ -181,7 +180,7 @@
     (Equality (Interval it)))
   (implementation
    (the (= expected actual)
-     (let [(open ",:[0]") expected]
+     (with ",:[0]" expected
        (and (,:= ,:minimum (by actual minimum))
             (,:= ,:maximum (by actual maximum)))))))
 
@@ -195,7 +194,7 @@
   (if (or (singleton? it)
           (and (inner? reference) (inner? it))
           (and (outer? reference) (outer? it)))
-      (let [(open ",:[0]") reference]
+      (with ",:[0]" reference
         (and (order.>= ,:order (by reference minimum) (by it minimum))
              (order.<= ,:order (by reference maximum) (by it maximum))))
 
@@ -204,7 +203,7 @@
       false
 
       (comment (and (outer? reference) (inner? it))
-               (let [(open ",:[0]") reference]
+               (with ",:[0]" reference
                  (or (and (order.>= ,:order (by reference minimum) (by it minimum))
                           (order.> ,:order (by reference minimum) (by it maximum)))
                      (and (,:< (by reference maximum) (by it minimum))
@@ -215,7 +214,7 @@
   (for_any (_ it)
     (-> (Interval it)
         (Predicate (Interval it))))
-  (let [(open ",:[0]") reference]
+  (with ",:[0]" reference
     (and (not (by ..equality = reference it))
          (if (singleton? it)
              false

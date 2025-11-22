@@ -74,24 +74,25 @@
               (identical? ,=
                           (by ,implementation =)))))])
 
-(the .public (spec (open "/:[0]") random)
+(the .public (spec equality random)
   (for_any (_ it)
     (-> (/.Equality it) (Random it)
         Test))
-  (monad.let random.monad
-    [left random
-     right random]
-    (<| (_.for [/.Equality])
-        (_.coverage [/.=]
-          (let [reflexivity!
-                (/:= left left)
+  (<| (with "/:[0]" equality)
+      (_.for [/.Equality])
+      (monad.let random.monad
+        [left random
+         right random])
+      (_.coverage [/.=]
+        (let [reflexivity!
+              (/:= left left)
 
-                symmetry!
-                (bit.= (/:= left right)
-                       (/:= right left))]
-            (and reflexivity!
-                 symmetry!
-                 ))))))
+              symmetry!
+              (bit.= (/:= left right)
+                     (/:= right left))]
+          (and reflexivity!
+               symmetry!
+               )))))
 
 (every Variant
   (.Variant

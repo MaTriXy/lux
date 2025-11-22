@@ -22,21 +22,22 @@
    [//
     [equality (.only Equality)]]]])
 
-(the .public (spec (open "/:[0]") random)
+(the .public (spec hash random)
   (for_any (_ it)
     (-> (/.Hash it) (Random it)
         Test))
-  (monad.let random.monad
-    [parameter random
-     subject random]
-    (all _.and
-         (_.for [/.equality]
-                (equalityT.spec /:equality random))
-         (_.coverage [/.Hash /.hash]
-           (if (/:= parameter subject)
-               (natural.= (/:hash parameter) (/:hash subject))
-               true))
-         )))
+  (<| (with "/:[0]" hash)
+      (monad.let random.monad
+        [parameter random
+         subject random])
+      (all _.and
+           (_.for [/.equality]
+                  (equalityT.spec /:equality random))
+           (_.coverage [/.Hash /.hash]
+             (if (/:= parameter subject)
+                 (natural.= (/:hash parameter) (/:hash subject))
+                 true))
+           )))
 
 (the .public test
   Test
@@ -45,13 +46,15 @@
      rightN random.natural
      .let [hash (is (Equality (/.Hash Natural))
                     (implementation
-                     (the (= (open "left:[0]") (open "right:[0]"))
-                       (and (bit.= (left:= (left:hash leftN) (left:hash leftN))
-                                   (right:= (right:hash leftN) (right:hash leftN)))
-                            (bit.= (left:= (left:hash rightN) (left:hash rightN))
-                                   (right:= (right:hash rightN) (right:hash rightN)))
-                            (bit.= (left:= (left:hash leftN) (left:hash rightN))
-                                   (right:= (right:hash leftN) (right:hash rightN)))))))]]
+                     (the (= left right)
+                       (<| (with "left:[0]" left)
+                           (with "right:[0]" right)
+                           (and (bit.= (left:= (left:hash leftN) (left:hash leftN))
+                                       (right:= (right:hash leftN) (right:hash leftN)))
+                                (bit.= (left:= (left:hash rightN) (left:hash rightN))
+                                       (right:= (right:hash rightN) (right:hash rightN)))
+                                (bit.= (left:= (left:hash leftN) (left:hash rightN))
+                                       (right:= (right:hash leftN) (right:hash rightN))))))))]]
     (<| (_.covering /._)
         (all _.and
              (_.for [/.functor]

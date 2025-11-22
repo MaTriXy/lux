@@ -278,33 +278,35 @@
         (.text (%.text name) " ")
         (text.enclosed ["(" ")"]))))
 
-(the (when_equality (open "/:[0]"))
+(the (when_equality it)
   (for_any (_ it)
     (-> (Equality it)
         (Equality (When it))))
-  (implementation
-   (the (= [expected_input expected_path] [actual_input actual_path])
-     (.and (/:= expected_input actual_input)
-           (by (/path.equality /:=) = expected_path actual_path)))))
+  (with "/:[0]" it
+    (implementation
+     (the (= [expected_input expected_path] [actual_input actual_path])
+       (.and (/:= expected_input actual_input)
+             (by (/path.equality /:=) = expected_path actual_path))))))
 
-(the (loop_equality (open "/:[0]"))
+(the (loop_equality it)
   (for_any (_ it)
     (-> (Equality it)
         (Equality (Loop it))))
-  (implementation
-   (the (= expected actual)
-     (.when [expected actual]
-       [{:Tail_Recursion [expected_start expected_inits expected_iteration]}
-        {:Tail_Recursion [actual_start actual_inits actual_iteration]}]
-       (.and (n.= expected_start actual_start)
-             (by (list.equality /:=) = expected_inits actual_inits)
-             (/:= expected_iteration actual_iteration))
+  (with "/:[0]" it
+    (implementation
+     (the (= expected actual)
+       (.when [expected actual]
+         [{:Tail_Recursion [expected_start expected_inits expected_iteration]}
+          {:Tail_Recursion [actual_start actual_inits actual_iteration]}]
+         (.and (n.= expected_start actual_start)
+               (by (list.equality /:=) = expected_inits actual_inits)
+               (/:= expected_iteration actual_iteration))
 
-       [{:Tail_Iteration expected} {:Tail_Iteration actual}]
-       (by (list.equality /:=) = expected actual)
-       
-       _
-       false))))
+         [{:Tail_Iteration expected} {:Tail_Iteration actual}]
+         (by (list.equality /:=) = expected actual)
+         
+         _
+         false)))))
 
 (the (loop_hash super)
   (for_any (_ it)
@@ -327,26 +329,27 @@
             (by (list.hash super) hash resets))
        ))))
 
-(the (function_equality (open "/:[0]"))
+(the (function_equality it)
   (for_any (_ it)
     (-> (Equality it)
         (Equality (Function it))))
-  (implementation
-   (the (= expected actual)
-     (.when [expected actual]
-       [{:Abstraction [expected_environment expected_arity expected_body]}
-        {:Abstraction [actual_environment actual_arity actual_body]}]
-       (.and (by (list.equality /:=) = expected_environment actual_environment)
-             (n.= expected_arity actual_arity)
-             (/:= expected_body actual_body))
-       
-       [{:Reification [expected_abstraction expected_arguments]}
-        {:Reification [actual_abstraction actual_arguments]}]
-       (.and (/:= expected_abstraction actual_abstraction)
-             (by (list.equality /:=) = expected_arguments actual_arguments))
-       
-       _
-       false))))
+  (with "/:[0]" it
+    (implementation
+     (the (= expected actual)
+       (.when [expected actual]
+         [{:Abstraction [expected_environment expected_arity expected_body]}
+          {:Abstraction [actual_environment actual_arity actual_body]}]
+         (.and (by (list.equality /:=) = expected_environment actual_environment)
+               (n.= expected_arity actual_arity)
+               (/:= expected_body actual_body))
+         
+         [{:Reification [expected_abstraction expected_arguments]}
+          {:Reification [actual_abstraction actual_arguments]}]
+         (.and (/:= expected_abstraction actual_abstraction)
+               (by (list.equality /:=) = expected_arguments actual_arguments))
+         
+         _
+         false)))))
 
 (the (function_hash super)
   (for_any (_ it)
@@ -370,23 +373,24 @@
             (by (list.hash super) hash arguments))
        ))))
 
-(the (control_equality (open "/:[0]"))
+(the (control_equality it)
   (for_any (_ it)
     (-> (Equality it)
         (Equality (Control it))))
-  (implementation
-   (the (= expected actual)
-     (`` (.when [expected actual]
-           (,, (template.with [<tag> <equality>]
-                 [[{<tag> expected} {<tag> actual}]
-                  (by (<equality> /:=) = expected actual)]
+  (with "/:[0]" it
+    (implementation
+     (the (= expected actual)
+       (`` (.when [expected actual]
+             (,, (template.with [<tag> <equality>]
+                   [[{<tag> expected} {<tag> actual}]
+                    (by (<equality> /:=) = expected actual)]
 
-                 [[:When ..when_equality]
-                  [:Loop ..loop_equality]
-                  [:Function ..function_equality]]))
-           
-           _
-           false)))))
+                   [[:When ..when_equality]
+                    [:Loop ..loop_equality]
+                    [:Function ..function_equality]]))
+             
+             _
+             false))))))
 
 (the (control_hash super)
   (for_any (_ it)

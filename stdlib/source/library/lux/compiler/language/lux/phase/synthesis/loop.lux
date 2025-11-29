@@ -41,14 +41,14 @@
           {.:Some {path.:Bind (register_optimization offset register)}}
 
           (,, (template.with [<tag>]
-                [{<tag> left right}
-                 (monad.let maybe.monad
-                   [left' (of left)
-                    right' (of right)]
-                   (pure {<tag> left' right'}))]
+                             [{<tag> left right}
+                              (monad.let maybe.monad
+                                [left' (of left)
+                                 right' (of right)]
+                                (pure {<tag> left' right'}))]
 
-                [[path.:Or]
-                 [path.:And]]))
+                             [[path.:Or]
+                              [path.:And]]))
 
           {path.:Bit_Fork test then else}
           (monad.let [! maybe.monad]
@@ -62,19 +62,19 @@
             (pure {path.:Bit_Fork test then else}))
           
           (,, (template.with [<tag>]
-                [{<tag> [[test then] elses]}
-                 (monad.let [! maybe.monad]
-                   [then (of then)
-                    elses (list.each' ! (function (_ [else_test else_then])
-                                          (monad.let !
-                                            [else_then (of else_then)]
-                                            (pure [else_test else_then])))
-                                      elses)]
-                   (pure {<tag> [[test then] elses]}))]
+                             [{<tag> [[test then] elses]}
+                              (monad.let [! maybe.monad]
+                                [then (of then)
+                                 elses (list.each' ! (function (_ [else_test else_then])
+                                                       (monad.let !
+                                                         [else_then (of else_then)]
+                                                         (pure [else_test else_then])))
+                                                   elses)]
+                                (pure {<tag> [[test then] elses]}))]
 
-                [[path.:I64_Fork]
-                 [path.:F64_Fork]
-                 [path.:Text_Fork]]))
+                             [[path.:I64_Fork]
+                              [path.:F64_Fork]
+                              [path.:Text_Fork]]))
           
           {path.:Then body}
           (|> body
@@ -90,10 +90,10 @@
   (loop (of [return? true
              expr expr])
     (when expr
-      [@ {/.:Simple _}]
+      {/.:Simple @ _}
       {.:Some expr}
 
-      [@ {/.:Reference reference}]
+      {/.:Reference @ reference}
       (when reference
         {@type.:Variable_Reference (variable.self)}
         (if true_loop?
@@ -104,7 +104,7 @@
         {.:Some expr}
 
         (reference.local register)
-        {.:Some [@ {/.:Reference (reference.local (register_optimization offset register))}]}
+        {.:Some {/.:Reference @ (reference.local (register_optimization offset register))}}
 
         (reference.foreign register)
         (if true_loop?
@@ -144,7 +144,7 @@
                                                [abstraction (of false abstraction)]
                                                (pure (/.reification @ [abstraction arguments]))))]
           (when abstraction
-            [@ {/.:Reference {@type.:Variable_Reference (variable.self)}}]
+            {/.:Reference @ {@type.:Variable_Reference (variable.self)}}
             (if (and return?
                      (n.= arity (list.size arguments)))
                 (pure (/.tail_iteration @ arguments))
@@ -155,7 +155,7 @@
             _
             <application>)))
 
-      [@ {/.:Extension [[.prelude "when_char#|translation"] parameters]}]
+      {/.:Extension @ [.prelude "when_char#|translation"] parameters}
       (comment "TODO: Stop relying on this custom code."
                (if return?
                    (monad.let [! maybe.monad]
@@ -178,13 +178,13 @@
                                                   (of false match))))
                                           (list.after 2 parameters))
                       else (of return? else)]
-                     (pure [@ {/.:Extension [[.prelude "when_char#|translation"] (list:composite (list input else) matches)]}]))
+                     (pure {/.:Extension @ [.prelude "when_char#|translation"] (list:composite (list input else) matches)}))
                    {.:None}))
 
-      [@ {/.:Extension [name args]}]
+      {/.:Extension @ name args}
       (|> args
           (list.each' maybe.monad (of false))
-          (maybe:each (|>> [name] {/.:Extension} [@]))))))
+          (maybe:each (|>> [name] {/.:Extension @}))))))
 
 (the .public (optimization true_loop? offset inits functionS)
   (-> Bit Register (List /.Term) Abstraction

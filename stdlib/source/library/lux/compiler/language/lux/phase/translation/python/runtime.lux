@@ -57,14 +57,14 @@
   _.Statement)
 
 (template.with [<name> <base>]
-  [(every .public <name>
-     (<base> Anchor Value Declaration))]
+               [(every .public <name>
+                  (<base> Anchor Value Declaration))]
 
-  [[Operation /////translation.Operation]
-   [Phase /////translation.Phase]
-   [Handler /////translation.Handler]
-   [Bundle /////translation.Bundle]]
-  )
+               [[Operation /////translation.Operation]
+                [Phase /////translation.Phase]
+                [Handler /////translation.Handler]
+                [Bundle /////translation.Bundle]]
+               )
 
 (every .public Phase!
   (-> Phase Archive synthesis.Term
@@ -79,9 +79,8 @@
       (Operation _.Expression)))
 
 (.the prefix
-  "r"
-  ... "LuxRuntime"
-  )
+  (comment "LuxRuntime"
+           "r"))
 
 (.the .public unit
   (_.unicode synthesis.unit))
@@ -128,9 +127,8 @@
   (-> Natural
       SVar)
   (let [name (text ..prefix
-                   ... "_" (%.natural version.latest)
-                   ... "_"
-                   (%.natural seed))]
+                   (comment "_" (%.natural version.latest) "_"
+                            (%.natural seed)))]
     (_.var name)))
 
 (.the (feature name definition)
@@ -159,54 +157,54 @@
     (when declaration
       {.:Left name}
       (macro.with_names ['_]
-        (let [runtime_nameC (` (runtime_name (, (code.natural seed))))]
-          (pure (list (` (.the .public (, (code.local name)) SVar (, runtime_nameC)))
-                      (` (.the (, (code.local (text "@" name)))
-                           _.Statement
-                           (..feature (, runtime_nameC)
-                                      (function ((, '_) (, '_))
-                                        (_.set (list (, '_)) (, code))))))))))
+                        (let [runtime_nameC (` (runtime_name (, (code.natural seed))))]
+                          (pure (list (` (.the .public (, (code.local name)) SVar (, runtime_nameC)))
+                                      (` (.the (, (code.local (text "@" name)))
+                                           _.Statement
+                                           (..feature (, runtime_nameC)
+                                                      (function ((, '_) (, '_))
+                                                        (_.set (list (, '_)) (, code))))))))))
       
       {.:Right [name inputs]}
       (macro.with_names ['_]
-        (let [runtime_nameC (` (runtime_name (, (code.natural seed))))
-              inputsC (list:each code.local inputs)
-              inputs_typesC (list:each (function.constant (` _.Expression))
-                                       inputs)]
-          (pure (list (` (.the .public ((, (code.local name)) (,* inputsC))
-                           (-> (,* inputs_typesC)
-                               Computation)
-                           (_.of (list (,* inputsC)) (, runtime_nameC))))
-                      (` (.the (, (code.local (text "@" name)))
-                           _.Statement
-                           (..feature (, runtime_nameC)
-                                      (function ((, '_) (, '_))
-                                        (..with_vars [(,* inputsC)]
-                                          (_.def (, '_) (list (,* inputsC))
-                                                 (, code))))))))))))))
+                        (let [runtime_nameC (` (runtime_name (, (code.natural seed))))
+                              inputsC (list:each code.local inputs)
+                              inputs_typesC (list:each (function.constant (` _.Expression))
+                                                       inputs)]
+                          (pure (list (` (.the .public ((, (code.local name)) (,* inputsC))
+                                           (-> (,* inputs_typesC)
+                                               Computation)
+                                           (_.of (list (,* inputsC)) (, runtime_nameC))))
+                                      (` (.the (, (code.local (text "@" name)))
+                                           _.Statement
+                                           (..feature (, runtime_nameC)
+                                                      (function ((, '_) (, '_))
+                                                        (..with_vars [(,* inputsC)]
+                                                                     (_.def (, '_) (list (,* inputsC))
+                                                                            (, code))))))))))))))
 
 (the lux:pattern_matching_error
   (_.string when.pattern_matching_error))
 
 (the (lux:try op)
   (with_vars [exception]
-    (_.try (_.return (..right (_.of (list ..unit) op)))
-           (list [(list "Exception") exception
-                  (_.return (..left (_.do "join"
-                                      (list (_.do "format_exception_only"
-                                              (list (_.its "__class__" exception)
-                                                    exception)
-                                              (_.__import__/1 (_.string "traceback"))))
-                                      (_.string ""))))]))))
+             (_.try (_.return (..right (_.of (list ..unit) op)))
+                    (list [(list "Exception") exception
+                           (_.return (..left (_.do "join"
+                                               (list (_.do "format_exception_only"
+                                                       (list (_.its "__class__" exception)
+                                                             exception)
+                                                       (_.__import__/1 (_.string "traceback"))))
+                                               (_.string ""))))]))))
 
 (the (lux:program_args program_args)
   (with_vars [inputs value]
-    (all _.then
-         (_.set (list inputs) ..none)
-         (<| (_.for_in value (_.of (list program_args) (_.var "reversed")))
-             (_.set (list inputs)
-                    (..some (_.list (list value inputs)))))
-         (_.return inputs))))
+             (all _.then
+                  (_.set (list inputs) ..none)
+                  (<| (_.for_in value (_.of (list program_args) (_.var "reversed")))
+                      (_.set (list inputs)
+                             (..some (_.list (list value inputs)))))
+                  (_.return inputs))))
 
 (the (lux:exec code globals)
   (all _.then
@@ -254,37 +252,37 @@
                                     (_.set (list tuple) (_.item last_index_right tuple))))]
   (these (the (tuple:left lefts tuple)
            (with_vars [last_index_right]
-             (_.while (_.bool true)
-                      (all _.then
-                           (_.set (list last_index_right) (..last_index tuple))
-                           (_.if (_.> lefts last_index_right)
-                                 ... No need for recursion
-                                 (_.return (_.item lefts tuple))
-                                 ... Needs recursion
-                                 <recur>))
-                      {.:None})))
+                      (_.while (_.bool true)
+                               (all _.then
+                                    (_.set (list last_index_right) (..last_index tuple))
+                                    (_.if (_.> lefts last_index_right)
+                                          (comment "No need for recursion"
+                                                   (_.return (_.item lefts tuple)))
+                                          (comment "Needs recursion"
+                                                   <recur>)))
+                               {.:None})))
 
          (the (tuple:right lefts tuple)
            (with_vars [last_index_right right_index]
-             (_.while (_.bool true)
-                      (all _.then
-                           (_.set (list last_index_right) (..last_index tuple))
-                           (_.set (list right_index) (_.+ (_.int +1) lefts))
-                           (<| (_.if (_.= last_index_right right_index)
-                                     (_.return (_.item right_index tuple)))
-                               (_.if (_.> last_index_right right_index)
-                                     ... Needs recursion.
-                                     <recur>)
-                               (_.return (_.slice_from right_index tuple))))
-                      {.:None})))))
+                      (_.while (_.bool true)
+                               (all _.then
+                                    (_.set (list last_index_right) (..last_index tuple))
+                                    (_.set (list right_index) (_.+ (_.int +1) lefts))
+                                    (<| (_.if (_.= last_index_right right_index)
+                                              (_.return (_.item right_index tuple)))
+                                        (_.if (_.> last_index_right right_index)
+                                              (comment "Needs recursion."
+                                                       <recur>))
+                                        (_.return (_.slice_from right_index tuple))))
+                               {.:None})))))
 
 (template.with [,index ,name]
-  [(.the .public ,name
-     (_.item (_.int (.integer ,index))))]
+               [(.the .public ,name
+                  (_.item (_.int (.integer ,index))))]
 
-  [[0 variant_lefts]
-   [1 variant_right?]
-   [2 variant_value]])
+               [[0 variant_lefts]
+                [1 variant_right?]
+                [2 variant_value]])
 
 (the (sum:get sum expected:right? expected:lefts)
   (let [mismatch! (_.return _.none)
@@ -331,23 +329,21 @@
 
 (the (i64:64 input)
   (with_vars [temp]
-    (`` (<| (,, (template.with [<scenario> <iteration> <cap> <entrance>]
-                  [(_.if (|> input <scenario>)
-                         (all _.then
-                              (_.set (list temp) (_.% <iteration> input))
-                              (_.return (_.? (|> temp <scenario>)
-                                             (|> temp (_.- <cap>) (_.+ <entrance>))
-                                             temp))))]
+             (`` (<| (,, (template.with [<scenario> <iteration> <cap> <entrance>]
+                                        [(_.if (|> input <scenario>)
+                                               (all _.then
+                                                    (_.set (list temp) (_.% <iteration> input))
+                                                    (_.return (_.? (|> temp <scenario>)
+                                                                   (|> temp (_.- <cap>) (_.+ <entrance>))
+                                                                   temp))))]
 
-                  [[(_.> ..i64:+limit) ..i64:+iteration ..i64:+cap ..i64:-limit]
-                   [(_.< ..i64:-limit) ..i64:-iteration ..i64:-cap ..i64:+limit]]
-                  ))
-            (_.return (target.if target.python
-                                 input
-
-                                 ... else
-                                 ... This +- is only necessary to guarantee that values within the limits are always longs in Python 2
-                                 (|> input (_.+ ..i64:+limit) (_.- ..i64:+limit))))))))
+                                        [[(_.> ..i64:+limit) ..i64:+iteration ..i64:+cap ..i64:-limit]
+                                         [(_.< ..i64:-limit) ..i64:-iteration ..i64:-cap ..i64:+limit]]
+                                        ))
+                     (_.return (target.if target.python
+                                          input
+                                          (comment "This +- is only necessary to guarantee that values within the limits are always longs in Python 2"
+                                                   (|> input (_.+ ..i64:+limit) (_.- ..i64:+limit)))))))))
 
 (.the as_natural
   (_.% ..i64:+iteration))
@@ -368,33 +364,33 @@
 
 (the (i64:/ param subject)
   (with_vars [floored]
-    (all _.then
-         (_.set (list floored) (_.// param subject))
-         (_.return (let [potentially_floored? (_.< (_.int +0) floored)
-                         inexact? (|> subject
-                                      (_.% param)
-                                      (_.= (_.int +0))
-                                      _.not)]
-                     (<| (_.? (_.and potentially_floored?
-                                     inexact?)
-                              (_.+ (_.int +1) floored))
-                         (_.? (_.= (_.manual "+9223372036854775808")
-                                   floored)
-                              (_.manual "-9223372036854775808"))
-                         floored))))))
+             (all _.then
+                  (_.set (list floored) (_.// param subject))
+                  (_.return (let [potentially_floored? (_.< (_.int +0) floored)
+                                  inexact? (|> subject
+                                               (_.% param)
+                                               (_.= (_.int +0))
+                                               _.not)]
+                              (<| (_.? (_.and potentially_floored?
+                                              inexact?)
+                                       (_.+ (_.int +1) floored))
+                                  (_.? (_.= (_.manual "+9223372036854775808")
+                                            floored)
+                                       (_.manual "-9223372036854775808"))
+                                  floored))))))
 
 (the (i64:remainder param subject)
   (_.return (_.- (|>  subject (..i64:/ param) (_.* param))
                  subject)))
 
 (template.with [<runtime> <host>]
-  [(the (<runtime> left right)
-     (_.return (..i64:64 (<host> (..as_natural left) (..as_natural right)))))]
+               [(the (<runtime> left right)
+                  (_.return (..i64:64 (<host> (..as_natural left) (..as_natural right)))))]
 
-  [[i64:and _.bit_and]
-   [i64:or _.bit_or]
-   [i64:xor _.bit_xor]]
-  )
+               [[i64:and _.bit_and]
+                [i64:or _.bit_or]
+                [i64:xor _.bit_xor]]
+               )
 
 (.the python_version
   _.Expression
@@ -438,11 +434,11 @@
 
 (the (text:index start param subject)
   (with_vars [idx]
-    (all _.then
-         (_.set (list idx) (|> subject (_.do "find" (list param start))))
-         (_.return (_.? (_.= (_.int -1) idx)
-                        ..none
-                        (..some (..i64:64 idx)))))))
+             (all _.then
+                  (_.set (list idx) (|> subject (_.do "find" (list param start))))
+                  (_.return (_.? (_.= (_.int -1) idx)
+                                 ..none
+                                 (..some (..i64:64 idx)))))))
 
 (.the ++
   (|>> (_.+ (_.int +1))))

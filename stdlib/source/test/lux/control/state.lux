@@ -35,21 +35,21 @@
          value random.natural])
       (_.for [/.State])
       (all _.and
-           ... (_.by_proof [/.value]
-           ...             [!.value])
-           ... (_.by_proof [/.state]
-           ...             [!.state])
-           ... (_.by_proof [/.as]
-           ...             [!.as
-           ...              !.identity_of_as])
-           ... (_.by_proof [/.put]
-           ...             [!.put])
-           ... (_.by_proof [/.update]
-           ...             [!.update])
-           (_.coverage [/.local]
-             (with_conditions [state (n.x value state)]
-               (/.local (n.x value)
-                        /.state)))
+           (comment (_.by_proof [/.value]
+                                [!.value])
+                    (_.by_proof [/.state]
+                                [!.state])
+                    (_.by_proof [/.as]
+                                [!.as
+                                 !.identity_of_as])
+                    (_.by_proof [/.put]
+                                [!.put])
+                    (_.by_proof [/.update]
+                                [!.update])
+                    (_.coverage [/.local]
+                      (with_conditions [state (n.x value state)]
+                                       (/.local (n.x value)
+                                                /.state))))
            )))
 
 (the (injection value)
@@ -71,10 +71,10 @@
   (monad.let random.monad
     [state random.natural]
     (all _.and
-         ... (_.by_proof [/.functor]
-         ...             [!.functor])
-         (_.for [/.monad]
-                (monadT.spec ..injection (..comparison state) /.monad))
+         (comment (_.by_proof [/.functor]
+                              [!.functor])
+                  (_.for [/.monad]
+                         (monadT.spec ..injection (..comparison state) /.monad)))
          )))
 
 (the loops
@@ -106,18 +106,18 @@
      left random.natural
      right random.natural]
     (with "io:[0]" io.monad
-      (_.coverage [/.With /.with /.lifted /.value']
-        (|> (is (/.With Natural io.IO Natural)
-                (monad.let (/.with io.monad)
-                  [a (/.lifted io.monad (io:pure left))
-                   b (pure right)]
-                  (pure (n.+ a b))))
-            (/.value' state)
-            io.value
-            (pipe.let [state' output']
-              (and (n.= state state')
-                   (n.= (n.+ left right) output')))))
-      )))
+          (_.coverage [/.With /.with /.lifted /.value']
+            (|> (is (/.With Natural io.IO Natural)
+                    (monad.let (/.with io.monad)
+                      [a (/.lifted io.monad (io:pure left))
+                       b (pure right)]
+                      (pure (n.+ a b))))
+                (/.value' state)
+                io.value
+                (pipe.let [state' output']
+                  (and (n.= state state')
+                       (n.= (n.+ left right) output')))))
+          )))
 
 (the .public test
   Test

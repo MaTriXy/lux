@@ -87,12 +87,12 @@
     (pure (list:mix (function (_ side source)
                       (.let [method (`` (.when side
                                           (,, (template.with [<side> <accessor>]
-                                                [(<side> lefts)
-                                                 (<accessor> (_.int (.integer lefts)))]
+                                                             [(<side> lefts)
+                                                              (<accessor> (_.int (.integer lefts)))]
 
-                                                [[.:Left //runtime.tuple//left]
-                                                 [.:Right //runtime.tuple//right]]
-                                                ))))]
+                                                             [[.:Left //runtime.tuple//left]
+                                                              [.:Right //runtime.tuple//right]]
+                                                             ))))]
                         (method source)))
                     valueG
                     pathP))))
@@ -136,20 +136,20 @@
                           (_.int (i.x -1 (.integer pops)))])))
 
 (template.with [<name> <flag> <prep>]
-  [(the (<name> simple? idx)
-     (-> Bit Natural _.Statement)
-     (all _.then
-          (_.set! @temp (|> idx <prep> .integer _.int (//runtime.sum//get ..peek <flag>)))
-          (.if simple?
-               (_.when (_.is_null/1 @temp)
-                 fail!)
-               (_.if (_.is_null/1 @temp)
-                     fail!
-                     (..push! @temp)))))]
+               [(the (<name> simple? idx)
+                  (-> Bit Natural _.Statement)
+                  (all _.then
+                       (_.set! @temp (|> idx <prep> .integer _.int (//runtime.sum//get ..peek <flag>)))
+                       (.if simple?
+                            (_.when (_.is_null/1 @temp)
+                              fail!)
+                            (_.if (_.is_null/1 @temp)
+                                  fail!
+                                  (..push! @temp)))))]
 
-  [[left_choice  _.null        (<|)]
-   [right_choice (_.string "") ++]]
-  )
+               [[left_choice  _.null        (<|)]
+                [right_choice (_.string "") ++]]
+               )
 
 (the (alternation pre! post!)
   (-> _.Statement _.Statement _.Statement)
@@ -193,71 +193,71 @@
                              then!))))
 
           (,, (template.with [<tag> <injection>]
-                [{<tag> item}
-                 (monad.let [! ///////phase.monad]
-                   [clauses (list.each' ! (function (_ [match then])
-                                            (monad.let !
-                                              [then! (of then)]
-                                              (pure [(_.=== (|> match <injection>)
-                                                            ..peek)
-                                                     then!])))
-                                        {.:Top item})]
-                   (pure (_.cond clauses ..fail!)))]
+                             [{<tag> item}
+                              (monad.let [! ///////phase.monad]
+                                [clauses (list.each' ! (function (_ [match then])
+                                                         (monad.let !
+                                                           [then! (of then)]
+                                                           (pure [(_.=== (|> match <injection>)
+                                                                         ..peek)
+                                                                  then!])))
+                                                     {.:Top item})]
+                                (pure (_.cond clauses ..fail!)))]
 
-                [[/////synthesis.:I64_Fork //primitive.i64]
-                 [/////synthesis.:F64_Fork //primitive.f64]
-                 [/////synthesis.:Text_Fork //primitive.text]]
-                ))
+                             [[/////synthesis.:I64_Fork //primitive.i64]
+                              [/////synthesis.:F64_Fork //primitive.f64]
+                              [/////synthesis.:Text_Fork //primitive.text]]
+                             ))
 
           (,, (template.with [<complex> <simple> <choice>]
-                [(<complex> idx)
-                 (///////phase:pure (<choice> false idx))
+                             [(<complex> idx)
+                              (///////phase:pure (<choice> false idx))
 
-                 (<simple> idx nextP)
-                 (|> nextP
-                     of
-                     (by ///////phase.monad each (_.then (<choice> true idx))))]
+                              (<simple> idx nextP)
+                              (|> nextP
+                                  of
+                                  (by ///////phase.monad each (_.then (<choice> true idx))))]
 
-                [[/////synthesis.left_side  /////synthesis.simple_left_side  ..left_choice]
-                 [/////synthesis.right_side /////synthesis.simple_right_side ..right_choice]]
-                ))
+                             [[/////synthesis.left_side  /////synthesis.simple_left_side  ..left_choice]
+                              [/////synthesis.right_side /////synthesis.simple_right_side ..right_choice]]
+                             ))
 
           (/////synthesis.left_member 0)
           (///////phase:pure (|> ..peek (_.item (_.int +0)) ..push!))
           
           (,, (template.with [<pm> <getter>]
-                [(<pm> lefts)
-                 (///////phase:pure (|> ..peek (<getter> (_.int (.integer lefts))) ..push!))]
+                             [(<pm> lefts)
+                              (///////phase:pure (|> ..peek (<getter> (_.int (.integer lefts))) ..push!))]
 
-                [[/////synthesis.left_member  //runtime.tuple//left]
-                 [/////synthesis.right_member //runtime.tuple//right]]
-                ))
+                             [[/////synthesis.left_member  //runtime.tuple//left]
+                              [/////synthesis.right_member //runtime.tuple//right]]
+                             ))
 
           (/////synthesis.!bind_top register thenP)
-          (monad.let ///////phase.monad
-            [then! (of thenP)]
-            (///////phase:pure (all _.then
-                                    (_.set! (..register register) ..peek_and_pop)
-                                    then!)))
+          (comment (/////synthesis.!multi_pop nextP)
+                   (.let [[extra_pops nextP'] (////synthesis/when.count_pops nextP)]
+                     (monad.let ///////phase.monad
+                       [next! (of nextP')]
+                       (///////phase:pure (all _.then
+                                               (..multi_pop! (n.+ 2 extra_pops))
+                                               next!))))
 
-          ... (/////synthesis.!multi_pop nextP)
-          ... (.let [[extra_pops nextP'] (////synthesis/when.count_pops nextP)]
-          ...   (monad.let ///////phase.monad
-          ...     [next! (of nextP')]
-          ...     (///////phase:pure (all _.then
-          ...                    (..multi_pop! (n.+ 2 extra_pops))
-          ...                    next!))))
+                   (monad.let ///////phase.monad
+                     [then! (of thenP)]
+                     (///////phase:pure (all _.then
+                                             (_.set! (..register register) ..peek_and_pop)
+                                             then!))))
 
           (,, (template.with [<tag> <combinator>]
-                [(<tag> preP postP)
-                 (monad.let ///////phase.monad
-                   [pre! (of preP)
-                    post! (of postP)]
-                   (pure (<combinator> pre! post!)))]
+                             [(<tag> preP postP)
+                              (monad.let ///////phase.monad
+                                [pre! (of preP)
+                                 post! (of postP)]
+                                (pure (<combinator> pre! post!)))]
 
-                [[/////synthesis.path/seq _.then]
-                 [/////synthesis.path/alt ..alternation]]
-                ))))))
+                             [[/////synthesis.path/seq _.then]
+                              [/////synthesis.path/alt ..alternation]]
+                             ))))))
 
 (the (pattern_matching statement expression archive pathP)
   (Statement Path)
@@ -296,7 +296,7 @@
   (-> Phase! (Expression [Synthesis Path]))
   (monad.let [! ///////phase.monad]
     [[[when_module when_artifact] when!] (/////translation.with_new_context archive
-                                           (when! statement expression archive [valueS pathP]))
+                                                                            (when! statement expression archive [valueS pathP]))
      .let [@when (_.constant (///reference.artifact [when_module when_artifact]))
            @dependencies+ (..dependencies (/////synthesis.path/seq (/////synthesis.path/then valueS)
                                                                    pathP))

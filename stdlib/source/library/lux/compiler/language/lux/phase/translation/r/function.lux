@@ -74,11 +74,11 @@
   (Expression (Abstraction Synthesis))
   (monad.let [! ///////phase.monad]
     [[[function_module function_artifact] bodyO] (/////translation.with_new_context archive
-                                                   (monad.let !
-                                                     [$self (by ! each (|>> ///reference.artifact _.var)
-                                                                (/////translation.context archive))]
-                                                     (/////translation.with_anchor $self
-                                                       (expression archive bodyS))))
+                                                                                    (monad.let !
+                                                                                      [$self (by ! each (|>> ///reference.artifact _.var)
+                                                                                                 (/////translation.context archive))]
+                                                                                      (/////translation.with_anchor $self
+                                                                                                                    (expression archive bodyS))))
      closureO+ (list.each' ! (expression archive) environment)
      .let [arityO (|> arity .integer _.int)
            $num_args (_.var "num_args")
@@ -86,31 +86,31 @@
            of_poly (.function (_ args func)
                      (_.of (list func args) (_.var "do.call")))]]
     (with_closure function_artifact $self closureO+
-      (_.set! $self (_.function (list _.var_args)
-                      (all _.then
-                           (_.set! $curried (_.list (list _.var_args)))
-                           (_.set! $num_args (_.length $curried))
-                           (_.cond (list [(|> $num_args (_.= arityO))
-                                          (all _.then
-                                               (_.set! (//when.register 0) $self)
-                                               (|> arity
-                                                   list.domain
-                                                   (list:each input_declaration)
-                                                   (list:mix _.then bodyO)))]
-                                         [(|> $num_args (_.> arityO))
-                                          (let [arity_args (_.slice (_.int +1) arityO $curried)
-                                                output_func_args (_.slice (|> arityO (_.+ (_.int +1)))
-                                                                          $num_args
-                                                                          $curried)]
-                                            (|> $self
-                                                (of_poly arity_args)
-                                                (of_poly output_func_args)))])
-                                   ... (|> $num_args (_.< arityO))
-                                   (let [$missing (_.var "missing")]
-                                     (_.function (list _.var_args)
-                                       (all _.then
-                                            (_.set! $missing (_.list (list _.var_args)))
-                                            (|> $self
-                                                (of_poly (_.of (list $curried $missing)
-                                                               (_.var "append"))))))))))))
+                  (_.set! $self (_.function (list _.var_args)
+                                  (all _.then
+                                       (_.set! $curried (_.list (list _.var_args)))
+                                       (_.set! $num_args (_.length $curried))
+                                       (_.cond (list [(|> $num_args (_.= arityO))
+                                                      (all _.then
+                                                           (_.set! (//when.register 0) $self)
+                                                           (|> arity
+                                                               list.domain
+                                                               (list:each input_declaration)
+                                                               (list:mix _.then bodyO)))]
+                                                     [(|> $num_args (_.> arityO))
+                                                      (let [arity_args (_.slice (_.int +1) arityO $curried)
+                                                            output_func_args (_.slice (|> arityO (_.+ (_.int +1)))
+                                                                                      $num_args
+                                                                                      $curried)]
+                                                        (|> $self
+                                                            (of_poly arity_args)
+                                                            (of_poly output_func_args)))])
+                                               (comment (|> $num_args (_.< arityO))
+                                                        (let [$missing (_.var "missing")]
+                                                          (_.function (list _.var_args)
+                                                            (all _.then
+                                                                 (_.set! $missing (_.list (list _.var_args)))
+                                                                 (|> $self
+                                                                     (of_poly (_.of (list $curried $missing)
+                                                                                    (_.var "append")))))))))))))
     ))

@@ -114,20 +114,20 @@
      expected_right ..nominal]
     (`` (all _.and
              (,, (template.with [<projection> <exception> <good_constructor> <bad_constructor>]
-                   [(_.coverage [<projection> <exception>]
-                      (and (|> (\\projection.value (<projection> (all <>.and \\projection.any \\projection.any \\projection.any))
-                                                   (<good_constructor> (list expected_left expected_middle expected_right)))
-                               (!expect (^.multi {try.:Success [actual_left actual_middle actual_right]}
-                                                 (and (/.= expected_left actual_left)
-                                                      (/.= expected_middle actual_middle)
-                                                      (/.= expected_right actual_right)))))
-                           (|> (\\projection.value (<projection> (all <>.and \\projection.any \\projection.any \\projection.any))
-                                                   (<bad_constructor> (list expected_left expected_middle expected_right)))
-                               (!expect (^.multi {try.:Failure error}
-                                                 (exception.is? <exception> error))))))]
+                                [(_.coverage [<projection> <exception>]
+                                   (and (|> (\\projection.value (<projection> (all <>.and \\projection.any \\projection.any \\projection.any))
+                                                                (<good_constructor> (list expected_left expected_middle expected_right)))
+                                            (!expect (^.multi {try.:Success [actual_left actual_middle actual_right]}
+                                                              (and (/.= expected_left actual_left)
+                                                                   (/.= expected_middle actual_middle)
+                                                                   (/.= expected_right actual_right)))))
+                                        (|> (\\projection.value (<projection> (all <>.and \\projection.any \\projection.any \\projection.any))
+                                                                (<bad_constructor> (list expected_left expected_middle expected_right)))
+                                            (!expect (^.multi {try.:Failure error}
+                                                              (exception.is? <exception> error))))))]
 
-                   [[\\projection.variant \\projection.not_variant /.variant /.tuple]
-                    [\\projection.tuple \\projection.not_tuple /.tuple /.variant]]))
+                                [[\\projection.variant \\projection.not_variant /.variant /.tuple]
+                                 [\\projection.tuple \\projection.not_tuple /.tuple /.variant]]))
 
              (_.coverage [\\projection.function \\projection.not_function]
                (and (|> (\\projection.value (\\projection.function (all <>.and \\projection.any \\projection.any) \\projection.any)
@@ -264,15 +264,15 @@
              [expected ..nominal]
              (_.coverage [\\projection.empty_input]
                (`` (and (,, (template.with [<projection>]
-                              [(|> (\\projection.value (monad.let <>.monad
-                                                         [_ \\projection.any]
-                                                         <projection>)
-                                                       expected)
-                                   (!expect (^.multi {try.:Failure error}
-                                                     (exception.is? \\projection.empty_input error))))]
+                                           [(|> (\\projection.value (monad.let <>.monad
+                                                                      [_ \\projection.any]
+                                                                      <projection>)
+                                                                    expected)
+                                                (!expect (^.multi {try.:Failure error}
+                                                                  (exception.is? \\projection.empty_input error))))]
 
-                              [[\\projection.any]
-                               [\\projection.next]]))))))
+                                           [[\\projection.any]
+                                            [\\projection.next]]))))))
            (monad.let [! random.monad]
              [expected ..nominal]
              (_.coverage [\\projection.Env \\projection.env \\projection.fresh]
@@ -414,23 +414,23 @@
                                   (list.complete !))])
                    (`` (all _.and
                             (,, (template.with [<ctor> <dtor> <unit>]
-                                  [(_.coverage [<ctor> <dtor>]
-                                     (let [flat (|> members
-                                                    <ctor>
-                                                    <dtor>)]
-                                       (or (list:= members flat)
-                                           (and (list:= (list) members)
-                                                (list:= (list <unit>) flat)))))]
+                                               [(_.coverage [<ctor> <dtor>]
+                                                  (let [flat (|> members
+                                                                 <ctor>
+                                                                 <dtor>)]
+                                                    (or (list:= members flat)
+                                                        (and (list:= (list) members)
+                                                             (list:= (list <unit>) flat)))))]
 
-                                  [[/.variant /.flat_variant Nothing]
-                                   [/.tuple   /.flat_tuple   Any]]))
+                                               [[/.variant /.flat_variant Nothing]
+                                                [/.tuple   /.flat_tuple   Any]]))
                             )))
                (_.coverage [/.reified]
                  (and (<| (maybe.else false)
                           (monad.let maybe.monad
-                            [partial (/.reified (list Bit) Annotated)
+                            [partial (/.reified (list Bit) Either)
                              full (/.reified (list Integer) partial)]
-                            (pure (by /.equality = full (/.Product Bit Integer)))))
+                            (pure (by /.equality = full (/.Sum Bit Integer)))))
                       (|> (/.reified (list Bit) Text)
                           (pipe.when
                             {.:None}
@@ -482,13 +482,13 @@
                                                      true))))])
                    (`` (all _.and
                             (,, (template.with [<ctor> <dtor>]
-                                  [(_.coverage [<ctor> <dtor>]
-                                     (let [[flat_size flat_body] (|> body_type (<ctor> size) <dtor>)]
-                                       (and (n.= size flat_size)
-                                            (/.= body_type flat_body))))]
+                                               [(_.coverage [<ctor> <dtor>]
+                                                  (let [[flat_size flat_body] (|> body_type (<ctor> size) <dtor>)]
+                                                    (and (n.= size flat_size)
+                                                         (/.= body_type flat_body))))]
 
-                                  [[/.univ_q /.flat_univ_q]
-                                   [/.ex_q   /.flat_ex_q]]))
+                                               [[/.univ_q /.flat_univ_q]
+                                                [/.ex_q   /.flat_ex_q]]))
                             (_.coverage [/.quantified?]
                               (and (not (/.quantified? body_type))
                                    (|> body_type (/.univ_q size) /.quantified?)
@@ -599,14 +599,14 @@
                         (_.coverage [/.as_text]
                           (identical? /.absolute_text /.as_text))))
                (,, (template.with [,type ,0 ,1]
-                     [(_.coverage [,type ,0 ,1]
-                        (bit.= (not ,0)
-                               ,1))]
+                                  [(_.coverage [,type ,0 ,1]
+                                     (bit.= (not ,0)
+                                            ,1))]
 
-                     [[.Polarity .co_variant .contra_variant]
-                      [.Quantification .universal .existential]
-                      [.Parameter .abstraction .argument]
-                      [.Quality .general .special]]))
+                                  [[.Polarity .co_variant .contra_variant]
+                                   [.Quantification .universal .existential]
+                                   [.Parameter .abstraction .argument]
+                                   [.Quality .general .special]]))
 
                ..\\projection
 

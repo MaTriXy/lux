@@ -57,19 +57,14 @@
                   (every (Extension it)
                     [.Name (List it)])
 
-                  (expansion.let [@ ($ (Analysis~' $))]
-                    (every (Analysis~' $)
-                      (Or @type.Simple
-                          (Complex @)
-                          Reference
-                          [@ (Analysis_Match @)]
-                          [(Environment @) @]
-                          [@ @]
-                          (Extension @))))
-
-                  (every Analysis~
-                    (Annotated Provenance
-                               (Analysis~' (Annotated Provenance))))
+                  (every (Analysis~ _)
+                    (Or (And Provenance @type.Simple)
+                        (And Provenance (Complex Analysis~))
+                        (And Provenance Reference)
+                        (And Provenance [Analysis~ (Analysis_Match Analysis~)])
+                        (And Provenance [(Environment Analysis~) Analysis~])
+                        (And Provenance [Analysis~ Analysis~])
+                        (And Provenance (Extension Analysis~))))
 
                   (.the extension_analysis
                     (template.macro (_ <name> <parameter>)
@@ -144,17 +139,12 @@
                         (Synthesis_Loop s)
                         (Synthesis_Function s)))
 
-                  (expansion.let [@ ($ (Synthesis~' $))]
-                    (every (Synthesis~' $)
-                      (Or synthesis/simple.Simple
-                          (Complex @)
-                          Reference
-                          (Synthesis_Control @)
-                          (Extension @))))
-
-                  (every Synthesis~
-                    (Annotated Provenance
-                               (Synthesis~' (Annotated Provenance))))
+                  (every (Synthesis~ $)
+                    (Or (And Provenance synthesis/simple.Simple)
+                        (And Provenance (Complex @))
+                        (And Provenance Reference)
+                        (And Provenance (Synthesis_Control @))
+                        (And Provenance (Extension @))))
 
                   (.the text_synthesis
                     (template.macro (_ <@> <it>)
@@ -163,7 +153,7 @@
                   (.the .public invalid_inputs_for_extension
                     Error
                     (provenance.with (provenance.here)
-                      "Invalid inputs for extension."))
+                                     "Invalid inputs for extension."))
 
                   (syntax.the (translation [<name> ?list.any
                                             <bindings> ?list.any
@@ -171,24 +161,24 @@
                                                             ?list.any)
                                             <body> ?list.any])
                     (with_names ['_ 'phase 'archive 'inputs 'state]
-                      (pure (list (` (.the .public (, <name>)
-                                       (<| (as (-> Any .Translation))
-                                           (.function ((, '_) (, 'phase) (, 'archive) (, 'inputs)))
-                                           (.function ((, '_) (, 'state)))
-                                           (let [(, <bindings>) [(, 'phase) (, 'archive) (, 'state)]]
-                                             (, (when <inputs>
-                                                  {.:Left <inputs>}
-                                                  (` (when (is (List Synthesis~) (, 'inputs))
-                                                       (, (code.local <inputs>))
-                                                       (, <body>)))
-                                                  
-                                                  {.:Right <inputs>}
-                                                  (` (when (is (List Synthesis~) (, 'inputs))
-                                                       (, <inputs>)
-                                                       (, <body>)
+                                (pure (list (` (.the .public (, <name>)
+                                                 (<| (as (-> Any .Translation))
+                                                     (.function ((, '_) (, 'phase) (, 'archive) (, 'inputs)))
+                                                     (.function ((, '_) (, 'state)))
+                                                     (let [(, <bindings>) [(, 'phase) (, 'archive) (, 'state)]]
+                                                       (, (when <inputs>
+                                                            {.:Left <inputs>}
+                                                            (` (when (is (List Synthesis~) (, 'inputs))
+                                                                 (, (code.local <inputs>))
+                                                                 (, <body>)))
+                                                            
+                                                            {.:Right <inputs>}
+                                                            (` (when (is (List Synthesis~) (, 'inputs))
+                                                                 (, <inputs>)
+                                                                 (, <body>)
 
-                                                       (, '_)
-                                                       {try.:Failure ..invalid_inputs_for_extension}))))))))))))
+                                                                 (, '_)
+                                                                 {try.:Failure ..invalid_inputs_for_extension}))))))))))))
 
                   (translation undefined?|translation
                     [phase archive state]
@@ -385,15 +375,15 @@
                                                 target.ruby (these [Nil]))
                          <un_common> <un_common>]
            (template.with [<name>]
-             [(expansion.let [<it> (template.name [<name> "'"])]
-                (nominal.every <it>
-                  Any
-                  
-                  (every .public <name>
-                    (Object <it>))))]
+                          [(expansion.let [<it> (template.name [<name> "'"])]
+                             (nominal.every <it>
+                               Any
+                               
+                               (every .public <name>
+                                 (Object <it>))))]
 
-             [[Function]
-              <un_common>]))
+                          [[Function]
+                           <un_common>]))
 
          (expansion.let [<un_common> (target.if target.js (these [Number Real])
                                                 target.python (these [Integer .Integer]
@@ -404,12 +394,12 @@
                                                                    [Float Real]))
                          <un_common> <un_common>]
            (template.with [<name> <type>]
-             [(every .public <name>
-                <type>)]
+                          [(every .public <name>
+                             <type>)]
 
-             [[Boolean Bit]
-              [String  Text]
-              <un_common>]))
+                          [[Boolean Bit]
+                           [String  Text]
+                           <un_common>]))
 
          (every Alias
            (Maybe Text))
@@ -451,17 +441,17 @@
              :anonymous it]))
 
          (template.with [<case> <name>]
-           [(.the <case>
-              (for_any (_ it)
-                (-> (Projection it)
-                    (Projection (Named it))))
-              (|>> (all <>.and
-                        <name>
-                        ..alias
-                        )))]
+                        [(.the <case>
+                           (for_any (_ it)
+                             (-> (Projection it)
+                                 (Projection (Named it))))
+                           (|>> (all <>.and
+                                     <name>
+                                     ..alias
+                                     )))]
 
-           [[named <code>.local]
-            [anonymous (<>:pure "")]])
+                        [[named <code>.local]
+                         [anonymous (<>:pure "")]])
 
          (every Output
            Optional)
@@ -599,64 +589,64 @@
 
          (`` (template.with [<lux_it> <host_it>
                              <lux_?> <host_?>]
-               [(.the .public (<lux_it> _)
-                  (-> Any
-                      Nothing)
-                  (as_expected (<host_it>)))
+                            [(.the .public (<lux_it> _)
+                               (-> Any
+                                   Nothing)
+                               (as_expected (<host_it>)))
 
-                (.the .public <lux_?>
-                  (-> Any
-                      Bit)
-                  (|>> <host_?>))
+                             (.the .public <lux_?>
+                               (-> Any
+                                   Bit)
+                               (|>> <host_?>))
 
-                (template.with_locals ['it]
-                  (these (.the 'it' (' 'it))
-                         (.the (host_optional it)
-                           (-> Optional
-                               Code)
-                           (.if (.its :optional? it)
-                                (` (.when (, (its :mandatory it))
-                                     {.:Some (, 'it')}
-                                     (, 'it')
+                             (template.with_locals ['it]
+                                                   (these (.the 'it' (' 'it))
+                                                          (.the (host_optional it)
+                                                            (-> Optional
+                                                                Code)
+                                                            (.if (.its :optional? it)
+                                                                 (` (.when (, (its :mandatory it))
+                                                                      {.:Some (, 'it')}
+                                                                      (, 'it')
 
-                                     {.:None}
-                                     (<host_it>)))
-                                (its :mandatory it)))
+                                                                      {.:None}
+                                                                      (<host_it>)))
+                                                                 (its :mandatory it)))
 
-                         (`` (.the (lux_optional it output)
-                               (-> Optional
-                                   (Change Code))
-                               (,, (target.if target.lua
-                                              (` (.let [(, 'it') (, (if (its :multiple? it)
-                                                                        (` (<of> (<constant> "table.pack") [(, output)]))
-                                                                        output))]
-                                                   (, (if (its :optional? it)
-                                                          (` (.if (not (<host_?> (, 'it')))
-                                                                  {.:Some (, 'it')}
-                                                                  {.:None}))
-                                                          (` (.if (.not (<host_?> (, 'it')))
-                                                                  (, 'it')
-                                                                  (.halt! "Invalid output.")))))))
+                                                          (`` (.the (lux_optional it output)
+                                                                (-> Optional
+                                                                    (Change Code))
+                                                                (,, (target.if target.lua
+                                                                               (` (.let [(, 'it') (, (if (its :multiple? it)
+                                                                                                         (` (<of> (<constant> "table.pack") [(, output)]))
+                                                                                                         output))]
+                                                                                    (, (if (its :optional? it)
+                                                                                           (` (.if (not (<host_?> (, 'it')))
+                                                                                                   {.:Some (, 'it')}
+                                                                                                   {.:None}))
+                                                                                           (` (.if (.not (<host_?> (, 'it')))
+                                                                                                   (, 'it')
+                                                                                                   (.halt! "Invalid output.")))))))
 
-                                              ... by default
-                                              (` (.let [(, 'it') (, output)]
-                                                   (, (if (its :optional? it)
-                                                          (` (.if (not (<host_?> (, 'it')))
-                                                                  {.:Some (, 'it')}
-                                                                  {.:None}))
-                                                          (` (.if (.not (<host_?> (, 'it')))
-                                                                  (, 'it')
-                                                                  (.halt! "Invalid output.")))))))))))))]
+                                                                               ... by default
+                                                                               (` (.let [(, 'it') (, output)]
+                                                                                    (, (if (its :optional? it)
+                                                                                           (` (.if (not (<host_?> (, 'it')))
+                                                                                                   {.:Some (, 'it')}
+                                                                                                   {.:None}))
+                                                                                           (` (.if (.not (<host_?> (, 'it')))
+                                                                                                   (, 'it')
+                                                                                                   (.halt! "Invalid output.")))))))))))))]
 
-               [(,, (target.if target.js [null .js_object_null#
-                                          null? .js_object_null?#]
-                               target.python [none .python_object_none#
-                                              none? .python_object_none?#]
-                               target.lua [nil .lua_object_nil#
-                                           nil? .lua_object_nil?#]
-                               target.ruby [nil .ruby_object_nil#
-                                            nil? .ruby_object_nil?#]))]
-               ))
+                            [(,, (target.if target.js [null .js_object_null#
+                                                       null? .js_object_null?#]
+                                            target.python [none .python_object_none#
+                                                           none? .python_object_none?#]
+                                            target.lua [nil .lua_object_nil#
+                                                        nil? .lua_object_nil?#]
+                                            target.ruby [nil .ruby_object_nil#
+                                                         nil? .ruby_object_nil?#]))]
+                            ))
 
          (every Declaration
            [Text (List Text)])
@@ -1066,27 +1056,27 @@
                            (syntax.the .public (global [type ?list.any
                                                         [head next,tail] (<code>.tuple (<>.and <code>.local (<>.maybe (<>.and <code>.local (<>.some <code>.local)))))])
                              (with_names ['_]
-                               (let [global (` (.js_constant# (, (code.text head))))]
-                                 (when next,tail
-                                   {.:None}
-                                   (pure (list (` (is (.Maybe (, type))
-                                                      (when (..type_of (, global))
-                                                        "undefined"
-                                                        {.:None}
+                                         (let [global (` (.js_constant# (, (code.text head))))]
+                                           (when next,tail
+                                             {.:None}
+                                             (pure (list (` (is (.Maybe (, type))
+                                                                (when (..type_of (, global))
+                                                                  "undefined"
+                                                                  {.:None}
 
-                                                        (, '_)
-                                                        {.:Some (as (-> Any (, type)) (, global))})))))
-                                   
-                                   {.:Some [next tail]}
-                                   (let [delimiter "."]
-                                     (pure (list (` (is (.Maybe (, type))
-                                                        (when (..type_of (, global))
-                                                          "undefined"
-                                                          {.:None}
+                                                                  (, '_)
+                                                                  {.:Some (as (-> Any (, type)) (, global))})))))
+                                             
+                                             {.:Some [next tail]}
+                                             (let [delimiter "."]
+                                               (pure (list (` (is (.Maybe (, type))
+                                                                  (when (..type_of (, global))
+                                                                    "undefined"
+                                                                    {.:None}
 
-                                                          (, '_)
-                                                          (..global (, type) [(, (code.local (text head delimiter next)))
-                                                                              (,* (list:each code.local tail))])))))))))))
+                                                                    (, '_)
+                                                                    (..global (, type) [(, (code.local (text head delimiter next)))
+                                                                                        (,* (list:each code.local tail))])))))))))))
 
                            (.the !defined?
                              (template.macro (_ <global>)
@@ -1098,12 +1088,12 @@
                                   .true)]))
 
                            (template.with [<name> <global>]
-                             [(.the .public <name>
-                                Bit
-                                (!defined? <global>))]
+                                          [(.the .public <name>
+                                             Bit
+                                             (!defined? <global>))]
 
-                             [[on_browser? [window]]
-                              [on_nashorn? [java lang Object]]])
+                                          [[on_browser? [window]]
+                                           [on_nashorn? [java lang Object]]])
 
                            (.the .public on_node_js?
                              Bit

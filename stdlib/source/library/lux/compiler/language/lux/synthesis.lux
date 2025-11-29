@@ -104,21 +104,21 @@
            {:Loop (Loop it)}
            {:Function (Function it)}))
 
-(expansion.let [@ ($ (Term' $))]
-  (every .public (Term' $)
-    (Variant {:Simple Simple}
-             {:Reference Reference}
-             {:Control (Control @)}
-             {:Extension (Extension @)})))
+(every .public (Term _)
+  (Variant {:Simple Provenance Simple}
+           {:Reference Provenance Reference}
+           {:Control Provenance (Control Term)}
+           {:Extension Provenance (Extension Term)}))
 
-(every .public Term
-  (Annotated Provenance
-             (Term' (Annotated Provenance))))
-
-(the .public provenance
+(the .public (provenance it)
   (-> Term
       Provenance)
-  pair.left)
+  (.when it
+    (^.or {:Simple it _}
+          {:Reference it _}
+          {:Control it _}
+          {:Extension it _})
+    it))
 
 (every .public Operation
   (phase.Operation State))
@@ -127,12 +127,12 @@
   (phase.Phase State analysis.Term Term))
 
 (template.with [<special> <general>]
-  [(every .public <special>
-     (<general> ..State analysis.Term Term))]
+               [(every .public <special>
+                  (<general> ..State analysis.Term Term))]
 
-  [[Handler  phase/extension.Handler]
-   [Bundle   phase/extension.Bundle]
-   [Extender phase/extension.Extender]])
+               [[Handler  phase/extension.Handler]
+                [Bundle   phase/extension.Bundle]
+                [Extender phase/extension.Extender]])
 
 (every .public Abstraction
   (Abstraction' Term))
@@ -145,18 +145,18 @@
   "")
 
 (template.with [<with> <query> <tag> <type>]
-  [(the .public (<with> value)
-     (-> <type>
-         (for_any (_ it)
-           (Change (Operation it))))
-     (phase.temporary (has <tag> value)))
+               [(the .public (<with> value)
+                  (-> <type>
+                      (for_any (_ it)
+                        (Change (Operation it))))
+                  (phase.temporary (has <tag> value)))
 
-   (the .public <query>
-     (Operation <type>)
-     (phase.read (.its <tag>)))]
+                (the .public <query>
+                  (Operation <type>)
+                  (phase.read (.its <tag>)))]
 
-  [[with_locals    locals    :locals    Natural]
-   [with_currying? currying? :currying? Bit]])
+               [[with_locals    locals    :locals    Natural]
+                [with_currying? currying? :currying? Bit]])
 
 (the .public with_new_local
   (for_any (_ it)
@@ -166,73 +166,70 @@
        (..with_locals (++ locals))))
 
 (template.with [<name> <tag>]
-  [(the .public <name>
-     (template.macro (<name> <@> content)
-       [[<@> {..:Simple {<tag> content}}]]))]
+               [(the .public <name>
+                  (template.macro (<name> <@> content)
+                    [{..:Simple <@> {<tag> content}}]))]
 
-  [[bit  /simple.:Bit]
-   [i64  /simple.:I64]
-   [f64  /simple.:F64]
-   [text /simple.:Text]])
+               [[bit  /simple.:Bit]
+                [i64  /simple.:I64]
+                [f64  /simple.:F64]
+                [text /simple.:Text]])
 
 (the .public (variant @ it)
   (-> Provenance (@type.Variant Term)
       Term)
-  [@ {..:Extension [[.prelude (extension.synthesis extension/lux.case)]
-                    (list (..i64 @ (.i64 (.its @type.:lefts it)))
-                          (..bit @ (.its @type.:right? it))
-                          (.its @type.:choice it))]}])
+  {..:Extension @ [[.prelude (extension.synthesis extension/lux.case)]
+                   (list (..i64 @ (.i64 (.its @type.:lefts it)))
+                         (..bit @ (.its @type.:right? it))
+                         (.its @type.:choice it))]})
 
 (`` (template.the .public (tuple ,@ ,it)
-      [[,@ {..:Extension [[(,, (static.text .prelude))
-                           (,, (static.text (extension.synthesis extension/lux.pair)))]
-                          ,it]}]]))
+      [{..:Extension ,@ [[(,, (static.text .prelude))
+                          (,, (static.text (extension.synthesis extension/lux.pair)))]
+                         ,it]}]))
 
 (template.with [<name> <tag>]
-  [(the .public <name>
-     (template.macro (<name> <@> content)
-       [(.<| [<@>]
-             {..:Reference}
-             <tag>
-             content)]))]
+               [(the .public <name>
+                  (template.macro (<name> <@> content)
+                    [(.<| {..:Reference <@>}
+                          <tag>
+                          content)]))]
 
-  [[variable reference.variable]
-   [constant reference.constant]
-   [local    reference.local]
-   [foreign  reference.foreign]])
+               [[variable reference.variable]
+                [constant reference.constant]
+                [local    reference.local]
+                [foreign  reference.foreign]])
 
 (the .public when
   (template.macro (<name> <@> content)
-    [(.<| [<@>]
-          {..:Control}
+    [(.<| {..:Control <@>}
           {..:When}
           content)]))
 
 (template.with [<name> <family> <tag>]
-  [(the .public <name>
-     (template.macro (<name> <@> content)
-       [(.<| [<@>]
-             {..:Control}
-             {<family>}
-             {<tag>}
-             content)]))]
+               [(the .public <name>
+                  (template.macro (<name> <@> content)
+                    [(.<| {..:Control <@>}
+                          {<family>}
+                          {<tag>}
+                          content)]))]
 
-  [[tail_recursion ..:Loop ..:Tail_Recursion]
-   [tail_iteration ..:Loop ..:Tail_Iteration]
+               [[tail_recursion ..:Loop ..:Tail_Recursion]
+                [tail_iteration ..:Loop ..:Tail_Iteration]
 
-   [abstraction ..:Function ..:Abstraction]
-   [reification ..:Function ..:Reification]])
+                [abstraction ..:Function ..:Abstraction]
+                [reification ..:Function ..:Reification]])
 
-(the .public (as_text [_ value])
+(the .public (as_text value)
   (text.Injection Term)
   (.when value
-    {:Simple it}
+    {:Simple _ it}
     (/simple.as_text it)
 
-    {:Reference reference}
+    {:Reference _ reference}
     (reference.as_text reference)
 
-    {:Control control}
+    {:Control _ control}
     (.when control
       {:Function function}
       (.when function
@@ -272,7 +269,7 @@
             (text.interposed " ")
             (text.enclosed ["{:tail_iteration " "}"]))))
 
-    {:Extension [[_ name] args]}
+    {:Extension _ [_ name] args}
     (|> (list:each as_text args)
         (text.interposed " ")
         (.text (%.text name) " ")
@@ -283,30 +280,30 @@
     (-> (Equality it)
         (Equality (When it))))
   (with "/:[0]" it
-    (implementation
-     (the (= [expected_input expected_path] [actual_input actual_path])
-       (.and (/:= expected_input actual_input)
-             (by (/path.equality /:=) = expected_path actual_path))))))
+        (implementation
+         (the (= [expected_input expected_path] [actual_input actual_path])
+           (.and (/:= expected_input actual_input)
+                 (by (/path.equality /:=) = expected_path actual_path))))))
 
 (the (loop_equality it)
   (for_any (_ it)
     (-> (Equality it)
         (Equality (Loop it))))
   (with "/:[0]" it
-    (implementation
-     (the (= expected actual)
-       (.when [expected actual]
-         [{:Tail_Recursion [expected_start expected_inits expected_iteration]}
-          {:Tail_Recursion [actual_start actual_inits actual_iteration]}]
-         (.and (n.= expected_start actual_start)
-               (by (list.equality /:=) = expected_inits actual_inits)
-               (/:= expected_iteration actual_iteration))
+        (implementation
+         (the (= expected actual)
+           (.when [expected actual]
+             [{:Tail_Recursion [expected_start expected_inits expected_iteration]}
+              {:Tail_Recursion [actual_start actual_inits actual_iteration]}]
+             (.and (n.= expected_start actual_start)
+                   (by (list.equality /:=) = expected_inits actual_inits)
+                   (/:= expected_iteration actual_iteration))
 
-         [{:Tail_Iteration expected} {:Tail_Iteration actual}]
-         (by (list.equality /:=) = expected actual)
-         
-         _
-         false)))))
+             [{:Tail_Iteration expected} {:Tail_Iteration actual}]
+             (by (list.equality /:=) = expected actual)
+             
+             _
+             false)))))
 
 (the (loop_hash super)
   (for_any (_ it)
@@ -334,22 +331,22 @@
     (-> (Equality it)
         (Equality (Function it))))
   (with "/:[0]" it
-    (implementation
-     (the (= expected actual)
-       (.when [expected actual]
-         [{:Abstraction [expected_environment expected_arity expected_body]}
-          {:Abstraction [actual_environment actual_arity actual_body]}]
-         (.and (by (list.equality /:=) = expected_environment actual_environment)
-               (n.= expected_arity actual_arity)
-               (/:= expected_body actual_body))
-         
-         [{:Reification [expected_abstraction expected_arguments]}
-          {:Reification [actual_abstraction actual_arguments]}]
-         (.and (/:= expected_abstraction actual_abstraction)
-               (by (list.equality /:=) = expected_arguments actual_arguments))
-         
-         _
-         false)))))
+        (implementation
+         (the (= expected actual)
+           (.when [expected actual]
+             [{:Abstraction [expected_environment expected_arity expected_body]}
+              {:Abstraction [actual_environment actual_arity actual_body]}]
+             (.and (by (list.equality /:=) = expected_environment actual_environment)
+                   (n.= expected_arity actual_arity)
+                   (/:= expected_body actual_body))
+             
+             [{:Reification [expected_abstraction expected_arguments]}
+              {:Reification [actual_abstraction actual_arguments]}]
+             (.and (/:= expected_abstraction actual_abstraction)
+                   (by (list.equality /:=) = expected_arguments actual_arguments))
+             
+             _
+             false)))))
 
 (the (function_hash super)
   (for_any (_ it)
@@ -378,19 +375,19 @@
     (-> (Equality it)
         (Equality (Control it))))
   (with "/:[0]" it
-    (implementation
-     (the (= expected actual)
-       (`` (.when [expected actual]
-             (,, (template.with [<tag> <equality>]
-                   [[{<tag> expected} {<tag> actual}]
-                    (by (<equality> /:=) = expected actual)]
+        (implementation
+         (the (= expected actual)
+           (`` (.when [expected actual]
+                 (,, (template.with [<tag> <equality>]
+                                    [[{<tag> expected} {<tag> actual}]
+                                     (by (<equality> /:=) = expected actual)]
 
-                   [[:When ..when_equality]
-                    [:Loop ..loop_equality]
-                    [:Function ..function_equality]]))
-             
-             _
-             false))))))
+                                    [[:When ..when_equality]
+                                     [:Loop ..loop_equality]
+                                     [:Function ..function_equality]]))
+                 
+                 _
+                 false))))))
 
 (the (control_hash super)
   (for_any (_ it)
@@ -408,26 +405,26 @@
                 (by (/path.hash super) hash path))
            
            (,, (template.with [<factor> <tag> <hash>]
-                 [{<tag> value}
-                  (n.x <factor> (by (<hash> super) hash value))]
+                              [{<tag> value}
+                               (n.x <factor> (by (<hash> super) hash value))]
 
-                 [[3 :Loop ..loop_hash]
-                  [5 :Function ..function_hash]]))
+                              [[3 :Loop ..loop_hash]
+                               [5 :Function ..function_hash]]))
            )))))
 
 (the .public equality
   (Equality Term)
   (implementation
-   (the (= [_ expected] [_ actual])
+   (the (= expected actual)
      (`` (.when [expected actual]
            (,, (template.with [<tag> <equality>]
-                 [[{<tag> expected'} {<tag> actual'}]
-                  (by <equality> = expected' actual')]
+                              [[{<tag> _ expected'} {<tag> _ actual'}]
+                               (by <equality> = expected' actual')]
 
-                 [[:Simple /simple.equality]
-                  [:Reference reference.equality]
-                  [:Control (control_equality =)]
-                  [:Extension (phase/extension.equality =)]]))
+                              [[:Simple /simple.equality]
+                               [:Reference reference.equality]
+                               [:Control (control_equality =)]
+                               [:Extension (phase/extension.equality =)]]))
 
            _
            false)))))
@@ -444,13 +441,13 @@
      (.let [again_hash [..equality hash]]
        (`` (.when value
              (,, (template.with [<factor> <tag> <hash>]
-                   [[_ {<tag> value}]
-                    (n.x <factor> (by <hash> hash value))]
+                                [{<tag> _ value}
+                                 (n.x <factor> (by <hash> hash value))]
 
-                   [[2 :Simple /simple.hash]
-                    [3 :Reference reference.hash]
-                    [5 :Control (..control_hash again_hash)]
-                    [7 :Extension (phase/extension.hash again_hash)]]))))))))
+                                [[2 :Simple /simple.hash]
+                                 [3 :Reference reference.hash]
+                                 [5 :Control (..control_hash again_hash)]
+                                 [7 :Extension (phase/extension.hash again_hash)]]))))))))
 
 (the Projection
   (type [Register Member]))
@@ -560,54 +557,53 @@
         {.:None}))))
 
 (template.with [,name ,static ,value ,dynamic]
-  [(the .public (,name it)
-     (-> (If Term)
-         (Maybe [Term Term]))
-     (.when (.its ,static it)
-       (..bit _ ,value)
-       {.:Some [(.its ,dynamic it)
-                (.its :if_when it)]}
+               [(the .public (,name it)
+                  (-> (If Term)
+                      (Maybe [Term Term]))
+                  (.when (.its ,static it)
+                    (..bit _ ,value)
+                    {.:Some [(.its ,dynamic it)
+                             (.its :if_when it)]}
 
-       else
-       {.:None}))]
+                    else
+                    {.:None}))]
 
-  [[or :if_then .true :if_else]
-   [and :if_else .false :if_then]])
+               [[or :if_then .true :if_else]
+                [and :if_else .false :if_then]])
 
 (template.with [,name ,type ,path]
-  [(the .public (,name [input output])
-     (-> (When Term)
-         (Maybe [Term (List [,type Term]) Term]))
-     (.when output
-       {/path.:Or {,path head tail}
-                  {/path.:Then else}}
-       (monad.let [! maybe.monad]
-         [.let [case (is (-> (/path.Road ,type (/path.Path Term))
-                             (Maybe [,type Term]))
-                         (function (_ road)
-                           (.when (.its /path.:then road)
-                             {/path.:Then then}
-                             {.:Some [(.its /path.:when road) then]}
+               [(the .public (,name [input output])
+                  (-> (When Term)
+                      (Maybe [Term (List [,type Term]) Term]))
+                  (.when output
+                    {/path.:Or {,path head tail}
+                               {/path.:Then else}}
+                    (monad.let [! maybe.monad]
+                      [.let [case (is (-> (/path.Road ,type (/path.Path Term))
+                                          (Maybe [,type Term]))
+                                      (function (_ road)
+                                        (.when (.its /path.:then road)
+                                          {/path.:Then then}
+                                          {.:Some [(.its /path.:when road) then]}
 
-                             _
-                             {.:None})))]
-          head (case head)
-          tail (list.each' ! case tail)]
-         (pure [input
-                (list:composite (list head) tail)
-                else]))
+                                          _
+                                          {.:None})))]
+                       head (case head)
+                       tail (list.each' ! case tail)]
+                      (pure [input
+                             (list:composite (list head) tail)
+                             else]))
 
-       _
-       {.:None}))]
+                    _
+                    {.:None}))]
 
-  [[when_i64 I64 /path.:I64_Fork]
-   [when_f64 F64 /path.:F64_Fork]
-   [when_text Text /path.:Text_Fork]])
+               [[when_i64 I64 /path.:I64_Fork]
+                [when_f64 F64 /path.:F64_Fork]
+                [when_text Text /path.:Text_Fork]])
 
 (the .public let
   (template.macro (_ ,@ ,register ,value ,body)
-    [(<| [,@]
-         {..:Control}
+    [(<| {..:Control ,@}
          {..:When}
          [..:input ,value
           ..:output]
@@ -638,8 +634,7 @@
 
 (the .public exec
   (template.macro (_ ,@ ,before ,after)
-    [(<| [,@]
-         {..:Control}
+    [(<| {..:Control ,@}
          {..:When}
          [..:input ,before
           ..:output]
@@ -728,11 +723,9 @@
                                                 (random.lower_cased 1)
                                                 (random.upper_cased 1)))
                                        (random.list 1 random)))]
-        (all random.and
-             (random:pure provenance.dummy)
-             (all random.or
-                  /simple.random
-                  reference.random
-                  random_control
-                  random_extension
-                  )))))
+        (all random.or
+             (random.and (random:pure provenance.dummy) /simple.random)
+             (random.and (random:pure provenance.dummy) reference.random)
+             (random.and (random:pure provenance.dummy) random_control)
+             (random.and (random:pure provenance.dummy) random_extension)
+             ))))

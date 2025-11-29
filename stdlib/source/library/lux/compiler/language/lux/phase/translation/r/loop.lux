@@ -34,26 +34,26 @@
 (the .public (scope expression archive [offset initsS+ bodyS])
   (Expression (Scope Synthesis))
   (when initsS+
-    ... function/false/non-independent loop
     {.:Empty}
-    (expression archive bodyS)
+    (comment "function/false/non-independent loop"
+             (expression archive bodyS))
 
-    ... true loop
     _
-    (monad.let [! ///////phase.monad]
-      [$scope (by ! each _.var (/////translation.name "loop_scope"))
-       initsO+ (list.each' ! (expression archive) initsS+)
-       bodyO (/////translation.with_anchor $scope
-               (expression archive bodyS))]
-      (pure (_.block
-             (all _.then
-                  (_.set! $scope
-                          (_.function (|> initsS+
-                                          list.size
-                                          list.domain
-                                          (list:each (|>> (n.+ offset) //when.register)))
-                            bodyO))
-                  (_.of initsO+ $scope)))))))
+    (comment "true loop"
+             (monad.let [! ///////phase.monad]
+               [$scope (by ! each _.var (/////translation.name "loop_scope"))
+                initsO+ (list.each' ! (expression archive) initsS+)
+                bodyO (/////translation.with_anchor $scope
+                                                    (expression archive bodyS))]
+               (pure (_.block
+                      (all _.then
+                           (_.set! $scope
+                                   (_.function (|> initsS+
+                                                   list.size
+                                                   list.domain
+                                                   (list:each (|>> (n.+ offset) //when.register)))
+                                     bodyO))
+                           (_.of initsO+ $scope))))))))
 
 (the .public (again expression archive argsS+)
   (Expression (List Synthesis))

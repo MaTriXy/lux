@@ -111,8 +111,8 @@
             (n.< expected_arity actual_arity)
             (arbitrary_reification expression archive [abstraction parameters])
             
-            ... (n.> expected_arity actual_arity)
-            (successive_reification expression archive [@abstraction expected_arity parameters]))
+            (comment (n.> expected_arity actual_arity)
+                     (successive_reification expression archive [@abstraction expected_arity parameters])))
         
         _
         (arbitrary_reification expression archive [abstraction parameters])))
@@ -151,7 +151,7 @@
                                                            [@scope (by ! each ..@scope
                                                                        (translation.context archive))
                                                             body (translation.with_anchor [1 @scope]
-                                                                   (statement expression archive bodyS))]
+                                                                                          (statement expression archive bodyS))]
                                                            (pure [@scope body])))]
                                      (when environment
                                        (list)
@@ -182,48 +182,48 @@
                         (_.of (list it) (_.var "table.unpack"))))
            @var_args (_.var "...")
            [definition instantiation] (with_closure environment @self (list @var_args)
-                                        (all _.then
-                                             (_.local/1 @curried (pack @var_args))
-                                             (_.local/1 @num_args (_.length @curried))
-                                             (<| (_.if (|> @num_args (_.= arityO))
-                                                       (all _.then
-                                                            initialize!
-                                                            (_.set_label @scope)
-                                                            body!))
-                                                 (_.if (|> @num_args (_.< arityO))
-                                                       (_.return (_.closure (list @var_args)
-                                                                            (let [@extra_args (_.var "extra_args")]
-                                                                              (all _.then
-                                                                                   (_.local/1 @extra_args (pack @var_args))
-                                                                                   (_.return (_.of (list (unpack (_.of (list @extra_args
-                                                                                                                             (_.int +1)
-                                                                                                                             (_.length @extra_args)
-                                                                                                                             (_.+ (_.int +1) @num_args)
-                                                                                                                             (_.of (list @curried
+                                                    (all _.then
+                                                         (_.local/1 @curried (pack @var_args))
+                                                         (_.local/1 @num_args (_.length @curried))
+                                                         (<| (_.if (|> @num_args (_.= arityO))
+                                                                   (all _.then
+                                                                        initialize!
+                                                                        (_.set_label @scope)
+                                                                        body!))
+                                                             (_.if (|> @num_args (_.< arityO))
+                                                                   (_.return (_.closure (list @var_args)
+                                                                                        (let [@extra_args (_.var "extra_args")]
+                                                                                          (all _.then
+                                                                                               (_.local/1 @extra_args (pack @var_args))
+                                                                                               (_.return (_.of (list (unpack (_.of (list @extra_args
                                                                                                                                          (_.int +1)
-                                                                                                                                         @num_args
-                                                                                                                                         (_.int +1)
-                                                                                                                                         (_.array (list)))
-                                                                                                                                   (_.var "table.move")))
-                                                                                                                       (_.var "table.move"))))
-                                                                                                   @self)))))))
-                                                 ... (|> @num_args (_.> arityO))
-                                                 (let [arity_inputs (_.of (list @curried
-                                                                                (_.int +1)
-                                                                                arityO
-                                                                                (_.int +1)
-                                                                                (_.array (list)))
-                                                                          (_.var "table.move"))
-                                                       extra_inputs (_.of (list @curried
-                                                                                (_.+ (_.int +1) arityO)
-                                                                                @num_args
-                                                                                (_.int +1)
-                                                                                (_.array (list)))
-                                                                          (_.var "table.move"))]
-                                                   (_.return (|> @self
-                                                                 (_.of (list (unpack arity_inputs)))
-                                                                 (_.of (list (unpack extra_inputs)))))))
-                                             ))]
+                                                                                                                                         (_.length @extra_args)
+                                                                                                                                         (_.+ (_.int +1) @num_args)
+                                                                                                                                         (_.of (list @curried
+                                                                                                                                                     (_.int +1)
+                                                                                                                                                     @num_args
+                                                                                                                                                     (_.int +1)
+                                                                                                                                                     (_.array (list)))
+                                                                                                                                               (_.var "table.move")))
+                                                                                                                                   (_.var "table.move"))))
+                                                                                                               @self)))))))
+                                                             (comment (|> @num_args (_.> arityO))
+                                                                      (let [arity_inputs (_.of (list @curried
+                                                                                                     (_.int +1)
+                                                                                                     arityO
+                                                                                                     (_.int +1)
+                                                                                                     (_.array (list)))
+                                                                                               (_.var "table.move"))
+                                                                            extra_inputs (_.of (list @curried
+                                                                                                     (_.+ (_.int +1) arityO)
+                                                                                                     @num_args
+                                                                                                     (_.int +1)
+                                                                                                     (_.array (list)))
+                                                                                               (_.var "table.move"))]
+                                                                        (_.return (|> @self
+                                                                                      (_.of (list (unpack arity_inputs)))
+                                                                                      (_.of (list (unpack extra_inputs))))))))
+                                                         ))]
      _ (translation.execute! definition)
      _ (translation.save! (pair.right abstraction_id) {.:None} definition)]
     (pure instantiation)))

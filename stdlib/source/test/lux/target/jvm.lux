@@ -102,7 +102,7 @@
   (invoke [java/lang/Object [java/lang/Object]] "try" java/lang/Object))
 
 (ffi.the (java/lang/Class c)
-  (getDeclaredMethod [java/lang/String [(java/lang/Class [? < java/lang/Object])]] java/lang/reflect/Method))
+  (getDeclaredMethod [java/lang/String [(java/lang/Class [? "<" java/lang/Object])]] java/lang/reflect/Method))
 
 (ffi.the java/lang/Object)
 
@@ -441,36 +441,36 @@
                    verdict))))]))
 
 (template.with [<name> <bits> <type> <push> <wrap> <to_long> <signed>]
-  [(the <name>
-     Test
-     (monad.let [! random.monad]
-       [expected (by ! each (/64.and (/64.mask <bits>)) random.natural)]
-       (<| (..coverage [<push>])
-           (..bytecode (function.constant false)
-                       (|>> (as (-> Any <type>))
-                            <to_long>
-                            .jvm_object_cast#
-                            (.jvm_long_=# (.jvm_object_cast# (as (-> Natural java/lang/Long) expected)))))
-           (monad.let /.monad
-             [_ (<push> (|> expected .integer <signed> try.trusted))]
-             <wrap>))))]
+               [(the <name>
+                  Test
+                  (monad.let [! random.monad]
+                    [expected (by ! each (/64.and (/64.mask <bits>)) random.natural)]
+                    (<| (..coverage [<push>])
+                        (..bytecode (function.constant false)
+                                    (|>> (as (-> Any <type>))
+                                         <to_long>
+                                         .jvm_object_cast#
+                                         (.jvm_long_=# (.jvm_object_cast# (as (-> Natural java/lang/Long) expected)))))
+                        (monad.let /.monad
+                          [_ (<push> (|> expected .integer <signed> try.trusted))]
+                          <wrap>))))]
 
-  [[byte 7 java/lang/Byte /.bipush ..$Byte:wrap ffi.byte_to_long signed.s1]
-   [short 15 java/lang/Short /.sipush ..$Short:wrap ffi.short_to_long signed.s2]])
+               [[byte 7 java/lang/Byte /.bipush ..$Byte:wrap ffi.byte_to_long signed.s1]
+                [short 15 java/lang/Short /.sipush ..$Short:wrap ffi.short_to_long signed.s2]])
 
 (template.with [<name> <type>]
-  [(the <name>
-     (template.macro (_ <old_extension> <new_extension>)
-       [(is (-> <type> <type> <type>)
-            (function (_ parameter subject)
-              (.jvm_object_cast#
-               (<new_extension> (.jvm_object_cast# parameter)
-                                (.jvm_object_cast# subject)))))]))]
+               [(the <name>
+                  (template.macro (_ <old_extension> <new_extension>)
+                    [(is (-> <type> <type> <type>)
+                         (function (_ parameter subject)
+                           (.jvm_object_cast#
+                            (<new_extension> (.jvm_object_cast# parameter)
+                                             (.jvm_object_cast# subject)))))]))]
 
-  [[int/2 java/lang/Integer]
-   [long/2 java/lang/Long]
-   [float/2 java/lang/Float]
-   [double/2 java/lang/Double]])
+               [[int/2 java/lang/Integer]
+                [long/2 java/lang/Long]
+                [float/2 java/lang/Float]
+                [double/2 java/lang/Double]])
 
 (the int+long/2
   (template.macro (_ <old_extension> <new_extension>)

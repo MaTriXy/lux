@@ -84,7 +84,7 @@
 (ffi.the (java/lang/Class c)
   ("static" forName [java/lang/String boolean java/lang/ClassLoader] "try" (java/lang/Class java/lang/Object))
   (getName [] java/lang/String)
-  (isAssignableFrom [(java/lang/Class [? < java/lang/Object])] boolean)
+  (isAssignableFrom [(java/lang/Class [? "<" java/lang/Object])] boolean)
   (getTypeParameters [] [(java/lang/reflect/TypeVariable (java/lang/Class c))])
   (getDeclaredField [java/lang/String] "try" java/lang/reflect/Field)
   (isArray [] boolean)
@@ -96,19 +96,19 @@
    (list ["Class" (%.text class)])))
 
 (template.with [<name>]
-  [(exception.the .public (<name> jvm_type)
-     (Exception java/lang/reflect/Type)
-     (exception.report
-      (list ["Type" (|> jvm_type
-                        (java/lang/reflect/Type:getTypeName [])
-                        ffi.of_string)]
-            ["Class" (|> jvm_type
-                         (java/lang/Object:getClass [])
-                         (java/lang/Object:toString [])
-                         ffi.of_string)])))]
+               [(exception.the .public (<name> jvm_type)
+                  (Exception java/lang/reflect/Type)
+                  (exception.report
+                   (list ["Type" (|> jvm_type
+                                     (java/lang/reflect/Type:getTypeName [])
+                                     ffi.of_string)]
+                         ["Class" (|> jvm_type
+                                      (java/lang/Object:getClass [])
+                                      (java/lang/Object:toString [])
+                                      ffi.of_string)])))]
 
-  [[not_a_class]
-   [cannot_convert_to_a_lux_type]])
+               [[not_a_class]
+                [cannot_convert_to_a_lux_type]])
 
 (the .public (load class_loader name)
   (-> java/lang/ClassLoader external.Name
@@ -144,17 +144,17 @@
                              (java/lang/Class:getName [])
                              ffi.of_string)]
           (`` (if (or (,, (template.with [<reflection>]
-                            [(text.= (/reflection.reflection <reflection>)
-                                     class_name)]
+                                         [(text.= (/reflection.reflection <reflection>)
+                                                  class_name)]
 
-                            [[/reflection.boolean]
-                             [/reflection.byte]
-                             [/reflection.short]
-                             [/reflection.int]
-                             [/reflection.long]
-                             [/reflection.float]
-                             [/reflection.double]
-                             [/reflection.char]]))
+                                         [[/reflection.boolean]
+                                          [/reflection.byte]
+                                          [/reflection.short]
+                                          [/reflection.int]
+                                          [/reflection.long]
+                                          [/reflection.float]
+                                          [/reflection.double]
+                                          [/reflection.char]]))
                       (text.starts_with? /descriptor.array_prefix class_name))
                   (exception.except ..not_a_class [reflection])
                   {try.:Success (/.class (list) class_name)})))
@@ -198,18 +198,18 @@
         (`` (when [(array.item 0 (java/lang/reflect/WildcardType:getLowerBounds [] reflection))
                    (array.item 0 (java/lang/reflect/WildcardType:getUpperBounds [] reflection))]
               (,, (template.with [<pattern> <kind>]
-                    [<pattern>
-                     (when (ffi.as java/lang/reflect/GenericArrayType bound)
-                       {.:Some it}
-                       ... TODO: Array bounds should not be "erased" as they
-                       ... are right now.
-                       {try.:Success /.wildcard}
+                                 [<pattern>
+                                  (when (ffi.as java/lang/reflect/GenericArrayType bound)
+                                    {.:Some it}
+                                    ... TODO: Array bounds should not be "erased" as they
+                                    ... are right now.
+                                    {try.:Success /.wildcard}
 
-                       _
-                       (by try.monad each <kind> (parameter type bound)))]
+                                    _
+                                    (by try.monad each <kind> (parameter type bound)))]
 
-                    [[[_ {try.:Success bound}] /.upper]
-                     [[{try.:Success bound} _] /.lower]]))
+                                 [[[_ {try.:Success bound}] /.upper]
+                                  [[{try.:Success bound} _] /.lower]]))
               
               _
               {try.:Success /.wildcard}))
@@ -247,18 +247,18 @@
                              (java/lang/Class:getName [])
                              ffi.of_string)]
           (`` (if (,, (template.with [<reflection> <type>]
-                        [(text.= (/reflection.reflection <reflection>)
-                                 class_name)
-                         {try.:Success <type>}]
+                                     [(text.= (/reflection.reflection <reflection>)
+                                              class_name)
+                                      {try.:Success <type>}]
 
-                        [[/reflection.boolean /.boolean]
-                         [/reflection.byte /.byte]
-                         [/reflection.short /.short]
-                         [/reflection.int /.int]
-                         [/reflection.long /.long]
-                         [/reflection.float /.float]
-                         [/reflection.double /.double]
-                         [/reflection.char /.char]]))
+                                     [[/reflection.boolean /.boolean]
+                                      [/reflection.byte /.byte]
+                                      [/reflection.short /.short]
+                                      [/reflection.int /.int]
+                                      [/reflection.long /.long]
+                                      [/reflection.float /.float]
+                                      [/reflection.double /.double]
+                                      [/reflection.char /.char]]))
                   (if (text.starts_with? /descriptor.array_prefix class_name)
                       (<t>.value /projection.value (|> class_name internal.name internal.value))
                       {try.:Success (/.class (list) class_name)}))))
@@ -359,15 +359,15 @@
          ["Target" (ffi.of_string (java/lang/Object:toString [] target))])))
 
 (template.with [<name>]
-  [(exception.the .public (<name> [field class])
-     (Exception [Text (java/lang/Class java/lang/Object)])
-     (exception.report
-      (list ["Field" (%.text field)]
-            ["Class" (ffi.of_string (java/lang/Object:toString [] class))])))]
+               [(exception.the .public (<name> [field class])
+                  (Exception [Text (java/lang/Class java/lang/Object)])
+                  (exception.report
+                   (list ["Field" (%.text field)]
+                         ["Class" (ffi.of_string (java/lang/Object:toString [] class))])))]
 
-  [[unknown_field]
-   [not_a_static_field]
-   [not_a_virtual_field]])
+               [[unknown_field]
+                [not_a_static_field]
+                [not_a_virtual_field]])
 
 (the .public (field field target)
   (-> Text (java/lang/Class java/lang/Object)
@@ -390,19 +390,19 @@
        not))
 
 (template.with [<name> <exception> <then?> <else?>]
-  [(the .public (<name> field class)
-     (-> Text (java/lang/Class java/lang/Object)
-         (Try [Bit Bit (/.Type Value)]))
-     (monad.let [! try.monad]
-       [fieldJ (..field field class)
-        .let [modifiers (java/lang/reflect/Field:getModifiers [] fieldJ)]]
-       (when (ffi.of_boolean (java/lang/reflect/Modifier:isStatic [modifiers]))
-         <then?> (|> fieldJ
-                     (java/lang/reflect/Field:getGenericType [])
-                     ..type
-                     (by ! each (|>> [(ffi.of_boolean (java/lang/reflect/Modifier:isFinal [modifiers]))
-                                      (..deprecated? (java/lang/reflect/Field:getDeclaredAnnotations [] fieldJ))])))
-         <else?> (exception.except <exception> [field class]))))]
+               [(the .public (<name> field class)
+                  (-> Text (java/lang/Class java/lang/Object)
+                      (Try [Bit Bit (/.Type Value)]))
+                  (monad.let [! try.monad]
+                    [fieldJ (..field field class)
+                     .let [modifiers (java/lang/reflect/Field:getModifiers [] fieldJ)]]
+                    (when (ffi.of_boolean (java/lang/reflect/Modifier:isStatic [modifiers]))
+                      <then?> (|> fieldJ
+                                  (java/lang/reflect/Field:getGenericType [])
+                                  ..type
+                                  (by ! each (|>> [(ffi.of_boolean (java/lang/reflect/Modifier:isFinal [modifiers]))
+                                                   (..deprecated? (java/lang/reflect/Field:getDeclaredAnnotations [] fieldJ))])))
+                      <else?> (exception.except <exception> [field class]))))]
 
-  [[static_field ..not_a_static_field 1b 0b]
-   [virtual_field ..not_a_virtual_field 0b 1b]])
+               [[static_field ..not_a_static_field 1b 0b]
+                [virtual_field ..not_a_virtual_field 0b 1b]])

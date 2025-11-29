@@ -25,17 +25,14 @@
   ["[0]" thread (.only Delay)]
   ["[0]" atom (.only Atom atom)]])
 
-(the Value
-  Maybe)
-
 (the Handler
   (template.macro (_ it)
     [(-> it
          (IO Any))]))
 
 (nominal.every (Future'' it)
-  (Atom [(Value it)
-         (List (Handler it))])
+  (Atom (Either (List (Handler it))
+                it))
 
   (every .public (Future' r w)
     (Future'' (Mutable r w)))
@@ -55,43 +52,48 @@
     (function (resolve value)
       (let [future (nominal.as future)]
         (monad.let [! io.monad]
-          [(^.let old [_value _observers]) (atom.read! future)]
-          (when _value
-            {.:Some _}
-            (pure false)
-
-            {.:None}
+          [old (atom.read! future)]
+          (when old
+            {.:Left _observers}
             (monad.let !
-              [succeeded? (atom.compare_and_swap! old [{.:Some (variance.write value)} (list)] future)]
+              [succeeded? (atom.compare_and_swap! old {.:Right (variance.write value)} future)]
               (if succeeded?
                   (monad.let !
                     [_ (list.each' ! (function.of (variance.write value))
                                    _observers)]
                     (pure true))
-                  (resolve value))))))))
+                  (resolve value)))
+            
+            {.:Right _value}
+            (pure false))))))
 
   (the .public (resolved value)
     (for_any (_ it)
       (-> it
           (Future it)))
-    (nominal.of (atom [{.:Some (variance.write value)} (list)])))
+    (nominal.of (atom {.:Right (variance.write value)})))
 
   (the .public (future _)
     (for_any (_ r w)
       (-> Any
           [(Future' r w)
            (Resolver w)]))
-    (let [future (nominal.of (atom [{.:None} (list)]))]
+    (let [future (nominal.of (atom {.:Left (list)}))]
       [future (..resolver future)]))
 
   (the .public value
     (for_any (_ r w)
       (-> (Future' r w)
-          (IO (Value r))))
+          (IO (Maybe r))))
     (|>> nominal.as
          atom.read!
-         (by io.functor each (|>> pair.left
-                                  (maybe:each (|>> variance.read))))))
+         (by io.functor each (function (_ it)
+                               (when it
+                                 {.:Right it}
+                                 {.:Some (variance.read it)}
+
+                                 else
+                                 {.:None})))))
 
   (the .public (upon! f future)
     (for_any (_ r w)
@@ -99,16 +101,14 @@
           (IO Any)))
     (monad.let [! io.monad]
       [.let [future (nominal.as future)]
-       (^.let old [_value _observers]) (atom.read! future)]
-      (when _value
-        {.:Some value}
+       old (atom.read! future)]
+      (when old
+        {.:Right value}
         (f (variance.read value))
 
-        {.:None}
+        {.:Left _observers}
         (monad.let !
-          [swapped? (atom.compare_and_swap! old
-                                            [_value (list:composite _observers (list (|>> variance.read f)))]
-                                            future)]
+          [swapped? (atom.compare_and_swap! old {.:Left (list:composite _observers (list (|>> variance.read f)))} future)]
           (if swapped?
               (pure [])
               (upon! f (nominal.of future)))))))
@@ -183,10 +183,10 @@
                                (is [(Future (Or lr rr)) (Resolver (Or lr rr))]
                                    (..future [])))]
     (expansion.let [<sides> (template.with [<future> <tag>]
-                              [(io.value (upon! (|>> {<tag>} resolve) <future>))]
+                                           [(io.value (upon! (|>> {<tag>} resolve) <future>))]
 
-                              [[left  .:Left]
-                               [right .:Right]])]
+                                           [[left  .:Left]
+                                            [right .:Right]])]
       (exec
         <sides>
         left|right))))
@@ -202,10 +202,10 @@
                                     (..future [])))]
     (`` (exec
           (,, (template.with [<future>]
-                [(io.value (upon! resolve <future>))]
+                             [(io.value (upon! resolve <future>))]
 
-                [[left]
-                 [right]]))
+                             [[left]
+                              [right]]))
           left||right))))
 
 (the .public (schedule! milli_seconds computation)

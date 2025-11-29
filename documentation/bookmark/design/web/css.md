@@ -4,6 +4,7 @@
 
 # Reference
 
+0. [CSS Properties](https://nikolai-shabalin.github.io/css-properties/en/)
 0. [CSS has 42 units](https://www.irrlicht3d.org/index.php?t=1627)
 0. [Style Observer](https://github.com/LeaVerou/style-observer)
 0. [CSS is Logical](https://geoffgraham.me/css-is-logical/)

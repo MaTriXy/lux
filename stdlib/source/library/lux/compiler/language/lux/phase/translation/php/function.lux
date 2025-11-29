@@ -74,11 +74,11 @@
       (Expression (Abstraction Synthesis)))
   (monad.let [! ///////phase.monad]
     [[function_name body!] (/////translation.with_new_context archive
-                             (monad.let !
-                               [@scope (by ! each ..@scope
-                                           (/////translation.context archive))]
-                               (/////translation.with_anchor [1 @scope]
-                                 (statement expression archive bodyS))))
+                                                              (monad.let !
+                                                                [@scope (by ! each ..@scope
+                                                                            (/////translation.context archive))]
+                                                                (/////translation.with_anchor [1 @scope]
+                                                                                              (statement expression archive bodyS))))
      closureG+ (list.each' ! (expression archive) environment)
      .let [@curried (_.var "curried")
            arityG (|> arity .integer _.int)
@@ -94,26 +94,26 @@
                                  initialize_self!
                                  (list.domain arity))]
      .let [[definition instantiation] (..with_closure closureG+ @selfG @selfL
-                                        (all _.then
-                                             (_.set! @num_args (_.func_num_args/0 []))
-                                             (_.set! @curried (_.func_get_args/0 []))
-                                             (_.cond (list [(|> @num_args (_.=== arityG))
-                                                            (all _.then
-                                                                 initialize!
-                                                                 (_.set_label @scope)
-                                                                 body!)]
-                                                           [(|> @num_args (_.> arityG))
-                                                            (let [arity_inputs (_.array_slice/3 [@curried (_.int +0) arityG])
-                                                                  extra_inputs (_.array_slice/2 [@curried arityG])
-                                                                  next (_.call_user_func_array/2 [@selfL arity_inputs])]
-                                                              (_.return (_.call_user_func_array/2 [next extra_inputs])))])
-                                                     ... (|> @num_args (_.< arityG))
-                                                     (let [@missing (_.var "missing")]
-                                                       (_.return (<| (_.closure (list (_.reference @selfL) (_.reference @curried)) (list))
-                                                                     (all _.then
-                                                                          (_.set! @missing (_.func_get_args/0 []))
-                                                                          (_.return (_.call_user_func_array/2 [@selfL (_.array_merge/+ @curried (list @missing))])))))))
-                                             ))]
+                                                      (all _.then
+                                                           (_.set! @num_args (_.func_num_args/0 []))
+                                                           (_.set! @curried (_.func_get_args/0 []))
+                                                           (_.cond (list [(|> @num_args (_.=== arityG))
+                                                                          (all _.then
+                                                                               initialize!
+                                                                               (_.set_label @scope)
+                                                                               body!)]
+                                                                         [(|> @num_args (_.> arityG))
+                                                                          (let [arity_inputs (_.array_slice/3 [@curried (_.int +0) arityG])
+                                                                                extra_inputs (_.array_slice/2 [@curried arityG])
+                                                                                next (_.call_user_func_array/2 [@selfL arity_inputs])]
+                                                                            (_.return (_.call_user_func_array/2 [next extra_inputs])))])
+                                                                   (comment (|> @num_args (_.< arityG))
+                                                                            (let [@missing (_.var "missing")]
+                                                                              (_.return (<| (_.closure (list (_.reference @selfL) (_.reference @curried)) (list))
+                                                                                            (all _.then
+                                                                                                 (_.set! @missing (_.func_get_args/0 []))
+                                                                                                 (_.return (_.call_user_func_array/2 [@selfL (_.array_merge/+ @curried (list @missing))]))))))))
+                                                           ))]
      _ (/////translation.execute! definition)
      _ (/////translation.save! (pair.right function_name) definition)]
     (pure instantiation)))

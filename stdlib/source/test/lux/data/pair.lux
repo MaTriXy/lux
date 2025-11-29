@@ -18,8 +18,7 @@
    [test
     ["_" property (.only Test)]]]]
  ["/" \\library]
- ... ["!" \\theorem]
- )
+ ["!" \\theorem])
 
 (the .public test
   Test
@@ -31,9 +30,19 @@
          dummy (random.only (|>> (n.= expected) not)
                             random.natural)]
         (all _.and
-             (_.for [/.equality]
-                    (equalityT.spec (/.equality n.equality i.equality)
-                                    (random.and random.natural random.integer)))
+             (comment (_.by_proof [/.left]
+                                  [!.left])
+                      (_.by_proof [/.right]
+                                  [!.right])
+                      (_.by_proof [/.in_reverse]
+                                  [!.in_reverse
+                                   !.involution_of_in_reverse])
+                      (_.by_proof [/.by]
+                                  [!.by
+                                   !.identity_by_by])
+                      (_.for [/.equality]
+                             (equalityT.spec (/.equality n.equality i.equality)
+                                             (random.and random.natural random.integer))))
              (monad.let random.monad
                [left random.integer
                 right random.natural]
@@ -45,16 +54,4 @@
              (_.for [/.monoid]
                     (monoidT.spec (/.equality n.equality text.equality)
                                   (/.monoid n.addition text.monoid)
-                                  (random.and random.natural (random.ascii 2))))
-             
-             ... (_.by_proof [/.left]
-             ...             [!.left])
-             ... (_.by_proof [/.right]
-             ...             [!.right])
-             ... (_.by_proof [/.in_reverse]
-             ...             [!.in_reverse
-             ...              !.involution_of_in_reverse])
-             ... (_.by_proof [/.by]
-             ...             [!.by
-             ...              !.identity_by_by])
-             ))))
+                                  (random.and random.natural (random.ascii 2))))))))

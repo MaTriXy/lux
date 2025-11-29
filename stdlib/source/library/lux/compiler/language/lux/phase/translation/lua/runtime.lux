@@ -50,14 +50,14 @@
   _.Statement)
 
 (template.with [<name> <base>]
-  [(every .public <name>
-     (<base> Anchor Value Declaration))]
+               [(every .public <name>
+                  (<base> Anchor Value Declaration))]
 
-  [[Operation translation.Operation]
-   [Phase translation.Phase]
-   [Handler translation.Handler]
-   [Bundle translation.Bundle]]
-  )
+               [[Operation translation.Operation]
+                [Phase translation.Phase]
+                [Handler translation.Handler]
+                [Bundle translation.Bundle]]
+               )
 
 (every .public (Expression it)
   (-> Phase Archive it
@@ -145,40 +145,40 @@
   (monad.let meta.monad
     [runtime_id meta.seed]
     (macro.with_names ['_]
-      (let [runtime (code.local (///reference.artifact [..module_id runtime_id]))
-            runtime_name (` (_.var (, (code.text (code.as_text runtime)))))]
-        (when declaration
-          {.:Left name}
-          (macro.with_names ['_]
-            (let ['name (code.local name)]
-              (pure (list (` (.the .public (, 'name)
-                               Var
-                               (, runtime_name)))
+                      (let [runtime (code.local (///reference.artifact [..module_id runtime_id]))
+                            runtime_name (` (_.var (, (code.text (code.as_text runtime)))))]
+                        (when declaration
+                          {.:Left name}
+                          (macro.with_names ['_]
+                                            (let ['name (code.local name)]
+                                              (pure (list (` (.the .public (, 'name)
+                                                               Var
+                                                               (, runtime_name)))
+                                                          
+                                                          (` (.the (, (code.local (text "@" name)))
+                                                               _.Statement
+                                                               (..feature (, runtime_name)
+                                                                          (function ((, '_) (, 'name))
+                                                                            (_.set (, 'name) (, code))))))))))
                           
-                          (` (.the (, (code.local (text "@" name)))
-                               _.Statement
-                               (..feature (, runtime_name)
-                                          (function ((, '_) (, 'name))
-                                            (_.set (, 'name) (, code))))))))))
-          
-          {.:Right [name inputs]}
-          (macro.with_names ['_]
-            (let ['name (code.local name)
-                  inputsC (list:each code.local inputs)
-                  inputs_typesC (list:each (function.constant (` _.Expression))
-                                           inputs)]
-              (pure (list (` (.the .public ((, 'name) (,* inputsC))
-                               (-> (,* inputs_typesC)
-                                   Computation)
-                               (_.of (list (,* inputsC)) (, runtime_name))))
-                          
-                          (` (.the (, (code.local (text "@" name)))
-                               _.Statement
-                               (..feature (, runtime_name)
-                                          (function ((, '_) (, '_))
-                                            (..with_vars [(,* inputsC)]
-                                              (_.function (, '_) (list (,* inputsC))
-                                                (, code))))))))))))))))
+                          {.:Right [name inputs]}
+                          (macro.with_names ['_]
+                                            (let ['name (code.local name)
+                                                  inputsC (list:each code.local inputs)
+                                                  inputs_typesC (list:each (function.constant (` _.Expression))
+                                                                           inputs)]
+                                              (pure (list (` (.the .public ((, 'name) (,* inputsC))
+                                                               (-> (,* inputs_typesC)
+                                                                   Computation)
+                                                               (_.of (list (,* inputsC)) (, runtime_name))))
+                                                          
+                                                          (` (.the (, (code.local (text "@" name)))
+                                                               _.Statement
+                                                               (..feature (, runtime_name)
+                                                                          (function ((, '_) (, '_))
+                                                                            (..with_vars [(,* inputsC)]
+                                                                                         (_.function (, '_) (list (,* inputsC))
+                                                                                           (, code))))))))))))))))
 
 (.the (item index table)
   (-> _.Expression _.Expression
@@ -193,33 +193,33 @@
                                     (_.set (list tuple) (..item last_index_right tuple))))]
   (these (the (tuple//left lefts tuple)
            (with_vars [last_index_right]
-             (<| (_.while (_.boolean true))
-                 (all _.then
-                      (_.local/1 last_index_right (..last_index tuple))
-                      (_.if (_.> lefts last_index_right)
-                            ... No need for recursion
-                            (_.return (..item lefts tuple))
-                            ... Needs recursion
-                            <recur>)))))
+                      (<| (_.while (_.boolean true))
+                          (all _.then
+                               (_.local/1 last_index_right (..last_index tuple))
+                               (_.if (_.> lefts last_index_right)
+                                     (comment "No need for recursion"
+                                              (_.return (..item lefts tuple)))
+                                     (comment "Needs recursion"
+                                              <recur>))))))
 
          (the (tuple//right lefts tuple)
            (with_vars [last_index_right right_index]
-             (<| (_.while (_.boolean true))
-                 (all _.then
-                      (_.local/1 last_index_right (..last_index tuple))
-                      (_.local/1 right_index (_.+ (_.int +1) lefts))
-                      (<| (_.if (_.= last_index_right right_index)
-                                (_.return (..item right_index tuple)))
-                          (_.if (_.> last_index_right right_index)
-                                ... Needs recursion.
-                                <recur>)
-                          (_.return (_.of (list tuple
-                                                (_.+ (_.int +1) right_index)
-                                                (_.length tuple)
-                                                (_.int +1)
-                                                (_.array (list)))
-                                          (_.var "table.move"))))
-                      ))))))
+                      (<| (_.while (_.boolean true))
+                          (all _.then
+                               (_.local/1 last_index_right (..last_index tuple))
+                               (_.local/1 right_index (_.+ (_.int +1) lefts))
+                               (<| (_.if (_.= last_index_right right_index)
+                                         (_.return (..item right_index tuple)))
+                                   (_.if (_.> last_index_right right_index)
+                                         (comment "Needs recursion."
+                                                  <recur>))
+                                   (_.return (_.of (list tuple
+                                                         (_.+ (_.int +1) right_index)
+                                                         (_.length tuple)
+                                                         (_.int +1)
+                                                         (_.array (list)))
+                                                   (_.var "table.move"))))
+                               ))))))
 
 (the (sum//get sum expected:right? expected:lefts)
   (let [mismatch! (_.return _.nil)
@@ -264,30 +264,30 @@
         $debug (_.var "debug")
         $xpcall (_.var "xpcall")]
     (with_vars [success value]
-      (_.if (_.and $debug $xpcall)
-            (all _.then
-                 (_.let (list success value) (_.of (list closure (_.its "traceback" $debug))
-                                                   $xpcall))
-                 (_.if success
-                       (_.return (..right value))
-                       (_.return (..left value))))
-            (all _.then
-                 (_.let (list success value) (_.of (list closure)
-                                                   (_.var "pcall")))
-                 (_.if success
-                       (_.return (..right value))
-                       (_.return (..left value))))))))
+               (_.if (_.and $debug $xpcall)
+                     (all _.then
+                          (_.let (list success value) (_.of (list closure (_.its "traceback" $debug))
+                                                            $xpcall))
+                          (_.if success
+                                (_.return (..right value))
+                                (_.return (..left value))))
+                     (all _.then
+                          (_.let (list success value) (_.of (list closure)
+                                                            (_.var "pcall")))
+                          (_.if success
+                                (_.return (..right value))
+                                (_.return (..left value))))))))
 
 (the (lux//program_args raw)
   (_.if (_.= _.nil raw)
         (_.return ..none)
         (with_vars [tail head idx]
-          (all _.then
-               (_.let (list tail) ..none)
-               (<| (_.for_step idx (_.length raw) (_.int +1) (_.int -1))
-                   (_.set (list tail) (..some (_.array (list (_.item idx raw)
-                                                             tail)))))
-               (_.return tail)))))
+                   (all _.then
+                        (_.let (list tail) ..none)
+                        (<| (_.for_step idx (_.length raw) (_.int +1) (_.int -1))
+                            (_.set (list tail) (..some (_.array (list (_.item idx raw)
+                                                                      tail)))))
+                        (_.return tail)))))
 
 (.the runtime//lux
   _.Statement
@@ -314,17 +314,17 @@
 
 (the (i64//division param subject)
   (with_vars [floored]
-    (all _.then
-         (_.local/1 floored (_.// param subject))
-         (let [potentially_floored? (_.< (_.int +0) floored)
-               inexact? (|> subject
-                            (_.% param)
-                            (_.= (_.int +0))
-                            _.not)]
-           (_.if (_.and potentially_floored?
-                        inexact?)
-                 (_.return (_.+ (_.int +1) floored))
-                 (_.return floored))))))
+             (all _.then
+                  (_.local/1 floored (_.// param subject))
+                  (let [potentially_floored? (_.< (_.int +0) floored)
+                        inexact? (|> subject
+                                     (_.% param)
+                                     (_.= (_.int +0))
+                                     _.not)]
+                    (_.if (_.and potentially_floored?
+                                 inexact?)
+                          (_.return (_.+ (_.int +1) floored))
+                          (_.return floored))))))
 
 (the (i64//remainder param subject)
   (_.return (_.- (|>  subject (..i64//division param) (_.* param))
@@ -361,10 +361,10 @@
       _.Expression)
   (_.- (_.int +1)))
 
-... TODO: Remove this once the Lua compiler becomes self-hosted.
-(.the on_rembulan?
-  (_.= (_.string "Lua 5.3")
-       (_.var "_VERSION")))
+(comment "TODO: Remove this once the Lua compiler becomes self-hosted."
+         (.the on_rembulan?
+           (_.= (_.string "Lua 5.3")
+                (_.var "_VERSION"))))
 
 (the (text//index subject param start)
   (expansion.let [<rembulan> (all _.then
@@ -384,13 +384,11 @@
                                                             (..char_index subject)
                                                             ..lux_index)))))]
     (with_vars [byte_index]
-      (target.if target.lua
-                 <normal>
-
-                 ... else
-                 (_.if ..on_rembulan?
-                       <rembulan>
-                       <normal>)))))
+               (target.if target.lua
+                          <normal>
+                          (_.if ..on_rembulan?
+                                <rembulan>
+                                <normal>)))))
 
 (the (text//clip text offset length)
   (expansion.let [<rembulan> (_.return (_.of (list text (_.+ (_.int +1) offset) (_.+ offset length))
@@ -398,14 +396,12 @@
                   <normal> (_.return (_.of (list text
                                                  (..byte_index text offset)
                                                  (|> (_.+ offset length)
-                                                     ... (_.+ (_.int +1))
+                                                     (comment (_.+ (_.int +1)))
                                                      (..byte_index text)
                                                      (_.- (_.int +1))))
                                            (_.var "string.sub")))]
     (target.if target.lua
                <normal>
-
-               ... else
                (_.if ..on_rembulan?
                      <rembulan>
                      <normal>))))
@@ -415,30 +411,26 @@
                   <normal> (_.return (_.of (list subject) (_.var "utf8.len")))]
     (target.if target.lua
                <normal>
-
-               ... else
                (_.if ..on_rembulan?
                      <rembulan>
                      <normal>))))
 
 (the (text//char idx text)
   (expansion.let [<rembulan> (with_vars [char]
-                               (all _.then
-                                    (_.local/1 char (_.of (list text idx)
-                                                          (_.var "string.byte")))
-                                    (_.if (_.= _.nil char)
-                                          (_.; (_.error/1 (_.string "[Lux Error] Cannot get char from text.")))
-                                          (_.return char))))
+                                        (all _.then
+                                             (_.local/1 char (_.of (list text idx)
+                                                                   (_.var "string.byte")))
+                                             (_.if (_.= _.nil char)
+                                                   (_.; (_.error/1 (_.string "[Lux Error] Cannot get char from text.")))
+                                                   (_.return char))))
                   <normal> (with_vars [offset char]
-                             (all _.then
-                                  (_.local/1 offset (_.of (list text idx) (_.var "utf8.offset")))
-                                  (_.if (_.= _.nil offset)
-                                        (_.; (_.error/1 (_.string "[Lux Error] Cannot get char from text.")))
-                                        (_.return (_.of (list text offset) (_.var "utf8.codepoint"))))))]
+                                      (all _.then
+                                           (_.local/1 offset (_.of (list text idx) (_.var "utf8.offset")))
+                                           (_.if (_.= _.nil offset)
+                                                 (_.; (_.error/1 (_.string "[Lux Error] Cannot get char from text.")))
+                                                 (_.return (_.of (list text offset) (_.var "utf8.codepoint"))))))]
     (target.if target.lua
                <normal>
-
-               ... else
                (_.if ..on_rembulan?
                      <rembulan>
                      <normal>))))

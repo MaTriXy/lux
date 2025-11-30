@@ -127,8 +127,8 @@
       Rule)
   (list.mix (function (_ by_parameter by_abstraction)
               (..application by_abstraction by_parameter))
-            by_abstraction
-            every_parameter))
+            every_parameter
+            by_abstraction))
 
 (the .public (and before after
                   environment it)
@@ -145,8 +145,8 @@
   (list.mix (function (_ by_parameter by_abstraction)
               (..and (..application by_abstraction by_parameter)
                      ..reification))
-            by_abstraction
-            every_parameter))
+            every_parameter
+            by_abstraction))
 
 (the (global_definition name lux)
   (-> Name Lux
@@ -386,7 +386,7 @@
       (.when (dictionary.value @ it)
         {try.:Success expected}
         (.if (.with analysis.equality
-               (= expected actual))
+                    (= expected actual))
              {try.:Success it}
              (exception.except ..contradiction [original_expected original_actual]))
 
@@ -395,7 +395,7 @@
       
       [{@type.:Simple _ expected'} {@type.:Simple _ actual'}]
       (.if (.with simple.equality
-             (= expected' actual'))
+                  (= expected' actual'))
            {try.:Success it}
            (exception.except ..cannot_extract_context [original_expected original_actual]))
       
@@ -409,12 +409,12 @@
       [{@type.:Complex _ {@type.:Complex_Tuple expected'}}
        {@type.:Complex _ {@type.:Complex_Tuple actual'}}]
       (.if (natural.= (list.size expected') (list.size actual'))
-           (list.mix' try.monad (function.uncurried context) it (list.zipped_2 expected' actual'))
+           (list.mix' try.monad (function.uncurried context) (list.zipped_2 expected' actual') it)
            (exception.except ..cannot_extract_context [original_expected original_actual]))
       
       [{@type.:Reference _ expected'} {@type.:Reference _ actual'}]
       (.if (.with reference.equality
-             (= expected' actual'))
+                  (= expected' actual'))
            {try.:Success it}
            (exception.except ..cannot_extract_context [original_expected original_actual]))
       
@@ -439,8 +439,8 @@
                                           actual_output_tail_pattern)
                                (context expected_output_tail actual_output_tail it)
                                (exception.except ..cannot_extract_context [original_expected original_actual])))
-                        it
-                        (list.zipped_2 expected_output_tail actual_output_tail)))
+                        (list.zipped_2 expected_output_tail actual_output_tail)
+                        it))
            (exception.except ..cannot_extract_context [original_expected original_actual]))
       
       [{@type.:Abstraction _ expected_environment expected_body}
@@ -464,8 +464,8 @@
            (list.mix' try.monad
                       (function (_ [expected_parameter actual_parameter])
                         (context expected_parameter actual_parameter))
-                      it
-                      (list.zipped_2 expected_parameters actual_parameters))
+                      (list.zipped_2 expected_parameters actual_parameters)
+                      it)
            (exception.except ..cannot_extract_context [original_expected original_actual]))
 
       else
@@ -567,25 +567,25 @@
     (substitution context fast)))
 
 (template.with [,name ,extension ,function]
-  [(the .public ,name
-     Rule
-     (function (_ environment it)
-       (.when it
-         {@type.:Extension @ [.prelude (static.text (extension.synthesis (name.proper (name ,extension))))]
-                           (list (analysis.integer _ this)
-                                 (analysis.integer _ that))}
-         {try.:Success (analysis.integer @ (,function this that))}
+               [(the .public ,name
+                  Rule
+                  (function (_ environment it)
+                    (.when it
+                      {@type.:Extension @ [.prelude (static.text (extension.synthesis (name.proper (name ,extension))))]
+                                        (list (analysis.integer _ this)
+                                              (analysis.integer _ that))}
+                      {try.:Success (analysis.integer @ (,function this that))}
 
-         else
-         (exception.except in.not_valid [[(name.module (name .._))
-                                          (name.proper (name ,name))]
-                                         it]))))]
+                      else
+                      (exception.except in.not_valid [[(name.module (name .._))
+                                                       (name.proper (name ,name))]
+                                                      it]))))]
 
-  [[+ .i64_+# integer.+]
-   [- .i64_-# integer.-]
-   [x .int_x# integer.x]
-   [/ .int_/# integer./]
-   [% .int_%# integer.%]])
+               [[+ .i64_+# integer.+]
+                [- .i64_-# integer.-]
+                [x .int_x# integer.x]
+                [/ .int_/# integer./]
+                [% .int_%# integer.%]])
 
 (the .public (by entailment parameters)
   (-> ?.Proposition (List ?.Proposition)
@@ -603,6 +603,6 @@
 
                                   conclusion (substitution' context conclusion)]
                                  (pure [context conclusion])))
-                             [..empty entailment]
-                             parameters)]
+                             parameters
+                             [..empty entailment])]
     (pure it)))

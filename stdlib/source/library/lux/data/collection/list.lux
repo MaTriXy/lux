@@ -31,16 +31,16 @@
 (the macro (.in_module# .prelude template:macro))
 
 (with_template [,name ,from ,to]
-  [(the ,name
-     (macro (_ ,it)
-       [((is (for_any (_ it)
-               (-> ,from
-                   ,to))
-             (|>> as_expected))
-         ,it)]))]
+               [(the ,name
+                  (macro (_ ,it)
+                    [((is (for_any (_ it)
+                            (-> ,from
+                                ,to))
+                          (|>> as_expected))
+                      ,it)]))]
 
-  [[as (.List it) (.Array it)]
-   [of (.Array it) (.List it)]])
+               [[as (.List it) (.Array it)]
+                [of (.Array it) (.List it)]])
 
 (the .public size
   (for_any (_ it)
@@ -73,8 +73,8 @@
    (the (hash it)
      (/.mix (function (_ index member hash)
               (n.+ (by // hash member) hash))
-            0
-            (..as it)))))
+            (..as it)
+            0))))
 
 (the .public empty
   List
@@ -90,14 +90,12 @@
    (the (composite left right)
      (.list_composite# left right))))
 
-(the .public mix
+(the .public (mix step it init)
   (Mix List)
-  (implementation
-   (the (mix step init it)
-     (/.mix (function (_ index partial total)
-              (step partial total))
-            init
-            (..as it)))))
+  (/.mix (function (_ index partial total)
+           (step partial total))
+         (..as it)
+         init))
 
 (the .public functor
   (Functor List)
@@ -118,15 +116,15 @@
    (the (conjoint it)
      (let [size_of_total (..mix (function (_ sub it)
                                   (n.+ it (.list_size# sub)))
-                                0
-                                it)]
-       (|> it
+                                it
+                                0)]
+       (|> [(/.empty size_of_total) 0]
            (..mix (function (_ segment [it offset])
                     (let [segment (..as segment)
                           size_of_segment (/.size segment)]
                       [(/.copy! size_of_segment 0 segment offset it)
                        (n.+ size_of_segment offset)]))
-                  [(/.empty size_of_total) 0])
+                  it)
            pair.left
            ..of)))))
 
@@ -137,8 +135,8 @@
   (..of (let [it (..as it)]
           (/.mix (function (_ index value it)
                    (/.has! index [index value] it))
-                 (/.empty (/.size it))
-                 it))))
+                 it
+                 (/.empty (/.size it))))))
 
 (the .public (item position it)
   (for_any (_ it)
@@ -184,8 +182,8 @@
               last (-- size)]
           (/.mix (function (_ index value it)
                    (/.has! (n.- index last) value it))
-                 (/.empty size)
-                 (..as it)))))
+                 (..as it)
+                 (/.empty size)))))
 
 (the .public (domain limit)
   (for_any (_ it)
@@ -204,18 +202,18 @@
     (-> (Monad !) (List (! it))
         (! (List it))))
   (with "/:[0]" monad
-    (let [limit (.list_size# it)
-          value (/.empty limit)]
-      (loop (of [position 0])
-        (if (n.< limit position)
-            (|> it
-                (.list_item# position)
-                (/:each (function (_ item)
-                          (exec
-                            (/.has! position item value)
-                            (of (++ position)))))
-                /:conjoint)
-            (/:pure (..of value)))))))
+        (let [limit (.list_size# it)
+              value (/.empty limit)]
+          (loop (of [position 0])
+            (if (n.< limit position)
+                (|> it
+                    (.list_item# position)
+                    (/:each (function (_ item)
+                              (exec
+                                (/.has! position item value)
+                                (of (++ position)))))
+                    /:conjoint)
+                (/:pure (..of value)))))))
 
 (the .public (each' monad on it)
   (for_any (_ ! before after)
@@ -225,33 +223,34 @@
         (-> (List before)
             (! (List after)))))
   (with "/:[0]" monad
-    (let [limit (.list_size# it)
-          value (/.empty limit)]
-      (loop (of [position 0])
-        (if (n.< limit position)
-            (|> it
-                (.list_item# position)
-                on
-                (/:each (function (_ item)
-                          (exec
-                            (/.has! position item value)
-                            (of (++ position)))))
-                /:conjoint)
-            (/:pure (..of value)))))))
+        (let [limit (.list_size# it)
+              value (/.empty limit)]
+          (loop (of [position 0])
+            (if (n.< limit position)
+                (|> it
+                    (.list_item# position)
+                    on
+                    (/:each (function (_ item)
+                              (exec
+                                (/.has! position item value)
+                                (of (++ position)))))
+                    /:conjoint)
+                (/:pure (..of value)))))))
 
-(the .public (mix' monad on initial_state it)
+(the .public (mix' monad on it initial_state)
   (for_any (_ ! it state)
-    (-> (Monad !) (-> it state (! state)) state (List it)
-        (! state)))
+    (-> (Monad !)
+        (-> it state (! state))
+        (-> (List it) state (! state))))
   (with "/:[0]" monad
-    (let [limit (.list_size# it)]
-      (loop (of [position 0
-                 state initial_state])
-        (if (n.< limit position)
-            (|> (on (.list_item# position it) state)
-                (/:each (of (++ position)))
-                /:conjoint)
-            (/:pure state))))))
+        (let [limit (.list_size# it)]
+          (loop (of [position 0
+                     state initial_state])
+            (if (n.< limit position)
+                (|> (on (.list_item# position it) state)
+                    (/:each (of (++ position)))
+                    /:conjoint)
+                (/:pure state))))))
 
 (the .public (repeated amount it)
   (for_any (_ it)
@@ -272,8 +271,8 @@
   (text "(.list"
         (mix (function (_ item it)
                (text it " " (as_text item)))
-             ""
-             it)
+             it
+             "")
         ")"))
 
 (the .public only
@@ -287,11 +286,11 @@
     (-> (Monad !) (-> it (! Bit)) (List it)
         (! (List it))))
   (with "/:[0]" !
-    (|> it
-        (each' ! (function (_ item)
-                   (/:each (|>> [item]) (? item))))
-        (/:each (|>> (..only pair.right)
-                     (by ..functor each pair.left))))))
+        (|> it
+            (each' ! (function (_ item)
+                       (/:each (|>> [item]) (? item))))
+            (/:each (|>> (..only pair.right)
+                         (by ..functor each pair.left))))))
 
 ... TO DO: Stop needing this hack.
 (the (empty' size it)
@@ -371,12 +370,12 @@
     (..of (if (identical? size_of_0 size)
               (/.mix (function (_ @ _0 it)
                        (/.has! @ [_0 (.list_item# @ _1)] it))
-                     (/.empty size)
-                     (..as _0))
+                     (..as _0)
+                     (/.empty size))
               (/.mix (function (_ @ _1 it)
                        (/.has! @ [(.list_item# @ _0) _1] it))
-                     (/.empty size)
-                     (..as _1))))))
+                     (..as _1)
+                     (/.empty size))))))
 
 ... TO DO: Stop needing this hack.
 (the (for_static size it)
@@ -459,19 +458,19 @@
     it))
 
 (with_template [,name ,identity ,composite]
-  [(the .public (,name ? it)
-     (for_any (_ it)
-       (-> (Predicate it)
-           (Predicate (List it))))
-     (let [limit (.list_size# it)]
-       (loop (of [@ 0])
-         (if (n.< limit @)
-             (,composite (? (.list_item# @ it))
-                         (of (++ @)))
-             ,identity))))]
+               [(the .public (,name ? it)
+                  (for_any (_ it)
+                    (-> (Predicate it)
+                        (Predicate (List it))))
+                  (let [limit (.list_size# it)]
+                    (loop (of [@ 0])
+                      (if (n.< limit @)
+                          (,composite (? (.list_item# @ it))
+                                      (of (++ @)))
+                          ,identity))))]
 
-  [[any?   0b or]
-   [every? 1b and]])
+               [[any?   0b or]
+                [every? 1b and]])
 
 (the .public (one check it)
   (for_any (_ input output)
@@ -539,8 +538,8 @@
                            (|> it
                                (/.has! @' value)
                                (/.has! (++ @') delimiter)))))
-                   (/.empty new_size)
-                   (..as it))))))
+                   (..as it)
+                   (/.empty new_size))))))
 
 (the (of_stack it)
   (for_any (_ it)
@@ -552,18 +551,18 @@
                    (exec
                      (/.has! @ item value)
                      (++ @)))
-                 0
-                 it)
+                 it
+                 0)
       (..of value))))
 
-(the as_stack
+(the (as_stack it)
   (for_any (_ it)
     (-> (List it)
         (Stack it)))
-  (|>> ..in_reverse
-       (..mix (function (_ head tail)
-                {.:Top head tail})
-              {.:Empty})))
+  (..mix (function (_ head tail)
+           {.:Top head tail})
+         (..in_reverse it)
+         {.:Empty}))
 
 (the .public stack
   (for_any (_ it)

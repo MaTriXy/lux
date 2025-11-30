@@ -15,7 +15,7 @@
     ["[0]" text (.only \n)
      ["%" \\injection]]
     [collection
-     ["[0]" list (.open functor mix monoid)
+     ["[0]" list (.open functor monoid)
       ["?[1]" \\projection]
       ["[0]" property (.open functor)]]]]
    [math
@@ -113,24 +113,24 @@
        ..equality)
 
 (template.with [<name> <tag>]
-  [(template.the .public (<name> provenance content)
-     [{<tag> provenance content}])]
+               [(template.the .public (<name> provenance content)
+                  [{<tag> provenance content}])]
 
-  [[when @type.:When]])
+               [[when @type.:When]])
 
 (template.the .public (unit provenance)
   [{@type.:Simple provenance {@type.:Simple_Unit}}])
 
 (template.with [<name> <tag>]
-  [(template.the .public (<name> provenance value)
-     [{@type.:Simple provenance {<tag> value}}])]
+               [(template.the .public (<name> provenance value)
+                  [{@type.:Simple provenance {<tag> value}}])]
 
-  [[bit @type.:Simple_Bit]
-   [natural @type.:Simple_Natural]
-   [integer @type.:Simple_Integer]
-   [revolution @type.:Simple_Revolution]
-   [real @type.:Simple_Real]
-   [text @type.:Simple_Text]])
+               [[bit @type.:Simple_Bit]
+                [natural @type.:Simple_Natural]
+                [integer @type.:Simple_Integer]
+                [revolution @type.:Simple_Revolution]
+                [real @type.:Simple_Real]
+                [text @type.:Simple_Text]])
 
 (every .public (Abstraction it)
   [(Environment it) Arity it])
@@ -149,10 +149,10 @@
 (the .public (reified [abstraction inputs])
   (-> (Reification Term)
       Term)
-  (list:mix (function (_ input abstraction')
+  (list.mix (function (_ input abstraction')
               {@type.:Application provenance.dummy input abstraction'})
-            abstraction
-            inputs))
+            inputs
+            abstraction))
 
 (the .public (reification analysis)
   (-> Term
@@ -168,25 +168,25 @@
       [abstraction inputs])))
 
 (template.with [<name> <tag>]
-  [(template.the .public (<name> ,provenance ,content)
-     [(.<| {@type.:Reference ,provenance}
-           <tag>
-           ,content)])]
+               [(template.the .public (<name> ,provenance ,content)
+                  [(.<| {@type.:Reference ,provenance}
+                        <tag>
+                        ,content)])]
 
-  [[variable {@type.:Variable_Reference}]
-   [constant {@type.:Constant_Reference}]
+               [[variable {@type.:Variable_Reference}]
+                [constant {@type.:Constant_Reference}]
 
-   [local    reference.local]
-   [foreign  reference.foreign]])
+                [local    reference.local]
+                [foreign  reference.foreign]])
 
 (template.with [<name> <tag>]
-  [(template.the .public (<name> provenance content)
-     [(.<| {@type.:Complex provenance}
-           {<tag>}
-           content)])]
+               [(template.the .public (<name> provenance content)
+                  [(.<| {@type.:Complex provenance}
+                        {<tag>}
+                        content)])]
 
-  [[variant @type.:Complex_Variant]
-   [tuple   @type.:Complex_Tuple]])
+               [[variant @type.:Complex_Variant]
+                [tuple   @type.:Complex_Tuple]])
 
 (the .public (as_text analysis)
   (text.Injection Term)
@@ -248,12 +248,12 @@
   (phase.Phase State @type.Code Term))
 
 (template.with [<special> <general>]
-  [(every .public <special>
-     (<general> State @type.Code Term))]
+               [(every .public <special>
+                  (<general> State @type.Code Term))]
 
-  [[Handler  extension.Handler]
-   [Bundle   extension.Bundle]
-   [Extender extension.Extender]])
+               [[Handler  extension.Handler]
+                [Bundle   extension.Bundle]
+                [Extender extension.Extender]])
 
 (the .public (with_source_code source action)
   (for_any (_ it)
@@ -338,7 +338,7 @@
         (Change (Operation it))))
   (function (_ state)
     (.when (exception.with exception message
-             (action state))
+                           (action state))
       {try.:Failure error}
       {try.:Failure (located (its @type.:provenance state) error)}
 
@@ -352,15 +352,15 @@
     {try.:Success [state []]}))
 
 (template.with [<name> <type> <field> <value>]
-  [(the .public (<name> value)
-     (-> <type>
-         (Operation Any))
-     (phase.update (is (Change ..State)
-                       (has <field> <value>))))]
+               [(the .public (<name> value)
+                  (-> <type>
+                      (Operation Any))
+                  (phase.update (is (Change ..State)
+                                    (has <field> <value>))))]
 
-  [[set_source_code    Source     @type.:source         value]
-   [set_current_module Text       @type.:current_module {.:Some value}]
-   [set_provenance     Provenance @type.:provenance     value]])
+               [[set_source_code    Source     @type.:source         value]
+                [set_current_module Text       @type.:current_module {.:Some value}]
+                [set_provenance     Provenance @type.:provenance     value]])
 
 (the .public (source file code)
   (-> Text Text
@@ -418,27 +418,26 @@
               (alias [seed]
                      meta.seed))
 
-       (comment
-        (these (the .public provenance
-                 (Operation Provenance)
-                 (function (_ lux)
-                   {try.:Success [lux
-                                  (its @type.:provenance lux)]}))
+       (comment (these (the .public provenance
+                         (Operation Provenance)
+                         (function (_ lux)
+                           {try.:Success [lux
+                                          (its @type.:provenance lux)]}))
 
-               (the .public expected_type
-                 (Operation @type.Type)
-                 (function (_ lux)
-                   (.when (its @type.:expected lux)
-                     {.:Some it}
-                     {try.:Success [lux it]}
+                       (the .public expected_type
+                         (Operation @type.Type)
+                         (function (_ lux)
+                           (.when (its @type.:expected lux)
+                             {.:Some it}
+                             {try.:Success [lux it]}
 
-                     else
-                     {try.:Failure error.not_available})))
+                             else
+                             {try.:Failure error.not_available})))
 
-               (the .public seed
-                 (Operation Natural)
-                 (function (_ lux)
-                   {try.:Success [(revised @type.:seed ++ lux)
-                                  (its @type.:seed lux)]})))
-        (these)
-        ))
+                       (the .public seed
+                         (Operation Natural)
+                         (function (_ lux)
+                           {try.:Success [(revised @type.:seed ++ lux)
+                                          (its @type.:seed lux)]})))
+                (these)
+                ))

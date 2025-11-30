@@ -115,25 +115,25 @@
           <length> <src_start> <src_array> <dest_start> <dest_array>)])))
 
 (with_template [<name> <when_lacks> <when_has>]
-  [(`` (the .public <name>
-         (macro (<name> <array>)
-           [((.is (.for_any (_ to_write to_read)
-                    (.-> (.Array' to_write to_read)
-                         ..Index))
-                  (.function (occupancy array)
-                    (.let [size (..size array)]
-                      (.loop (again [index 0
-                                     it 0])
-                        (.if (,, (n:< size index))
-                             (again (,, (n:next index)) (.if (..lacks? index array)
-                                                             <when_lacks>
-                                                             <when_has>))
-                             it)))))
-             <array>)])))]
+               [(`` (the .public <name>
+                      (macro (<name> <array>)
+                        [((.is (.for_any (_ to_write to_read)
+                                 (.-> (.Array' to_write to_read)
+                                      ..Index))
+                               (.function (occupancy array)
+                                 (.let [size (..size array)]
+                                   (.loop (again [index 0
+                                                  it 0])
+                                     (.if (,, (n:< size index))
+                                          (again (,, (n:next index)) (.if (..lacks? index array)
+                                                                          <when_lacks>
+                                                                          <when_has>))
+                                          it)))))
+                          <array>)])))]
 
-  [[occupancy it (,, (n:next it))]
-   [vacancy (,, (n:next it)) it]]
-  )
+               [[occupancy it (,, (n:next it))]
+                [vacancy (,, (n:next it)) it]]
+               )
 
 (`` (the .public only!
       (macro (only! <?> <it>)
@@ -156,27 +156,27 @@
 (error.the .public no_example)
 
 (with_template [<name> <predicate> <test> <type> <term>]
-  [(`` (the .public <name>
-         (macro (<name> <?> <it>)
-           [((.is (.for_any (_ to_write to_read)
-                    (.-> <predicate> (.Array' to_write to_read)
-                         (try.Try <type>)))
-                  (.function (<name> ? it)
-                    (.let [size (..size it)]
-                      (.loop (again [index 0])
-                        (.if (,, (n:< size index))
-                             (.if (..lacks? index it)
-                                  (again (,, (n:next index)))
-                                  (.let [it (..item index it)]
-                                    (.if <test>
-                                         {try.:Success <term>}
-                                         (again (,, (n:next index))))))
-                             {try.:Failure ..no_example})))))
-             <?> <it>)])))]
+               [(`` (the .public <name>
+                      (macro (<name> <?> <it>)
+                        [((.is (.for_any (_ to_write to_read)
+                                 (.-> <predicate> (.Array' to_write to_read)
+                                      (try.Try <type>)))
+                               (.function (<name> ? it)
+                                 (.let [size (..size it)]
+                                   (.loop (again [index 0])
+                                     (.if (,, (n:< size index))
+                                          (.if (..lacks? index it)
+                                               (again (,, (n:next index)))
+                                               (.let [it (..item index it)]
+                                                 (.if <test>
+                                                      {try.:Success <term>}
+                                                      (again (,, (n:next index))))))
+                                          {try.:Failure ..no_example})))))
+                          <?> <it>)])))]
 
-  [[example (predicate.Predicate to_read) (? it) to_read it]
-   [example' (.-> ..Index (predicate.Predicate to_read)) (? index it) [..Index to_read] [index it]]]
-  )
+               [[example (predicate.Predicate to_read) (? it) to_read it]
+                [example' (.-> ..Index (predicate.Predicate to_read)) (? index it) [..Index to_read] [index it]]]
+               )
 
 (the .public clone
   (macro (clone <it>)
@@ -224,11 +224,11 @@
           <left/*> <right/*>)])))
 
 (`` (the .public mix
-      (macro (mix <$> <init> <it>)
+      (macro (mix <$> <it> <init>)
         [((.is (.for_any (_ to_write to_read state)
-                 (.-> (.-> ..Index to_read (.Change state)) state (.Array' to_write to_read)
-                      state))
-               (.function (mix $ init it)
+                 (.-> (.-> ..Index to_read (.Change state))
+                      (.-> (.Array' to_write to_read) state state)))
+               (.function (mix $ it init)
                  (.let [size (..size it)]
                    (.loop (again [index 0
                                   so_far init])
@@ -237,7 +237,7 @@
                                                           so_far
                                                           ($ index (..item index it) so_far)))
                           so_far)))))
-          <$> <init> <it>)])))
+          <$> <it> <init>)])))
 
 (the .public each
   (macro (each <$> <input>)
@@ -245,30 +245,30 @@
            (.function (each $ input)
              (..mix (.function (_ index item output)
                       (..has! index ($ item) output))
-                    (..empty (..size input))
-                    input)))
+                    input
+                    (..empty (..size input)))))
       <$> <input>)]))
 
 (with_template [<name> <init> <op>]
-  [(`` (the .public <name>
-         (macro (<name> <?> <it>)
-           [((.is (.for_any (_ to_write to_read)
-                    (.-> (predicate.Predicate to_read)
-                         (predicate.Predicate (.Array' to_write to_read))))
-                  (.function (<name> ? it)
-                    (.let [size (..size it)]
-                      (.loop (again [index 0])
-                        (.if (,, (n:< size index))
-                             (.if (..lacks? index it)
-                                  (again (,, (n:next index)))
-                                  (<op> (? (..item index it))
-                                        (again (,, (n:next index)))))
-                             <init>)))))
-             <?> <it>)])))]
+               [(`` (the .public <name>
+                      (macro (<name> <?> <it>)
+                        [((.is (.for_any (_ to_write to_read)
+                                 (.-> (predicate.Predicate to_read)
+                                      (predicate.Predicate (.Array' to_write to_read))))
+                               (.function (<name> ? it)
+                                 (.let [size (..size it)]
+                                   (.loop (again [index 0])
+                                     (.if (,, (n:< size index))
+                                          (.if (..lacks? index it)
+                                               (again (,, (n:next index)))
+                                               (<op> (? (..item index it))
+                                                     (again (,, (n:next index)))))
+                                          <init>)))))
+                          <?> <it>)])))]
 
-  [[every? .true  and]
-   [any?   .false or]]
-  )
+               [[every? .true  and]
+                [any?   .false or]]
+               )
 
 (error.the .public no_one)
 

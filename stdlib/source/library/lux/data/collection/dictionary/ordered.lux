@@ -10,7 +10,7 @@
    [data
     ["[0]" maybe]
     [collection
-     ["[0]" list (.open monoid mix)]]]
+     ["[0]" list (.open monoid)]]]
    [math
     [number
      [/64
@@ -36,18 +36,18 @@
     :right (Maybe (Node key value))]))
 
 (template.with [<create> <color>]
-  [(the (<create> key value left right)
-     (for_any (_ key value)
-       (-> key value (Maybe (Node key value)) (Maybe (Node key value))
-           (Node key value)))
-     [:color {<color>}
-      :key key
-      :value value
-      :left left
-      :right right])]
+               [(the (<create> key value left right)
+                  (for_any (_ key value)
+                    (-> key value (Maybe (Node key value)) (Maybe (Node key value))
+                        (Node key value)))
+                  [:color {<color>}
+                   :key key
+                   :value value
+                   :left left
+                   :right right])]
 
-  [[red   :Red]
-   [black :Black]])
+               [[red   :Red]
+                [black :Black]])
 
 (every .public (Dictionary key value)
   (Record
@@ -107,25 +107,25 @@
                 (of (its :right node))))))))
 
 (template.with [<name> <side>]
-  [(the .public (<name> dict)
-     (for_any (_ key value)
-       (-> (Dictionary key value)
-           (Try value)))
-     (when (its :root dict)
-       {.:Some node}
-       (loop (of [node node])
-         (when (its <side> node)
-           {.:None}
-           {try.:Success (its :value node)}
+               [(the .public (<name> dict)
+                  (for_any (_ key value)
+                    (-> (Dictionary key value)
+                        (Try value)))
+                  (when (its :root dict)
+                    {.:Some node}
+                    (loop (of [node node])
+                      (when (its <side> node)
+                        {.:None}
+                        {try.:Success (its :value node)}
 
-           {.:Some side}
-           (of side)))
+                        {.:Some side}
+                        (of side)))
 
-       {.:None}
-       {try.:Failure error.empty}))]
+                    {.:None}
+                    {try.:Failure error.empty}))]
 
-  [[minor :left]
-   [major :right]])
+               [[minor :left]
+                [major :right]])
 
 (the .public (size dict)
   (for_any (_ key value)
@@ -148,20 +148,20 @@
        (n.= 0)))
 
 (template.with [<name> <other_color> <self_color> <no_change>]
-  [(the (<name> self)
-     (for_any (_ key value)
-       (-> (Node key value)
-           (Node key value)))
-     (when (its :color self)
-       {<other_color>}
-       (.has :color {<self_color>} self)
+               [(the (<name> self)
+                  (for_any (_ key value)
+                    (-> (Node key value)
+                        (Node key value)))
+                  (when (its :color self)
+                    {<other_color>}
+                    (.has :color {<self_color>} self)
 
-       {<self_color>}
-       <no_change>
-       ))]
+                    {<self_color>}
+                    <no_change>
+                    ))]
 
-  [[blackened :Red   :Black self]
-   [reddened  :Black :Red   (halt! ..violation_of_invariant)]])
+               [[blackened :Red   :Black self]
+                [reddened  :Black :Red   (halt! ..violation_of_invariant)]])
 
 (the (with_left addition center)
   (for_any (_ key value)
@@ -268,30 +268,30 @@
     (-> key value (Dictionary key value)
         (Dictionary key value)))
   (with "_:[0]" (its :order dict)
-    (let [root' (loop (of [?root (its :root dict)])
-                  (when ?root
-                    {.:None}
-                    {.:Some (red key value {.:None} {.:None})}
+        (let [root' (loop (of [?root (its :root dict)])
+                      (when ?root
+                        {.:None}
+                        {.:Some (red key value {.:None} {.:None})}
 
-                    {.:Some root}
-                    (let [reference (its :key root)]
-                      (`` (if (,, (template.with [<comp> <tag> <add>]
-                                    [(<comp> reference key)
-                                     (let [side_root (its <tag> root)
-                                           outcome (of side_root)]
-                                       (if (identical? side_root outcome)
-                                           ?root
-                                           {.:Some (<add> (maybe.trusted outcome)
-                                                          root)}))]
+                        {.:Some root}
+                        (let [reference (its :key root)]
+                          (`` (if (,, (template.with [<comp> <tag> <add>]
+                                                     [(<comp> reference key)
+                                                      (let [side_root (its <tag> root)
+                                                            outcome (of side_root)]
+                                                        (if (identical? side_root outcome)
+                                                            ?root
+                                                            {.:Some (<add> (maybe.trusted outcome)
+                                                                           root)}))]
 
-                                    [[_:<                         :left  ..with_left]
-                                     [(order.> (its :order dict)) :right ..with_right]]))
+                                                     [[_:<                         :left  ..with_left]
+                                                      [(order.> (its :order dict)) :right ..with_right]]))
 
-                              ... (_:= reference key)
-                              {.:Some (.has :value value root)}
-                              )))
-                    ))]
-      (.has :root root' dict))))
+                                  ... (_:= reference key)
+                                  {.:Some (.has :value value root)}
+                                  )))
+                        ))]
+          (.has :root root' dict))))
 
 (the (left_balanced key value ?left ?right)
   (for_any (_ key value)
@@ -500,56 +500,56 @@
     (-> key (Dictionary key value)
         (Dictionary key value)))
   (with "_:[0]" (its :order dict)
-    (let [[?root found?] (loop (of [?root (its :root dict)])
-                           (when ?root
-                             {.:Some root}
-                             (let [root_key (its :key root)
-                                   root_val (its :value root)]
-                               (if (_:= root_key key)
-                                   [(prepended (its :left root)
-                                               (its :right root))
-                                    true]
-                                   (let [go_left? (_:< root_key key)]
-                                     (when (of (if go_left?
-                                                   (its :left root)
-                                                   (its :right root)))
-                                       [{.:None} .false]
-                                       [{.:None} false]
+        (let [[?root found?] (loop (of [?root (its :root dict)])
+                               (when ?root
+                                 {.:Some root}
+                                 (let [root_key (its :key root)
+                                       root_val (its :value root)]
+                                   (if (_:= root_key key)
+                                       [(prepended (its :left root)
+                                                   (its :right root))
+                                        true]
+                                       (let [go_left? (_:< root_key key)]
+                                         (when (of (if go_left?
+                                                       (its :left root)
+                                                       (its :right root)))
+                                           [{.:None} .false]
+                                           [{.:None} false]
 
-                                       [side_outcome _]
-                                       (if go_left?
-                                           (when (its :left root)
-                                             (^.multi {.:Some left}
-                                                      [(its :color left) {:Black}])
-                                             [{.:Some (without_left root_key root_val side_outcome (its :right root))}
-                                              false]
+                                           [side_outcome _]
+                                           (if go_left?
+                                               (when (its :left root)
+                                                 (^.multi {.:Some left}
+                                                          [(its :color left) {:Black}])
+                                                 [{.:Some (without_left root_key root_val side_outcome (its :right root))}
+                                                  false]
 
-                                             _
-                                             [{.:Some (red root_key root_val side_outcome (its :right root))}
-                                              false])
-                                           (when (its :right root)
-                                             (^.multi {.:Some right}
-                                                      [(its :color right) {:Black}])
-                                             [{.:Some (without_right root_key root_val (its :left root) side_outcome)}
-                                              false]
+                                                 _
+                                                 [{.:Some (red root_key root_val side_outcome (its :right root))}
+                                                  false])
+                                               (when (its :right root)
+                                                 (^.multi {.:Some right}
+                                                          [(its :color right) {:Black}])
+                                                 [{.:Some (without_right root_key root_val (its :left root) side_outcome)}
+                                                  false]
 
-                                             _
-                                             [{.:Some (red root_key root_val (its :left root) side_outcome)}
-                                              false])
-                                           )))
-                                   ))
+                                                 _
+                                                 [{.:Some (red root_key root_val (its :left root) side_outcome)}
+                                                  false])
+                                               )))
+                                       ))
 
-                             {.:None}
-                             [{.:None} false]
-                             ))]
-      (when ?root
-        {.:None}
-        (if found?
-            (.has :root ?root dict)
-            dict)
+                                 {.:None}
+                                 [{.:None} false]
+                                 ))]
+          (when ?root
+            {.:None}
+            (if found?
+                (.has :root ?root dict)
+                dict)
 
-        {.:Some root}
-        (.has :root {.:Some (blackened root)} dict)))))
+            {.:Some root}
+            (.has :root {.:Some (blackened root)} dict)))))
 
 (the .public (revised key transform dict)
   (for_any (_ key value)
@@ -566,30 +566,30 @@
   (for_any (_ key value)
     (-> (Order key) (List [key value])
         (Dictionary key value)))
-  (list:mix (function (_ [key value] dict)
+  (list.mix (function (_ [key value] dict)
               (..has key value dict))
-            (empty order)
-            list))
+            list
+            (empty order)))
 
 (template.with [<name> <type> <output>]
-  [(the .public (<name> dict)
-     (for_any (_ key value)
-       (-> (Dictionary key value)
-           (List <type>)))
-     (loop (of [node (its :root dict)])
-       (when node
-         {.:None}
-         (list)
+               [(the .public (<name> dict)
+                  (for_any (_ key value)
+                    (-> (Dictionary key value)
+                        (List <type>)))
+                  (loop (of [node (its :root dict)])
+                    (when node
+                      {.:None}
+                      (list)
 
-         {.:Some node'}
-         (all list:composite
-              (of (its :left node'))
-              (list <output>)
-              (of (its :right node'))))))]
+                      {.:Some node'}
+                      (all list:composite
+                           (of (its :left node'))
+                           (list <output>)
+                           (of (its :right node'))))))]
 
-  [[entries [key value] [(its :key node') (its :value node')]]
-   [domain  key         (its :key node')]
-   [values  value       (its :value node')]])
+               [[entries [key value] [(its :key node') (its :value node')]]
+                [domain  key         (its :key node')]
+                [values  value       (its :value node')]])
 
 (the .public (equality value_equality)
   (for_any (_ key value)

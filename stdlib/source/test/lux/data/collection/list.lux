@@ -230,8 +230,8 @@
                                               [(and so_far
                                                     (n.< more less))
                                                more])
-                                            [true reference]
-                                            terms)))
+                                            terms
+                                            [true reference])))
                     (= less_up_to_more
                        (/.in_reverse more_up_to_less)))))
            (_.coverage [/.has]
@@ -264,8 +264,8 @@
 
                    at_any_position!
                    (= (with /.monoid
-                        (composite (/.first arbitrary_member expected_list)
-                                   (/.after (++ arbitrary_member) expected_list)))
+                            (composite (/.first arbitrary_member expected_list)
+                                       (/.after (++ arbitrary_member) expected_list)))
                       (/.lacks arbitrary_member expected_list))
 
                    cannot_over_reduce!
@@ -277,12 +277,12 @@
                     cannot_over_reduce!)))
            (_.coverage [/.revised]
              (with n.equality
-               (= (|> expected_list
-                      (.list_item# arbitrary_member)
-                      (n.+ difference))
-                  (|> expected_list
-                      (/.revised arbitrary_member (n.+ difference))
-                      (.list_item# arbitrary_member)))))
+                   (= (|> expected_list
+                          (.list_item# arbitrary_member)
+                          (n.+ difference))
+                      (|> expected_list
+                          (/.revised arbitrary_member (n.+ difference))
+                          (.list_item# arbitrary_member)))))
            (_.coverage [/.whether]
              (and (= (list)
                      (/.whether false expected_list))
@@ -290,11 +290,11 @@
                      (/.whether true expected_list))))
            (_.coverage [/.example]
              (with (try.equality n.equality)
-               (and (= {try.:Failure error.not_valid}
-                       (/.example (identical? expected_value) expected_list))
-                    (= {try.:Success expected_value}
-                       (/.example (identical? expected_value)
-                                  (/.has 0 expected_value expected_list))))))
+                   (and (= {try.:Failure error.not_valid}
+                           (/.example (identical? expected_value) expected_list))
+                        (= {try.:Success expected_value}
+                           (/.example (identical? expected_value)
+                                      (/.has 0 expected_value expected_list))))))
            (_.coverage [/.one]
              (let [choice (is (-> Natural
                                   (Maybe Natural))
@@ -303,11 +303,11 @@
                                     {.:Some (++ expected_value)}
                                     {.:None})))]
                (with (try.equality n.equality)
-                 (and (= {try.:Failure error.not_valid}
-                         (/.one choice expected_list))
-                      (= {try.:Success (++ expected_value)}
-                         (/.one choice
-                                (/.has 0 expected_value expected_list)))))))
+                     (and (= {try.:Failure error.not_valid}
+                             (/.one choice expected_list))
+                          (= {try.:Success (++ expected_value)}
+                             (/.one choice
+                                    (/.has 0 expected_value expected_list)))))))
            (_.coverage [/.only']
              (and (= (/.only n.even? expected_list)
                      (is (Pure (List Natural))
@@ -317,13 +317,13 @@
                          (/.only' pure.monad n.odd? expected_list)))))
            (_.coverage [/.mix']
              (with n.equality
-               (= (/.mix n.- 0 expected_list)
-                  (is (Pure Natural)
-                      (/.mix' pure.monad
-                              (function (_ next total)
-                                (by pure.monad pure (n.- next total)))
-                              0
-                              expected_list)))))
+                   (= (/.mix n.- expected_list 0)
+                      (is (Pure Natural)
+                          (/.mix' pure.monad
+                                  (function (_ next total)
+                                    (by pure.monad pure (n.- next total)))
+                                  expected_list
+                                  0)))))
            (_.coverage [/.one']
              (let [choice (is (-> Natural
                                   (Maybe Natural))
@@ -332,13 +332,13 @@
                                     {.:Some (++ expected_value)}
                                     {.:None})))]
                (with (try.equality n.equality)
-                 (and (= (/.one choice expected_list)
-                         (is (Pure (Try Natural))
-                             (/.one' pure.monad choice expected_list)))
-                      (let [expected_list (/.has 0 expected_value expected_list)]
-                        (= (/.one choice expected_list)
-                           (is (Pure (Try Natural))
-                               (/.one' pure.monad choice expected_list))))))))
+                     (and (= (/.one choice expected_list)
+                             (is (Pure (Try Natural))
+                                 (/.one' pure.monad choice expected_list)))
+                          (let [expected_list (/.has 0 expected_value expected_list)]
+                            (= (/.one choice expected_list)
+                               (is (Pure (Try Natural))
+                                   (/.one' pure.monad choice expected_list))))))))
            (_.coverage [/.each']
              (= (by /.functor each (n.+ difference) expected_list)
                 (is (Pure (List Natural))
@@ -348,12 +348,12 @@
                              expected_list))))
            (_.coverage [/.complete]
              (with pure.monad
-               (= (is (Pure (List Natural))
-                      (pure expected_list))
-                  (is (Pure (List Natural))
-                      (|> expected_list
-                          (by /.functor each pure)
-                          (/.complete pure.monad))))))
+                   (= (is (Pure (List Natural))
+                          (pure expected_list))
+                      (is (Pure (List Natural))
+                          (|> expected_list
+                              (by /.functor each pure)
+                              (/.complete pure.monad))))))
            (_.coverage [/.all]
              (= (/.only n.even? expected_list)
                 (/.all (function (_ it)
@@ -382,7 +382,7 @@
            (_.coverage [/.every_mix]
              (= (by /.functor each
                     (function (_ size)
-                      (/.mix n.+ 0 (/.first size expected_list)))
+                      (/.mix n.+ (/.first size expected_list) 0))
                     (/.domain (++ (/.size expected_list))))
                 (/.every_mix n.+ 0 expected_list)))
            (monad.let [! random.monad]

@@ -13,7 +13,7 @@
    [data
     [collection
      ["[0]" set]
-     ["[0]" list (.open mix)]]]
+     ["[0]" list]]]
    [logic
     ["[0]" bit]]
    [math
@@ -39,11 +39,11 @@
   (monad.let [! random.monad]
     [elements (random.set hash size element)
      element_counts (random.list size ..count)]
-    (pure (list:mix (function (_ [count element] set)
+    (pure (list.mix (function (_ [count element] set)
                       (/.has count element set))
-                    (/.empty hash)
                     (list.zipped_2 element_counts
-                                   (set.as_list elements))))))
+                                   (set.as_list elements))
+                    (/.empty hash)))))
 
 (the signature
   Test
@@ -67,33 +67,33 @@
      another (..random diversity n.hash ..count random.natural)]
     (`` (all _.and
              (,, (template.with [<name> <composition>]
-                   [(_.coverage [<name>]
-                      (let [|sample| (/.support sample)
-                            |another| (/.support another)
-                            sample_only (set.difference |another| |sample|)
-                            another_only (set.difference |sample| |another|)
-                            common (set.intersection |sample| |another|)
-                            composed (<name> sample another)
+                                [(_.coverage [<name>]
+                                   (let [|sample| (/.support sample)
+                                         |another| (/.support another)
+                                         sample_only (set.difference |another| |sample|)
+                                         another_only (set.difference |sample| |another|)
+                                         common (set.intersection |sample| |another|)
+                                         composed (<name> sample another)
 
-                            no_left_changes! (list.every? (function (_ member)
-                                                            (n.= (/.multiplicity sample member)
-                                                                 (/.multiplicity composed member)))
-                                                          (set.as_list sample_only))
-                            no_right_changes! (list.every? (function (_ member)
-                                                             (n.= (/.multiplicity another member)
-                                                                  (/.multiplicity composed member)))
-                                                           (set.as_list another_only))
-                            common_changes! (list.every? (function (_ member)
-                                                           (n.= (<composition> (/.multiplicity sample member)
-                                                                               (/.multiplicity another member))
-                                                                (/.multiplicity composed member)))
-                                                         (set.as_list common))]
-                        (and no_left_changes!
-                             no_right_changes!
-                             common_changes!)))]
+                                         no_left_changes! (list.every? (function (_ member)
+                                                                         (n.= (/.multiplicity sample member)
+                                                                              (/.multiplicity composed member)))
+                                                                       (set.as_list sample_only))
+                                         no_right_changes! (list.every? (function (_ member)
+                                                                          (n.= (/.multiplicity another member)
+                                                                               (/.multiplicity composed member)))
+                                                                        (set.as_list another_only))
+                                         common_changes! (list.every? (function (_ member)
+                                                                        (n.= (<composition> (/.multiplicity sample member)
+                                                                                            (/.multiplicity another member))
+                                                                             (/.multiplicity composed member)))
+                                                                      (set.as_list common))]
+                                     (and no_left_changes!
+                                          no_right_changes!
+                                          common_changes!)))]
 
-                   [[/.sum n.+]
-                    [/.union n.major]]))
+                                [[/.sum n.+]
+                                 [/.union n.major]]))
              (_.coverage [/.intersection]
                (let [|sample| (/.support sample)
                      |another| (/.support another)

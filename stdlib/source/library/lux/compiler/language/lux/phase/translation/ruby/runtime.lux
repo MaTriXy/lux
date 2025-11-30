@@ -14,7 +14,7 @@
      [encoding
       ["[0]" utf8]]]
     [collection
-     ["[0]" list (.open monad mix monoid)
+     ["[0]" list (.open monad monoid)
       ["?[1]" \\projection]]
      ["[0]" sequence]]]
    [math
@@ -54,14 +54,14 @@
   _.Statement)
 
 (template.with [<name> <base>]
-  [(every .public <name>
-     (<base> Anchor Value Declaration))]
+               [(every .public <name>
+                  (<base> Anchor Value Declaration))]
 
-  [[Operation translation.Operation]
-   [Phase translation.Phase]
-   [Handler translation.Handler]
-   [Bundle translation.Bundle]]
-  )
+               [[Operation translation.Operation]
+                [Phase translation.Phase]
+                [Handler translation.Handler]
+                [Bundle translation.Bundle]]
+               )
 
 (every .public (Expression it)
   (-> Phase Archive it
@@ -114,10 +114,9 @@
 
 (.the normal_ruby?
   _.Expression
-  (_.not ..mruby?)
-  ... (|> (_.local "Object")
-  ...     (_.do "const_defined?" (list (_.string "Encoding")) {.:None}))
-  )
+  (comment (|> (_.local "Object")
+               (_.do "const_defined?" (list (_.string "Encoding")) {.:None}))
+           (_.not ..mruby?)))
 
 (syntax.the (the [declaration (<>.or <code>.local
                                      (<code>.form (<>.and <code>.local
@@ -127,47 +126,47 @@
   (monad.let meta.monad
     [runtime_id meta.seed]
     (macro.with_names ['_]
-      (when declaration
-        {.:Left name}
-        (macro.with_names ['_]
-          (let [runtime (code.local (///reference.artifact [..module_id runtime_id]))
-                runtime_name (` (_.constant (, (code.text (code.as_text runtime)))))
-                'name (code.local name)]
-            (pure (list (` (.the .public (, 'name) _.CVar (, runtime_name)))
-                        (` (.the (, (code.local (text "@" name)))
-                             _.Statement
-                             (, (list:mix (function (_ [when then] else)
-                                            (` (_.if (, when)
-                                                     (_.; (_.set (list (, runtime_name)) (, then)))
-                                                     (, else))))
-                                          (` (_.; (_.set (list (, runtime_name)) (, default_implementation))))
-                                          conditional_implementations))))))))
-        
-        {.:Right [name inputs]}
-        (macro.with_names ['_]
-          (let [runtime (code.local (///reference.artifact [..module_id runtime_id]))
-                runtime_name (` (_.local (, (code.text (code.as_text runtime)))))
-                'name (code.local name)
-                inputsC (list:each code.local inputs)
-                inputs_typesC (list:each (function.constant (` _.Expression))
-                                         inputs)]
-            (pure (list (` (.the .public ((, 'name) (,* inputsC))
-                             (-> (,* inputs_typesC)
-                                 Computation)
-                             (_.of (list (,* inputsC)) {.:None}
-                                   (, runtime_name))))
+                      (when declaration
+                        {.:Left name}
+                        (macro.with_names ['_]
+                                          (let [runtime (code.local (///reference.artifact [..module_id runtime_id]))
+                                                runtime_name (` (_.constant (, (code.text (code.as_text runtime)))))
+                                                'name (code.local name)]
+                                            (pure (list (` (.the .public (, 'name) _.CVar (, runtime_name)))
+                                                        (` (.the (, (code.local (text "@" name)))
+                                                             _.Statement
+                                                             (, (list.mix (function (_ [when then] else)
+                                                                            (` (_.if (, when)
+                                                                                     (_.; (_.set (list (, runtime_name)) (, then)))
+                                                                                     (, else))))
+                                                                          conditional_implementations
+                                                                          (` (_.; (_.set (list (, runtime_name)) (, default_implementation))))))))))))
                         
-                        (` (.the (, (code.local (text "@" name)))
-                             _.Statement
-                             (..with_vars [(,* inputsC)]
-                               (, (list:mix (function (_ [when then] else)
-                                              (` (_.if (, when)
-                                                       (_.function (, runtime_name) (list (,* inputsC))
-                                                         (, then))
-                                                       (, else))))
-                                            (` (_.function (, runtime_name) (list (,* inputsC))
-                                                 (, default_implementation)))
-                                            conditional_implementations)))))))))))))
+                        {.:Right [name inputs]}
+                        (macro.with_names ['_]
+                                          (let [runtime (code.local (///reference.artifact [..module_id runtime_id]))
+                                                runtime_name (` (_.local (, (code.text (code.as_text runtime)))))
+                                                'name (code.local name)
+                                                inputsC (list:each code.local inputs)
+                                                inputs_typesC (list:each (function.constant (` _.Expression))
+                                                                         inputs)]
+                                            (pure (list (` (.the .public ((, 'name) (,* inputsC))
+                                                             (-> (,* inputs_typesC)
+                                                                 Computation)
+                                                             (_.of (list (,* inputsC)) {.:None}
+                                                                   (, runtime_name))))
+                                                        
+                                                        (` (.the (, (code.local (text "@" name)))
+                                                             _.Statement
+                                                             (..with_vars [(,* inputsC)]
+                                                                          (, (list.mix (function (_ [when then] else)
+                                                                                         (` (_.if (, when)
+                                                                                                  (_.function (, runtime_name) (list (,* inputsC))
+                                                                                                    (, then))
+                                                                                                  (, else))))
+                                                                                       conditional_implementations
+                                                                                       (` (_.function (, runtime_name) (list (,* inputsC))
+                                                                                            (, default_implementation))))))))))))))))
 
 (.the tuple_size
   (_.its "length"))
@@ -181,28 +180,28 @@
                                     (_.; (_.set (list tuple) (_.item last_index_right tuple)))))]
   (these (the (tuple//left lefts tuple)
            (with_vars [last_index_right]
-             (<| (_.while (_.bool true))
-                 (all _.then
-                      (_.; (_.set (list last_index_right) (..last_index tuple)))
-                      (_.if (_.> lefts last_index_right)
-                            ... No need for recursion
-                            (_.return (_.item lefts tuple))
-                            ... Needs recursion
-                            <recur>)))))
+                      (<| (_.while (_.bool true))
+                          (all _.then
+                               (_.; (_.set (list last_index_right) (..last_index tuple)))
+                               (_.if (_.> lefts last_index_right)
+                                     (comment "No need for recursion"
+                                              (_.return (_.item lefts tuple)))
+                                     (comment "Needs recursion"
+                                              <recur>))))))
 
          (the (tuple//right lefts tuple)
            (with_vars [last_index_right right_index]
-             (<| (_.while (_.bool true))
-                 (all _.then
-                      (_.; (_.set (list last_index_right) (..last_index tuple)))
-                      (_.; (_.set (list right_index) (_.+ (_.int +1) lefts)))
-                      (<| (_.if (_.= last_index_right right_index)
-                                (_.return (_.item right_index tuple)))
-                          (_.if (_.> last_index_right right_index)
-                                ... Needs recursion.
-                                <recur>)
-                          (_.return (_.array_range right_index (..tuple_size tuple) tuple)))
-                      ))))))
+                      (<| (_.while (_.bool true))
+                          (all _.then
+                               (_.; (_.set (list last_index_right) (..last_index tuple)))
+                               (_.; (_.set (list right_index) (_.+ (_.int +1) lefts)))
+                               (<| (_.if (_.= last_index_right right_index)
+                                         (_.return (_.item right_index tuple)))
+                                   (_.if (_.> last_index_right right_index)
+                                         (comment "Needs recursion."
+                                                  <recur>))
+                                   (_.return (_.array_range right_index (..tuple_size tuple) tuple)))
+                               ))))))
 
 (.the .public variant_lefts_field script.variant_lefts)
 (.the .public variant_right?_field script.variant_right?)
@@ -279,19 +278,19 @@
 
 (the (lux//try risky)
   (with_vars [error value]
-    (_.begin (all _.then
-                  (_.; (_.set (list value) (_.of_lambda (list ..unit) risky)))
-                  (_.return (..right value)))
-             (list [(list) error
-                    (_.return (..left (_.its "message" error)))]))))
+             (_.begin (all _.then
+                           (_.; (_.set (list value) (_.of_lambda (list ..unit) risky)))
+                           (_.return (..right value)))
+                      (list [(list) error
+                             (_.return (..left (_.its "message" error)))]))))
 
 (the (lux//program_args raw)
   (with_vars [tail head]
-    (all _.then
-         (_.; (_.set (list tail) ..none))
-         (<| (_.for_in head raw)
-             (_.; (_.set (list tail) (..some (_.array (list head tail))))))
-         (_.return tail))))
+             (all _.then
+                  (_.; (_.set (list tail) ..none))
+                  (<| (_.for_in head raw)
+                      (_.; (_.set (list tail) (..some (_.array (list head tail))))))
+                  (_.return tail))))
 
 (.the runtime//lux
   _.Statement
@@ -314,18 +313,18 @@
 (the (i64:i64 input)
   [..mruby? (_.return input)]
   (with_vars [temp]
-    (`` (<| (,, (template.with [<scenario> <iteration> <cap> <entrance>]
-                  [(_.if (|> input <scenario>)
-                         (all _.then
-                              (_.; (_.set (list temp) (_.% <iteration> input)))
-                              (_.return (_.? (|> temp <scenario>)
-                                             (|> temp (_.- <cap>) (_.+ <entrance>))
-                                             temp))))]
+             (`` (<| (,, (template.with [<scenario> <iteration> <cap> <entrance>]
+                                        [(_.if (|> input <scenario>)
+                                               (all _.then
+                                                    (_.; (_.set (list temp) (_.% <iteration> input)))
+                                                    (_.return (_.? (|> temp <scenario>)
+                                                                   (|> temp (_.- <cap>) (_.+ <entrance>))
+                                                                   temp))))]
 
-                  [[(_.> ..i64:+limit) ..i64:+iteration ..i64:+cap ..i64:-limit]
-                   [(_.< ..i64:-limit) ..i64:-iteration ..i64:-cap ..i64:+limit]]
-                  ))
-            (_.return input)))))
+                                        [[(_.> ..i64:+limit) ..i64:+iteration ..i64:+cap ..i64:-limit]
+                                         [(_.< ..i64:-limit) ..i64:-iteration ..i64:-cap ..i64:+limit]]
+                                        ))
+                     (_.return input)))))
 
 (.the i32:low
   (|>> (_.bit_and (_.manual "+0xFFFFFFFF"))))
@@ -355,18 +354,18 @@
   (_.% ..i64:+iteration))
 
 (template.with [<runtime> <host>]
-  [(the (<runtime> left right)
-     [..normal_ruby? (_.return (..i64:i64 (<host> (..as_natural left) (..as_natural right))))]
-     (with_vars [high low]
-       (all _.then
-            (_.; (_.set (list high) (<host> (i32:high left) (..i32:high right))))
-            (_.; (_.set (list low) (<host> (i32:low left) (..i32:low right))))
-            (_.return (..i64 high low)))))]
+               [(the (<runtime> left right)
+                  [..normal_ruby? (_.return (..i64:i64 (<host> (..as_natural left) (..as_natural right))))]
+                  (with_vars [high low]
+                             (all _.then
+                                  (_.; (_.set (list high) (<host> (i32:high left) (..i32:high right))))
+                                  (_.; (_.set (list low) (<host> (i32:low left) (..i32:low right))))
+                                  (_.return (..i64 high low)))))]
 
-  [[i64:and _.bit_and]
-   [i64:or _.bit_or]
-   [i64:xor _.bit_xor]]
-  )
+               [[i64:and _.bit_and]
+                [i64:or _.bit_or]
+                [i64:xor _.bit_xor]]
+               )
 
 (.the (cap_shift! shift)
   (-> LVar
@@ -390,21 +389,21 @@
                                 (_.bit_shl (_.% (_.int +64) shift))
                                 ..i64:i64))]
   (with_vars [high low]
-    (all _.then
-         (..cap_shift! shift)
-         (<| (..handle_no_shift! shift input)
-             (_.if (..small_shift? shift)
-                   (all _.then
-                        (_.; (_.set (list high) (_.bit_or (|> input i32:high (_.bit_shl shift))
-                                                          (|> input i32:low (_.bit_shr (_.- shift (_.int +32)))))))
-                        (_.; (_.set (list low) (|> input i32:low (_.bit_shl shift))))
-                        (_.return (..i64 (i32:low high)
-                                         (i32:low low)))))
              (all _.then
-                  (_.; (_.set (list high) (|> input i32:low (_.bit_shl (_.- (_.int +32) shift)))))
-                  (_.return (..i64 (i32:low high)
-                                   (_.int +0)))))
-         )))
+                  (..cap_shift! shift)
+                  (<| (..handle_no_shift! shift input)
+                      (_.if (..small_shift? shift)
+                            (all _.then
+                                 (_.; (_.set (list high) (_.bit_or (|> input i32:high (_.bit_shl shift))
+                                                                   (|> input i32:low (_.bit_shr (_.- shift (_.int +32)))))))
+                                 (_.; (_.set (list low) (|> input i32:low (_.bit_shl shift))))
+                                 (_.return (..i64 (i32:low high)
+                                                  (i32:low low)))))
+                      (all _.then
+                           (_.; (_.set (list high) (|> input i32:low (_.bit_shl (_.- (_.int +32) shift)))))
+                           (_.return (..i64 (i32:low high)
+                                            (_.int +0)))))
+                  )))
 
 (the (i64:>> shift input)
   [..normal_ruby? (all _.then
@@ -415,18 +414,18 @@
                                           ..as_natural
                                           (_.bit_shr shift)))))]
   (with_vars [high low]
-    (all _.then
-         (..cap_shift! shift)
-         (<| (..handle_no_shift! shift input)
-             (_.if (..small_shift? shift)
-                   (all _.then
-                        (_.; (_.set (list high) (|> input i32:high (_.bit_shr shift))))
-                        (_.; (_.set (list low) (|> input i32:low (_.bit_shr shift)
-                                                   (_.bit_or (|> input i32:high (_.bit_shl (_.- shift (_.int +32))))))))
-                        (_.return (..i64 high low))))
-             (_.return (_.? (|> shift (_.= (_.int +32)))
-                            (i32:high input)
-                            (|> input i32:high (_.bit_shr (_.- (_.int +32) shift)))))))))
+             (all _.then
+                  (..cap_shift! shift)
+                  (<| (..handle_no_shift! shift input)
+                      (_.if (..small_shift? shift)
+                            (all _.then
+                                 (_.; (_.set (list high) (|> input i32:high (_.bit_shr shift))))
+                                 (_.; (_.set (list low) (|> input i32:low (_.bit_shr shift)
+                                                            (_.bit_or (|> input i32:high (_.bit_shl (_.- shift (_.int +32))))))))
+                                 (_.return (..i64 high low))))
+                      (_.return (_.? (|> shift (_.= (_.int +32)))
+                                     (i32:high input)
+                                     (|> input i32:high (_.bit_shr (_.- (_.int +32) shift)))))))))
 
 (the (i64:/ parameter subject)
   (_.return (_.? (_.and (_.= (_.int -1) parameter)
@@ -440,16 +439,16 @@
 (the (i64:+ parameter subject)
   [..normal_ruby? (_.return (i64:i64 (_.+ parameter subject)))]
   (with_vars [high low]
-    (all _.then
-         (_.; (_.set (list low) (_.+ (i32:low subject)
-                                     (i32:low parameter))))
-         (_.; (_.set (list high) (|> (i32:high low)
-                                     (_.+ (i32:high subject))
-                                     (_.+ (i32:high parameter))
-                                     i32:low)))
+             (all _.then
+                  (_.; (_.set (list low) (_.+ (i32:low subject)
+                                              (i32:low parameter))))
+                  (_.; (_.set (list high) (|> (i32:high low)
+                                              (_.+ (i32:high subject))
+                                              (_.+ (i32:high parameter))
+                                              i32:low)))
 
-         (_.return (..i64 high (i32:low low)))
-         )))
+                  (_.return (..i64 high (i32:low low)))
+                  )))
 
 (.the i64:minimum
   (_.manual "-0x8000000000000000"))
@@ -482,44 +481,44 @@
                 r48 r32 r16 r00
                 x48 x32 x16 x00
                 high low]
-      (all _.then
-           (_.; (_.set (list l48) (hh subject)))
-           (_.; (_.set (list l32) (hl subject)))
-           (_.; (_.set (list l16) (lh subject)))
-           (_.; (_.set (list l00) (ll subject)))
+               (all _.then
+                    (_.; (_.set (list l48) (hh subject)))
+                    (_.; (_.set (list l32) (hl subject)))
+                    (_.; (_.set (list l16) (lh subject)))
+                    (_.; (_.set (list l00) (ll subject)))
 
-           (_.; (_.set (list r48) (hh parameter)))
-           (_.; (_.set (list r32) (hl parameter)))
-           (_.; (_.set (list r16) (lh parameter)))
-           (_.; (_.set (list r00) (ll parameter)))
+                    (_.; (_.set (list r48) (hh parameter)))
+                    (_.; (_.set (list r32) (hl parameter)))
+                    (_.; (_.set (list r16) (lh parameter)))
+                    (_.; (_.set (list r00) (ll parameter)))
 
-           (_.; (_.set (list x00) (_.* l00 r00)))
-           (_.; (_.set (list x16) (i16:high x00)))
-           (_.; (_.set (list x00) (i16:low x00)))
-           
-           (_.; (_.set (list x16) (|> x16 (_.+ (_.* l16 r00)))))
-           (_.; (_.set (list x32) (i16:high x16))) (_.; (_.set (list x16) (i16:low x16)))
-           (_.; (_.set (list x16) (|> x16 (_.+ (_.* l00 r16)))))
-           (_.; (_.set (list x32) (|> x32 (_.+ (i16:high x16))))) (_.; (_.set (list x16) (i16:low x16)))
+                    (_.; (_.set (list x00) (_.* l00 r00)))
+                    (_.; (_.set (list x16) (i16:high x00)))
+                    (_.; (_.set (list x00) (i16:low x00)))
+                    
+                    (_.; (_.set (list x16) (|> x16 (_.+ (_.* l16 r00)))))
+                    (_.; (_.set (list x32) (i16:high x16))) (_.; (_.set (list x16) (i16:low x16)))
+                    (_.; (_.set (list x16) (|> x16 (_.+ (_.* l00 r16)))))
+                    (_.; (_.set (list x32) (|> x32 (_.+ (i16:high x16))))) (_.; (_.set (list x16) (i16:low x16)))
 
-           (_.; (_.set (list x32) (|> x32 (_.+ (_.* l32 r00)))))
-           (_.; (_.set (list x48) (i16:high x32))) (_.; (_.set (list x32) (i16:low x32)))
-           (_.; (_.set (list x32) (|> x32 (_.+ (_.* l16 r16)))))
-           (_.; (_.set (list x48) (|> x48 (_.+ (i16:high x32))))) (_.; (_.set (list x32) (i16:low x32)))
-           (_.; (_.set (list x32) (|> x32 (_.+ (_.* l00 r32)))))
-           (_.; (_.set (list x48) (|> x48 (_.+ (i16:high x32))))) (_.; (_.set (list x32) (i16:low x32)))
-           
-           (_.; (_.set (list x48) (|> x48
-                                      (_.+ (_.* l48 r00))
-                                      (_.+ (_.* l32 r16))
-                                      (_.+ (_.* l16 r32))
-                                      (_.+ (_.* l00 r48))
-                                      i16:low)))
+                    (_.; (_.set (list x32) (|> x32 (_.+ (_.* l32 r00)))))
+                    (_.; (_.set (list x48) (i16:high x32))) (_.; (_.set (list x32) (i16:low x32)))
+                    (_.; (_.set (list x32) (|> x32 (_.+ (_.* l16 r16)))))
+                    (_.; (_.set (list x48) (|> x48 (_.+ (i16:high x32))))) (_.; (_.set (list x32) (i16:low x32)))
+                    (_.; (_.set (list x32) (|> x32 (_.+ (_.* l00 r32)))))
+                    (_.; (_.set (list x48) (|> x48 (_.+ (i16:high x32))))) (_.; (_.set (list x32) (i16:low x32)))
+                    
+                    (_.; (_.set (list x48) (|> x48
+                                               (_.+ (_.* l48 r00))
+                                               (_.+ (_.* l32 r16))
+                                               (_.+ (_.* l16 r32))
+                                               (_.+ (_.* l00 r48))
+                                               i16:low)))
 
-           (_.; (_.set (list high) (_.bit_or (i16:up x48) x32)))
-           (_.; (_.set (list low) (_.bit_or (i16:up x16) x00)))
-           (_.return (..i64 high low))
-           )))
+                    (_.; (_.set (list high) (_.bit_or (i16:up x48) x32)))
+                    (_.; (_.set (list low) (_.bit_or (i16:up x16) x00)))
+                    (_.return (..i64 high low))
+                    )))
   )
 
 (the (i64:char subject)
@@ -546,11 +545,11 @@
 
 (the (text//index subject param start)
   (with_vars [idx]
-    (all _.then
-         (_.; (_.set (list idx) (|> subject (_.do "index" (list param start) {.:None}))))
-         (_.if (_.= _.nil idx)
-               (_.return ..none)
-               (_.return (..some idx))))))
+             (all _.then
+                  (_.; (_.set (list idx) (|> subject (_.do "index" (list param start) {.:None}))))
+                  (_.if (_.= _.nil idx)
+                        (_.return ..none)
+                        (_.return (..some idx))))))
 
 (.the (within? top value)
   (-> _.Expression _.Expression
@@ -591,11 +590,11 @@
   _.Statement
   (all _.then
        (_.when ..mruby?
-         ... We're in mRuby/DragonRuby territory.
-         (_.; (_.do "class_eval" (list) {.:Some [(list (_.local "_"))
-                                                 (_.; (_.alias_method/2 (_.string "remainder")
-                                                                        (_.string "remainder_of_divide")))]}
-                $Numeric)))
+         (comment "We're in mRuby/DragonRuby territory."
+                  (_.; (_.do "class_eval" (list) {.:Some [(list (_.local "_"))
+                                                          (_.; (_.alias_method/2 (_.string "remainder")
+                                                                                 (_.string "remainder_of_divide")))]}
+                         $Numeric))))
        runtime//adt
        runtime//lux
        runtime//i64

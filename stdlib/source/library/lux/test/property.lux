@@ -20,7 +20,7 @@
     ["[0]" text (.only \n)
      ["%" \\injection]]
     [collection
-     ["[0]" list (.open functor mix)
+     ["[0]" list (.open functor)
       ["?[1]" \\projection]]
      ["[0]" set]
      ["[0]" dictionary
@@ -119,12 +119,12 @@
   Bit)
 
 (template.with [<policy> <name>]
-  [(the .public <name>
-     Success_Policy
-     <policy>)]
+               [(the .public <name>
+                  Success_Policy
+                  <policy>)]
 
-  [[0b ignore_success]
-   [1b announce_success]])
+               [[0b ignore_success]
+                [1b announce_success]])
 
 (the .public (times amount announce_success? test)
   (-> Natural Success_Policy Test
@@ -302,7 +302,7 @@
              [read! write!] (is [//.Test
                                  (future.Resolver [Tally Text])]
                                 (future.future []))
-             _ (list:mix (function (_ test index)
+             _ (list.mix (function (_ test index)
                            (exec
                              (|> (value test)
                                  (future.upon! (function (_ assertion)
@@ -312,15 +312,15 @@
                                                        (let [assertions (|> results
                                                                             dictionary.entries
                                                                             (list:each pair.right))]
-                                                         (write! [(|> assertions
-                                                                      (list:each pair.left)
-                                                                      (list:mix tally.and tally.empty))
+                                                         (write! [(list.mix tally.and
+                                                                            (list:each pair.left assertions)
+                                                                            tally.empty)
                                                                   (|> assertions
                                                                       (list:each pair.right)
                                                                       (text.interposed ..delimiter))]))
                                                        (pure [])))))
                                  io.value)
                              (++ index)))
-                         0
-                         tests)]]
+                         tests
+                         0)]]
       (pure read!))))

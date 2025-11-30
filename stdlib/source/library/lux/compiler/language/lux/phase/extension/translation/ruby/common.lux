@@ -12,7 +12,7 @@
      ["%" \\injection]]
     [collection
      ["[0]" dictionary]
-     ["[0]" list (.open functor mix)
+     ["[0]" list (.open functor)
       ["?[1]" \\projection]]]]
    [macro
     ["[0]" template]]
@@ -60,35 +60,30 @@
 (the .public (statement expression archive synthesis)
   Phase!
   (`` (when synthesis
-        [@ {synthesis.:Extension [.prelude (,, (static.text (extension.synthesis extension/lux.when_char)))] parameters}]
-        (comment "TODO: Get rid of this ASAP"
-                 (monad.let phase.monad
-                   [body (expression archive synthesis)]
-                   (pure (as (-> _.Expression _.Statement)
-                             body))))
+        {synthesis.:Extension @ [.prelude (,, (static.text (extension.synthesis extension/lux.when_char)))] parameters}
+        (monad.let phase.monad
+          [body (expression archive synthesis)]
+          (pure (as (-> _.Expression _.Statement)
+                    body)))
         
         (,, (template.with [<tag>]
-              [(<tag> @ value)
-               (phase:each _.return
-                           (expression archive synthesis))]
+                           [(<tag> @ value)
+                            (phase:each _.return
+                                        (expression archive synthesis))]
 
-              [[synthesis.bit]
-               [synthesis.i64]
-               [synthesis.f64]
-               [synthesis.text]
-               [synthesis.variant]
-               [synthesis.tuple]
-               [synthesis.reification]]
-              ))
+                           [[synthesis.bit]
+                            [synthesis.i64]
+                            [synthesis.f64]
+                            [synthesis.text]
+                            [synthesis.reification]]))
 
         (,, (template.with [<tag>]
-              [[@ {<tag> value}]
-               (phase:each _.return
-                           (expression archive synthesis))]
+                           [{<tag> @ value}
+                            (phase:each _.return
+                                        (expression archive synthesis))]
 
-              [[synthesis.:Reference]
-               [synthesis.:Extension]]
-              ))
+                           [[synthesis.:Reference]
+                            [synthesis.:Extension]]))
 
         (synthesis.let @ register input body)
         (//when.let! statement expression archive [register input body])
@@ -98,41 +93,40 @@
 
         (synthesis.when @ it)
         (<| (,, (template.with [,synthesis]
-                  [(when (,synthesis it)
-                     {.:Some it}
-                     (phase:each _.return
-                                 (expression archive synthesis))
+                               [(when (,synthesis it)
+                                  {.:Some it}
+                                  (phase:each _.return
+                                              (expression archive synthesis))
 
-                     else)]
+                                  else)]
 
-                  [[synthesis.its]]
-                  ))
+                               [[synthesis.its]]
+                               ))
             (,, (template.with [,synthesis ,translation]
-                  [(when (,synthesis it)
-                     {.:Some it}
-                     (,translation statement expression archive it)
+                               [(when (,synthesis it)
+                                  {.:Some it}
+                                  (,translation statement expression archive it)
 
-                     else)]
+                                  else)]
 
-                  [[synthesis.variant_if //when.variant_if!]
-                   [synthesis.if //when.if!]
-                   [synthesis.when_i64 //when.when_i64!]
-                   [synthesis.when_f64 //when.when_f64!]
-                   [synthesis.when_text //when.when_text!]
-                   [synthesis.multi_let //when.multi_let!]]))
+                               [[synthesis.variant_if //when.variant_if!]
+                                [synthesis.if //when.if!]
+                                [synthesis.when_i64 //when.when_i64!]
+                                [synthesis.when_f64 //when.when_f64!]
+                                [synthesis.when_text //when.when_text!]
+                                [synthesis.multi_let //when.multi_let!]]))
             (//when.when! false statement expression archive it))
 
         (,, (template.with [<tag> <translator>]
-              [(<tag> @ value)
-               (<translator> statement expression archive value)]
+                           [(<tag> @ value)
+                            (<translator> statement expression archive value)]
 
-              [[synthesis.tail_recursion //loop.tail_recursion!]
-               [synthesis.tail_iteration //loop.tail_iteration!]]))
+                           [[synthesis.tail_recursion //loop.tail_recursion!]
+                            [synthesis.tail_iteration //loop.tail_iteration!]]))
 
         (synthesis.abstraction @ abstraction)
         (phase:each _.return
-                    (//function.function statement expression archive abstraction))
-        )))
+                    (//function.function statement expression archive abstraction)))))
 
 (comment "TODO: Get rid of this ASAP"
          (the lux:syntax_char_case!
@@ -151,22 +145,21 @@
                                              (list.each' ! (function (_ [chars branch])
                                                              (monad.let !
                                                                [branch! (statement phase archive branch)]
-                                                               (pure [(|> chars
-                                                                          (list:each (|>> .integer _.int (_.= @input)))
-                                                                          (list:mix (function (_ clause total)
-                                                                                      (if (identical? _.nil total)
-                                                                                          clause
-                                                                                          (_.or clause total)))
-                                                                                    _.nil))
+                                                               (pure [(list.mix (function (_ clause total)
+                                                                                  (if (identical? _.nil total)
+                                                                                      clause
+                                                                                      (_.or clause total)))
+                                                                                (list:each (|>> .integer _.int (_.= @input)) chars)
+                                                                                _.nil)
                                                                       branch!])))
                                                          conditionals))]
                           (pure (<| (as (-> _.Statement _.Expression))
                                     (all _.then
                                          (_.; (_.set (.list @input) inputG))
-                                         (list:mix (function (_ [test then!] else!)
+                                         (list.mix (function (_ [test then!] else!)
                                                      (_.if test then! else!))
-                                                   else!
-                                                   conditionals!))))))])))
+                                                   conditionals!
+                                                   else!))))))])))
 
 (the .public (with name anonymous)
   (-> extension.Name Handler
@@ -243,9 +236,9 @@
     (|> left (_.+ right))
 
     parts
-    (list:mix _.bit_shl
-              (text//composite (.list))
-              parts)))
+    (list.mix _.bit_shl
+              parts
+              (text//composite (.list)))))
 
 (the with_text
   (Change Bundle)

@@ -26,24 +26,22 @@
 ...    {:Empty}
 ...    {:Top it (Stack it)}))
 
-(the .public mix
+(the .public (mix f xs init)
   (Mix Stack)
-  (implementation
-   (the (mix f init xs)
-     (.when xs
-       {.:Top x xs'}
-       (mix f (f x init) xs')
+  (.when xs
+    {.:Top x xs'}
+    (mix f xs' (f x init))
 
-       end
-       init))))
+    end
+    init))
 
 (the .public (in_reverse it)
   (for_any (_ it)
     (Change (Stack it)))
   (mix (function (_ top pop)
          {.:Top top pop})
-       {.:Empty}
-       it))
+       it
+       {.:Empty}))
 
 (the .public (only keep? xs)
   (for_any (_ it)
@@ -66,8 +64,8 @@
       {.:Top pop tops}
       {.:Right [state (list (..mix (function (_ top pop)
                                      (` {.:Top (, top) (, pop)}))
-                                   pop
-                                   tops))]}
+                                   tops
+                                   pop))]}
 
       _
       {.:Left ""})))
@@ -118,29 +116,30 @@
                {.:None}))
          xs))
 
-(the .public size
+(the .public (size it)
   (for_any (_ it)
     (-> (Stack it)
         Natural))
   (mix (function (_ _ acc)
          (++ acc))
+       it
        0))
 
 (with_template [<name> <init> <op>]
-  [(the .public (<name> predicate items)
-     (for_any (_ it)
-       (-> (Predicate it)
-           (Predicate (Stack it))))
-     (.when items
-       {.:Top top pop}
-       (<op> (predicate top)
-             (<name> predicate pop))
+               [(the .public (<name> predicate items)
+                  (for_any (_ it)
+                    (-> (Predicate it)
+                        (Predicate (Stack it))))
+                  (.when items
+                    {.:Top top pop}
+                    (<op> (predicate top)
+                          (<name> predicate pop))
 
-       end
-       <init>))]
+                    end
+                    <init>))]
 
-  [[any?   0b or]
-   [every? 1b and]])
+               [[any?   0b or]
+                [every? 1b and]])
 
 (the .public (item i xs)
   (for_any (_ it)
@@ -180,11 +179,11 @@
    (the equality
      (..equality (by // equality)))
    
-   (the hash
-     (by ..mix mix
-         (function (_ member)
-           (n.+ (by // hash member)))
-         0))))
+   (the (hash it)
+     (..mix (function (_ member)
+              (n.+ (by // hash member)))
+            it
+            0))))
 
 (the .public monoid
   (for_any (_ it)
@@ -196,8 +195,8 @@
      ... TODO: Use the more obvious implementation once "tail recursion modulo cons" is added to the compiler.
      (mix (function (_ top pop)
             {.:Top top pop})
-          right
-          (in_reverse left)))))
+          (in_reverse left)
+          right))))
 
 (the .public functor
   (Functor Stack)
@@ -206,8 +205,8 @@
      ... TODO: Use the more obvious implementation once "tail recursion modulo cons" is added to the compiler.
      (mix (function (_ top pop)
             {.:Top (f top) pop})
-          (stack)
-          (in_reverse it)))))
+          (in_reverse it)
+          (stack)))))
 
 (the .public (empty? xs)
   (for_any (_ it)
@@ -232,19 +231,19 @@
     false))
 
 (with_template [<side> <output>]
-  [(the .public (<side> it)
-     (for_any (_ it)
-       (-> (Stack it)
-           (Try <output>)))
-     (.when it
-       {.:Top top pop}
-       {try.:Success <side>}
+               [(the .public (<side> it)
+                  (for_any (_ it)
+                    (-> (Stack it)
+                        (Try <output>)))
+                  (.when it
+                    {.:Top top pop}
+                    {try.:Success <side>}
 
-       end
-       {try.:Failure error.empty}))]
+                    end
+                    {try.:Failure error.empty}))]
 
-  [[top it]
-   [pop (Stack it)]])
+               [[top it]
+                [pop (Stack it)]])
 
 (the .public (each' monad f)
   (for_any (_ ! before after)
@@ -254,16 +253,16 @@
         (-> (Stack before)
             (! (Stack after)))))
   (with "/:[0]" monad
-    (function (of xs)
-      (.when xs
-        {.:Empty}
-        (/:pure {.:Empty})
-        
-        {.:Top x xs'}
-        (|> (f x)
-            (/:each (function (_ _x)
-                      (/:each (|>> {.:Top _x}) (of xs'))))
-            /:conjoint)))))
+        (function (of xs)
+          (.when xs
+            {.:Empty}
+            (/:pure {.:Empty})
+            
+            {.:Top x xs'}
+            (|> (f x)
+                (/:each (function (_ _x)
+                          (/:each (|>> {.:Top _x}) (of xs'))))
+                /:conjoint)))))
 
 (the .public (only' monad f)
   (for_any (_ ! it)
@@ -271,25 +270,26 @@
         (-> it (! Bit))
         (-> (Stack it) (! (Stack it)))))
   (with "/:[0]" monad
-    (function (of xs)
-      (.when xs
-        {.:Empty}
-        (/:pure {.:Empty})
-        
-        {.:Top top xs'}
-        (|> (f top)
-            (/:each (function (_ verdict)
-                      (/:each (function (_ pop)
-                                (if verdict
-                                    {.:Top top pop}
-                                    pop))
-                              (of xs'))))
-            /:conjoint)))))
+        (function (of xs)
+          (.when xs
+            {.:Empty}
+            (/:pure {.:Empty})
+            
+            {.:Top top xs'}
+            (|> (f top)
+                (/:each (function (_ verdict)
+                          (/:each (function (_ pop)
+                                    (if verdict
+                                        {.:Top top pop}
+                                        pop))
+                                  (of xs'))))
+                /:conjoint)))))
 
-(the .public (mix' monad f init xs)
+(the .public (mix' monad f xs init)
   (for_any (_ ! part whole)
-    (-> (Monad !) (-> part whole (! whole)) whole (Stack part)
-        (! whole)))
+    (-> (Monad !)
+        (-> (-> part whole (! whole))
+            (-> (Stack part) whole (! whole)))))
   (.when xs
     {.:Empty}
     (by monad pure init)
@@ -297,4 +297,4 @@
     {.:Top x xs}
     (monad.let monad
       [init (f x init)]
-      (mix' monad f init xs))))
+      (mix' monad f xs init))))

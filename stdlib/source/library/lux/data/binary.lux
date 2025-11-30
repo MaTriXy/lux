@@ -43,10 +43,10 @@
       Binary)
   (|>> /.empty))
 
-(the .public (mix $ init it)
+(the .public (mix $ it init)
   (for_any (_ a)
-    (-> (-> I64 a a) a Binary
-        a))
+    (-> (-> I64 (Change a))
+        (-> Binary (Change a))))
   (let [size (/.size it)]
     (loop (of [index 0
                output init])
@@ -55,30 +55,30 @@
           output))))
 
 (template.with [<safe> <unsafe> <shift>]
-  [(the .public (<safe> index it)
-     (-> Index Binary
-         (Try I64))
-     (if (n.< (/.size it) (|> index <shift>))
-         {try.:Success (<unsafe> index it)}
-         {try.:Failure error.not_valid}))]
+               [(the .public (<safe> index it)
+                  (-> Index Binary
+                      (Try I64))
+                  (if (n.< (/.size it) (|> index <shift>))
+                      {try.:Success (<unsafe> index it)}
+                      {try.:Failure error.not_valid}))]
 
-  [[bits_08 /.bits_08 (|>)]
-   [bits_16 /.bits_16 (n.+ 1)]
-   [bits_32 /.bits_32 (n.+ 3)]
-   [bits_64 /.bits_64 (n.+ 7)]])
+               [[bits_08 /.bits_08 (|>)]
+                [bits_16 /.bits_16 (n.+ 1)]
+                [bits_32 /.bits_32 (n.+ 3)]
+                [bits_64 /.bits_64 (n.+ 7)]])
 
 (template.with [<safe> <unsafe> <shift>]
-  [(the .public (<safe> index value it)
-     (-> Index (I64 Any) Binary
-         (Try Binary))
-     (if (n.< (/.size it) (|> index <shift>))
-         {try.:Success (<unsafe> index value it)}
-         {try.:Failure error.not_valid}))]
+               [(the .public (<safe> index value it)
+                  (-> Index (I64 Any) Binary
+                      (Try Binary))
+                  (if (n.< (/.size it) (|> index <shift>))
+                      {try.:Success (<unsafe> index value it)}
+                      {try.:Failure error.not_valid}))]
 
-  [[has_08! /.has_08! (|>)]
-   [has_16! /.has_16! (n.+ 1)]
-   [has_32! /.has_32! (n.+ 3)]
-   [has_64! /.has_64! (n.+ 7)]])
+               [[has_08! /.has_08! (|>)]
+                [has_16! /.has_16! (n.+ 1)]
+                [has_32! /.has_32! (n.+ 3)]
+                [has_64! /.has_64! (n.+ 7)]])
 
 (the .public equality
   (Equality Binary)
@@ -93,9 +93,10 @@
   (Hash Binary)
   (implementation
    (the equality ..equality)
-   (the hash
+   (the (hash it)
      (..mix (function (_ byte hash)
               (/64.xor byte (/64.left_rotated 1 hash)))
+            it
             0))))
 
 (exception.the .public (cannot_copy [bytes source_input target_output])

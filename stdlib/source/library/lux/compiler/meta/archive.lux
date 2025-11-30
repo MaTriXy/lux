@@ -58,14 +58,14 @@
          ["New key" (signature.description (document.signature new))])))
 
 (template.with [<name>]
-  [(exception.the .public (<name> it)
-     (Exception descriptor.Module)
-     (exception.report
-      (list ["Module" (%.text it)])))]
+               [(exception.the .public (<name> it)
+                  (Exception descriptor.Module)
+                  (exception.report
+                   (list ["Module" (%.text it)])))]
 
-  [[module_has_already_been_reserved]
-   [module_must_be_reserved_before_it_can_be_added]
-   [module_is_only_reserved]])
+               [[module_has_already_been_reserved]
+                [module_must_be_reserved_before_it_can_be_added]
+                [module_is_only_reserved]])
 
 (every .public (Entry it)
   (Record
@@ -94,64 +94,64 @@
     (-> descriptor.Module Archive
         (Try module.ID))
     (with "/[0]" (nominal.as archive)
-      (when (dictionary.value module /:resolver)
-        {try.:Success [id _]}
-        {try.:Success id}
-        
-        failure
-        (exception.except ..unknown_document [module (dictionary.domain /:resolver)]))))
+          (when (dictionary.value module /:resolver)
+            {try.:Success [id _]}
+            {try.:Success id}
+            
+            failure
+            (exception.except ..unknown_document [module (dictionary.domain /:resolver)]))))
 
   (the .public (reserve module archive)
     (-> descriptor.Module Archive
         (Try [module.ID Archive]))
     (with "/[0]" (nominal.as archive)
-      (when (dictionary.value module /:resolver)
-        {try.:Success _}
-        (exception.except ..module_has_already_been_reserved [module])
-        
-        failure
-        {try.:Success [/:next
-                       (|> archive
-                           nominal.as
-                           (revised :resolver (dictionary.has module [/:next (is (Maybe (Entry Any)) {.:None})]))
-                           (revised :next ++)
-                           nominal.of)]})))
+          (when (dictionary.value module /:resolver)
+            {try.:Success _}
+            (exception.except ..module_has_already_been_reserved [module])
+            
+            failure
+            {try.:Success [/:next
+                           (|> archive
+                               nominal.as
+                               (revised :resolver (dictionary.has module [/:next (is (Maybe (Entry Any)) {.:None})]))
+                               (revised :next ++)
+                               nominal.of)]})))
 
   (the .public (has module entry archive)
     (-> descriptor.Module (Entry Any) Archive
         (Try Archive))
     (with "/[0]" (nominal.as archive)
-      (when (dictionary.value module /:resolver)
-        {try.:Success [id {.:None}]}
-        {try.:Success (|> archive
-                          nominal.as
-                          (revised ..:resolver (dictionary.has module [id {.:Some entry}]))
-                          nominal.of)}
-        
-        {try.:Success [id {.:Some [existing_module existing_output existing_registry]}]}
-        (if (identical? (its module.:document existing_module)
-                        (its [:module module.:document] entry))
-            ... TODO: Find out why this code allows for the same module to be added more than once. It looks fishy...
-            {try.:Success archive}
-            (exception.except ..cannot_replace_document [module (its module.:document existing_module) (its [:module module.:document] entry)]))
-        
-        failure
-        (exception.except ..module_must_be_reserved_before_it_can_be_added [module]))))
+          (when (dictionary.value module /:resolver)
+            {try.:Success [id {.:None}]}
+            {try.:Success (|> archive
+                              nominal.as
+                              (revised ..:resolver (dictionary.has module [id {.:Some entry}]))
+                              nominal.of)}
+            
+            {try.:Success [id {.:Some [existing_module existing_output existing_registry]}]}
+            (if (identical? (its module.:document existing_module)
+                            (its [:module module.:document] entry))
+                ... TODO: Find out why this code allows for the same module to be added more than once. It looks fishy...
+                {try.:Success archive}
+                (exception.except ..cannot_replace_document [module (its module.:document existing_module) (its [:module module.:document] entry)]))
+            
+            failure
+            (exception.except ..module_must_be_reserved_before_it_can_be_added [module]))))
 
   ... TODO: Eliminate the need for this hack...
   (the .public (has! module entry archive)
     (-> descriptor.Module (Entry Any) Archive
         (Try Archive))
     (with "/[0]" (nominal.as archive)
-      (when (dictionary.value module /:resolver)
-        {try.:Success [id _]}
-        {try.:Success (|> archive
-                          nominal.as
-                          (revised ..:resolver (dictionary.has module [id {.:Some entry}]))
-                          nominal.of)}
-        
-        failure
-        (exception.except ..module_must_be_reserved_before_it_can_be_added [module]))))
+          (when (dictionary.value module /:resolver)
+            {try.:Success [id _]}
+            {try.:Success (|> archive
+                              nominal.as
+                              (revised ..:resolver (dictionary.has module [id {.:Some entry}]))
+                              nominal.of)}
+            
+            failure
+            (exception.except ..module_must_be_reserved_before_it_can_be_added [module]))))
 
   (the .public entries
     (-> Archive
@@ -167,15 +167,15 @@
     (-> descriptor.Module Archive
         (Try (Entry Any)))
     (with "/[0]" (nominal.as archive)
-      (when (dictionary.value module /:resolver)
-        {try.:Success [id {.:Some entry}]}
-        {try.:Success entry}
+          (when (dictionary.value module /:resolver)
+            {try.:Success [id {.:Some entry}]}
+            {try.:Success entry}
 
-        {try.:Success [id {.:None}]}
-        (exception.except ..module_is_only_reserved [module])
-        
-        failure
-        (exception.except ..unknown_document [module (dictionary.domain /:resolver)]))))
+            {try.:Success [id {.:None}]}
+            (exception.except ..module_is_only_reserved [module])
+            
+            failure
+            (exception.except ..unknown_document [module (dictionary.domain /:resolver)]))))
 
   (the .public (archived? archive module)
     (-> Archive descriptor.Module
@@ -202,12 +202,12 @@
     (-> Archive descriptor.Module
         Bit)
     (with "/[0]" (nominal.as archive)
-      (when (dictionary.value module /:resolver)
-        {try.:Success [id _]}
-        true
+          (when (dictionary.value module /:resolver)
+            {try.:Success [id _]}
+            true
 
-        failure
-        false)))
+            failure
+            false)))
 
   (the .public reserved
     (-> Archive
@@ -242,8 +242,8 @@
                                              (if (dictionary.in_domain? resolver module)
                                                  resolver
                                                  (dictionary.has module [id entry] resolver))))
-                                         resolver
-                                         (dictionary.entries +resolver))))
+                                         (dictionary.entries +resolver)
+                                         resolver)))
           nominal.of)))
 
   (every Reservation
@@ -272,12 +272,12 @@
     (-> Version Configuration Archive
         Binary)
     (with "/[0]" (nominal.as archive)
-      (|> /:resolver
-          dictionary.entries
-          (list:each (function (_ [module [id entry]])
-                       [module id]))
-          [version configuration /:next]
-          (\\injection.value ..as_binary))))
+          (|> /:resolver
+              dictionary.entries
+              (list:each (function (_ [module [id entry]])
+                           [module id]))
+              [version configuration /:next]
+              (\\injection.value ..as_binary))))
 
   (exception.the .public (version_mismatch [expected actual])
     (Exception [Version Version])
@@ -306,6 +306,6 @@
              [:next next
               :resolver (list.mix (function (_ [module id] archive)
                                     (dictionary.has module [id (is (Maybe (Entry Any)) {.:None})] archive))
-                                  (its :resolver (nominal.as ..empty))
-                                  reservations)]))))
+                                  reservations
+                                  (its :resolver (nominal.as ..empty)))]))))
   )

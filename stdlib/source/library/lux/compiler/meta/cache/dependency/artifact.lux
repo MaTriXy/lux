@@ -9,7 +9,7 @@
    [data
     ["[0]" pair]
     [collection
-     ["[0]" list (.open monoid mix monad)]
+     ["[0]" list (.open monoid monad)]
      ["[0]" set (.only Set)]
      ["[0]" dictionary (.only Dictionary)]
      ["[0]" sequence]]]
@@ -157,49 +157,49 @@
         (list.each' ! (translation.remember archive))
         (by ! each (set.of_list unit.hash)))))
 
-(the .public all
+(the .public (all it)
   (-> (List (Set unit.ID))
       (Set unit.ID))
-  (list:mix set.union unit.none))
+  (list.mix set.union it unit.none))
 
 (the (immediate_dependencies archive)
   (-> Archive
       [(List unit.ID)
        (Dictionary unit.ID (Set unit.ID))])
-  (|> archive
-      archive.entries
-      (list:each (function (_ [module [module_id [_module output registry]]])
-                   (|> registry
-                       registry.artifacts
-                       sequence.as_list
-                       (list:each (function (_ [artifact dependencies])
-                                    [[module_id (its artifact.:id artifact)]
-                                     (its artifact.:mandatory? artifact)
-                                     dependencies])))))
-      list:conjoint
-      (list:mix (function (_ [artifact_id mandatory? dependencies]
-                             [mandatory_dependencies
-                              all_dependencies])
-                  [(if mandatory?
-                       (list:composite (list artifact_id) mandatory_dependencies)
-                       mandatory_dependencies)
-                   (dictionary.has artifact_id dependencies all_dependencies)])
-                [(list)
-                 (dictionary.empty unit.hash)])))
+  (list.mix (function (_ [artifact_id mandatory? dependencies]
+                         [mandatory_dependencies
+                          all_dependencies])
+              [(if mandatory?
+                   (list:composite (list artifact_id) mandatory_dependencies)
+                   mandatory_dependencies)
+               (dictionary.has artifact_id dependencies all_dependencies)])
+            (|> archive
+                archive.entries
+                (list:each (function (_ [module [module_id [_module output registry]]])
+                             (|> registry
+                                 registry.artifacts
+                                 sequence.as_list
+                                 (list:each (function (_ [artifact dependencies])
+                                              [[module_id (its artifact.:id artifact)]
+                                               (its artifact.:mandatory? artifact)
+                                               dependencies])))))
+                list:conjoint)
+            [(list)
+             (dictionary.empty unit.hash)]))
 
 (the .public (necessary_dependencies archive)
   (-> Archive
       (Set unit.ID))
   (let [[mandatory immediate] (immediate_dependencies archive)]
-    (list:mix (function (mix head minimum)
+    (list.mix (function (mix head minimum)
                 (if (set.member? minimum head)
                     minimum
                     (let [minimum (set.has head minimum)]
                       (when (dictionary.value head immediate)
                         {try.:Success additional}
-                        (list:mix mix minimum (set.as_list additional))
+                        (list.mix mix (set.as_list additional) minimum)
 
                         failure
                         minimum))))
-              unit.none
-              mandatory)))
+              mandatory
+              unit.none)))

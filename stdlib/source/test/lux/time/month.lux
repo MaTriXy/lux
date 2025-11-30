@@ -23,7 +23,7 @@
      ["?[1]" \\projection]]
     [collection
      ["[0]" set]
-     ["[0]" list (.open functor mix)]]]
+     ["[0]" list (.open functor)]]]
    [math
     ["[0]" random (.only Random)]
     [number
@@ -61,22 +61,22 @@
                       (formatT.spec /.equality /.text /.random))
 
                (,, (template.with [<before> <current> <after>]
-                     [(_.coverage [<current>]
-                        (and (by /.equality = {<before>} (by /.enum pred {<current>}))
-                             (by /.equality = {<after>} (by /.enum succ {<current>}))))]
+                                  [(_.coverage [<current>]
+                                     (and (by /.equality = {<before>} (by /.enum pred {<current>}))
+                                          (by /.equality = {<after>} (by /.enum succ {<current>}))))]
 
-                     [[/.:December /.:January /.:February]
-                      [/.:January /.:February /.:March]
-                      [/.:February /.:March /.:April]
-                      [/.:March /.:April /.:May]
-                      [/.:April /.:May /.:June]
-                      [/.:May /.:June /.:July]
-                      [/.:June /.:July /.:August]
-                      [/.:July /.:August /.:September]
-                      [/.:August /.:September /.:October]
-                      [/.:September /.:October /.:November]
-                      [/.:October /.:November /.:December]
-                      [/.:November /.:December /.:January]]))
+                                  [[/.:December /.:January /.:February]
+                                   [/.:January /.:February /.:March]
+                                   [/.:February /.:March /.:April]
+                                   [/.:March /.:April /.:May]
+                                   [/.:April /.:May /.:June]
+                                   [/.:May /.:June /.:July]
+                                   [/.:June /.:July /.:August]
+                                   [/.:July /.:August /.:September]
+                                   [/.:August /.:September /.:October]
+                                   [/.:September /.:October /.:November]
+                                   [/.:October /.:November /.:December]
+                                   [/.:November /.:December /.:January]]))
                (monad.let random.monad
                  [expected /.random
                   invalid (random.only (predicate.or (n.< (/.number {/.:January}))
@@ -105,16 +105,12 @@
                                     uniques))))
                       (_.coverage [/.days]
                         (let [expected (.natural (duration.ticks duration.day duration.normal_year))]
-                          (|> /.year
-                              (list:each /.days)
-                              (list:mix n.+ 0)
-                              (n.= expected))))
+                          (n.= expected
+                               (list.mix n.+ (list:each /.days /.year) 0))))
                       (_.coverage [/.leap_year_days]
                         (let [expected (.natural (duration.ticks duration.day duration.leap_year))]
-                          (|> /.year
-                              (list:each /.leap_year_days)
-                              (list:mix n.+ 0)
-                              (n.= expected))))
+                          (n.= expected
+                               (list.mix n.+ (list:each /.leap_year_days /.year) 0))))
                       (monad.let random.monad
                         [expected /.random]
                         (_.coverage [/.as_text /.of_text]

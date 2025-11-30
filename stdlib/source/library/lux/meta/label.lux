@@ -9,7 +9,7 @@
    [data
     ["[0]" text (.only)]
     [collection
-     ["[0]" list (.open mix)
+     ["[0]" list (.only)
       ["[0]" property]]]]
    [macro
     ["[0]" template]
@@ -29,89 +29,89 @@
       (text.= referenced_module this_module)))
 
 (template.with [,singular ,type]
-  [(expansion.let [,unknown (template.name ["unknown_" ,singular])
-                   ,cannot_access (template.name ["cannot_access_" ,singular])
-                   ,not_a (template.name ["not_a_" ,singular])
+               [(expansion.let [,unknown (template.name ["unknown_" ,singular])
+                                ,cannot_access (template.name ["cannot_access_" ,singular])
+                                ,not_a (template.name ["not_a_" ,singular])
 
-                   ,plural (template.name [,singular "s"])
-                   ,not_any (template.name ["not_any_" ,singular])]
-     (these (exception.the .public (,unknown [it])
-              (Exception Name)
-              (exception.report
-               (list [(template.text [,type]) (name:as it)])))
+                                ,plural (template.name [,singular "s"])
+                                ,not_any (template.name ["not_any_" ,singular])]
+                  (these (exception.the .public (,unknown [it])
+                           (Exception Name)
+                           (exception.report
+                            (list [(template.text [,type]) (name:as it)])))
 
-            (exception.the .public (,cannot_access [it from])
-              (Exception [Name module.Name])
-              (exception.report
-               (list [(template.text [,type]) (name:as it)]
-                     ["From" (text.as_text from)])))
+                         (exception.the .public (,cannot_access [it from])
+                           (Exception [Name module.Name])
+                           (exception.report
+                            (list [(template.text [,type]) (name:as it)]
+                                  ["From" (text.as_text from)])))
 
-            (exception.the .public (,not_a [it])
-              (Exception Name)
-              (exception.report
-               (list [(template.text [,type]) (name:as it)])))
+                         (exception.the .public (,not_a [it])
+                           (Exception Name)
+                           (exception.report
+                            (list [(template.text [,type]) (name:as it)])))
 
-            (the .public (,singular it)
-              (-> Name
-                  (Meta Label))
-              (monad.let //.monad
-                [it (binding.normal it)
-                 module (module.by_name (name.module it))
-                 [this_module_name _] module.current]
-                (when (property.value (name.proper it) (its .:definitions module))
-                  {try.:Success [exported? {.:Definition [def_type expression def_value]}]}
-                  (if (visible? exported? (name.module it) this_module_name)
-                      (if (type.= ,type def_type)
-                          (pure (as (-> Any Label) def_value))
-                          (//.of_try (exception.except ,not_a [it])))
-                      (//.of_try (exception.except ,cannot_access [it this_module_name])))
+                         (the .public (,singular it)
+                           (-> Name
+                               (Meta Label))
+                           (monad.let //.monad
+                             [it (binding.normal it)
+                              module (module.by_name (name.module it))
+                              [this_module_name _] module.current]
+                             (when (property.value (name.proper it) (its .:definitions module))
+                               {try.:Success [exported? {.:Definition [def_type expression def_value]}]}
+                               (if (visible? exported? (name.module it) this_module_name)
+                                   (if (type.= ,type def_type)
+                                       (pure (as (-> Any Label) def_value))
+                                       (//.of_try (exception.except ,not_a [it])))
+                                   (//.of_try (exception.except ,cannot_access [it this_module_name])))
 
-                  failure
-                  (//.of_try (exception.except ,unknown [it])))))
+                               failure
+                               (//.of_try (exception.except ,unknown [it])))))
 
-            (exception.the .public (,not_any [it])
-              (Exception Name)
-              (exception.report
-               (list ["For type" (name:as it)])))
+                         (exception.the .public (,not_any [it])
+                           (Exception Name)
+                           (exception.report
+                            (list ["For type" (name:as it)])))
 
-            (the .public (,plural type_name)
-              (-> Name
-                  (Meta (List Name)))
-              (monad.let //.monad
-                [type_name (binding.normal type_name)
-                 module (module.by_name (name.module type_name))]
-                (when (list.one (function (_ [proper [exported? global]])
-                                  (when global
-                                    {.:Definition [type expression value]}
-                                    (if (type.= ,type type)
-                                        (let [[label type] (as (-> Any Label) value)]
-                                          (when type
-                                            {.:Named actual_name anonymous}
-                                            (if (name.= type_name actual_name)
-                                                {.:Some (when label
-                                                          {.:Some [lefts right? family]}
-                                                          family
-                                                          
-                                                          {.:None}
-                                                          (list [(name.module type_name)
-                                                                 proper]))}
-                                                {.:None})
+                         (the .public (,plural type_name)
+                           (-> Name
+                               (Meta (List Name)))
+                           (monad.let //.monad
+                             [type_name (binding.normal type_name)
+                              module (module.by_name (name.module type_name))]
+                             (when (list.one (function (_ [proper [exported? global]])
+                                               (when global
+                                                 {.:Definition [type expression value]}
+                                                 (if (type.= ,type type)
+                                                     (let [[label type] (as (-> Any Label) value)]
+                                                       (when type
+                                                         {.:Named actual_name anonymous}
+                                                         (if (name.= type_name actual_name)
+                                                             {.:Some (when label
+                                                                       {.:Some [lefts right? family]}
+                                                                       family
+                                                                       
+                                                                       {.:None}
+                                                                       (list [(name.module type_name)
+                                                                              proper]))}
+                                                             {.:None})
 
-                                            _
-                                            {.:None}))
-                                        {.:None})
+                                                         _
+                                                         {.:None}))
+                                                     {.:None})
 
-                                    _
-                                    {.:None}))
-                                (its .:definitions module))
-                  {try.:Success it}
-                  (pure it)
+                                                 _
+                                                 {.:None}))
+                                             (its .:definitions module))
+                               {try.:Success it}
+                               (pure it)
 
-                  {try.:Failure error}
-                  (//.of_try (exception.except ,not_any [type_name])))))))]
+                               {try.:Failure error}
+                               (//.of_try (exception.except ,not_any [type_name])))))))]
 
-  [[tag .Tag]
-   [slot .Slot]])
+               [[tag .Tag]
+                [slot .Slot]])
 
 (the .public (every_slot module)
   (-> module.Name
@@ -120,7 +120,7 @@
     [=module (module.by_name module)
      [this_module_name _] module.current]
     (pure (property.values
-           (list:mix (function (_ [proper [exported? global]] output)
+           (list.mix (function (_ [proper [exported? global]] output)
                        (when global
                          {.:Definition [type expression value]}
                          (if (and (type.= .Slot type)
@@ -142,6 +142,6 @@
 
                          _
                          output))
+                     (its .:definitions =module)
                      (is (property.List [(List Name) Type])
-                         (list))
-                     (its .:definitions =module))))))
+                         (list)))))))

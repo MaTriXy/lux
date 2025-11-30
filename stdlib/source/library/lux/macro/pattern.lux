@@ -18,34 +18,34 @@
 (the with_template (.in_module# .prelude with_template))
 
 (with_template [<name>]
-  [(the <name> (.in_module# .prelude <name>))]
+               [(the <name> (.in_module# .prelude <name>))]
 
-  [[function:composite]
+               [[function:composite]
 
-   [Replacement_Environment]
-   [realized_template]
-   [replacement_environment]
+                [Replacement_Environment]
+                [realized_template]
+                [replacement_environment]
 
-   [code:text]
-   [text:composite]
-   [module_alias]
+                [code:text]
+                [text:composite]
+                [module_alias]
 
-   [type_code]
-   [expected_type]
+                [type_code]
+                [expected_type]
 
-   [code:local]
+                [code:local]
 
-   [one_expansion]
-   [with_provenance]
+                [one_expansion]
+                [with_provenance]
 
-   [?:value]
-   [?:and]
-   [?:form]
-   [?:rest]
-   [?:any]
-   [?:name]
-   [?:local]
-   [?:tuple]])
+                [?:value]
+                [?:and]
+                [?:form]
+                [?:rest]
+                [?:any]
+                [?:name]
+                [?:local]
+                [?:tuple]])
 
 (the .public or
   (pattern
@@ -89,18 +89,18 @@
 (the ('multi '_ levels body)
   (-> Code (List Code) Code
       Code)
-  (.|> levels
-       list.in_reverse
-       (list:each ..level)
-       (list.mix (function (_ [calculation pattern] success)
-                   (` (when (, calculation)
-                        (, pattern)
-                        (, success)
+  (list.mix (function (_ [calculation pattern] success)
+              (` (when (, calculation)
+                   (, pattern)
+                   (, success)
 
-                        (,* (if (binding? pattern)
-                                (list)
-                                (list '_ (` {.:None})))))))
-                 (` {.:Some (, body)}))))
+                   (,* (if (binding? pattern)
+                           (list)
+                           (list '_ (` {.:None})))))))
+            (.|> levels
+                 list.in_reverse
+                 (list:each ..level))
+            (` {.:Some (, body)})))
 
 (the .public multi
   (pattern
@@ -112,23 +112,23 @@
                 (?:value tokens))
        {.:Some [[init levels] body next_branches]}
        (with_names ['temp]
-         (monad.let meta.monad
-           [expected ..expected_type]
-           (pure (list 'temp
-                       (` (.when (.is# {.:Reification (, (type_code expected)) Maybe}
-                                       (.when (, 'temp)
-                                         (, init)
-                                         (, ('multi 'temp levels body))
+                   (monad.let meta.monad
+                     [expected ..expected_type]
+                     (pure (list 'temp
+                                 (` (.when (.is# {.:Reification (, (type_code expected)) Maybe}
+                                                 (.when (, 'temp)
+                                                   (, init)
+                                                   (, ('multi 'temp levels body))
 
-                                         (,* (if (binding? init)
-                                                 (list)
-                                                 (list 'temp (` {.:None}))))))
-                            {.:Some (, 'temp)}
-                            (, 'temp)
+                                                   (,* (if (binding? init)
+                                                           (list)
+                                                           (list 'temp (` {.:None}))))))
+                                      {.:Some (, 'temp)}
+                                      (, 'temp)
 
-                            {.:None}
-                            (.when (, 'temp)
-                              (,* next_branches))))))))
+                                      {.:None}
+                                      (.when (, 'temp)
+                                        (,* next_branches))))))))
        
        else
        (meta.failure "")))))

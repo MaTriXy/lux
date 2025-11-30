@@ -20,7 +20,7 @@
    [data
     ["[0]" text]
     [collection
-     ["[0]" list (.open mix)]]]
+     ["[0]" list]]]
    [logic
     ["[0]" bit]]
    [math
@@ -51,32 +51,32 @@
            (_.for [/.interval]
                   (intervalT.spec /.interval random.natural))
            (,, (template.with [<composite> <monoid>]
-                 [(_.for [<monoid> <composite>]
-                         (static.when (identical? <composite> (by <monoid> composite))
-                           (monoidT.spec /.equality <monoid> random.natural)))]
-                 
-                 [[/.+ /.addition]
-                  [/.x /.multiplication]
+                              [(_.for [<monoid> <composite>]
+                                      (static.when (identical? <composite> (by <monoid> composite))
+                                        (monoidT.spec /.equality <monoid> random.natural)))]
+                              
+                              [[/.+ /.addition]
+                               [/.x /.multiplication]
 
-                  [/.minor /.minimum]
-                  [/.major /.maximum]]))
+                               [/.minor /.minimum]
+                               [/.major /.maximum]]))
            (,, (template.with [<format>]
-                 [(monad.let [! random.monad]
-                    [.let [limit (|> (by /.interval maximum)
-                                     (by <format> as)
-                                     text.size
-                                     ++)]
-                     expected_size (by ! each (/.% limit) random.natural)]
-                    (_.for [<format> /.padded]
-                           (all _.and
-                                (formatT.spec /.equality <format> random.natural)
-                                (formatT.spec /.equality (/.padded expected_size <format>) random.natural)
-                                )))]
+                              [(monad.let [! random.monad]
+                                 [.let [limit (|> (by /.interval maximum)
+                                                  (by <format> as)
+                                                  text.size
+                                                  ++)]
+                                  expected_size (by ! each (/.% limit) random.natural)]
+                                 (_.for [<format> /.padded]
+                                        (all _.and
+                                             (formatT.spec /.equality <format> random.natural)
+                                             (formatT.spec /.equality (/.padded expected_size <format>) random.natural)
+                                             )))]
 
-                 [[/.base_02]
-                  [/.base_08]
-                  [/.base_10]
-                  [/.base_16]]))
+                              [[/.base_02]
+                               [/.base_08]
+                               [/.base_10]
+                               [/.base_16]]))
            )))
 
 (the predicate
@@ -144,7 +144,7 @@
                   (_.coverage [/.Exponent /.^]
                     (and (/.= 1 (/.^ 0 sample))
                          (/.= sample (/.^ 1 sample))
-                         (/.= (list:mix /.x 1 (list.repeated power sample))
+                         (/.= (list.mix /.x (list.repeated power sample) 1)
                               (/.^ power sample))))
                   ))
            (monad.let random.monad

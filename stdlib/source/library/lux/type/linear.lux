@@ -14,7 +14,7 @@
     [collection
      ["[0]" set]
      ["[0]" sequence (.only Sequence)]
-     ["[0]" list (.open functor mix)]]]
+     ["[0]" list (.open functor)]]]
    [math
     [number
      [/64
@@ -76,24 +76,24 @@
   Any
 
   (template.with [<name> <mode>]
-    [(the <name>
-       (for_some (_ k) (-> Any (Key <mode> k)))
-       (|>> nominal.of))]
+                 [(the <name>
+                    (for_some (_ k) (-> Any (Key <mode> k)))
+                    (|>> nominal.of))]
 
-    [[ordered_key     Ordered]
-     [commutative_key Commutative]]))
+                 [[ordered_key     Ordered]
+                  [commutative_key Commutative]]))
 
 (nominal.every .public (Res key value)
   value
 
   (template.with [<name> <mode> <key>]
-    [(the .public (<name> monad value)
-       (for_any (_ ! v) (for_some (_ k) (-> (Monad !) v (Affine ! (Key <mode> k) (Res k v)))))
-       (function (_ keys)
-         (by monad pure [[(<key> []) keys] (nominal.of value)])))]
+                 [(the .public (<name> monad value)
+                    (for_any (_ ! v) (for_some (_ k) (-> (Monad !) v (Affine ! (Key <mode> k) (Res k v)))))
+                    (function (_ keys)
+                      (by monad pure [[(<key> []) keys] (nominal.of value)])))]
 
-    [[ordered     Ordered     ..ordered_key]
-     [commutative Commutative ..commutative_key]])
+                 [[ordered     Ordered     ..ordered_key]
+                  [commutative Commutative ..commutative_key]])
 
   (the .public (read monad resource)
     (for_any (_ ! v k m)
@@ -124,35 +124,35 @@
 
 (syntax.the .public (exchange [swaps ..indices])
   (macro.with_names ['_ 'context '!]
-    (when swaps
-      (list)
-      (pure (list (` ..no_op)))
+                    (when swaps
+                      (list)
+                      (pure (list (` ..no_op)))
 
-      not_empty@
-      (monad.let [! meta.monad]
-        [.let [max_idx (list:mix n.major 0 swaps)]
-         'inputs (|> (macro.name "input")
-                     (list.repeated (++ max_idx))
-                     (list.complete !))
-         .let ['outputs (|> (list.mix' try.monad
-                                       (function (_ from to)
-                                         (monad.let try.monad
-                                           [input (list.item from 'inputs)]
-                                           (pure (sequence.suffix input to))))
-                                       (is (Sequence Code) sequence.empty)
-                                       swaps)
-                            try.trusted
-                            sequence.as_list)
-               'inputsT+ (list:each (|>> (,) (..Key ..Commutative) (`)) 'inputs)
-               'outputsT+ (list:each (|>> (,) (..Key ..Commutative) (`)) 'outputs)]]
-        (pure (list (` (is (for_any ((, '_) (, '!) (,* 'inputs) (, 'context))
-                             (-> (monad.Monad (, '!))
-                                 (Procedure (, '!)
-                                            [(,* 'inputsT+) (, 'context)]
-                                            [(,* 'outputsT+) (, 'context)]
-                                            .Any)))
-                           (function ((, '_) (, '!) [(,* 'inputs) (, 'context)])
-                             (by (, '!) (,' pure) [[(,* 'outputs) (, 'context)] []]))))))))))
+                      not_empty@
+                      (monad.let [! meta.monad]
+                        [.let [max_idx (list.mix n.major swaps 0)]
+                         'inputs (|> (macro.name "input")
+                                     (list.repeated (++ max_idx))
+                                     (list.complete !))
+                         .let ['outputs (|> (list.mix' try.monad
+                                                       (function (_ from to)
+                                                         (monad.let try.monad
+                                                           [input (list.item from 'inputs)]
+                                                           (pure (sequence.suffix input to))))
+                                                       swaps
+                                                       (is (Sequence Code) sequence.empty))
+                                            try.trusted
+                                            sequence.as_list)
+                               'inputsT+ (list:each (|>> (,) (..Key ..Commutative) (`)) 'inputs)
+                               'outputsT+ (list:each (|>> (,) (..Key ..Commutative) (`)) 'outputs)]]
+                        (pure (list (` (is (for_any ((, '_) (, '!) (,* 'inputs) (, 'context))
+                                             (-> (monad.Monad (, '!))
+                                                 (Procedure (, '!)
+                                                            [(,* 'inputsT+) (, 'context)]
+                                                            [(,* 'outputsT+) (, 'context)]
+                                                            .Any)))
+                                           (function ((, '_) (, '!) [(,* 'inputs) (, 'context)])
+                                             (by (, '!) (,' pure) [[(,* 'outputs) (, 'context)] []]))))))))))
 
 (exception.the .public amount_cannot_be_zero)
 
@@ -165,20 +165,20 @@
     (pure raw)))
 
 (template.with [<name> <from> <to>]
-  [(syntax.the .public (<name> [amount ..amount])
-     (macro.with_names ['_ 'context '!]
-       (monad.let [! meta.monad]
-         ['keys (|> (macro.name "keys")
-                    (list.repeated amount)
-                    (list.complete !))]
-         (pure (list (` (is (for_any ((, '_) (, '!) (,* 'keys) (, 'context))
-                              (-> (monad.Monad (, '!))
-                                  (Procedure (, '!)
-                                             [<from> (, 'context)]
-                                             [<to> (, 'context)]
-                                             .Any)))
-                            (function ((, '_) (, '!) [<from> (, 'context)])
-                              (by (, '!) (,' pure) [[<to> (, 'context)] []])))))))))]
+               [(syntax.the .public (<name> [amount ..amount])
+                  (macro.with_names ['_ 'context '!]
+                                    (monad.let [! meta.monad]
+                                      ['keys (|> (macro.name "keys")
+                                                 (list.repeated amount)
+                                                 (list.complete !))]
+                                      (pure (list (` (is (for_any ((, '_) (, '!) (,* 'keys) (, 'context))
+                                                           (-> (monad.Monad (, '!))
+                                                               (Procedure (, '!)
+                                                                          [<from> (, 'context)]
+                                                                          [<to> (, 'context)]
+                                                                          .Any)))
+                                                         (function ((, '_) (, '!) [<from> (, 'context)])
+                                                           (by (, '!) (,' pure) [[<to> (, 'context)] []])))))))))]
 
-  [[group    (,* 'keys)   [(,* 'keys)]]
-   [un_group [(,* 'keys)] (,* 'keys)]])
+               [[group    (,* 'keys)   [(,* 'keys)]]
+                [un_group [(,* 'keys)] (,* 'keys)]])

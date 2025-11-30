@@ -17,7 +17,7 @@
     [binary
      ["[0]" \\injection (.only Injection) (.open "specification:[0]" monoid)]]
     [collection
-     ["[0]" sequence (.only Sequence) (.open mix)]]]
+     ["[0]" sequence (.only Sequence)]]]
    [math
     [number
      ["[0]" /16
@@ -135,16 +135,16 @@
          (Resource (Index it)))]))
 
 (template.with [<name> <type> <tag> <equality>]
-  [(the .public (<name> value)
-     (Adder <type>)
-     (<| (/:do %)
-         (with % <tag> <equality> value)))]
+               [(the .public (<name> value)
+                  (Adder <type>)
+                  (<| (/:do %)
+                      (with % <tag> <equality> value)))]
 
-  [[integer //integer.Integer //.:Integer //integer.equality]
-   [float //float.Float //.:Float //float.equality]
-   [long //long.Long //.:Long //long.equality]
-   [double //double.Double //.:Double //double.equality]
-   [utf8 UTF8 //.:UTF8 text.equality]])
+               [[integer //integer.Integer //.:Integer //integer.equality]
+                [float //float.Float //.:Float //float.equality]
+                [long //long.Long //.:Long //long.equality]
+                [double //double.Double //.:Double //double.equality]
+                [utf8 UTF8 //.:UTF8 text.equality]])
 
 (the .public (string value)
   (-> Text
@@ -184,28 +184,28 @@
       (with % //.:Name_And_Type name_and_type.equality [name_and_type.:name @name name_and_type.:descriptor @descriptor])))
 
 (template.with [<name> <tag> <it>]
-  [(the .public (<name> class member)
-     (-> external.Name (Member <it>)
-         (Resource (Index (Reference <it>))))
-     (<| (/:do %)
-         (/:each % @class (..class (internal.name class)))
-         (/:each % @name_and_type (name_and_type member))
-         (with % <tag> reference.equality [reference.:class @class reference.:name_and_type @name_and_type])))]
+               [(the .public (<name> class member)
+                  (-> external.Name (Member <it>)
+                      (Resource (Index (Reference <it>))))
+                  (<| (/:do %)
+                      (/:each % @class (..class (internal.name class)))
+                      (/:each % @name_and_type (name_and_type member))
+                      (with % <tag> reference.equality [reference.:class @class reference.:name_and_type @name_and_type])))]
 
-  [[field //.:Field Value]
-   [method //.:Method Method]
-   [interface_method //.:Interface_Method Method]])
+               [[field //.:Field Value]
+                [method //.:Method Method]
+                [interface_method //.:Interface_Method Method]])
 
 (the .public as_binary
   (Injection Pool)
   (function (_ [next pool])
-    (sequence:mix (function (_ [_index post] pre)
+    (sequence.mix (function (_ [_index post] pre)
                     (specification:composite pre (//.as_binary post)))
+                  pool
                   (|> next
                       //index.value
                       /16.as
-                      \\injection.bits_16)
-                  pool)))
+                      \\injection.bits_16))))
 
 (the .public empty
   Pool

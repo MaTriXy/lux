@@ -47,35 +47,35 @@
 (the .public (tail_recursion! statement expression archive [start initsS+ bodyS])
   (Statement (synthesis.Tail_Recursion synthesis.Term))
   (when initsS+
-    ... function/false/non-independent loop
     (list)
-    (statement expression archive bodyS)
+    (comment "function/false/non-independent loop"
+             (statement expression archive bodyS))
 
-    ... true loop
     non_empty
-    (monad.let [! phase.monad]
-      [initsO+ (list.each' ! (expression archive) initsS+)
-       body! (/////translation.with_anchor start
-               (statement expression archive bodyS))]
-      (pure (<| (..setup start initsO+)
-                ..with_tail_recursion
-                body!)))))
+    (comment "true loop"
+             (monad.let [! phase.monad]
+               [initsO+ (list.each' ! (expression archive) initsS+)
+                body! (/////translation.with_anchor start
+                                                    (statement expression archive bodyS))]
+               (pure (<| (..setup start initsO+)
+                         ..with_tail_recursion
+                         body!))))))
 
 (the .public (tail_recursion statement expression archive [start initsS+ bodyS])
   (-> Phase!
       (Expression (synthesis.Tail_Recursion synthesis.Term)))
   (when initsS+
-    ... function/false/non-independent loop
     (list)
-    (expression archive bodyS)
+    (comment "function/false/non-independent loop"
+             (expression archive bodyS))
 
-    ... true loop
     non_empty
-    (monad.let [! phase.monad]
-      [body! (tail_recursion! statement expression archive [start initsS+ bodyS])]
-      (pure (|> body!
-                [(list)] (_.lambda {.:None})
-                (_.of_lambda (list)))))))
+    (comment "true loop"
+             (monad.let [! phase.monad]
+               [body! (tail_recursion! statement expression archive [start initsS+ bodyS])]
+               (pure (|> body!
+                         [(list)] (_.lambda {.:None})
+                         (_.of_lambda (list))))))))
 
 (the .public (tail_iteration! statement expression archive it)
   (Statement (List synthesis.Term))

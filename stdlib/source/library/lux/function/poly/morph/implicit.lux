@@ -178,13 +178,13 @@
       (Meta (List [Name Type])))
   (monad.let meta.monad
     [local_batches local.all
-     .let [total_locals (|> local_batches
-                            (view.of list.stack)
-                            list:conjoint
-                            (list.mix (function (_ [name type] table)
-                                        (try.else table (dictionary.has' name type table)))
-                                      (is (Dictionary Text Type)
-                                          (dictionary.empty text.hash))))]]
+     .let [total_locals (list.mix (function (_ [name type] table)
+                                    (try.else table (dictionary.has' name type table)))
+                                  (|> local_batches
+                                      (view.of list.stack)
+                                      list:conjoint)
+                                  (is (Dictionary Text Type)
+                                      (dictionary.empty text.hash)))]]
     (pure (|> total_locals
               dictionary.entries
               (list.all (function (_ [name type])
@@ -254,7 +254,7 @@
   (-> Type (List Type) Type
       (Check []))
   (monad.let check.monad
-    [actual_output (list.mix' check.monad ..on_argument member_type input_types)]
+    [actual_output (list.mix' check.monad ..on_argument input_types member_type)]
     (check.check expected_output actual_output)))
 
 (every Instance

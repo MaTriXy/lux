@@ -81,13 +81,13 @@
   (-> Type Bit)
   (`` (when type
         (,, (template.with [<tag>]
-              [(<tag> left right)
-               (and (valid_type? left)
-                    (valid_type? right))]
+                           [(<tag> left right)
+                            (and (valid_type? left)
+                                 (valid_type? right))]
 
-              [[//.Sum]
-               [//.Product]
-               [//.Function]]))
+                           [[//.Sum]
+                            [//.Product]
+                            [//.Function]]))
 
         {.:Nominal name params}
         (list.every? (function (_ [polarity it])
@@ -368,26 +368,26 @@
          covariant_parameters!)))
 
 (template.with [<assertion> <combinator>]
-  [(the (<assertion> name/0 name/1)
-     (-> Text Text Bit)
-     (let [pair/0 (<combinator> {.:Nominal name/0 (list)} {.:Nominal name/0 (list)})
-           pair/1 (<combinator> {.:Nominal name/1 (list)} {.:Nominal name/1 (list)})
-           
-           invariant!
-           (and (..succeeds? (/.check pair/0 pair/0))
-                (..fails? (/.check pair/0 pair/1)))
+               [(the (<assertion> name/0 name/1)
+                  (-> Text Text Bit)
+                  (let [pair/0 (<combinator> {.:Nominal name/0 (list)} {.:Nominal name/0 (list)})
+                        pair/1 (<combinator> {.:Nominal name/1 (list)} {.:Nominal name/1 (list)})
+                        
+                        invariant!
+                        (and (..succeeds? (/.check pair/0 pair/0))
+                             (..fails? (/.check pair/0 pair/1)))
 
-           super_pair (<combinator> Super Super)
-           sub_pair (<combinator> Sub Sub)
-           
-           covariant!
-           (and (..succeeds? (/.check super_pair sub_pair))
-                (..fails? (/.check sub_pair super_pair)))]
-       (and invariant!
-            covariant!)))]
+                        super_pair (<combinator> Super Super)
+                        sub_pair (<combinator> Sub Sub)
+                        
+                        covariant!
+                        (and (..succeeds? (/.check super_pair sub_pair))
+                             (..fails? (/.check sub_pair super_pair)))]
+                    (and invariant!
+                         covariant!)))]
 
-  [[handles_products! //.Product]
-   [handles_sums! //.Sum]])
+               [[handles_products! //.Product]
+                [handles_sums! //.Sum]])
 
 (the (handles_function_variance! nominal)
   (-> Type Bit)
@@ -423,8 +423,8 @@
                              (monad.let !
                                [_ (/.check var/prev var/next)]
                                (pure var/next)))
-                         var/head
-                         var/tail+)
+                         var/tail+
+                         var/head)
      _ (/.check var/last var/head)]
     (pure [var/head var/tail+ var/last])))
 
@@ -644,15 +644,15 @@
                 (pure (function (_ holeT)
                         {.:Named [module proper] (anonymousT holeT)})))
               (,, (template.with [<tag>]
-                    [(monad.let random.monad
-                       [leftT dirty_type
-                        rightT dirty_type]
-                       (pure (function (_ holeT)
-                               (<tag> (leftT holeT) (rightT holeT)))))]
+                                 [(monad.let random.monad
+                                    [leftT dirty_type
+                                     rightT dirty_type]
+                                    (pure (function (_ holeT)
+                                            (<tag> (leftT holeT) (rightT holeT)))))]
 
-                    [[//.Sum]
-                     [//.Product]
-                     [//.Function]]))
+                                 [[//.Sum]
+                                  [//.Product]
+                                  [//.Function]]))
               (monad.let random.monad
                 [leftT dirty_type
                  rightT dirty_type]
@@ -664,16 +664,16 @@
                 (pure (function (_ holeT)
                         {.:Nominal name (list [.co_variant (parameterT holeT)])})))
               (,, (template.with [<tag>]
-                    [(monad.let [! random.monad]
-                       [funcT dirty_type
-                        argT dirty_type
-                        body random.natural]
-                       (pure (function (_ holeT)
-                               {.:Quantification <tag> (stack [(funcT holeT) (argT holeT)])
-                                                 {.:Parameter .argument body}})))]
+                                 [(monad.let [! random.monad]
+                                    [funcT dirty_type
+                                     argT dirty_type
+                                     body random.natural]
+                                    (pure (function (_ holeT)
+                                            {.:Quantification <tag> (stack [(funcT holeT) (argT holeT)])
+                                                              {.:Parameter .argument body}})))]
 
-                    [[.universal]
-                     [.existential]]))
+                                 [[.universal]
+                                  [.existential]]))
               )))))
 
 (the clean
@@ -775,16 +775,16 @@
                ))))
 
 (template.with [<tag> <name>]
-  [(the <name>
-     (Random Bit)
-     (monad.let random.monad
-       [id random.natural
-        example ..clean_type]
-       (pure (not (or (<> {.:Variable <tag> id} example)
-                      (<> example {.:Variable <tag> id}))))))]
+               [(the <name>
+                  (Random Bit)
+                  (monad.let random.monad
+                    [id random.natural
+                     example ..clean_type]
+                    (pure (not (or (<> {.:Variable <tag> id} example)
+                                   (<> example {.:Variable <tag> id}))))))]
 
-  [[.general for_subsumption|variable]
-   [.special for_subsumption|existential]])
+               [[.general for_subsumption|variable]
+                [.special for_subsumption|existential]])
 
 (the for_subsumption|quantification+reification
   (Random Bit)

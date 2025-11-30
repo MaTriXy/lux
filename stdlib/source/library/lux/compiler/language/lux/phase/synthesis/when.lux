@@ -12,7 +12,7 @@
     ["[0]" pair]
     ["[0]" text]
     [collection
-     ["[0]" list (.open functor mix monoid)]
+     ["[0]" list (.open functor monoid)]
      ["[0]" set (.only Set)]]]
    ["[0]" function]
    [logic
@@ -90,7 +90,7 @@
 
     {@type.:Complex_Pattern {@type.:Complex_Tuple tuple}}
     (let [tuple:last (-- (list.size tuple))]
-      (list:mix (function (_ [tuple:lefts tuple:member] nextC)
+      (list.mix (function (_ [tuple:lefts tuple:member] nextC)
                   (.when tuple:member
                     {@type.:Simple_Pattern {@type.:Simple_Unit}}
                     nextC
@@ -107,13 +107,13 @@
                                    [(phase:each ..clean_up)]
                                    [])
                           nextC))))
-                thenC
-                (list.in_reverse (list.enumeration tuple))))
+                (list.in_reverse (list.enumeration tuple))
+                thenC))
 
     {@type.:List_Pattern it}
     (let [size (list.size it)
           last (-- size)]
-      (|> (list:mix (function (_ [position item] nextC)
+      (|> (list.mix (function (_ [position item] nextC)
                       (.when item
                         {@type.:Simple_Pattern {@type.:Simple_Unit}}
                         nextC
@@ -127,8 +127,8 @@
                                        [(phase:each ..clean_up)]
                                        [])
                               nextC))))
-                    thenC
-                    (list.in_reverse (list.enumeration it)))
+                    (list.in_reverse (list.enumeration it))
+                    thenC)
           (phase:each (|>> {path.:And {path.:List size}}))))
     ))
 
@@ -161,9 +161,9 @@
         (path.Fork it (Path /.Term))
         (path.Fork it (Path /.Term))
         (path.Fork it (Path /.Term))))
-  (list:mix (..weave_branch weave equality)
-            old_fork
-            (list:composite (list new_head) new_tail)))
+  (list.mix (..weave_branch weave equality)
+            (list:composite (list new_head) new_tail)
+            old_fork))
 
 (the (weave new old)
   (-> (Path /.Term) (Path /.Term)
@@ -251,7 +251,7 @@
   (monad.let [! phase.monad]
     [headSP (path archive synthesize headP headA)
      tailSP+ (list.each' ! (function.uncurried (path archive synthesize)) tailPA+)]
-    (pure (/.when @ [input (list:mix weave headSP tailSP+)]))))
+    (pure (/.when @ [input (list.mix weave tailSP+ headSP)]))))
 
 (the !masking
   (template.macro (_ <@> <variable> <output>)
@@ -338,13 +338,14 @@
                (^.or {path.:I64_Fork [head tail]}
                      {path.:F64_Fork [head tail]}
                      {path.:Text_Fork [head tail]})
-               (|> (list:composite (list head) tail)
-                   (list:each pair.right)
-                   (list:mix for_path path_storage))
+               (list.mix for_path
+                         (|> (list:composite (list head) tail)
+                             (list:each pair.right))
+                         path_storage)
 
                (^.or {path.:And left right}
                      {path.:Or left right})
-               (list:mix for_path path_storage (list left right))
+               (list.mix for_path (list left right) path_storage)
 
                {path.:Then bodyS}
                (loop (for_synthesis [bodyS bodyS
@@ -363,10 +364,10 @@
                    (revised :dependencies (set.has var) synthesis_storage)
 
                    (/.reification @ [functionS argsS])
-                   (list:mix for_synthesis (for_synthesis functionS synthesis_storage) argsS)
+                   (list.mix for_synthesis argsS (for_synthesis functionS synthesis_storage))
 
                    (/.abstraction @ [environment arity bodyS])
-                   (list:mix for_synthesis synthesis_storage environment)
+                   (list.mix for_synthesis environment synthesis_storage)
 
                    (/.when @ [inputS pathS])
                    (revised :dependencies
@@ -382,11 +383,11 @@
                                                                              (set.of_list n.hash))))
                                            (for_synthesis iterationS)
                                            (its :dependencies)))
-                            (list:mix for_synthesis synthesis_storage initsS+))
+                            (list.mix for_synthesis initsS+ synthesis_storage))
 
                    (/.tail_iteration @ replacementsS+)
-                   (list:mix for_synthesis synthesis_storage replacementsS+)
+                   (list.mix for_synthesis replacementsS+ synthesis_storage)
 
                    {/.:Extension @ extension argsS}
-                   (list:mix for_synthesis synthesis_storage argsS)))
+                   (list.mix for_synthesis argsS synthesis_storage)))
                ))))

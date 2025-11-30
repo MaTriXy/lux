@@ -19,7 +19,7 @@
     ["[0]" nominal]]]]
  ["[0]" // (.only)
   [//
-   ["[0]" list (.open mix monoid)]
+   ["[0]" list (.open monoid)]
    ["[0]" dictionary (.only Dictionary)]]])
 
 (nominal.every .public (Set it)
@@ -32,13 +32,13 @@
     (|>> dictionary.empty
          nominal.of))
 
-  (the .public size
+  (the .public (size it)
     (for_any (_ it)
       (-> (Set it)
           Natural))
-    (|>> nominal.as
-         dictionary.values
-         (list:mix n.+ 0)))
+    (list.mix n.+
+              (dictionary.values (nominal.as it))
+              0))
 
   (the .public (has multiplicity elem set)
     (for_any (_ it)
@@ -76,53 +76,50 @@
         (dictionary.value elem)
         (try.else 0)))
 
-  (the .public as_list
+  (the .public (as_list it)
     (for_any (_ it)
       (-> (Set it)
           (List it)))
-    (|>> nominal.as
-         dictionary.entries
-         (list:mix (function (_ [elem multiplicity] output)
-                     (list:composite (list.repeated multiplicity elem)
-                                     output))
-                   list.empty)))
+    (list.mix (function (_ [elem multiplicity] output)
+                (list:composite (list.repeated multiplicity elem)
+                                output))
+              (dictionary.entries (nominal.as it))
+              list.empty))
 
   (template.with [<name> <composite>]
-    [(the .public (<name> parameter subject)
-       (for_any (_ it)
-         (-> (Set it) (Set it)
-             (Set it)))
-       (nominal.of
-        (dictionary.composite_with <composite>
-                                   (nominal.as parameter)
-                                   (nominal.as subject))))]
+                 [(the .public (<name> parameter subject)
+                    (for_any (_ it)
+                      (-> (Set it) (Set it)
+                          (Set it)))
+                    (nominal.of
+                     (dictionary.composite_with <composite>
+                                                (nominal.as parameter)
+                                                (nominal.as subject))))]
 
-    [[union n.major]
-     [sum n.+]])
+                 [[union n.major]
+                  [sum n.+]])
 
   (the .public (intersection parameter subject)
     (for_any (_ it)
       (-> (Set it) (Set it)
           (Set it)))
     (let [subject (nominal.as subject)]
-      (list:mix (function (_ [elem multiplicity] output)
+      (list.mix (function (_ [elem multiplicity] output)
                   (..has (n.minor (..multiplicity parameter elem)
                                   multiplicity)
                          elem
                          output))
-                (..empty (dictionary.hash subject))
-                (dictionary.entries subject))))
+                (dictionary.entries subject)
+                (..empty (dictionary.hash subject)))))
 
   (the .public (difference parameter subject)
     (for_any (_ it)
       (-> (Set it) (Set it)
           (Set it)))
-    (|> parameter
-        nominal.as
-        dictionary.entries
-        (list:mix (function (_ [elem multiplicity] output)
-                    (..lacks multiplicity elem output))
-                  subject)))
+    (list.mix (function (_ [elem multiplicity] output)
+                (..lacks multiplicity elem output))
+              (dictionary.entries (nominal.as parameter))
+              subject))
 
   (the .public (sub? reference subject)
     (for_any (_ it)
@@ -169,10 +166,10 @@
      (the (hash set)
        (let [set (nominal.as set)
              [hash _] set]
-         (list:mix (function (_ [elem multiplicity] acc)
+         (list.mix (function (_ [elem multiplicity] acc)
                      (|> elem (by hash hash) (n.x multiplicity) (n.+ acc)))
-                   0
-                   (dictionary.entries set))))))
+                   (dictionary.entries set)
+                   0)))))
   )
 
 (the .public (member? set elem)
@@ -191,7 +188,9 @@
   (for_any (_ it)
     (-> (Hash it) (List it)
         (Set it)))
-  (list:mix (..has 1) (..empty hash) subject))
+  (list.mix (..has 1)
+            subject
+            (..empty hash)))
 
 (the .public (of_set subject)
   (for_any (_ it)

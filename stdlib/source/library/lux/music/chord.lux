@@ -8,8 +8,8 @@
     ["[0]" text (.only)
      ["%" \\injection]]
     [collection
-     ["[0]" sequence (.only Sequence) (.open mix monoid)]
-     ["[0]" list (.open mix)]]]
+     ["[0]" sequence (.only Sequence) (.open monoid)]
+     ["[0]" list]]]
    [math
     [number
      [/64
@@ -31,12 +31,13 @@
 (alias [=]
        ..equality)
 
-(the .public as_text
+(the .public (as_text it)
   (text.Injection Chord)
-  (sequence:mix (function (_ interval it)
+  (sequence.mix (function (_ interval it)
                   (when it
                     "" (%.natural interval)
                     _ (text it " " (%.natural interval))))
+                it
                 ""))
 
 (the .public size
@@ -115,39 +116,38 @@
 
 ... https://en.wikipedia.org/wiki/Tetrad_(music)
 (template.with [<base> <major> <minor>]
-  [(the .public <major>
-     Chord
-     (..major <base>))
+               [(the .public <major>
+                  Chord
+                  (..major <base>))
 
-   (the .public <minor>
-     Chord
-     (..minor <base>))]
+                (the .public <minor>
+                  Chord
+                  (..minor <base>))]
 
-  [[..major_triad major_7th dominant_7th]
-   [..minor_triad minor_major_7th minor_7th]
-   [..augmented_triad augmented_major_7th augmented_7th]
+               [[..major_triad major_7th dominant_7th]
+                [..minor_triad minor_major_7th minor_7th]
+                [..augmented_triad augmented_major_7th augmented_7th]
 
-   [..dominant_7th dominant_9th dominant_minor_9th]])
+                [..dominant_7th dominant_9th dominant_minor_9th]])
 
 ... https://en.wikipedia.org/wiki/Pentachord
 (template.with [<base> <major> <minor>]
-  [(the .public <major>
-     Chord
-     (..major (..major <base>)))
+               [(the .public <major>
+                  Chord
+                  (..major (..major <base>)))
 
-   (the .public <minor>
-     Chord
-     (..major (..minor <base>)))]
+                (the .public <minor>
+                  Chord
+                  (..major (..minor <base>)))]
 
-  [[..minor_triad minor_major_9th minor_9th]
-   [..augmented_triad augmented_major_9th augmented_dominant_9th]])
+               [[..minor_triad minor_major_9th minor_9th]
+                [..augmented_triad augmented_major_9th augmented_dominant_9th]])
 
 ... https://en.wikipedia.org/wiki/Polychord
 (the .public (poly lower higher)
   (-> Chord Chord
       Chord)
-  (let [range (|> lower
-                  (sequence:mix natural.+ 0)
+  (let [range (|> (sequence.mix natural.+ lower 0)
                   (natural.% interval.octave))
         offset (natural.- range interval.octave)]
     (sequence:composite (sequence.suffix offset lower)
@@ -156,50 +156,49 @@
 (the .public (instance tonic it)
   (-> Pitch Chord
       (Sequence Pitch))
-  (let [[pitch chord] (sequence:mix (function (_ interval [pitch chord])
+  (let [[pitch chord] (sequence.mix (function (_ interval [pitch chord])
                                       [(natural.+ interval pitch)
                                        (sequence.suffix pitch chord)])
-                                    [tonic (sequence.new)]
-                                    it)]
+                                    it
+                                    [tonic (sequence.new)])]
     (sequence.suffix pitch chord)))
 
 (the .public (chord it)
   (-> (Sequence Pitch)
       Chord)
-  (|> it
-      sequence.as_list
-      (list.in_order natural.<)
-      (list:mix (function (_ pitch [chord first? offset])
-                  [(if first?
-                       chord
-                       (sequence.suffix (natural.- offset pitch) chord))
-                   false
-                   pitch])
-                [(sequence.new) true 0])
-      pair.left))
+  (pair.left (list.mix (function (_ pitch [chord first? offset])
+                         [(if first?
+                              chord
+                              (sequence.suffix (natural.- offset pitch) chord))
+                          false
+                          pitch])
+                       (|> it
+                           sequence.as_list
+                           (list.in_order natural.<))
+                       [(sequence.new) true 0])))
 
 ... https://en.wikipedia.org/wiki/Factor_(chord)
 (every .public Factor
   Natural)
 
 (template.with [<it> <name>]
-  [(the .public <name>
-     Factor
-     <it>)]
+               [(the .public <name>
+                  Factor
+                  <it>)]
 
-  [... https://en.wikipedia.org/wiki/Root_(chord)
-   [00 root]
-   ... https://en.wikipedia.org/wiki/Third_(chord)
-   [02 third]
-   ... https://en.wikipedia.org/wiki/Fifth_(chord)
-   [04 fifth]
-   ... https://en.wikipedia.org/wiki/Sixth_chord
-   [05 sixth]
-   ... https://en.wikipedia.org/wiki/Seventh_(chord)
-   [06 seventh]
-   ... https://en.wikipedia.org/wiki/Ninth
-   [08 ninth]
-   ... https://en.wikipedia.org/wiki/Eleventh
-   [10 eleventh]
-   ... https://en.wikipedia.org/wiki/Thirteenth
-   [12 thirteenth]])
+               [... https://en.wikipedia.org/wiki/Root_(chord)
+                [00 root]
+                ... https://en.wikipedia.org/wiki/Third_(chord)
+                [02 third]
+                ... https://en.wikipedia.org/wiki/Fifth_(chord)
+                [04 fifth]
+                ... https://en.wikipedia.org/wiki/Sixth_chord
+                [05 sixth]
+                ... https://en.wikipedia.org/wiki/Seventh_(chord)
+                [06 seventh]
+                ... https://en.wikipedia.org/wiki/Ninth
+                [08 ninth]
+                ... https://en.wikipedia.org/wiki/Eleventh
+                [10 eleventh]
+                ... https://en.wikipedia.org/wiki/Thirteenth
+                [12 thirteenth]])

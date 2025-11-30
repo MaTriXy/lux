@@ -23,7 +23,7 @@
      ["%" \\injection]
      ["<[1]>" \\projection]]
     [collection
-     ["[0]" list (.open mix monad monoid)
+     ["[0]" list (.open monad monoid)
       ["?[1]" \\projection]]
      ["[0]" stack]
      ["[0]" dictionary (.only Dictionary)]
@@ -1480,15 +1480,15 @@
         list:conjoint
         (list:composite (list it)))))
 
-(the family_tree
+(the (family_tree it)
   (-> (java/lang/Class java/lang/Object)
       (List (java/lang/Class java/lang/Object)))
-  (|>> ..family_tree'
-       (comment "De-duplication")
-       (list:mix (function (_ class all)
-                   (dictionary.has (ffi.of_string (java/lang/Class:getName [] class)) class all))
-                 (dictionary.empty text.hash))
-       dictionary.values))
+  (|> (dictionary.empty text.hash)
+      (list.mix (function (_ class all)
+                  (dictionary.has (ffi.of_string (java/lang/Class:getName [] class)) class all))
+                (comment "De-duplication"
+                         (..family_tree' it)))
+      dictionary.values))
 
 (the (all_declared_methods it)
   (-> (java/lang/Class java/lang/Object)
@@ -1950,9 +1950,11 @@
       (Check Mapping))
   (|> parameters
       ..parameter_types
-      (check:each (list:mix (function (_ [parameterJ parameterT] mapping)
-                              (dictionary.has (projection.name parameterJ) parameterT mapping))
-                            of_class))))
+      (check:each (function (_ it)
+                    (list.mix (function (_ [parameterJ parameterT] mapping)
+                                (dictionary.has (projection.name parameterJ) parameterT mapping))
+                              it
+                              of_class)))))
 
 (the class_mapping
   (-> (List (Type Var))
@@ -2151,17 +2153,17 @@
                                   [luxT (boxed_reflection_type mapping jvmT)]
                                   (pure [name luxT])))
                               arguments)
-       [scope [super_arguments bodyA]] (|> (list:composite (list [self_name selfT])
-                                                           arguments')
-                                           list.in_reverse
-                                           (list:mix scope.with_local (monad.and ! (list.each' ! (function (_ [jvmT super_argC])
-                                                                                                   (monad.let !
-                                                                                                     [luxT (reflection_type mapping jvmT)
-                                                                                                      super_argA (<| (typeA.with luxT)
-                                                                                                                     (analyse archive super_argC))]
-                                                                                                     (pure [jvmT super_argA])))
-                                                                                               super_arguments)
-                                                                                 (analyse archive body)))
+       [scope [super_arguments bodyA]] (|> (list.mix scope.with_local
+                                                     (list.in_reverse (list:composite (list [self_name selfT])
+                                                                                      arguments'))
+                                                     (monad.and ! (list.each' ! (function (_ [jvmT super_argC])
+                                                                                  (monad.let !
+                                                                                    [luxT (reflection_type mapping jvmT)
+                                                                                     super_argA (<| (typeA.with luxT)
+                                                                                                    (analyse archive super_argC))]
+                                                                                    (pure [jvmT super_argA])))
+                                                                              super_arguments)
+                                                                (analyse archive body)))
                                            (typeA.with .Any)
                                            scope.with)
        .let [arity (list.size arguments)]
@@ -2262,10 +2264,9 @@
                                   [luxT (boxed_reflection_type mapping jvmT)]
                                   (pure [name luxT])))
                               arguments)
-       [scope bodyA] (|> arguments'
-                         (list:composite (list [self_name selfT]))
-                         list.in_reverse
-                         (list:mix scope.with_local (analyse archive body))
+       [scope bodyA] (|> (list.mix scope.with_local
+                                   (list.in_reverse (list:composite (list [self_name selfT]) arguments'))
+                                   (analyse archive body))
                          (typeA.with :return:)
                          scope.with)
        .let [arity (list.size arguments)]
@@ -2343,9 +2344,9 @@
                                   [luxT (boxed_reflection_type mapping jvmT)]
                                   (pure [name luxT])))
                               arguments)
-       [scope bodyA] (|> arguments'
-                         list.in_reverse
-                         (list:mix scope.with_local (analyse archive body))
+       [scope bodyA] (|> (list.mix scope.with_local
+                                   (list.in_reverse arguments')
+                                   (analyse archive body))
                          (typeA.with :return:)
                          scope.with)
        @ analysis.provenance]
@@ -2441,10 +2442,10 @@
       (Operation Mapping))
   (monad.let phase.monad
     [override_mapping (..override_mapping mapping supers parent_type)]
-    (pure (list:mix (function (_ [super_var bound_type] mapping)
+    (pure (list.mix (function (_ [super_var bound_type] mapping)
                       (dictionary.has super_var bound_type mapping))
-                    mapping
-                    override_mapping))))
+                    override_mapping
+                    mapping))))
 
 (the .public (analyse_overriden_method analyse archive selfT mapping supers method)
   (-> Phase Archive .Type Mapping (List (Type Class)) (Overriden_Method @type.Code)
@@ -2472,10 +2473,9 @@
                                   (pure [name luxT])))
                               arguments)
        :return: (boxed_reflection_return mapping return)
-       [scope bodyA] (|> arguments'
-                         (list:composite (list [self_name selfT]))
-                         list.in_reverse
-                         (list:mix scope.with_local (analyse archive body))
+       [scope bodyA] (|> (list.mix scope.with_local
+                                   (list.in_reverse (list:composite (list [self_name selfT]) arguments'))
+                                   (analyse archive body))
                          (typeA.with :return:)
                          scope.with)
        .let [arity (list.size arguments)]
@@ -2537,15 +2537,15 @@
      _ (phase.assertion ..class_parameter_mismatch [name class expected_parameters actual_parameters]
                         (n.= (list.size expected_parameters)
                              (list.size actual_parameters)))]
-    (pure (|> (list.zipped_2 expected_parameters actual_parameters)
-              (list:mix (function (_ [expected actual] mapping)
-                          (when (projection.var? actual)
-                            {.:Some actual}
-                            (dictionary.has actual expected mapping)
-                            
-                            {.:None}
-                            mapping))
-                        alias.fresh)))))
+    (pure (list.mix (function (_ [expected actual] mapping)
+                      (when (projection.var? actual)
+                        {.:Some actual}
+                        (dictionary.has actual expected mapping)
+                        
+                        {.:None}
+                        mapping))
+                    (list.zipped_2 expected_parameters actual_parameters)
+                    alias.fresh))))
 
 (the (anonymous_class_name module id)
   (-> Module Natural

@@ -10,7 +10,7 @@
    [data
     ["[0]" maybe]
     [collection
-     ["[0]" list (.open mix)]]]
+     ["[0]" list]]]
    [math
     [number
      [/64
@@ -34,8 +34,10 @@
 (the with_slices
   (-> (Projection (List /.Slice))
       (Projection /.Slice))
-  (?:each (list:mix (function.in_reverse /.+)
-                    /.empty)))
+  (?:each (function (_ it)
+            (list.mix (function.in_reverse /.+)
+                      it
+                      /.empty))))
 
 (the .public any
   (Projection /.Slice)
@@ -67,14 +69,14 @@
     (pure it)))
 
 (template.with [<minimum> <maximum> <slice>]
-  [(the .public <slice>
-     (Projection /.Slice)
-     (..range (character <minimum>)
-              (character <maximum>)))]
+               [(the .public <slice>
+                  (Projection /.Slice)
+                  (..range (character <minimum>)
+                           (character <maximum>)))]
 
-  [["A" "Z" upper]
-   ["a" "z" lower]
-   ["0" "1" base_02]])
+               [["A" "Z" upper]
+                ["a" "z" lower]
+                ["0" "1" base_02]])
 
 (the .public base_08
   (Projection /.Slice)
@@ -104,23 +106,23 @@
   (?.either ..alpha ..base_10))
 
 (template.with [<name> <modifier> <exception>]
-  [(the .public (<name> options)
-     (-> Text
-         (Projection /.Slice))
-     (function (_ [offset tape])
-       (when (///.character offset tape)
-         {.:Some output}
-         (let [output' (///.of_character output)]
-           (if (<modifier> (///.contains? output' options))
-               (try:each (|>> [[(.i64_+# 1 offset) tape]])
-                         (/.partial offset 1 tape))
-               (exception.except <exception> [options output])))
+               [(the .public (<name> options)
+                  (-> Text
+                      (Projection /.Slice))
+                  (function (_ [offset tape])
+                    (when (///.character offset tape)
+                      {.:Some output}
+                      (let [output' (///.of_character output)]
+                        (if (<modifier> (///.contains? output' options))
+                            (try:each (|>> [[(.i64_+# 1 offset) tape]])
+                                      (/.partial offset 1 tape))
+                            (exception.except <exception> [options output])))
 
-         _
-         (exception.except /.cannot_slice [tape offset 1]))))]
+                      _
+                      (exception.except /.cannot_slice [tape offset 1]))))]
 
-  [[one_of  |>   //.character_should_be]
-   [none_of .not //.character_should_not_be]])
+               [[one_of  |>   //.character_should_be]
+                [none_of .not //.character_should_not_be]])
 
 (the .public (satisfies projection)
   (-> (Predicate Character)
@@ -149,22 +151,22 @@
     (pure (/.+ left right))))
 
 (template.with [<name> <base>]
-  [(the .public (<name> projection)
-     (Change (Projection /.Slice))
-     (with_slices (<base> projection)))]
+               [(the .public (<name> projection)
+                  (Change (Projection /.Slice))
+                  (with_slices (<base> projection)))]
 
-  [[some ?.some]
-   [many ?.many]])
+               [[some ?.some]
+                [many ?.many]])
 
 (template.with [<name> <base>]
-  [(the .public (<name> amount projection)
-     (-> Natural
-         (Change (Projection /.Slice)))
-     (with_slices (<base> amount projection)))]
+               [(the .public (<name> amount projection)
+                  (-> Natural
+                      (Change (Projection /.Slice)))
+                  (with_slices (<base> amount projection)))]
 
-  [[exactly  ?.exactly]
-   [at_most  ?.at_most]
-   [at_least ?.at_least]])
+               [[exactly  ?.exactly]
+                [at_most  ?.at_most]
+                [at_least ?.at_least]])
 
 (the .public (between minimum additional projection)
   (-> Natural Natural

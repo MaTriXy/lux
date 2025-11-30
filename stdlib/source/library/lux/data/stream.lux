@@ -64,22 +64,23 @@
     {/.:Pure it}
     {/.:Pure it}))
 
-(the .public (mix step state it)
+(the .public (mix step it state)
   (for_any (_ yield state it)
-    (-> (-> yield (Change state)) state (Stream yield it)
-        [state it]))
+    (-> (-> yield (Change state))
+        (-> (Stream yield it) state [state it])))
   (when it
     {/.:Impure [item after]}
-    (mix step (step item state) (after []))
+    (mix step (after []) (step item state))
 
     {/.:Pure it}
     [state it]))
 
-(the .public sequence
+(the .public (sequence it)
   (for_any (_ yield it)
     (-> (Stream yield it)
         [(Sequence yield) it]))
   (mix sequence.suffix
+       it
        sequence.empty))
 
 (the .public (one it)

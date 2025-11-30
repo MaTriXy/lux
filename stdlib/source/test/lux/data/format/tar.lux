@@ -24,7 +24,7 @@
       ["[1]/[0]" block]]]
     [collection
      ["[0]" sequence]
-     ["[0]" list (.open mix)]]]
+     ["[0]" list]]]
    [math
     ["[0]" random (.only Random)]
     [number
@@ -175,57 +175,57 @@
                        (by utf8.binary as))]]
     (`` (all _.and
              (,, (template.with [<type> <tag>]
-                   [(_.coverage [<type>]
-                      (|> (monad.let try.monad
-                            [expected_path (/.path expected_path)
-                             tar (|> (sequence.new {<tag> expected_path})
-                                     (\\injection.value /.as_binary)
-                                     (<b>.value /.of_binary))]
-                            (pure (when (sequence.as_list tar)
-                                    (list {<tag> actual_path})
-                                    (text.= (/.from_path expected_path)
-                                            (/.from_path actual_path))
+                                [(_.coverage [<type>]
+                                   (|> (monad.let try.monad
+                                         [expected_path (/.path expected_path)
+                                          tar (|> (sequence.new {<tag> expected_path})
+                                                  (\\injection.value /.as_binary)
+                                                  (<b>.value /.of_binary))]
+                                         (pure (when (sequence.as_list tar)
+                                                 (list {<tag> actual_path})
+                                                 (text.= (/.from_path expected_path)
+                                                         (/.from_path actual_path))
 
-                                    _
-                                    false)))
-                          (try.else false)))]
+                                                 _
+                                                 false)))
+                                       (try.else false)))]
 
-                   [[/.Symbolic_Link /.:Symbolic_Link]
-                    [/.Directory /.:Directory]]))
+                                [[/.Symbolic_Link /.:Symbolic_Link]
+                                 [/.Directory /.:Directory]]))
              (_.for [/.File /.Content /.content /.data]
                     (all _.and
                          (,, (template.with [<type> <tag>]
-                               [(_.coverage [<type>]
-                                  (|> (monad.let try.monad
-                                        [expected_path (/.path expected_path)
-                                         expected_content (/.content content)
-                                         tar (|> (sequence.new {<tag> [expected_path
-                                                                       expected_moment
-                                                                       /.none
-                                                                       [/.:user [/.:name /.anonymous
-                                                                                 /.:id /.no_id]
-                                                                        /.:group [/.:name /.anonymous
-                                                                                  /.:id /.no_id]]
-                                                                       expected_content]})
-                                                 (\\injection.value /.as_binary)
-                                                 (<b>.value /.of_binary))]
-                                        (pure (when (sequence.as_list tar)
-                                                (list {<tag> [actual_path actual_moment actual_mode actual_ownership actual_content]})
-                                                (let [seconds (is (-> Instant Integer)
-                                                                  (|>> instant.relative (duration.ticks duration.second)))]
-                                                  (and (text.= (/.from_path expected_path)
-                                                               (/.from_path actual_path))
-                                                       (i.= (seconds expected_moment)
-                                                            (seconds actual_moment))
-                                                       (binary.= (/.data expected_content)
-                                                                 (/.data actual_content))))
+                                            [(_.coverage [<type>]
+                                               (|> (monad.let try.monad
+                                                     [expected_path (/.path expected_path)
+                                                      expected_content (/.content content)
+                                                      tar (|> (sequence.new {<tag> [expected_path
+                                                                                    expected_moment
+                                                                                    /.none
+                                                                                    [/.:user [/.:name /.anonymous
+                                                                                              /.:id /.no_id]
+                                                                                     /.:group [/.:name /.anonymous
+                                                                                               /.:id /.no_id]]
+                                                                                    expected_content]})
+                                                              (\\injection.value /.as_binary)
+                                                              (<b>.value /.of_binary))]
+                                                     (pure (when (sequence.as_list tar)
+                                                             (list {<tag> [actual_path actual_moment actual_mode actual_ownership actual_content]})
+                                                             (let [seconds (is (-> Instant Integer)
+                                                                               (|>> instant.relative (duration.ticks duration.second)))]
+                                                               (and (text.= (/.from_path expected_path)
+                                                                            (/.from_path actual_path))
+                                                                    (i.= (seconds expected_moment)
+                                                                         (seconds actual_moment))
+                                                                    (binary.= (/.data expected_content)
+                                                                              (/.data actual_content))))
 
-                                                _
-                                                false)))
-                                      (try.else false)))]
+                                                             _
+                                                             false)))
+                                                   (try.else false)))]
 
-                               [[/.Normal /.:Normal]
-                                [/.Contiguous /.:Contiguous]]))))))))
+                                            [[/.Normal /.:Normal]
+                                             [/.Contiguous /.:Contiguous]]))))))))
 
 (the random_mode
   (Random /.Mode)
@@ -250,7 +250,7 @@
          (monad.let [! random.monad]
            [path (random.lower_cased 10)
             modes (random.list 4 ..random_mode)
-            .let [expected_mode (list:mix /.and /.none modes)]]
+            .let [expected_mode (list.mix /.and modes /.none)]]
            (`` (all _.and
                     (_.coverage [/.and]
                       (|> (monad.let try.monad
@@ -275,46 +275,46 @@
                                     false)))
                           (try.else false)))
                     (,, (template.with [<expected_mode>]
-                          [(_.coverage [<expected_mode>]
-                             (|> (monad.let try.monad
-                                   [path (/.path path)
-                                    content (/.content (binary.empty 0))
-                                    tar (|> (sequence.new {/.:Normal [path
-                                                                      (instant.of_millis +0)
-                                                                      <expected_mode>
-                                                                      [/.:user [/.:name /.anonymous
-                                                                                /.:id /.no_id]
-                                                                       /.:group [/.:name /.anonymous
-                                                                                 /.:id /.no_id]]
-                                                                      content]})
-                                            (\\injection.value /.as_binary)
-                                            (<b>.value /.of_binary))]
-                                   (pure (when (sequence.as_list tar)
-                                           (list {/.:Normal [_ _ actual_mode _ _]})
-                                           (n.= (/.mode <expected_mode>)
-                                                (/.mode actual_mode))
+                                       [(_.coverage [<expected_mode>]
+                                          (|> (monad.let try.monad
+                                                [path (/.path path)
+                                                 content (/.content (binary.empty 0))
+                                                 tar (|> (sequence.new {/.:Normal [path
+                                                                                   (instant.of_millis +0)
+                                                                                   <expected_mode>
+                                                                                   [/.:user [/.:name /.anonymous
+                                                                                             /.:id /.no_id]
+                                                                                    /.:group [/.:name /.anonymous
+                                                                                              /.:id /.no_id]]
+                                                                                   content]})
+                                                         (\\injection.value /.as_binary)
+                                                         (<b>.value /.of_binary))]
+                                                (pure (when (sequence.as_list tar)
+                                                        (list {/.:Normal [_ _ actual_mode _ _]})
+                                                        (n.= (/.mode <expected_mode>)
+                                                             (/.mode actual_mode))
 
-                                           _
-                                           false)))
-                                 (try.else false)))]
+                                                        _
+                                                        false)))
+                                              (try.else false)))]
 
-                          [[/.none]
+                                       [[/.none]
 
-                           [/.execute_by_other]
-                           [/.write_by_other]
-                           [/.read_by_other]
+                                        [/.execute_by_other]
+                                        [/.write_by_other]
+                                        [/.read_by_other]
 
-                           [/.execute_by_group]
-                           [/.write_by_group]
-                           [/.read_by_group]
+                                        [/.execute_by_group]
+                                        [/.write_by_group]
+                                        [/.read_by_group]
 
-                           [/.execute_by_owner]
-                           [/.write_by_owner]
-                           [/.read_by_owner]
+                                        [/.execute_by_owner]
+                                        [/.write_by_owner]
+                                        [/.read_by_owner]
 
-                           [/.save_text]
-                           [/.set_group_id_on_execution]
-                           [/.set_user_id_on_execution]])))))))
+                                        [/.save_text]
+                                        [/.set_group_id_on_execution]
+                                        [/.set_user_id_on_execution]])))))))
 
 (the ownership
   Test

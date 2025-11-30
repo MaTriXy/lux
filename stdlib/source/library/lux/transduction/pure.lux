@@ -70,8 +70,7 @@
   (for_any (_ collection it)
     (-> (Mix collection)
         (Transduction (collection it) it)))
-  (function (_ reduction detail summary)
-    (mix reduction summary detail)))
+  mix)
 
 (the .public maybe
   (for_any (_ it)
@@ -102,7 +101,7 @@
         (Transduction to_consume to_mix)
         (Mix collection) (collection to_consume)
         summary))
-  (mix (transduction reduction) initial collection))
+  (mix (transduction reduction) collection initial))
 
 (every .public Parallelism
   Natural)
@@ -125,14 +124,15 @@
         (List to_consume)
         (Future summary)))
   (with monoid
-    (let [in_series (in_series composite identity transduction list.mix)]
-      (when parallelism
-        ..none
-        (future:pure (in_series it))
-        
-        _
-        (|> it
-            (list.sub parallelism)
-            (list:each (|>> in_series io future.soon))
-            (list.complete future.monad)
-            (future:each (list.mix composite identity)))))))
+        (let [in_series (in_series composite identity transduction list.mix)]
+          (when parallelism
+            ..none
+            (future:pure (in_series it))
+            
+            _
+            (|> it
+                (list.sub parallelism)
+                (list:each (|>> in_series io future.soon))
+                (list.complete future.monad)
+                (future:each (function (_ it)
+                               (list.mix composite it identity))))))))

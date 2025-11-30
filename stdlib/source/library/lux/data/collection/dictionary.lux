@@ -13,7 +13,7 @@
     ["[0]" maybe]
     ["[0]" pair]
     [collection
-     ["[0]" list (.open mix functor monoid)]
+     ["[0]" list (.open functor monoid)]
      ["[0]" array
       ["[1]" \\unsafe]]]]
    [math
@@ -286,7 +286,7 @@
   (for_any (_ key value)
     (-> Index (Hierarchy key value)
         [Bit_Map (Base key value)]))
-  (pair.right (list:mix (function (_ idx [insertion_idx node])
+  (pair.right (list.mix (function (_ idx [insertion_idx node])
                           (let [[bitmap base] node]
                             (if (array.lacks? idx h_array)
                                 [insertion_idx node]
@@ -295,9 +295,9 @@
                                     [(++ insertion_idx)
                                      [(with_bit_position (to_bit_position idx) bitmap)
                                       (array.has! insertion_idx {.:Left (array.item idx h_array)} base)]]))))
+                        (list.domain (array.size h_array))
                         [0 [clean_bitmap
-                            (array.empty (-- h_size))]]
-                        (list.domain (array.size h_array)))))
+                            (array.empty (-- h_size))]])))
 
 ... When :Base nodes grow too large, they're promoted to :Hierarchy to
 ... add some depth to the tree and help keep its balance.
@@ -310,9 +310,9 @@
     (-> (-> Level Hash_Code key value (Hash key) (Node key value) (Node key value))
         (Hash key) Level Bit_Map (Base key value)
         (Array (Node key value))))
-  (pair.right (list:mix (function (_ hierarchy_idx (^.let default [base_idx h_array]))
+  (pair.right (list.mix (function (_ hierarchy_idx (^.let default [base_idx h_array]))
                           (if (with_bit_position? (to_bit_position hierarchy_idx)
-                                bitmap)
+                                                  bitmap)
                               [(++ base_idx)
                                (when (array.item base_idx base)
                                  {.:Left sub_node}
@@ -323,9 +323,9 @@
                                              (node:has (level_up level) (by hash_of_key hash key') key' val' hash_of_key ..empty_node)
                                              h_array))]
                               default))
+                        domain_of_hierarchy
                         [0
-                         (array.empty hierarchy_nodes_size)]
-                        domain_of_hierarchy)))
+                         (array.empty hierarchy_nodes_size)])))
 
 ... All empty nodes look the same (a :Base node with clean bitmap is
 ... used).
@@ -564,49 +564,49 @@
     {:Hierarchy _size hierarchy}
     (array.mix (function (_ _ item total)
                  (n.+ item total))
-               0
-               (array.each node:size hierarchy))
+               (array.each node:size hierarchy)
+               0)
     
     {:Base _ base}
     (array.mix (function (_ _ item total)
                  (n.+ item total))
-               0
                (array.each (function (_ sub_node')
                              (when sub_node'
                                {.:Left sub_node} (node:size sub_node)
                                {.:Right _}       1))
-                           base))
+                           base)
+               0)
 
     {:Collisions hash colls}
     (array.size colls)))
 
-(the (node:mix f init node)
+(the (node:mix f node init)
   (for_any (_ key value it)
-    (-> (-> [key value] it it) it (Node key value)
-        it))
+    (-> (-> [key value] (Change it))
+        (-> (Node key value) (Change it))))
   (when node
     {:Hierarchy _size hierarchy}
     (array.mix (function (_ _ sub_node current)
-                 (node:mix f current sub_node))
-               init
-               hierarchy)
+                 (node:mix f sub_node current))
+               hierarchy
+               init)
 
     {:Base bitmap base}
     (array.mix (function (_ _ branch current)
                  (when branch
                    {.:Left sub_node}
-                   (node:mix f current sub_node)
+                   (node:mix f sub_node current)
 
                    {.:Right kv}
                    (f kv current)))
-               init
-               base)
+               base
+               init)
     
     {:Collisions hash colls}
     (array.mix (function (_ _ item total)
                  (f item total))
-               init
-               colls)))
+               colls
+               init)))
 
 (every .public (Dictionary key value)
   (Record
@@ -713,9 +713,9 @@
     (-> (Dictionary key value)
         (List [key value])))
   (let [it (its :root it)]
-    (|> it
-        (node:mix (function (_ value [it @])
+    (|> (node:mix (function (_ value [it @])
                     [(array.has! @ value it) (++ @)])
+                  it
                   [(array.empty (node:size it)) 0])
         pair.left
         list:of)))
@@ -724,49 +724,47 @@
   (for_any (_ key value)
     (-> (Hash key) (List [key value])
         (Dictionary key value)))
-  (list:mix (function (_ [k v] dict)
+  (list.mix (function (_ [k v] dict)
               (..has k v dict))
-            (empty hash_of_key)
-            kvs))
+            kvs
+            (empty hash_of_key)))
 
 (with_template [<side> <name>]
-  [(the .public (<name> it)
-     (for_any (_ key value)
-       (-> (Dictionary key value)
-           (List <side>)))
-     (let [it (its :root it)]
-       (|> it
-           (node:mix (function (_ [key value] [it @])
-                       [(array.has! @ <side> it) (++ @)])
-                     [(array.empty (node:size it)) 0])
-           pair.left
-           list:of)))]
+               [(the .public (<name> it)
+                  (for_any (_ key value)
+                    (-> (Dictionary key value)
+                        (List <side>)))
+                  (let [it (its :root it)]
+                    (|> (node:mix (function (_ [key value] [it @])
+                                    [(array.has! @ <side> it) (++ @)])
+                                  it
+                                  [(array.empty (node:size it)) 0])
+                        pair.left
+                        list:of)))]
 
-  [[key   domain]
-   [value values]])
+               [[key   domain]
+                [value values]])
 
-(the .public (composite dict2 dict1)
+(the .public (composite addition)
   (for_any (_ key value)
-    (-> (Dictionary key value) (Dictionary key value)
-        (Dictionary key value)))
-  (node:mix (function (_ [key val] dict)
-              (has key val dict))
-            dict1
-            (its :root dict2)))
+    (-> (Dictionary key value)
+        (Change (Dictionary key value))))
+  (node:mix (function (_ [key val] it)
+              (has key val it))
+            (its :root addition)))
 
-(the .public (composite_with f dict2 dict1)
+(the .public (composite_with f addition)
   (for_any (_ key value)
-    (-> (-> value value value) (Dictionary key value) (Dictionary key value)
-        (Dictionary key value)))
-  (node:mix (function (_ [key val2] dict)
-              (when (..value key dict)
+    (-> (-> value value value) (Dictionary key value)
+        (Change (Dictionary key value))))
+  (node:mix (function (_ [key val2] it)
+              (when (..value key it)
                 {try.:Success val1}
-                (has key (f val2 val1) dict)
+                (has key (f val2 val1) it)
 
                 failure
-                (has key val2 dict)))
-            dict1
-            (its :root dict2)))
+                (has key val2 it)))
+            (its :root addition)))
 
 (the .public (re_bound from_key to_key dict)
   (for_any (_ key value)
@@ -786,33 +784,33 @@
     (-> (List key)
         (Change (Dictionary key value))))
   (let [[hash_of_key _] dict]
-    (list:mix (function (_ key new_dict)
+    (list.mix (function (_ key new_dict)
                 (when (..value key dict)
                   {try.:Success val}
                   (has key val new_dict)
 
                   failure
                   new_dict))
-              (empty hash_of_key)
-              domain)))
+              domain
+              (empty hash_of_key))))
 
 (the .public (equality it)
   (for_any (_ key value)
     (-> (Equality value)
         (Equality (Dictionary key value))))
   (with ",:[0]" it
-    (implementation
-     (the (= expected actual)
-       (and (n.= (..size expected)
-                 (..size actual))
-            (list.every? (function (_ [k rv])
-                           (when (..value k actual)
-                             {try.:Success sv}
-                             (,:= rv sv)
+        (implementation
+         (the (= expected actual)
+           (and (n.= (..size expected)
+                     (..size actual))
+                (list.every? (function (_ [k rv])
+                               (when (..value k actual)
+                                 {try.:Success sv}
+                                 (,:= rv sv)
 
-                             failure
-                             false))
-                         (..entries expected)))))))
+                                 failure
+                                 false))
+                             (..entries expected)))))))
 
 (the node_functor
   (for_any (_ key)

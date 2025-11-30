@@ -8,7 +8,7 @@
    [data
     ["[0]" text]
     [collection
-     ["[0]" list (.open mix monad)]
+     ["[0]" list (.open monad)]
      ["[0]" set]]]
    [math
     ["[0]" random (.only Random)]
@@ -183,32 +183,32 @@
                                      /.koi8_u]]
                                    )
                 <named> (template.with [<definition> <by_letter>]
-                          [((is (-> Any (List /.Encoding))
-                                (function (_ _)
-                                  (`` (list (,, (template.spliced <by_letter>))))))
-                            [])]
-                          
-                          [<encodings>])]
+                                       [((is (-> Any (List /.Encoding))
+                                             (function (_ _)
+                                               (`` (list (,, (template.spliced <by_letter>))))))
+                                         [])]
+                                       
+                                       [<encodings>])]
   (these (the all_encodings
            (list:conjoint (list <named>)))
          
          (the unique_encodings
-           (list:mix (function (_ encoding set)
+           (list.mix (function (_ encoding set)
                        (set.has (/.name encoding) set))
-                     (set.empty text.hash)
-                     ..all_encodings))
+                     ..all_encodings
+                     (set.empty text.hash)))
 
          (the verdict
            (n.= (list.size ..all_encodings)
                 (set.size ..unique_encodings)))
 
          (template.with [<definition> <by_letter>]
-           [(the <definition>
-              Test
-              (`` (_.coverage [/.name (,, (template.spliced <by_letter>))]
-                    ..verdict)))]
-           
-           [<encodings>])
+                        [(the <definition>
+                           Test
+                           (`` (_.coverage [/.name (,, (template.spliced <by_letter>))]
+                                 ..verdict)))]
+                        
+                        [<encodings>])
 
          (the .public random
            (Random /.Encoding)
@@ -223,9 +223,9 @@
                (_.for [/.Encoding])
                (`` (all _.and
                         (,, (template.with [<definition> <by_letter>]
-                              [<definition>]
-                              
-                              [<encodings>]))
+                                           [<definition>]
+                                           
+                                           [<encodings>]))
 
                         /utf8.test
                         )))))

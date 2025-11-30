@@ -17,7 +17,7 @@
     ["[0]" text (.only \n) (.open order)
      ["%" \\injection]]
     [collection
-     ["[0]" list (.open monad mix monoid)
+     ["[0]" list (.open monad monoid)
       ["?[1]" \\projection]]
      ["[0]" set (.only Set)]
      ["[0]" stream (.only Stream)]
@@ -73,26 +73,26 @@
       Natural)
   (`` (when code
         (,, (template.with [<tag>]
-              [{<tag> [_ _ column] _}
-               column]
+                           [{<tag> [_ _ column] _}
+                            column]
 
-              [[.:Bit]
-               [.:Natural]
-               [.:Integer]
-               [.:Revolution]
-               [.:Real]
-               [.:Text]
-               [.:Name]]))
+                           [[.:Bit]
+                            [.:Natural]
+                            [.:Integer]
+                            [.:Revolution]
+                            [.:Real]
+                            [.:Text]
+                            [.:Name]]))
 
         (,, (template.with [<tag>]
-              [{<tag> [_ _ column] members}
-               (|> members
-                   (list:each reference_column)
-                   (list:mix n.minor column))]
+                           [{<tag> [_ _ column] members}
+                            (list.mix n.minor
+                                      (list:each reference_column members)
+                                      column)]
 
-              [[.:Form]
-               [.:Variant]
-               [.:Tuple]]))
+                           [[.:Form]
+                            [.:Variant]
+                            [.:Tuple]]))
         )))
 
 (the (padding reference_column [_ old_line old_column] [_ new_line new_column])
@@ -127,33 +127,33 @@
                  documentation)])
         
         (,, (template.with [<tag> <injection>]
-              [{<tag> new_provenance value}
-               (let [documentation (`` (|> value (,, (template.spliced <injection>))))]
-                 [(revised .:column (n.+ (text.size documentation)) new_provenance)
-                  (text (padding reference_column old_provenance new_provenance)
-                        documentation)])]
+                           [{<tag> new_provenance value}
+                            (let [documentation (`` (|> value (,, (template.spliced <injection>))))]
+                              [(revised .:column (n.+ (text.size documentation)) new_provenance)
+                               (text (padding reference_column old_provenance new_provenance)
+                                     documentation)])]
 
-              [[.:Bit [bit.as_text]]
-               [.:Natural [%.natural]]
-               [.:Integer [%.integer]]
-               [.:Revolution [%.revolution]]
-               [.:Real [%.real]]
-               [.:Text [%.text]]]))
+                           [[.:Bit [bit.as_text]]
+                            [.:Natural [%.natural]]
+                            [.:Integer [%.integer]]
+                            [.:Revolution [%.revolution]]
+                            [.:Real [%.real]]
+                            [.:Text [%.text]]]))
 
         (,, (template.with [|<| |>| <tag>]
-              [{<tag> group_provenance members}
-               (let [[group_provenance' members_documentation] (list:mix (function (_ part [last_provenance text_accum])
-                                                                           (let [[member_provenance member_documentation] (code_documentation expected_module last_provenance reference_column part)]
-                                                                             [member_provenance (text text_accum member_documentation)]))
-                                                                         [(revised .:column ++ group_provenance) ""]
-                                                                         members)]
-                 [(revised .:column ++ group_provenance')
-                  (text (padding reference_column old_provenance group_provenance)
-                        |<| members_documentation |>|)])]
+                           [{<tag> group_provenance members}
+                            (let [[group_provenance' members_documentation] (list.mix (function (_ part [last_provenance text_accum])
+                                                                                        (let [[member_provenance member_documentation] (code_documentation expected_module last_provenance reference_column part)]
+                                                                                          [member_provenance (text text_accum member_documentation)]))
+                                                                                      members
+                                                                                      [(revised .:column ++ group_provenance) ""])]
+                              [(revised .:column ++ group_provenance')
+                               (text (padding reference_column old_provenance group_provenance)
+                                     |<| members_documentation |>|)])]
 
-              [[lux/syntax.open_form    lux/syntax.close_form    .:Form]
-               [lux/syntax.open_variant lux/syntax.close_variant .:Variant]
-               [lux/syntax.open_tuple   lux/syntax.close_tuple   .:Tuple]]))
+                           [[lux/syntax.open_form    lux/syntax.close_form    .:Form]
+                            [lux/syntax.open_variant lux/syntax.close_variant .:Variant]
+                            [lux/syntax.open_tuple   lux/syntax.close_tuple   .:Tuple]]))
         )))
 
 (the .public (comment it module)
@@ -190,13 +190,13 @@
                      0))
 
 (template.with [<name> <partition>]
-  [(the (<name> id)
-     (-> Natural
-         Bit)
-     (<partition> id))]
+               [(the (<name> id)
+                  (-> Natural
+                      Bit)
+                  (<partition> id))]
 
-  [[type_function? n.even?]
-   [type_parameter? n.odd?]])
+               [[type_function? n.even?]
+                [type_parameter? n.odd?]])
 
 (the (parameter_id level id)
   (-> Natural Natural
@@ -297,25 +297,25 @@
         (parameter_name [type_function_name (list)] level idx)
 
         (,, (template.with [<tag>]
-              [{.:Variable <tag> id}
-               (type.as_text type)]
+                           [{.:Variable <tag> id}
+                            (type.as_text type)]
 
-              [[.general]
-               [.special]]))
+                           [[.general]
+                            [.special]]))
 
         (,, (template.with [<tag> <name> <flat>]
-              [{.:Quantification <tag> _}
-               (let [[level' body] (<flat> type)
-                     args (level_parameters level level')
-                     body_doc (%type' (n.+ level level') type_function_name nestable? module body)]
-                 (text "(" <name> " " "(_ " (|> args (text.interposed " ")) ")"
-                       (if nestable?
-                           (text \n (nested "  " body_doc))
-                           (text " " body_doc))
-                       ")"))]
+                           [{.:Quantification <tag> _}
+                            (let [[level' body] (<flat> type)
+                                  args (level_parameters level level')
+                                  body_doc (%type' (n.+ level level') type_function_name nestable? module body)]
+                              (text "(" <name> " " "(_ " (|> args (text.interposed " ")) ")"
+                                    (if nestable?
+                                        (text \n (nested "  " body_doc))
+                                        (text " " body_doc))
+                                    ")"))]
 
-              [[.universal "All" type.flat_univ_q]
-               [.existential "Ex" type.flat_ex_q]]))
+                           [[.universal "All" type.flat_univ_q]
+                            [.existential "Ex" type.flat_ex_q]]))
 
         {.:Reification (|recursion_dummy|) {.:Parameter .abstraction 0}}
         type_function_name
@@ -438,31 +438,31 @@
           (parameter_name type_function_info level idx)
 
           (,, (template.with [<pre> <tag>]
-                [{.:Variable <tag> id}
-                 (text <pre> (%.natural id))]
+                             [{.:Variable <tag> id}
+                              (text <pre> (%.natural id))]
 
-                [["-" .general]
-                 ["+" .special]]))
+                             [["-" .general]
+                              ["+" .special]]))
 
           (,, (template.with [<tag> <name> <flat>]
-                [{.:Quantification <tag> _}
-                 (let [[level' body] (<flat> type)
-                       args (level_parameters (n.- arity level) level')
-                       body_doc (type_definition' nestable? (n.+ level level') arity type_function_info tags module body)
-                       fn_name (when type_function_info
-                                 [fn_name (list)]
-                                 fn_name
-                                 
-                                 _
-                                 "_")]
-                   (text "(" <name> " " "(" fn_name " " (text.interposed " " args) ")"
-                         (if nestable?
-                             (text \n (..nested "  " body_doc))
-                             (text " " body_doc))
-                         ")"))]
+                             [{.:Quantification <tag> _}
+                              (let [[level' body] (<flat> type)
+                                    args (level_parameters (n.- arity level) level')
+                                    body_doc (type_definition' nestable? (n.+ level level') arity type_function_info tags module body)
+                                    fn_name (when type_function_info
+                                              [fn_name (list)]
+                                              fn_name
+                                              
+                                              _
+                                              "_")]
+                                (text "(" <name> " " "(" fn_name " " (text.interposed " " args) ")"
+                                      (if nestable?
+                                          (text \n (..nested "  " body_doc))
+                                          (text " " body_doc))
+                                      ")"))]
 
-                [[.universal "All" type.flat_univ_q]
-                 [.existential "Ex" type.flat_ex_q]]))
+                             [[.universal "All" type.flat_univ_q]
+                              [.existential "Ex" type.flat_ex_q]]))
 
           ... Recursive call
           {.:Reification (|recursion_dummy|) {.:Parameter .abstraction 0}}
@@ -537,37 +537,37 @@
            (meta.either (label.tags name)
                         (label.slots name)))]
     (macro.with_names ['type]
-      (pure (list (` (all md.then
-                          ... Name
-                          (<| md.heading/4
-                              (md.and (md.anchor (, (let [[module proper] name]
-                                                      (code.text (text module ":" proper))))))
-                              md.text
-                              (, (code.text (code.as_text (let ['name (|> name pair.right code.local)]
-                                                            (when parameters
-                                                              (list)
-                                                              'name
+                      (pure (list (` (all md.then
+                                          ... Name
+                                          (<| md.heading/4
+                                              (md.and (md.anchor (, (let [[module proper] name]
+                                                                      (code.text (text module ":" proper))))))
+                                              md.text
+                                              (, (code.text (code.as_text (let ['name (|> name pair.right code.local)]
+                                                                            (when parameters
+                                                                              (list)
+                                                                              'name
 
-                                                              _
-                                                              (` ((, 'name) (,* (list:each code.local parameters))))))))))
-                          ... Type
-                          (let [(, 'type) (.in_module#
-                                           (, 'module)
-                                           (.type_of (, (code.name name))))]
-                            (, (if (type.= .Type def_type)
-                                   (` (|> (, (code.name name))
-                                          (as .Type)
-                                          type.anonymous
-                                          ((debug.private ..type_definition)
-                                           (, 'module)
-                                           [(, (code.text (pair.right name))) (list (,* (list:each code.text parameters)))]
-                                           (.list (,* (|> tags
-                                                          (try.else (list))
-                                                          (list:each (|>> name.proper code.text))))))
-                                          (text "... " ((debug.private ..type_documentation) (, 'module) (, 'type)) text.\n)
-                                          md.raw_code))
-                                   (` (md.raw_code ((debug.private ..type_documentation) (, 'module) (, 'type))))))))
-                     ))))))
+                                                                              _
+                                                                              (` ((, 'name) (,* (list:each code.local parameters))))))))))
+                                          ... Type
+                                          (let [(, 'type) (.in_module#
+                                                           (, 'module)
+                                                           (.type_of (, (code.name name))))]
+                                            (, (if (type.= .Type def_type)
+                                                   (` (|> (, (code.name name))
+                                                          (as .Type)
+                                                          type.anonymous
+                                                          ((debug.private ..type_definition)
+                                                           (, 'module)
+                                                           [(, (code.text (pair.right name))) (list (,* (list:each code.text parameters)))]
+                                                           (.list (,* (|> tags
+                                                                          (try.else (list))
+                                                                          (list:each (|>> name.proper code.text))))))
+                                                          (text "... " ((debug.private ..type_documentation) (, 'module) (, 'type)) text.\n)
+                                                          md.raw_code))
+                                                   (` (md.raw_code ((debug.private ..type_documentation) (, 'module) (, 'type))))))))
+                                     ))))))
 
 (syntax.the (alias_documentation [name ..qualified_name])
   (monad.let meta.monad
@@ -647,25 +647,25 @@
                                           (,* (list:each code.local parameters)))
                                          (,* extra))))]
     (macro.with_names ['_]
-      (let [[module proper] name]
-        (pure (list (` (.let [(, '_) (.is (.-> .Any
-                                               ..Documentation)
-                                          (.function ((, '_) (, '_))
-                                            {:Definition [..:global [(, (code.text module)) (, (code.text proper))]
-                                                          ..:documentation (,* documentation)]}))]
-                         ((, '_) [])))))))))
+                      (let [[module proper] name]
+                        (pure (list (` (.let [(, '_) (.is (.-> .Any
+                                                               ..Documentation)
+                                                          (.function ((, '_) (, '_))
+                                                            {:Definition [..:global [(, (code.text module)) (, (code.text proper))]
+                                                                          ..:documentation (,* documentation)]}))]
+                                         ((, '_) [])))))))))
 
 (syntax.the .public (alias [name ..qualified_name])
   (monad.let meta.monad
     [documentation (expansion.single (` (..alias_documentation (, (code.name name)))))]
     (macro.with_names ['_]
-      (let [[module proper] name]
-        (pure (list (` (.let [(, '_) (.is (.-> .Any
-                                               ..Documentation)
-                                          (.function ((, '_) (, '_))
-                                            {:Definition [..:global [(, (code.text module)) (, (code.text proper))]
-                                                          ..:documentation (,* documentation)]}))]
-                         ((, '_) [])))))))))
+                      (let [[module proper] name]
+                        (pure (list (` (.let [(, '_) (.is (.-> .Any
+                                                               ..Documentation)
+                                                          (.function ((, '_) (, '_))
+                                                            {:Definition [..:global [(, (code.text module)) (, (code.text proper))]
+                                                                          ..:documentation (,* documentation)]}))]
+                                         ((, '_) [])))))))))
 
 (the (definition:< left right)
   (-> Definition Definition
@@ -673,25 +673,28 @@
   (text:< (name.proper (its :global right))
           (name.proper (its :global left))))
 
-(the definitions_documentation
+(the (definitions_documentation it)
   (-> (List Definition)
       (Markdown Block))
-  (|>> (list.in_order ..definition:<)
-       (list:each (its :documentation))
-       (list:mix md.then md.empty)))
+  (list.mix md.then
+            (|> it
+                (list.in_order ..definition:<)
+                (list:each (its :documentation)))
+            md.empty))
 
 ... https://en.wikipedia.org/wiki/Delimiter
 (the coverage_delimiter
   Text
   (text.of_character 31))
 
-(the coverage_text
+(the (coverage_text it)
   (-> (List Text)
       Text)
-  (list:mix (function (_ proper aggregate)
+  (list.mix (function (_ proper aggregate)
               (when aggregate
                 "" proper
                 _ (text aggregate ..coverage_delimiter proper)))
+            it
             ""))
 
 (the (exported_non_default? [name [exported? global]])
@@ -750,101 +753,102 @@
       [Module (List Definition)]
       (Markdown Block))
   (with "_[0]" module
-    (all md.then
-         ... Name
-         (md.heading/2 (md.and (md.anchor (its :module module))
-                               (md.text (its :module module))))
-         
-         ... Description
-         (when (its :description module)
-           "" md.empty
-           description (<| md.paragraph
-                           md.text
-                           description))
+        (all md.then
+             ... Name
+             (md.heading/2 (md.and (md.anchor (its :module module))
+                                   (md.text (its :module module))))
+             
+             ... Description
+             (when (its :description module)
+               "" md.empty
+               description (<| md.paragraph
+                               md.text
+                               description))
 
-         (dependencies "Dependees" (its :dependees module))
-         (dependencies "Dependers" (|> (dictionary.value (its :module module) dependers)
-                                       (try.else (set.empty text.hash))))
-         
-         (md.heading/3 (md.text "Definitions"))
-         (|> definitions
-             (list.only (|>> (its :global)
-                             name.proper
-                             (set.member? _:coverage)))
-             ..definitions_documentation)
+             (dependencies "Dependees" (its :dependees module))
+             (dependencies "Dependers" (|> (dictionary.value (its :module module) dependers)
+                                           (try.else (set.empty text.hash))))
+             
+             (md.heading/3 (md.text "Definitions"))
+             (|> definitions
+                 (list.only (|>> (its :global)
+                                 name.proper
+                                 (set.member? _:coverage)))
+                 ..definitions_documentation)
 
-         ... Missing documentation
-         (when (|> definitions
-                   (list:mix (function (_ definition missing)
-                               (set.lacks (name.proper (its :global definition)) missing))
-                             _:coverage)
-                   set.as_list)
-           (list)
-           md.empty
+             ... Missing documentation
+             (when (set.as_list (list.mix (function (_ definition missing)
+                                            (set.lacks (name.proper (its :global definition)) missing))
+                                          definitions
+                                          _:coverage))
+               (list)
+               md.empty
 
-           missing
-           (all md.then
-                (md.heading/3 (md.text "Missing documentation"))
-                (..listing missing)))
-         
-         ... Un-expected documentation
-         (when (|> definitions
-                   (list.only (|>> (its :global)
-                                   name.proper
-                                   (set.member? _:coverage)
-                                   not))
-                   (list:each (|>> (its :global)
-                                   name.proper)))
-           (list)
-           md.empty
-           
-           un_expected
-           (all md.then
-                (md.heading/3 (md.text "Un-expected documentation"))
-                (..listing un_expected)))
-         )))
+               missing
+               (all md.then
+                    (md.heading/3 (md.text "Missing documentation"))
+                    (..listing missing)))
+             
+             ... Un-expected documentation
+             (when (|> definitions
+                       (list.only (|>> (its :global)
+                                       name.proper
+                                       (set.member? _:coverage)
+                                       not))
+                       (list:each (|>> (its :global)
+                                       name.proper)))
+               (list)
+               md.empty
+               
+               un_expected
+               (all md.then
+                    (md.heading/3 (md.text "Un-expected documentation"))
+                    (..listing un_expected)))
+             )))
 
 ... https://en.wiktionary.org/wiki/depender
-(the dependers
+(the (dependers it)
   (-> (List [descriptor.Module Module])
       (Dictionary descriptor.Module (Set descriptor.Module)))
-  (list:mix (function (_ [name module] it)
-              (list:mix (function (_ import it)
+  (list.mix (function (_ [name module] it)
+              (list.mix (function (_ import it)
                           (dictionary.revised' import (set.empty text.hash) (set.has name) it))
-                        it
-                        (set.as_list (its :dependees module))))
+                        (set.as_list (its :dependees module))
+                        it))
+            it
             (dictionary.empty text.hash)))
 
-(the index
+(the (index it)
   (-> (List [Module (List Definition)])
       (Markdown Block))
-  (|>> (list:each (function (_ [module defs])
-                    (all md.then
-                         (md.heading/5 (let [it (its :module module)]
-                                         (md.link (md.text it) (text "#" it))))
-                         (|> defs
-                             (list.in_order ..definition:<)
-                             (list:each (function (_ it)
-                                          (let [[module proper] (its :global it)]
-                                            [(md.link (md.text proper) (..link (its :global it)))
-                                             {.:None}])))
-                             md.bullet_list)
-                         )))
-       (list:mix (function (_ right left)
-                   (md.then left right))
-                 (md.heading/1 (md.text "Index")))))
+  (list.mix (function (_ right left)
+              (md.then left right))
+            (list:each (function (_ [module defs])
+                         (all md.then
+                              (md.heading/5 (let [it (its :module module)]
+                                              (md.link (md.text it) (text "#" it))))
+                              (|> defs
+                                  (list.in_order ..definition:<)
+                                  (list:each (function (_ it)
+                                               (let [[module proper] (its :global it)]
+                                                 [(md.link (md.text proper) (..link (its :global it)))
+                                                  {.:None}])))
+                                  md.bullet_list)
+                              ))
+                       it)
+            (md.heading/1 (md.text "Index"))))
 
 (the .public (markdown it)
   (-> (List Documentation)
       Text)
-  (let [with_modules (list:mix (function (_ doc it)
+  (let [with_modules (list.mix (function (_ doc it)
                                  (if (dictionary.in_domain? it (its :module doc))
                                      it
                                      (dictionary.has (its :module doc) [doc (list)] it)))
+                               (case.rights it)
                                (is (Dictionary Text [Module (List Definition)])
-                                   (dictionary.empty text.hash))
-                               (case.rights it))
-        with_definitions (list:mix (function (_ doc it)
+                                   (dictionary.empty text.hash)))
+        with_definitions (list.mix (function (_ doc it)
                                      (let [module (name.module (its :global doc))]
                                        (if (dictionary.in_domain? it module)
                                            (dictionary.revised module
@@ -852,8 +856,8 @@
                                                                  [module (list:composite (list doc) defs)])
                                                                it)
                                            it)))
-                                   with_modules
-                                   (case.lefts it))
+                                   (case.lefts it)
+                                   with_modules)
         dependers (|> with_modules
                       dictionary.entries
                       (list:each (function (_ [name [module definitons]])
@@ -868,8 +872,10 @@
      (all md.then
           (index it)
           (md.heading/1 (md.text "Documentation"))
-          (|> it
-              (list:each (..module_documentation dependers))
-              (list.interposed md.horizontal_rule)
-              (list:mix md.then (is (Markdown Block) md.empty)))
+          (list.mix md.then
+                    (|> it
+                        (list:each (..module_documentation dependers))
+                        (list.interposed md.horizontal_rule))
+                    (is (Markdown Block)
+                        md.empty))
           ))))

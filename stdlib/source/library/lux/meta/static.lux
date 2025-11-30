@@ -6,7 +6,7 @@
     ["[0]" monad]]
    [data
     [collection
-     ["[0]" list (.open functor mix)
+     ["[0]" list (.open functor)
       ["?[1]" \\projection]]]]
    [math
     ["[0]" number]
@@ -20,19 +20,19 @@
      ["<[1]>" \\projection]]]]])
 
 (template.with [<name> <type> <injection>]
-  [(syntax.the .public (<name> [expression ?list.any])
-     (by meta.monad each
-         (|>> (as (-> Any <type>))
-              <injection>
-              list)
-         (meta.eval <type> expression)))]
+               [(syntax.the .public (<name> [expression ?list.any])
+                  (by meta.monad each
+                      (|>> (as (-> Any <type>))
+                           <injection>
+                           list)
+                      (meta.eval <type> expression)))]
 
-  [[bit .Bit code.bit]
-   [natural .Natural code.natural]
-   [integer .Integer code.integer]
-   [revolution .Revolution code.revolution]
-   [real .Real code.real]
-   [text .Text code.text]])
+               [[bit .Bit code.bit]
+                [natural .Natural code.natural]
+                [integer .Integer code.integer]
+                [revolution .Revolution code.revolution]
+                [real .Real code.real]
+                [text .Text code.text]])
 
 (the pcg_32_magic_inc
   (number.base_16 "FEDCBA9876543210"))
@@ -72,20 +72,20 @@
              meta.seed))
 
 (template.with [<name> <random> <injection>]
-  [(syntax.the .public (<name> [])
-     (monad.let meta.monad
-       [seed meta.seed
-        .let [[_ value] (random.value random.pcg_32
-                                      [random.:increase ..pcg_32_magic_inc
-                                       random.:seed seed]
-                                      <random>)]]
-       (pure (list (<injection> value)))))]
+               [(syntax.the .public (<name> [])
+                  (monad.let meta.monad
+                    [seed meta.seed
+                     .let [[_ value] (random.value random.pcg_32
+                                                   [random.:increase ..pcg_32_magic_inc
+                                                    random.:seed seed]
+                                                   <random>)]]
+                    (pure (list (<injection> value)))))]
 
-  [[random_bit random.bit code.bit]
-   [random_natural random.natural code.natural]
-   [random_integer random.integer code.integer]
-   [random_revolution random.revolution code.revolution]
-   [random_real random.real code.real]])
+               [[random_bit random.bit code.bit]
+                [random_natural random.natural code.natural]
+                [random_integer random.integer code.integer]
+                [random_revolution random.revolution code.revolution]
+                [random_real random.real code.real]])
 
 (expansion.let [<type> (for_some (_ it)
                          [(-> it Code)

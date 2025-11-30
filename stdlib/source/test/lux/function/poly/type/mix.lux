@@ -31,28 +31,28 @@
     (<| (_.covering /._)
         (all _.and
              (_.coverage [/.with_monoid]
-               (n.= (by stack.mix mix (by n.addition composite) (by n.addition identity) samples)
+               (n.= (stack.mix (by n.addition composite) samples (by n.addition identity))
                     (/.with_monoid n.addition stack.mix samples)))
              (_.coverage [/.constant]
                (n.= initial
-                    (/.constant n.+ initial left)))
+                    (/.constant n.+ left initial)))
              (_.coverage [/.variable]
-               (n.= (n.+ initial left)
-                    (/.variable n.+ initial left)))
+               (n.= (n.+ left initial)
+                    (/.variable n.+ left initial)))
              (_.coverage [/.sum]
                (and (n.= (n.+ initial left)
                          ((/.sum /.variable
                                  /.variable)
-                          n.+ initial {.:Left left}))
+                          n.+ {.:Left left} initial))
                     (n.= (n.+ initial right)
                          ((/.sum /.variable
                                  /.variable)
-                          n.+ initial {.:Right right}))))
+                          n.+ {.:Right right} initial))))
              (_.coverage [/.product]
                (n.= (all n.+ initial left right)
                     ((/.product /.variable
                                 /.variable)
-                     n.+ initial [left right])))
+                     n.+ [left right] initial)))
              (_.coverage [/.recursive]
                (n.= (all n.+ initial left right)
                     ((<| (is (/.Mix (//.Recursive (for_any (_ self)
@@ -62,18 +62,16 @@
                          (function (_ next))
                          (/.sum /.constant
                                 (/.product /.variable next)))
-                     n.+ initial (stack left right))))
+                     n.+ (stack left right) initial)))
              ))))
 
 (the .public (spec injection comparison it)
   (for_any (_ !)
     (-> (Injection !) (Comparison !) (/.Mix !)
         Test))
-  (<| (_.for [/.Mix])
-      (with "/:[0]" it)
-      (monad.let random.monad
+  (<| (monad.let random.monad
         [subject random.natural
          parameter random.natural])
-      (_.coverage [/.mix]
-        (n.= (/:mix n.+ parameter (injection subject))
+      (_.coverage [/.Mix]
+        (n.= (it n.+ (injection subject) parameter)
              (n.+ parameter subject)))))

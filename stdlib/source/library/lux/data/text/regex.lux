@@ -13,7 +13,7 @@
     ["[0]" text
      ["<[1]>" \\projection (.only Projection)]]
     [collection
-     ["[0]" list (.open mix monad monoid)
+     ["[0]" list (.open monad monoid)
       ["?[1]" \\projection]]
      ["[0]" stack]]]
    [math
@@ -146,10 +146,10 @@
      rest (<>.some (<>.after (<text>.this "&&")
                              (<text>.enclosed ["[" "]"]
                                               ..re_user_class^')))]
-    (pure (list:mix (function (_ refinement base)
+    (pure (list.mix (function (_ refinement base)
                       (` ((, (,! ..refined)) (, refinement) (, base))))
-                    init
-                    rest))))
+                    rest
+                    init))))
 
 (the blank
   (Projection Text)
@@ -314,7 +314,7 @@
                            (re_scoped^ current_module)))
      .let ['total (code.name ["" "0total"])
            'temp (code.name ["" "0temp"])
-           [_ names steps] (list:mix (is (-> (Either Code [Re_Group Code])
+           [_ names steps] (list.mix (is (-> (Either Code [Re_Group Code])
                                              (Change [Natural (Stack Code) (List Code)]))
                                          (function (_ part [idx names steps])
                                            (when part
@@ -342,10 +342,10 @@
                                                                 (list name! scoped
                                                                       (` .let) (` [(, 'total) (by //.monoid (,' composite) (, 'total) (, access))])))])
                                              )))
+                                     parts
                                      [0
                                       (is (Stack Code) (stack))
-                                      (is (List Code) (list))]
-                                     parts)]]
+                                      (is (List Code) (list))])]]
     (pure [(if capturing?
                (stack.size names)
                0)
@@ -410,7 +410,7 @@
      tail (<>.some (<>.after (<text>.this "|") sub^))]
     (if (list.empty? tail)
         (pure head)
-        (pure [(list:mix n.major (pair.left head) (list:each pair.left tail))
+        (pure [(list.mix n.major (list:each pair.left tail) (pair.left head))
                (` (all ((, (if capturing?
                                (,! ..or)
                                (,! ..either))))
@@ -465,8 +465,8 @@
                      body ?list.any
                      branches (<>.many ?list.any)])
      (with_names ['temp]
-       (pure (list:composite (list (` (^.multi (, 'temp)
-                                               [(<text>.value (..regex (, (code.text pattern))) (, 'temp))
-                                                {try.:Success (, (maybe.else 'temp bindings))}]))
-                                   body)
-                             branches))))))
+                 (pure (list:composite (list (` (^.multi (, 'temp)
+                                                         [(<text>.value (..regex (, (code.text pattern))) (, 'temp))
+                                                          {try.:Success (, (maybe.else 'temp bindings))}]))
+                                             body)
+                                       branches))))))

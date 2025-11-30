@@ -71,16 +71,16 @@
               ")")
         
         (,, (template.with [<tag> ,type <as_text>]
-              [{<tag> [head tail]}
-               (|> (list:composite (list head) tail)
-                   (list:each (function (_ [test then])
-                                (text (<as_text> test) " " (as_text of then))))
-                   (text.interposed " ")
-                   (text.enclosed ["(? " ")"]))]
+                           [{<tag> [head tail]}
+                            (|> (list:composite (list head) tail)
+                                (list:each (function (_ [test then])
+                                             (text (<as_text> test) " " (as_text of then))))
+                                (text.interposed " ")
+                                (text.enclosed ["(? " ")"]))]
 
-              [[:I64_Fork I64 (|>> .integer %.integer)]
-               [:F64_Fork F64 %.real]
-               [:Text_Fork Text %.text]]))
+                           [[:I64_Fork I64 (|>> .integer %.integer)]
+                            [:F64_Fork F64 %.real]
+                            [:Text_Fork Text %.text]]))
         
         {:Access it}
         (access.as_text it)
@@ -118,34 +118,34 @@
                 (by (maybe.equality =) = expected_else actual_else))
 
            (,, (template.with [<tag> <equality>]
-                 [[{<tag> [expected_head expected_tail]}
-                   {<tag> [actual_head actual_tail]}]
-                  (let [road_equality (pair.equality <equality> =)]
-                    (and (by road_equality = expected_head actual_head)
-                         (by (list.equality road_equality) = expected_tail actual_tail)))]
+                              [[{<tag> [expected_head expected_tail]}
+                                {<tag> [actual_head actual_tail]}]
+                               (let [road_equality (pair.equality <equality> =)]
+                                 (and (by road_equality = expected_head actual_head)
+                                      (by (list.equality road_equality) = expected_tail actual_tail)))]
 
-                 [[:I64_Fork (is (Equality I64) /64.equality)]
-                  [:F64_Fork r.equality]
-                  [:Text_Fork text.equality]]))
+                              [[:I64_Fork (is (Equality I64) /64.equality)]
+                               [:F64_Fork r.equality]
+                               [:Text_Fork text.equality]]))
            
            (,, (template.with [<tag> <equality>]
-                 [[{<tag> expected'} {<tag> actual'}]
-                  (by <equality> = expected' actual')]
+                              [[{<tag> expected'} {<tag> actual'}]
+                               (by <equality> = expected' actual')]
 
-                 [[:Access access.equality]
-                  [:List n.equality]
-                  [:Then equality]]))
+                              [[:Access access.equality]
+                               [:List n.equality]
+                               [:Then equality]]))
 
            [{:Bind expected'} {:Bind actual'}]
            (n.= expected' actual')
 
            (,, (template.with [<tag>]
-                 [[{<tag> leftR rightR} {<tag> leftS rightS}]
-                  (and (= leftR leftS)
-                       (= rightR rightS))]
+                              [[{<tag> leftR rightR} {<tag> leftS rightS}]
+                               (and (= leftR leftS)
+                                    (= rightR rightS))]
 
-                 [[:Or]
-                  [:And]]))
+                              [[:Or]
+                               [:And]]))
 
            _
            false)))))
@@ -177,27 +177,27 @@
                   (by (maybe.hash (self super)) hash else))
 
              (,, (template.with [<factor> <tag> <hash>]
-                   [{<tag> item}
-                    (let [when_hash (pair.hash <hash>
-                                               (self super))
-                          item_hash (pair.hash when_hash (list.hash when_hash))]
-                      (n.x <factor> (by item_hash hash item)))]
+                                [{<tag> item}
+                                 (let [when_hash (pair.hash <hash>
+                                                            (self super))
+                                       item_hash (pair.hash when_hash (list.hash when_hash))]
+                                   (n.x <factor> (by item_hash hash item)))]
 
-                   [[11 :I64_Fork /64.hash]
-                    [13 :F64_Fork r.hash]
-                    [17 :Text_Fork text.hash]]))
+                                [[11 :I64_Fork /64.hash]
+                                 [13 :F64_Fork r.hash]
+                                 [17 :Text_Fork text.hash]]))
 
              {:List it}
              (n.x 19 (by n.hash hash it))
 
              (,, (template.with [<factor> <tag>]
-                   [{<tag> fork}
-                    (let [again_hash (self super)
-                          fork_hash (pair.hash again_hash again_hash)]
-                      (n.x <factor> (by fork_hash hash fork)))]
+                                [{<tag> fork}
+                                 (let [again_hash (self super)
+                                       fork_hash (pair.hash again_hash again_hash)]
+                                   (n.x <factor> (by fork_hash hash fork)))]
 
-                   [[23 :Or]
-                    [29 :And]]))
+                                [[23 :Or]
+                                 [29 :And]]))
 
              {:Then body}
              (n.x 31 (by super hash body))
@@ -216,14 +216,14 @@
         ,afterwards)])
 
 (template.with [<name> <access> <lefts> <right?>]
-  [(template.the .public (<name> ,lefts ,right?)
-     [(.<| {..:Access}
-           {<access>}
-           [<lefts> ,lefts
-            <right?> ,right?])])]
+               [(template.the .public (<name> ,lefts ,right?)
+                  [(.<| {..:Access}
+                        {<access>}
+                        [<lefts> ,lefts
+                         <right?> ,right?])])]
 
-  [[side access.:Side side.:lefts side.:right?]
-   [member access.:Member member.:lefts member.:right?]])
+               [[side access.:Side side.:lefts side.:right?]
+                [member access.:Member member.:lefts member.:right?]])
 
 (template.the .public (item index)
   [(.<| {..:Access}
@@ -231,14 +231,14 @@
         index)])
 
 (template.with [<access> <side> <name>]
-  [(template.the .public (<name> lefts)
-     [(<access> lefts <side>)])]
+               [(template.the .public (<name> lefts)
+                  [(<access> lefts <side>)])]
 
-  [[..side 0b left_side]
-   [..side 1b right_side]
+               [[..side 0b left_side]
+                [..side 1b right_side]
 
-   [..member 0b left_member]
-   [..member 1b right_member]])
+                [..member 0b left_member]
+                [..member 1b right_member]])
 
 (template.the .public (binding_of ,register ,then ,access)
   [(.all {..:And}
@@ -252,33 +252,33 @@
          ,then)])
 
 (template.with [,binding ,substitution ,constant_access ,variable_access]
-  [(`` (template.the .public (,binding (,, (template.spliced ,variable_access)) ,register ,then)
-         [(..binding_of ,register ,then ((,, (template.spliced ,constant_access))
-                                         (,, (template.spliced ,variable_access))))]))
-   (`` (template.the .public (,substitution (,, (template.spliced ,variable_access)) ,then)
-         [(..substitution_by ,then ((,, (template.spliced ,constant_access))
-                                    (,, (template.spliced ,variable_access))))]))]
+               [(`` (template.the .public (,binding (,, (template.spliced ,variable_access)) ,register ,then)
+                      [(..binding_of ,register ,then ((,, (template.spliced ,constant_access))
+                                                      (,, (template.spliced ,variable_access))))]))
+                (`` (template.the .public (,substitution (,, (template.spliced ,variable_access)) ,then)
+                      [(..substitution_by ,then ((,, (template.spliced ,constant_access))
+                                                 (,, (template.spliced ,variable_access))))]))]
 
-  [[binding_of_left substitution_by_left [..left_member 0] []]
-   [binding_of_member substitution_by_member [] [,member ,lefts]]
-   [binding_of_item substitution_by_item [..item] [,index]]])
+               [[binding_of_left substitution_by_left [..left_member 0] []]
+                [binding_of_member substitution_by_member [] [,member ,lefts]]
+                [binding_of_item substitution_by_item [..item] [,index]]])
 
-... TODO: There are sister patterns to the simple side checks for tuples.
-... These correspond to the situation where tuple members are accessed
-... and bound to variables, but those variables are never used, so they
-... become POPs.
-... After re-implementing unused-variable-elimination, must add those
-... pattern-optimizations again, since a lot of BINDs will become POPs
-... and thus will result in useless code being translated.
-(template.with [<name> <side>]
-  [(template.the .public (<name> idx nextP)
-     [(all {..:And}
-           (<side> idx)
-           {..:Pop}
-           nextP)])]
+(comment "TODO: There are sister patterns to the simple side checks for tuples."
+         "These correspond to the situation where tuple members are accessed"
+         "and bound to variables, but those variables are never used, so they"
+         "become POPs."
+         "After re-implementing unused-variable-elimination, must add those"
+         "pattern-optimizations again, since a lot of BINDs will become POPs"
+         "and thus will result in useless code being translated."
+         (template.with [<name> <side>]
+                        [(template.the .public (<name> idx nextP)
+                           [(all {..:And}
+                                 (<side> idx)
+                                 {..:Pop}
+                                 nextP)])]
 
-  [[simple_left_side ..left_side]
-   [simple_right_side ..right_side]])
+                        [[simple_left_side ..left_side]
+                         [simple_right_side ..right_side]]))
 
 (the random_road
   (for_any (_ value next)

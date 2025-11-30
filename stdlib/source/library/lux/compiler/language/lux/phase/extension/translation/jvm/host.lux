@@ -17,7 +17,7 @@
      ["%" \\injection]
      ["<[1]>" \\projection]]
     [collection
-     ["[0]" list (.open monad mix monoid)
+     ["[0]" list (.open monad monoid)
       ["?[1]" \\projection]]
      ["[0]" dictionary (.only Dictionary)]
      ["[0]" set (.only Set)]
@@ -1035,30 +1035,31 @@
   (-> (Type category.Class) (Environment Term) (Type category.Class) (List (Typed (Bytecode Any)))
       (Resource Method))
   (let [inputs_offset (list.size inputsTG)
-        inputs! (|> inputsTG
-                    list.enumeration
-                    (list:each (function (_ [register [type term]])
-                                 (when (type.primitive? type)
-                                   {.:Right type}
-                                   (let [load_register! (if (type.= type.float type)
-                                                            _.fload
+        inputs! (list.mix _.composite
+                          (|> inputsTG
+                              list.enumeration
+                              (list:each (function (_ [register [type term]])
+                                           (when (type.primitive? type)
+                                             {.:Right type}
+                                             (let [load_register! (if (type.= type.float type)
+                                                                      _.fload
 
-                                                            (type.= type.double type)
-                                                            _.dload
+                                                                      (type.= type.double type)
+                                                                      _.dload
 
-                                                            (type.= type.long type)
-                                                            _.lload
+                                                                      (type.= type.long type)
+                                                                      _.lload
 
-                                                            (comment "else"
-                                                                     _.iload))]
-                                     (load_register! (++ register)))
-                                   
-                                   {.:Left type}
-                                   (all _.composite
-                                        (_.aload (++ register))
-                                        (_.checkcast type)))))
-                    list.in_reverse
-                    (list:mix _.composite (_:pure [])))
+                                                                      (comment "else"
+                                                                               _.iload))]
+                                               (load_register! (++ register)))
+                                             
+                                             {.:Left type}
+                                             (all _.composite
+                                                  (_.aload (++ register))
+                                                  (_.checkcast type)))))
+                              list.in_reverse)
+                          (_:pure []))
         store_captured! (|> env
                             list.size
                             list.domain
@@ -1085,10 +1086,11 @@
     (pure (all _.composite
                (_.new class)
                _.dup
-               (|> inputsTI
-                   (list:each pair.right)
-                   list.in_reverse
-                   (list:mix _.composite (_:pure [])))
+               (list.mix _.composite
+                         (|> inputsTI
+                             (list:each pair.right)
+                             list.in_reverse)
+                         (_:pure []))
                (list.complete _.monad captureG+)
                (_.invokespecial class "<init>" (anonymous_init_method env inputsTI))))))
 
@@ -1190,18 +1192,16 @@
 (the .public (prepare_arguments offset types)
   (-> Natural (List (Type Value))
       (Bytecode Any))
-  (|> types
-      list.enumeration
-      (list:mix (function (_ [lux_register type] [jvm_register before])
-                  (let [[jvm_register' after] (prepare_argument (n.+ offset lux_register) type jvm_register)]
-                    [jvm_register'
-                     (all _.composite
-                          before
-                          after)]))
-                (is [Register (Bytecode Any)]
-                    [offset
-                     (_:pure [])]))
-      pair.right))
+  (pair.right (list.mix (function (_ [lux_register type] [jvm_register before])
+                          (let [[jvm_register' after] (prepare_argument (n.+ offset lux_register) type jvm_register)]
+                            [jvm_register'
+                             (all _.composite
+                                  before
+                                  after)]))
+                        (list.enumeration types)
+                        (is [Register (Bytecode Any)]
+                            [offset
+                             (_:pure [])]))))
 
 (the (normalized_method global_mapping [environment method])
   (-> Mapping [(Environment Term) (/.Overriden_Method Term)]

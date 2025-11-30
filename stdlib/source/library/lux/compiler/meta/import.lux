@@ -49,21 +49,22 @@
         (by ! each (let [! try.monad]
                      (|>> (by ! each (<binary>.value tar.of_binary))
                           (by ! conjoint)
-                          (by ! each (|>> sequence.as_list
-                                          (list.mix' ! (function (_ entry import)
-                                                         (when entry
-                                                           {tar.:Normal [path instant mode ownership content]}
-                                                           (let [path (tar.from_path path)]
-                                                             (when (dictionary.has' path (tar.data content) import)
-                                                               {try.:Failure error}
-                                                               (exception.except ..duplicate [library path])
+                          (by ! each (function (_ it)
+                                       (list.mix' ! (function (_ entry import)
+                                                      (when entry
+                                                        {tar.:Normal [path instant mode ownership content]}
+                                                        (let [path (tar.from_path path)]
+                                                          (when (dictionary.has' path (tar.data content) import)
+                                                            {try.:Failure error}
+                                                            (exception.except ..duplicate [library path])
 
-                                                               import'
-                                                               import'))
-                                                           
-                                                           _
-                                                           (exception.except ..useless_tar_entry [])))
-                                                     import)))
+                                                            import'
+                                                            import'))
+                                                        
+                                                        _
+                                                        (exception.except ..useless_tar_entry [])))
+                                                  (sequence.as_list it)
+                                                  import)))
                           (by ! conjoint)))))))
 
 (the .public (import system libraries)
@@ -72,5 +73,5 @@
   (list.mix' (is (Monad Action)
                  (try.with future.monad))
              (..import_library system)
-             (dictionary.empty text.hash)
-             libraries))
+             libraries
+             (dictionary.empty text.hash)))

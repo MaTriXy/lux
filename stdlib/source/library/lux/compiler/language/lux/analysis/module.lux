@@ -12,7 +12,7 @@
     ["[0]" text (.only)
      ["%" \\injection]]
     [collection
-     ["[0]" list (.open mix functor monoid)
+     ["[0]" list (.open monoid)
       ["[0]" property]]]]
    [macro
     ["[0]" template]]
@@ -170,50 +170,50 @@
   (monad.let phase.monad
     [_ (..create hash name)
      output (/.with_current_module name
-              action)
+                                   action)
      module (phase.by_name name)]
     (pure [module output])))
 
 (template.with [<setter> <asker> <tag>]
-  [(the .public (<setter> module_name)
-     (-> module.Name
-         (Operation Any))
-     (monad.let phase.monad
-       [module (phase.by_name module_name)]
-       (let [active? (when (its @type.:module_state module)
-                       {.:Active}
-                       true
-                       
-                       _
-                       false)]
-         (if active?
-             (function (_ state)
-               {try.:Success [(|> state
-                                  (revised @type.:modules
-                                           (property.has module_name (has @type.:module_state {<tag>} module))))
-                              []]})
-             (/.except ..can_only_change_state_of_active_module [module_name {<tag>}])))))
-   
-   (the .public (<asker> module_name)
-     (-> module.Name
-         (Operation Bit))
-     (function (_ state)
-       (when (|> state
-                 (its @type.:modules)
-                 (property.value module_name))
-         {try.:Success module}
-         {try.:Success [state
-                        (when (its @type.:module_state module)
-                          {<tag>}
-                          true
-                          
-                          _
-                          false)]}
+               [(the .public (<setter> module_name)
+                  (-> module.Name
+                      (Operation Any))
+                  (monad.let phase.monad
+                    [module (phase.by_name module_name)]
+                    (let [active? (when (its @type.:module_state module)
+                                    {.:Active}
+                                    true
+                                    
+                                    _
+                                    false)]
+                      (if active?
+                          (function (_ state)
+                            {try.:Success [(|> state
+                                               (revised @type.:modules
+                                                        (property.has module_name (has @type.:module_state {<tag>} module))))
+                                           []]})
+                          (/.except ..can_only_change_state_of_active_module [module_name {<tag>}])))))
+                
+                (the .public (<asker> module_name)
+                  (-> module.Name
+                      (Operation Bit))
+                  (function (_ state)
+                    (when (|> state
+                              (its @type.:modules)
+                              (property.value module_name))
+                      {try.:Success module}
+                      {try.:Success [state
+                                     (when (its @type.:module_state module)
+                                       {<tag>}
+                                       true
+                                       
+                                       _
+                                       false)]}
 
-         failure
-         ((/.except ..not_known module_name)
-          state))))]
+                      failure
+                      ((/.except ..not_known module_name)
+                       state))))]
 
-  [[set_active   active?   .:Active]
-   [set_compiled compiled? .:Compiled]
-   [set_cached   cached?   .:Cached]])
+               [[set_active   active?   .:Active]
+                [set_compiled compiled? .:Compiled]
+                [set_cached   cached?   .:Cached]])

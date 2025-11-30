@@ -14,7 +14,7 @@
       ["[0]" utf8]]]
     [collection
      ["[0]" sequence]
-     ["[0]" list (.open functor mix monoid)]
+     ["[0]" list (.open functor monoid)]
      ["[0]" dictionary (.only Dictionary)]
      ["[0]" set (.only Set)]]]
    [math
@@ -69,9 +69,9 @@
                                             (is declaration
                                                 so_far))
                                           (_.then so_far)))))
+                           artifacts
                            (_.comment "Lux module"
-                                      (_.; (_.string "")))
-                           artifacts)]
+                                      (_.; (_.string ""))))]
         (pure {.:Some bundle})))))
 
 (the module_file
@@ -93,9 +93,7 @@
       (pure sink)
 
       {.:Some bundle}
-      (let [entry_content (|> (list)
-                              (list:mix _.then bundle)
-                              (is _.Statement)
+      (let [entry_content (|> bundle
                               _.code
                               (by utf8.binary as))]
         (pure (list:composite (list [module_id [(..module_file module_id) entry_content]])
@@ -125,21 +123,22 @@
      order (cache/module.load_order $.key archive)
      entries (list.mix' !
                         (..write_module (module_id_mapping order) necessary_dependencies)
+                        order
                         (is (List [module.ID [Text Binary]])
-                            (list))
-                        order)
+                            (list)))
      .let [included_modules (..included_modules entries)
-           imports (|> order
-                       (list.only (|>> pair.right pair.left (set.member? included_modules)))
-                       list.in_reverse
-                       (list:each (function (_ [module [module_id entry]])
-                                    (let [relative_path (_.do "gsub" (list (_.string main_file)
-                                                                           (_.string (..module_file module_id)))
-                                                          {.:None}
-                                                          (is _.CVar (_.manual "__FILE__")))]
-                                      (_.; (_.require/1 relative_path)))))
-                       (list:mix _.then (_.comment "Lux program"
-                                                   (_.; (_.string ""))))
+           imports (|> (list.mix _.then
+                                 (|> order
+                                     (list.only (|>> pair.right pair.left (set.member? included_modules)))
+                                     list.in_reverse
+                                     (list:each (function (_ [module [module_id entry]])
+                                                  (let [relative_path (_.do "gsub" (list (_.string main_file)
+                                                                                         (_.string (..module_file module_id)))
+                                                                        {.:None}
+                                                                        (is _.CVar (_.manual "__FILE__")))]
+                                                    (_.; (_.require/1 relative_path))))))
+                                 (_.comment "Lux program"
+                                            (_.; (_.string ""))))
                        (is _.Statement)
                        _.code
                        (by utf8.binary as))]]

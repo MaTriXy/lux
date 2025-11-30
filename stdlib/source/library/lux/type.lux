@@ -16,9 +16,9 @@
     ["[0]" text (.only \n) (.open monoid)]
     [collection
      ["[0]" array]
-     ["[0]" list (.open monad monoid mix)
+     ["[0]" list (.open monad monoid)
       ["?[1]" \\projection]]
-     ["[0]" stack (.open functor mix)]]]
+     ["[0]" stack (.open functor)]]]
    [logic
     ["[0]" bit]]
    [math
@@ -46,20 +46,20 @@
 (the with_template (.in_module# .prelude with_template))
 
 (with_template [<name> <tag>]
-  [(the .public (<name> type)
-     (-> Type
-         [Natural Type])
-     (loop (of [num_args 0
-                type type])
-       (when type
-         {.:Quantification <tag> env sub_type}
-         (of (++ num_args) sub_type)
+               [(the .public (<name> type)
+                  (-> Type
+                      [Natural Type])
+                  (loop (of [num_args 0
+                             type type])
+                    (when type
+                      {.:Quantification <tag> env sub_type}
+                      (of (++ num_args) sub_type)
 
-         _
-         [num_args type])))]
+                      _
+                      [num_args type])))]
 
-  [[flat_univ_q .universal]
-   [flat_ex_q   .existential]])
+               [[flat_univ_q .universal]
+                [flat_ex_q   .existential]])
 
 (the template:macro (.in_module# .prelude template:macro))
 (the function_type (.type_name# "function"))
@@ -99,27 +99,27 @@
 (the sum_type (.type_name# "sum"))
 (the product_type (.type_name# "product"))
 (with_template [<name> ,name ,constructor]
-  [(`` (the .public ,constructor
-         (template:macro (_ ,left ,right)
-                         [{.:Nominal (,, (static ,name))
-                                     (.list [(,, (static .co_variant)) ,left]
-                                            [(,, (static .co_variant)) ,right])}])))
+               [(`` (the .public ,constructor
+                      (template:macro (_ ,left ,right)
+                                      [{.:Nominal (,, (static ,name))
+                                                  (.list [(,, (static .co_variant)) ,left]
+                                                         [(,, (static .co_variant)) ,right])}])))
 
-   (the .public (<name> it)
-     (-> Type
-         (List Type))
-     (.let [[right lefts] (list.dynamic (.function (_ it)
-                                          (when it
-                                            (,constructor left right)
-                                            {.:Some [right left]}
+                (the .public (<name> it)
+                  (-> Type
+                      (List Type))
+                  (.let [[right lefts] (list.dynamic (.function (_ it)
+                                                       (when it
+                                                         (,constructor left right)
+                                                         {.:Some [right left]}
 
-                                            _
-                                            {.:None}))
-                                        it)]
-       (list:composite lefts (list right))))]
+                                                         _
+                                                         {.:None}))
+                                                     it)]
+                    (list:composite lefts (list right))))]
 
-  [[flat_variant ..sum_type Sum]
-   [flat_tuple   ..product_type Product]])
+               [[flat_variant ..sum_type Sum]
+                [flat_tuple   ..product_type Product]])
 
 (the polarity_as_text
   (text.Injection Polarity)
@@ -127,36 +127,38 @@
     (.function (_ it)
       (`` (when it
             (,, (with_template [,option]
-                  [,option (by format_of_name as (name ,option))]
+                               [,option (by format_of_name as (name ,option))]
 
-                  [[.contra_variant]
-                   [.co_variant]])))))))
+                               [[.contra_variant]
+                                [.co_variant]])))))))
 
 (`` (the (as_text' name_format type)
       (-> (Format Text Name)
           (text.Injection Type))
       (when type
         (,, (with_template [,type <open> <close> <flat>]
-              [(,type _ _)
-               (text <open>
-                     (|> (<flat> type)
-                         (list:each (as_text' name_format))
-                         list.in_reverse
-                         (list.interposed " ")
-                         (list:mix text:composite ""))
-                     <close>)]
+                           [(,type _ _)
+                            (text <open>
+                                  (list.mix text:composite
+                                            (|> (<flat> type)
+                                                (list:each (as_text' name_format))
+                                                list.in_reverse
+                                                (list.interposed " "))
+                                            "")
+                                  <close>)]
 
-              [[..Sum  "(Or " ")" flat_variant]
-               [..Product "["   "]" flat_tuple]]))
+                           [[..Sum  "(Or " ")" flat_variant]
+                            [..Product "["   "]" flat_tuple]]))
 
         (..Function _ _)
         (.let [[ins out] (flat_function type)]
           (text  "(-> "
-                 (|> ins
-                     (list:each (as_text' name_format))
-                     list.in_reverse
-                     (list.interposed " ")
-                     (list:mix text:composite ""))
+                 (list.mix text:composite
+                           (|> ins
+                               (list:each (as_text' name_format))
+                               list.in_reverse
+                               (list.interposed " "))
+                           "")
                  " " (as_text' name_format out) ")"))
 
         {.:Nominal name params}
@@ -187,24 +189,33 @@
 
         {.:Reification param fun}
         (.let [[type_func type_args] (flat_reification type)]
-          (text  "(" (as_text' name_format type_func) " " (|> type_args (list:each (as_text' name_format)) list.in_reverse (list.interposed " ") (list:mix text:composite "")) ")"))
+          (text  "("
+                 (as_text' name_format type_func)
+                 " "
+                 (list.mix text:composite
+                           (|> type_args
+                               (list:each (as_text' name_format))
+                               list.in_reverse
+                               (list.interposed " "))
+                           "")
+                 ")"))
 
         (,, (with_template [<tag> <desc>]
-              [{.:Quantification <tag> env body}
-               (text "(" <desc>
-                     " " (|> env
-                             (view.of list.stack)
-                             (list:each (.function (_ [abstraction argument])
-                                          (text "[" (as_text' name_format abstraction)
-                                                " " (as_text' name_format argument)
-                                                "]")))
-                             (text.interposed " ")
-                             (text.enclosed ["{" "}"]))
-                     " " (as_text' name_format body)
-                     ")")]
+                           [{.:Quantification <tag> env body}
+                            (text "(" <desc>
+                                  " " (|> env
+                                          (view.of list.stack)
+                                          (list:each (.function (_ [abstraction argument])
+                                                       (text "[" (as_text' name_format abstraction)
+                                                             " " (as_text' name_format argument)
+                                                             "]")))
+                                          (text.interposed " ")
+                                          (text.enclosed ["{" "}"]))
+                                  " " (as_text' name_format body)
+                                  ")")]
 
-              [[.universal "for_any"]
-               [.existential "for_some"]]))
+                           [[.universal "for_any"]
+                            [.existential "for_some"]]))
 
         {.:Named name type}
         (by name_format as name)
@@ -341,8 +352,8 @@
                      
                      _
                      {.:None}))
-                 abstraction
-                 parameters)))
+                 parameters
+                 abstraction)))
 
 (the .public (code type)
   (-> Type
@@ -398,55 +409,55 @@
     it))
 
 (with_template [<name> <base> ,type]
-  [(the .public (<name> types)
-     (-> (List Type)
-         Type)
-     (when (|> types
-               list.in_reverse
-               (view.as list.stack))
-       (.stack)
-       <base>
+               [(the .public (<name> types)
+                  (-> (List Type)
+                      Type)
+                  (when (|> types
+                            list.in_reverse
+                            (view.as list.stack))
+                    (.stack)
+                    <base>
 
-       (.stack type)
-       type
+                    (.stack type)
+                    type
 
-       {.:Top type types'}
-       (stack:mix (.function (_ left right)
-                    (,type left right))
-                  type
-                  types')))]
+                    {.:Top type types'}
+                    (stack.mix (.function (_ left right)
+                                 (,type left right))
+                               types'
+                               type)))]
 
-  [[variant Nothing ..Sum]
-   [tuple   Any     ..Product]])
+               [[variant Nothing ..Sum]
+                [tuple   Any     ..Product]])
 
 (the .public (function inputs output)
   (-> (List Type)
       (Change Type))
-  (list:mix (.function (_ cause effect)
+  (list.mix (.function (_ cause effect)
               (..Function cause effect))
-            output
-            (list.in_reverse inputs)))
+            (list.in_reverse inputs)
+            output))
 
 (the .public (reification parameters abstraction)
   (-> (List Type)
       (Change Type))
-  (list:mix (.function (_ parameter abstraction)
+  (list.mix (.function (_ parameter abstraction)
               {.:Reification parameter abstraction})
-            abstraction
-            parameters))
+            parameters
+            abstraction))
 
 (with_template [<name> <tag>]
-  [(the .public (<name> size body)
-     (-> Natural
-         (Change Type))
-     (when size
-       0 body
-       _  (|> body
-              (<name> (-- size))
-              {.:Quantification <tag> (stack)})))]
+               [(the .public (<name> size body)
+                  (-> Natural
+                      (Change Type))
+                  (when size
+                    0 body
+                    _  (|> body
+                           (<name> (-- size))
+                           {.:Quantification <tag> (stack)})))]
 
-  [[univ_q .universal]
-   [ex_q   .existential]])
+               [[univ_q .universal]
+                [ex_q   .existential]])
 
 (`` (the .public (quantified? type)
       (Predicate Type)
@@ -493,7 +504,7 @@
 (the new_secret_marker
   (macro (_ _)
     (macro.with_names ['_secret_marker_]
-      (pure (list '_secret_marker_)))))
+                      (pure (list '_secret_marker_)))))
 
 (the secret_marker
   (`` (name (,, (new_secret_marker)))))
@@ -519,8 +530,8 @@
     
     {.:Right valueC}
     (macro.with_names ['value]
-      (pure (list (` (.let [(, 'value) (, valueC)]
-                       (..log! (, valueC) (, (code.name ..secret_marker)) (, 'value)))))))))
+                      (pure (list (` (.let [(, 'value) (, valueC)]
+                                       (..log! (, valueC) (, (code.name ..secret_marker)) (, 'value)))))))))
 
 (the type_parameters
   (Projection (List Text))
@@ -547,13 +558,13 @@
                                   exemplar (..typed lux)
                                   computation (..typed lux)])
   (macro.with_names ['_]
-    (.let ['type (` (for_any ((, '_) (,* (list:each code.local type_vars)))
-                      (-> (, (its :type exemplar))
-                          (, (its :type computation)))))
-           'share (` (is (, 'type)
-                         (.function ((, '_) (, '_))
-                           (, (its :term computation)))))]
-      (pure (list (` ((, 'share) (, (its :term exemplar)))))))))
+                    (.let ['type (` (for_any ((, '_) (,* (list:each code.local type_vars)))
+                                      (-> (, (its :type exemplar))
+                                          (, (its :type computation)))))
+                           'share (` (is (, 'type)
+                                         (.function ((, '_) (, '_))
+                                           (, (its :term computation)))))]
+                      (pure (list (` ((, 'share) (, (its :term exemplar)))))))))
 
 (syntax.the .public (by_example lux [type_vars ..type_parameters
                                      exemplar (..typed lux)

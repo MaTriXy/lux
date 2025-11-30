@@ -6,7 +6,7 @@
    [data
     ["[0]" pair]
     [collection
-     ["[0]" list (.open functor mix)]]]
+     ["[0]" list (.open functor)]]]
    [target
     ["_" ruby]]
    [compiler
@@ -67,8 +67,8 @@
   (monad.let [! phase.monad]
     [dependencies (cache/artifact.dependencies archive bodyS)
      [[function_module function_artifact] body!] (/////translation.with_new_context archive dependencies
-                                                   (/////translation.with_anchor 1
-                                                     (statement expression archive bodyS)))
+                                                                                    (/////translation.with_anchor 1
+                                                                                                                  (statement expression archive bodyS)))
      closureO+ (list.each' ! (expression archive) environment)
      .let [function_name (///reference.artifact [function_module function_artifact])
            @curried (_.local "curried")
@@ -83,38 +83,38 @@
                        non_empty
                        (_.local function_name)))
            initialize_self! (_.; (_.set (list (//when.register 0)) @self))
-           initialize! (list:mix (.function (_ post pre!)
+           initialize! (list.mix (.function (_ post pre!)
                                    (all _.then
                                         pre!
                                         (_.; (_.set (list (..input post)) (_.item (|> post .integer _.int) @curried)))))
-                                 initialize_self!
-                                 (list.domain arity))
+                                 (list.domain arity)
+                                 initialize_self!)
            [declaration instatiation] (with_closure closureO+ function_name
-                                        (_.lambda {.:None}
-                                                  [(list (_.variadic @curried))
-                                                   (all _.then
-                                                        (_.; (_.set (list @num_args) (_.its "length" @curried)))
-                                                        (<| (_.if (|> @num_args (_.= arityO))
-                                                                  (<| (_.then initialize!)
-                                                                      //loop.with_tail_recursion
-                                                                      body!))
-                                                            (_.if (|> @num_args (_.< arityO))
-                                                                  (let [@missing (_.local "missing")]
-                                                                    (_.return (_.lambda {.:None}
-                                                                                        [(list (_.variadic @missing))
-                                                                                         (_.return (|> @self
-                                                                                                       (_.of_lambda (list (_.splat (|> (_.array (list))
-                                                                                                                                       (_.do "concat" (list @curried) {.:None})
-                                                                                                                                       (_.do "concat" (list @missing) {.:None})))))))]))))
-                                                            ... (|> @num_args (_.> arityO))
-                                                            (let [slice (.function (_ from to)
-                                                                          (_.array_range from to @curried))
-                                                                  arity_args (_.splat (slice (_.int +0) limitO))
-                                                                  output_func_args (_.splat (slice arityO @num_args))]
-                                                              (_.return (|> @self
-                                                                            (_.of_lambda (list arity_args))
-                                                                            (_.of_lambda (list output_func_args))))))
-                                                        )]))]
+                                                    (_.lambda {.:None}
+                                                              [(list (_.variadic @curried))
+                                                               (all _.then
+                                                                    (_.; (_.set (list @num_args) (_.its "length" @curried)))
+                                                                    (<| (_.if (|> @num_args (_.= arityO))
+                                                                              (<| (_.then initialize!)
+                                                                                  //loop.with_tail_recursion
+                                                                                  body!))
+                                                                        (_.if (|> @num_args (_.< arityO))
+                                                                              (let [@missing (_.local "missing")]
+                                                                                (_.return (_.lambda {.:None}
+                                                                                                    [(list (_.variadic @missing))
+                                                                                                     (_.return (|> @self
+                                                                                                                   (_.of_lambda (list (_.splat (|> (_.array (list))
+                                                                                                                                                   (_.do "concat" (list @curried) {.:None})
+                                                                                                                                                   (_.do "concat" (list @missing) {.:None})))))))]))))
+                                                                        (comment (|> @num_args (_.> arityO))
+                                                                                 (let [slice (.function (_ from to)
+                                                                                               (_.array_range from to @curried))
+                                                                                       arity_args (_.splat (slice (_.int +0) limitO))
+                                                                                       output_func_args (_.splat (slice arityO @num_args))]
+                                                                                   (_.return (|> @self
+                                                                                                 (_.of_lambda (list arity_args))
+                                                                                                 (_.of_lambda (list output_func_args)))))))
+                                                                    )]))]
      _ (/////translation.execute! declaration)
      _ (/////translation.save! function_artifact {.:None} declaration)]
     (pure instatiation)))

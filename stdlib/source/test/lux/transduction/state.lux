@@ -43,42 +43,47 @@
               /.With /.with])
       (all _.and
            (_.coverage [/.in_series /.pure]
-             (n.= (list.mix n.+ 0 operands)
+             (n.= (list.mix n.+ operands 0)
                   (/.in_series n.+ 0 (/.pure pure.nothing) list.mix operands)))
            (_.coverage [/.unique]
-             (n.= (list.mix n.+ 0 operands)
+             (n.= (list.mix n.+ operands 0)
                   (/.in_series n.+ 0 (/.unique n.hash) list.mix (list:composite operands operands))))
            (_.coverage [/.interposed]
-             (n.= (list.mix n.+ 0 (list.interposed delimiter operands))
+             (n.= (list.mix n.+ (list.interposed delimiter operands) 0)
                   (/.in_series n.+ 0 (/.interposed delimiter) list.mix operands)))
            (_.coverage [/.new]
-             (n.= (list.mix n.+ 0 (list.interposed delimiter operands))
+             (n.= (list.mix n.+ (list.interposed delimiter operands) 0)
                   (/.in_series n.+ 0
                                (/.new n.equality)
-                               list.mix (|> operands
-                                            (list.interposed delimiter)
-                                            (list.interposed delimiter)))))
+                               list.mix
+                               (|> operands
+                                   (list.interposed delimiter)
+                                   (list.interposed delimiter)))))
            (_.coverage [/.after]
-             (n.= (list.mix n.+ 0 operands)
+             (n.= (list.mix n.+ operands 0)
                   (/.in_series n.+ 0
                                (/.after quantity)
                                list.mix (list:composite operands operands))))
            (_.coverage [/.skipping]
-             (n.= (list.mix n.+ 0 operands)
+             (n.= (list.mix n.+ operands 0)
                   (/.in_series n.+ 0
                                (/.skipping to_skip)
-                               list.mix (|> operands
-                                            (list:each (list.repeated (++ to_skip)))
-                                            list:conjoint))))
+                               list.mix
+                               (|> operands
+                                   (list:each (list.repeated (++ to_skip)))
+                                   list:conjoint))))
            (_.coverage [/.until]
-             (n.= (list.mix n.+ 0 (|> operands
-                                      (list.repeated (-- quantity))
-                                      (list:each (list:composite (list delimiter)))
-                                      list:conjoint))
+             (n.= (list.mix n.+
+                            (|> operands
+                                (list.repeated (-- quantity))
+                                (list:each (list:composite (list delimiter)))
+                                list:conjoint)
+                            0)
                   (/.in_series n.+ 0
                                (/.until (n.= delimiter))
-                               list.mix (|> operands
-                                            (list.repeated quantity)
-                                            (list.interposed (list delimiter))
-                                            list:conjoint))))
+                               list.mix
+                               (|> operands
+                                   (list.repeated quantity)
+                                   (list.interposed (list delimiter))
+                                   list:conjoint))))
            )))

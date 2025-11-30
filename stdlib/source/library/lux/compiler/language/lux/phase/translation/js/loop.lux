@@ -7,7 +7,7 @@
     ["[0]" text (.only)
      ["%" \\injection]]
     [collection
-     ["[0]" list (.open functor mix)]]]
+     ["[0]" list (.open functor)]]]
    [math
     [number
      [/64
@@ -48,16 +48,17 @@
            ))
 
     _
-    (|> bindings
-        list.enumeration
-        (list:each (function (_ [register _])
-                     (let [variable (//when.register (n.+ offset register))]
-                       (if initial?
-                           (_.define variable (_.at (_.i32 (.integer register)) $iteration))
-                           (_.; (_.set variable (_.at (_.i32 (.integer register)) $iteration)))))))
-        list.in_reverse
-        (list:mix _.then body)
-        (_.then (_.define $iteration (_.array bindings))))))
+    (_.then (_.define $iteration (_.array bindings))
+            (list.mix _.then
+                      (|> bindings
+                          list.enumeration
+                          (list:each (function (_ [register _])
+                                       (let [variable (//when.register (n.+ offset register))]
+                                         (if initial?
+                                             (_.define variable (_.at (_.i32 (.integer register)) $iteration))
+                                             (_.; (_.set variable (_.at (_.i32 (.integer register)) $iteration)))))))
+                          list.in_reverse)
+                      body))))
 
 (the .public (tail_recursion! statement expression archive [start initsS+ bodyS])
   (Statement (Tail_Recursion synthesis.Term))
@@ -72,14 +73,14 @@
                [@tail_recursion (by ! each ..@tail_recursion /////translation.next)
                 initsO+ (list.each' ! (expression archive) initsS+)
                 body! (/////translation.with_anchor [start @tail_recursion]
-                        (statement expression archive bodyS))
+                                                    (statement expression archive bodyS))
                 $iteration (by ! each ..$iteration /////translation.next)]
                (pure (..setup $iteration
                               true start
                               initsO+
                               (_.with_label (_.label @tail_recursion)
-                                (_.do_while (_.boolean true)
-                                            body!))))))))
+                                            (_.do_while (_.boolean true)
+                                                        body!))))))))
 
 (the .public (tail_recursion statement expression archive [start initsS+ bodyS])
   (-> Phase!

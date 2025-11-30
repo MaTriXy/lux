@@ -20,9 +20,9 @@
      ["%" \\injection]]
     [collection
      ["[0]" dictionary (.only Dictionary)]
-     ["[0]" sequence (.only Sequence) (.open mix)]
+     ["[0]" sequence (.only Sequence)]
      ["[0]" set (.only Set)]
-     ["[0]" list (.open monoid functor mix)
+     ["[0]" list (.open monoid functor)
       ["[0]" property]]]]
    [macro
     ["[0]" expansion]]
@@ -302,10 +302,10 @@
                                                           (|> mapping
                                                               (dictionary.revised' source ..empty (set.has target))
                                                               (dictionary.revised source (set.union forward)))]
-                                                      (list:mix (function (_ previous)
+                                                      (list.mix (function (_ previous)
                                                                   (dictionary.revised' previous ..empty (set.has target)))
-                                                                with_dependence+transitives
-                                                                (set.as_list backward))))))]
+                                                                (set.as_list backward)
+                                                                with_dependence+transitives)))))]
                       (|> dependence
                           (revised :depends_on
                                    (update_dependence
@@ -525,7 +525,7 @@
                                       (-> (List descriptor.Module) (Set descriptor.Module)
                                           [(Set descriptor.Module) (Set descriptor.Module)])
                                       (let [[all_dependencies duplicates _] (is [(Set descriptor.Module) (Set descriptor.Module) Bit]
-                                                                                (list:mix (function (_ new [all duplicates seen_prelude?])
+                                                                                (list.mix (function (_ new [all duplicates seen_prelude?])
                                                                                             (if (set.member? all new)
                                                                                                 (if (text.= .prelude new)
                                                                                                     (if seen_prelude?
@@ -533,9 +533,9 @@
                                                                                                         [all duplicates true])
                                                                                                     [all (set.has new duplicates) seen_prelude?])
                                                                                                 [(set.has new all) duplicates seen_prelude?]))
+                                                                                          new_dependencies
                                                                                           (is [(Set descriptor.Module) (Set descriptor.Module) Bit]
-                                                                                              [all_dependencies ..empty (set.empty? all_dependencies)])
-                                                                                          new_dependencies))]
+                                                                                              [all_dependencies ..empty (set.empty? all_dependencies)])))]
                                         [all_dependencies duplicates])))
 
                            (the (after_imports customs import! module duplicates new_dependencies archive)
@@ -554,9 +554,9 @@
                                                    (list:each (import! customs module))
                                                    (list.complete !))
                                       .let [[failures successes] (case.partition attempts)]]
-                                     (pure {try.:Success [(|> successes
-                                                              (list:each pair.left)
-                                                              (list:mix archive.composite archive))
+                                     (pure {try.:Success [(list.mix archive.composite
+                                                                    (list:each pair.left successes)
+                                                                    archive)
                                                           (list:each pair.right successes)
                                                           failures]})))
                                  (future:pure (exception.except ..cannot_import_twice [module duplicates]))))

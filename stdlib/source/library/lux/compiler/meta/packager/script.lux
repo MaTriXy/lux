@@ -36,24 +36,24 @@
   (for_any (_ declaration)
     (-> (Set unit.ID) (-> declaration declaration declaration) [module.ID Output] declaration
         (Try declaration)))
-  (|> output
-      sequence.as_list
-      (list.all (function (_ [artifact_id custom content])
-                  (if (set.member? necessary_dependencies [module_id artifact_id])
-                      {.:Some content}
-                      {.:None})))
-      (list.mix' try.monad
-                 (function (_ content so_far)
-                   (|> content
-                       (by utf8.binary of)
-                       (by try.monad each
-                           (|>> as_expected
-                                (is declaration)
-                                (sharing [declaration]
-                                  (is declaration
-                                      so_far))
-                                (sequence so_far)))))
-                 so_far)))
+  (list.mix' try.monad
+             (function (_ content so_far)
+               (|> content
+                   (by utf8.binary of)
+                   (by try.monad each
+                       (|>> as_expected
+                            (is declaration)
+                            (sharing [declaration]
+                              (is declaration
+                                  so_far))
+                            (sequence so_far)))))
+             (|> output
+                 sequence.as_list
+                 (list.all (function (_ [artifact_id custom content])
+                             (if (set.member? necessary_dependencies [module_id artifact_id])
+                                 {.:Some content}
+                                 {.:None}))))
+             so_far))
 
 (the .public (package header code sequence scope)
   (for_any (_ declaration)
@@ -66,10 +66,12 @@
     (monad.let [! try.monad]
       [.let [necessary_dependencies (cache/artifact.necessary_dependencies archive)]
        order (cache/module.load_order $.key archive)]
-      (|> order
-          (list:each (function (_ [module [module_id entry]])
-                       [module_id (its archive.:output entry)]))
-          (list.mix' ! (..write_module necessary_dependencies sequence) header)
+      (|> header
+          (list.mix' !
+                     (..write_module necessary_dependencies sequence)
+                     (list:each (function (_ [module [module_id entry]])
+                                  [module_id (its archive.:output entry)])
+                                order))
           (by ! each (|>> scope
                           code
                           (by utf8.binary as)

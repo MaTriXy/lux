@@ -12,7 +12,7 @@
     ["[0]" text (.only \n)
      ["%" \\injection]]
     [collection
-     ["[0]" list (.open functor mix monoid)]]]
+     ["[0]" list (.open functor monoid)]]]
    [math
     [number
      [/64
@@ -83,26 +83,26 @@
     (|>> nominal.as))
 
   (template.with [<type> <super>+]
-    [(expansion.let [<brand> (template.name [<type> "'"])]
-       (these (nominal.every (<brand> brand) Any)
-              (`` (every .public <type> (|> Any <brand> (,, (template.spliced <super>+)))))))]
-    
-    [[Expression [Code]]
-     [Computation [Expression' Code]]
-     [Location [Computation' Expression' Code]]
-     [Statement [Code]]])
+                 [(expansion.let [<brand> (template.name [<type> "'"])]
+                    (these (nominal.every (<brand> brand) Any)
+                           (`` (every .public <type> (|> Any <brand> (,, (template.spliced <super>+)))))))]
+                 
+                 [[Expression [Code]]
+                  [Computation [Expression' Code]]
+                  [Location [Computation' Expression' Code]]
+                  [Statement [Code]]])
 
   (template.with [<type> <super>+]
-    [(expansion.let [<brand> (template.name [<type> "'"])]
-       (these (nominal.every .public <brand> Any)
-              (`` (every .public <type> (|> <brand> (,, (template.spliced <super>+)))))))]
+                 [(expansion.let [<brand> (template.name [<type> "'"])]
+                    (these (nominal.every .public <brand> Any)
+                           (`` (every .public <type> (|> <brand> (,, (template.spliced <super>+)))))))]
 
-    [[Literal [Computation' Expression' Code]]
-     [Var [Location' Computation' Expression' Code]]
-     [Access [Location' Computation' Expression' Code]]
-     [Constant [Location' Computation' Expression' Code]]
-     [Global [Location' Computation' Expression' Code]]
-     [Label [Code]]])
+                 [[Literal [Computation' Expression' Code]]
+                  [Var [Location' Computation' Expression' Code]]
+                  [Access [Location' Computation' Expression' Code]]
+                  [Constant [Location' Computation' Expression' Code]]
+                  [Global [Location' Computation' Expression' Code]]
+                  [Label [Code]]])
 
   (every .public Argument
     (Record
@@ -122,13 +122,13 @@
     (|>> (text "$") nominal.of))
 
   (template.with [<name> <type>]
-    [(the .public <name>
-       (-> Text
-           <type>)
-       (|>> nominal.of))]
+                 [(the .public <name>
+                    (-> Text
+                        <type>)
+                    (|>> nominal.of))]
 
-    [[constant Constant]
-     [label Label]])
+                 [[constant Constant]
+                  [label Label]])
 
   (the .public (set_label label)
     (-> Label
@@ -184,18 +184,18 @@
     (-> Text
         Text)
     (`` (|>> (,, (template.with [<find> <replace>]
-                   [(text.replaced <find> <replace>)]
+                                [(text.replaced <find> <replace>)]
 
-                   [["\" "\\"]
-                    [text.tab "\t"]
-                    [text.vertical_tab "\v"]
-                    [text.null "\0"]
-                    [text.back_space "\b"]
-                    [text.form_feed "\f"]
-                    [\n "\n"]
-                    [text.carriage_return "\r"]
-                    [text.double_quote (text "\" text.double_quote)]
-                    ["$" "\$"]]))
+                                [["\" "\\"]
+                                 [text.tab "\t"]
+                                 [text.vertical_tab "\v"]
+                                 [text.null "\0"]
+                                 [text.back_space "\b"]
+                                 [text.form_feed "\f"]
+                                 [\n "\n"]
+                                 [text.carriage_return "\r"]
+                                 [text.double_quote (text "\" text.double_quote)]
+                                 ["$" "\$"]]))
              )))
 
   (the .public string
@@ -234,13 +234,13 @@
          ..group))
 
   (template.with [<name> <reference?>]
-    [(the .public <name>
-       (-> Var
-           Argument)
-       (|>> [<reference?>]))]
+                 [(the .public <name>
+                    (-> Var
+                        Argument)
+                    (|>> [<reference?>]))]
 
-    [[parameter 0b]
-     [reference 1b]])
+                 [[parameter 0b]
+                  [reference 1b]])
 
   (the .public (closure uses arguments body!)
     (-> (List Argument) (List Argument) Statement
@@ -268,68 +268,68 @@
     (pure (list.repeated arity (` ..Expression))))
 
   (template.with [<arity> <function>+]
-    [(expansion.let [<of> (template.name ["of/" <arity>])
-                     <inputs> (arity_inputs <arity>)
-                     <types> (arity_types <arity>)]
-       (these (the .public (<of> function [<inputs>])
-                (-> Expression [<types>]
-                    Computation)
-                (..of (.list <inputs>) function))
+                 [(expansion.let [<of> (template.name ["of/" <arity>])
+                                  <inputs> (arity_inputs <arity>)
+                                  <types> (arity_types <arity>)]
+                    (these (the .public (<of> function [<inputs>])
+                             (-> Expression [<types>]
+                                 Computation)
+                             (..of (.list <inputs>) function))
 
-              (template.with [<function>]
-                [(`` (the .public (,, (template.name [<function> "/" <arity>]))
-                       (<of> (..constant <function>))))]
+                           (template.with [<function>]
+                                          [(`` (the .public (,, (template.name [<function> "/" <arity>]))
+                                                 (<of> (..constant <function>))))]
 
-                <function>+)))]
+                                          <function>+)))]
 
-    [[0
-      [["func_num_args"]
-       ["func_get_args"]
-       ["time"]
-       ["phpversion"]]]
+                 [[0
+                   [["func_num_args"]
+                    ["func_get_args"]
+                    ["time"]
+                    ["phpversion"]]]
 
-     [1
-      [["isset"]
-       ["var_dump"]
-       ["is_null"]
-       ["empty"]
-       ["count"]
-       ["array_pop"]
-       ["array_reverse"]
-       ["intval"]
-       ["floatval"]
-       ["strval"]
-       ["ord"]
-       ["chr"]
-       ["print"]
-       ["exit"]
-       ["iconv_strlen"] ["strlen"]
-       ["log"]
-       ["ceil"]
-       ["floor"]
-       ["is_nan"]]]
+                  [1
+                   [["isset"]
+                    ["var_dump"]
+                    ["is_null"]
+                    ["empty"]
+                    ["count"]
+                    ["array_pop"]
+                    ["array_reverse"]
+                    ["intval"]
+                    ["floatval"]
+                    ["strval"]
+                    ["ord"]
+                    ["chr"]
+                    ["print"]
+                    ["exit"]
+                    ["iconv_strlen"] ["strlen"]
+                    ["log"]
+                    ["ceil"]
+                    ["floor"]
+                    ["is_nan"]]]
 
-     [2
-      [["intdiv"]
-       ["fmod"]
-       ["number_format"]
-       ["array_key_exists"]
-       ["call_user_func_array"]
-       ["array_slice"]
-       ["array_push"]
-       ["pack"]
-       ["unpack"]
-       ["iconv_strpos"] ["strpos"]
-       ["pow"]
-       ["max"]]]
+                  [2
+                   [["intdiv"]
+                    ["fmod"]
+                    ["number_format"]
+                    ["array_key_exists"]
+                    ["call_user_func_array"]
+                    ["array_slice"]
+                    ["array_push"]
+                    ["pack"]
+                    ["unpack"]
+                    ["iconv_strpos"] ["strpos"]
+                    ["pow"]
+                    ["max"]]]
 
-     [3
-      [["array_fill"]
-       ["array_slice"]
-       ["array_splice"]
-       ["iconv"]
-       ["iconv_strpos"] ["strpos"]
-       ["iconv_substr"] ["substr"]]]])
+                  [3
+                   [["array_fill"]
+                    ["array_slice"]
+                    ["array_splice"]
+                    ["iconv"]
+                    ["iconv_strpos"] ["strpos"]
+                    ["iconv_substr"] ["substr"]]]])
 
   (the .public (key_value key value)
     (-> Expression Expression
@@ -406,44 +406,44 @@
         nominal.of))
 
   (template.with [<name> <op>]
-    [(the .public (<name> parameter subject)
-       (-> Expression Expression
-           Computation)
-       (|> (text (nominal.as subject) " " <op> " " (nominal.as parameter))
-           ..group
-           nominal.of))]
+                 [(the .public (<name> parameter subject)
+                    (-> Expression Expression
+                        Computation)
+                    (|> (text (nominal.as subject) " " <op> " " (nominal.as parameter))
+                        ..group
+                        nominal.of))]
 
-    [[or      "||"]
-     [and     "&&"]
-     [==      "=="]
-     [===     "==="]
-     [<       "<"]
-     [<=      "<="]
-     [>       ">"]
-     [>=      ">="]
-     [+       "+"]
-     [-       "-"]
-     [*       "*"]
-     [/       "/"]
-     [%       "%"]
-     [bit_or  "|"]
-     [bit_and "&"]
-     [bit_xor "^"]
-     [bit_shl "<<"]
-     [bit_shr ">>"]
-     [concat  "."]])
+                 [[or      "||"]
+                  [and     "&&"]
+                  [==      "=="]
+                  [===     "==="]
+                  [<       "<"]
+                  [<=      "<="]
+                  [>       ">"]
+                  [>=      ">="]
+                  [+       "+"]
+                  [-       "-"]
+                  [*       "*"]
+                  [/       "/"]
+                  [%       "%"]
+                  [bit_or  "|"]
+                  [bit_and "&"]
+                  [bit_xor "^"]
+                  [bit_shl "<<"]
+                  [bit_shr ">>"]
+                  [concat  "."]])
 
   (template.with [<unary> <name>]
-    [(the .public <name>
-       (-> Computation
-           Computation)
-       (|>> nominal.as
-            (text <unary>)
-            nominal.of))]
+                 [(the .public <name>
+                    (-> Computation
+                        Computation)
+                    (|>> nominal.as
+                         (text <unary>)
+                         nominal.of))]
 
-    [["!" not]
-     ["~" bit_not]
-     ["-" opposite]])
+                 [["!" not]
+                  ["~" bit_not]
+                  ["-" opposite]])
 
   (the .public (set var value)
     (-> Location Expression
@@ -464,27 +464,27 @@
     (..of/1 [var] (..constant "isset")))
 
   (template.with [<name> <modifier>]
-    [(the .public <name>
-       (-> Var
-           Statement)
-       (|>> nominal.as
-            (text <modifier> " ")
-            (text.suffix ..statement_suffix)
-            nominal.of))]
+                 [(the .public <name>
+                    (-> Var
+                        Statement)
+                    (|>> nominal.as
+                         (text <modifier> " ")
+                         (text.suffix ..statement_suffix)
+                         nominal.of))]
 
-    [[define_global "global"]])
+                 [[define_global "global"]])
 
   (template.with [<name> <modifier> <location>]
-    [(the .public (<name> location value)
-       (-> <location> Expression
-           Statement)
-       (nominal.of
-        (text <modifier> " " (nominal.as location)
-              " = " (nominal.as value)
-              ..statement_suffix)))]
+                 [(the .public (<name> location value)
+                    (-> <location> Expression
+                        Statement)
+                    (nominal.of
+                     (text <modifier> " " (nominal.as location)
+                           " = " (nominal.as value)
+                           ..statement_suffix)))]
 
-    [[define_static   "static" Var]
-     [define_constant "const"  Constant]])
+                 [[define_static   "static" Var]
+                  [define_constant "const"  Constant]])
 
   (the .public (if test then! else!)
     (-> Expression Statement Statement
@@ -558,17 +558,17 @@
                (text.interposed \n+)))))
 
   (template.with [<name> <keyword>]
-    [(the .public <name>
-       (-> Expression
-           Statement)
-       (|>> nominal.as
-            (text <keyword> " ")
-            (text.suffix ..statement_suffix)
-            nominal.of))]
+                 [(the .public <name>
+                    (-> Expression
+                        Statement)
+                    (|>> nominal.as
+                         (text <keyword> " ")
+                         (text.suffix ..statement_suffix)
+                         nominal.of))]
 
-    [[throw  "throw"]
-     [return "return"]
-     [echo   "echo"]])
+                 [[throw  "throw"]
+                  [return "return"]
+                  [echo   "echo"]])
 
   (the .public (define name value)
     (-> Constant Expression
@@ -587,14 +587,14 @@
            (..block (nominal.as body!)))))
 
   (template.with [<name> <keyword>]
-    [(the .public <name>
-       Statement
-       (|> <keyword>
-           (text.suffix ..statement_suffix)
-           nominal.of))]
+                 [(the .public <name>
+                    Statement
+                    (|> <keyword>
+                        (text.suffix ..statement_suffix)
+                        nominal.of))]
 
-    [[break "break"]
-     [continue "continue"]])
+                 [[break "break"]
+                  [continue "continue"]])
 
   (the .public splat
     (-> Expression

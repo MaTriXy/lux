@@ -8,7 +8,7 @@
     ["[0]" text (.only)
      ["%" \\injection]]
     [collection
-     ["[0]" list (.open functor mix monoid)]
+     ["[0]" list (.open functor monoid)]
      ["[0]" set]]]
    [math
     [number
@@ -209,10 +209,10 @@
   (Expression synthesis.Its)
   (monad.let phase.monad
     [valueO (expression archive valueS)]
-    (pure (list:mix (function (_ side source)
+    (pure (list.mix (function (_ side source)
                       ((projection side) source))
-                    valueO
-                    pathP))))
+                    pathP
+                    valueO))))
 
 (the @savepoint (_.var (comment "lux_pm_savepoint"
                                 "s")))
@@ -382,13 +382,13 @@
                                                      (list:composite (list head) tail))]
                                 (pure (all _.then
                                            (_.set (list 'input) ..current)
-                                           (list:mix (function (_ [when then] else)
+                                           (list.mix (function (_ [when then] else)
                                                        (_.if (_.= (<injection> when)
                                                                   'input)
                                                              then
                                                              else))
-                                                     ..fail_pm!
-                                                     (list.in_reverse clauses)))))]
+                                                     (list.in_reverse clauses)
+                                                     ..fail_pm!))))]
 
                              [[path.:I64_Fork //primitive.i64]
                               [path.:F64_Fork //primitive.f64]
@@ -526,12 +526,12 @@
      body (statement expression archive body)
      'source ..'source]
     (pure (all _.then
-               (list:mix (function (_ [register member] left)
+               (list.mix (function (_ [register member] left)
                            (all _.then
                                 left
                                 (_.set (list (..register register)) (..projection member 'source))))
-                         (_.set (list 'source) input)
-                         bindings)
+                         bindings
+                         (_.set (list 'source) input))
                body))))
 
 (the .public (multi_let expression archive [input bindings body])
@@ -572,13 +572,13 @@
                      else (statement expression archive else)]
                     (pure (all _.then
                                (_.set (list 'input) input)
-                               (list:mix (function (_ [when then] else)
+                               (list.mix (function (_ [when then] else)
                                            (_.if (_.= (,injection when)
                                                       'input)
                                                  then
                                                  else))
-                                         else
-                                         (list.in_reverse clauses))))))
+                                         (list.in_reverse clauses)
+                                         else)))))
 
                 (the .public (,expression expression archive [input clauses else])
                   (Expression [synthesis.Term (List [,type synthesis.Term]) synthesis.Term])
@@ -590,13 +590,13 @@
                                          clauses)
                      else (expression archive else)]
                     (pure (<| (..let' ['input input])
-                              (list:mix (function (_ [when then] else)
+                              (list.mix (function (_ [when then] else)
                                           (_.? (_.= (,injection when)
                                                     'input)
                                                then
                                                else))
-                                        else
-                                        (list.in_reverse clauses))))))]
+                                        (list.in_reverse clauses)
+                                        else)))))]
 
                [[when_i64 when_i64! I64 //primitive.i64]
                 [when_f64 when_f64! F64 //primitive.f64]

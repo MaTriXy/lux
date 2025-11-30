@@ -17,7 +17,7 @@
     ["[0]" text]
     [collection
      ["[0]" dictionary]
-     ["[0]" list (.open mix)]
+     ["[0]" list]
      ["[0]" array
       ["[1]" \\unsafe]]]]
    [math
@@ -49,22 +49,22 @@
   (pure (list (code.local (text.replaced ":" "" (text.lower_cased name))))))
 
 (template.with [<method>]
-  [(expansion.let [<name> (method_function <method>)]
-     (the .public (<name> url headers data client)
-       (for_any (_ !)
-         (-> URL Headers (Maybe Binary) (Client !)
-             (! (Try (Response !)))))
-       (by client request {<method>} url headers data)))]
+               [(expansion.let [<name> (method_function <method>)]
+                  (the .public (<name> url headers data client)
+                    (for_any (_ !)
+                      (-> URL Headers (Maybe Binary) (Client !)
+                          (! (Try (Response !)))))
+                    (by client request {<method>} url headers data)))]
 
-  [[//.:Post]
-   [//.:Get]
-   [//.:Put]
-   [//.:Patch]
-   [//.:Delete]
-   [//.:Head]
-   [//.:Connect]
-   [//.:Options]
-   [//.:Trace]])
+               [[//.:Post]
+                [//.:Get]
+                [//.:Put]
+                [//.:Patch]
+                [//.:Delete]
+                [//.:Head]
+                [//.:Connect]
+                [//.:Options]
+                [//.:Trace]])
 
 (the default_buffer_size
   (n.x 1,024 1,024))
@@ -239,24 +239,25 @@
 
                                 (ffi.the (dict [] Dict))
 
-                                (the headers_input
+                                (the (headers_input it)
                                   (-> Headers
                                       Dict)
-                                  (|>> dictionary.entries
-                                       (list:mix (function (_ [header value] it)
-                                                   (exec
-                                                     (Dict:setdefault [header value] it)
-                                                     it))
-                                                 (..dict []))))
+                                  (list.mix (function (_ [header value] it)
+                                              (exec
+                                                (Dict:setdefault [header value] it)
+                                                it))
+                                            (dictionary.entries it)
+                                            (..dict [])))
 
-                                (the headers_output
+                                (the (headers_output it)
                                   (-> (Array (Array Text))
                                       Headers)
-                                  (|>> (array.mix (function (_ _ header,value it)
-                                                    (dictionary.has (array.item 0 header,value)
-                                                                    (array.item 1 header,value)
-                                                                    it))
-                                                  header.empty)))
+                                  (array.mix (function (_ _ header,value it)
+                                               (dictionary.has (array.item 0 header,value)
+                                                               (array.item 1 header,value)
+                                                               it))
+                                             it
+                                             header.empty))
 
                                 (ffi.the http/client/HTTPResponse
                                   (status Natural)

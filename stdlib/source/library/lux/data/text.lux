@@ -12,7 +12,7 @@
    [data
     ["[0]" maybe]
     [collection
-     ["[0]" list (.open mix monoid)]]]
+     ["[0]" list (.open monoid)]]]
    [math
     [number
      ["[0]" /64 (.only)
@@ -35,18 +35,18 @@
        .int_char#))
 
 (with_template [<code> <short> <long>]
-  [(the .public <long> (..of_character <code>))
-   (the .public <short> <long>)]
+               [(the .public <long> (..of_character <code>))
+                (the .public <short> <long>)]
 
-  [[character.\0  \0  null]
-   [character.\a  \a  alarm]
-   [character.\b  \b  back_space]
-   [character.\t  \t  tab]
-   [character.\n  \n  new_line]
-   [character.\v  \v  vertical_tab]
-   [character.\f  \f  form_feed]
-   [character.\r  \r  carriage_return]
-   [character.\'' \'' double_quote]])
+               [[character.\0  \0  null]
+                [character.\a  \a  alarm]
+                [character.\b  \b  back_space]
+                [character.\t  \t  tab]
+                [character.\n  \n  new_line]
+                [character.\v  \v  vertical_tab]
+                [character.\f  \f  form_feed]
+                [character.\r  \r  carriage_return]
+                [character.\'' \'' double_quote]])
 
 (the .public line_feed
   Text
@@ -355,24 +355,23 @@
                                 (n.+ (.text_char# index input))))
                         hash)))))))
 
-(the .public together
+(the .public (together it)
   (-> (List Text)
       Text)
-  (with ..monoid
-    (|>> list.in_reverse
-         (list:mix composite identity))))
+  (<| (with ..monoid)
+      (list.mix composite (list.in_reverse it) identity)))
 
 (the .public (interposed delimiter texts)
   (-> Text (List Text)
       Text)
   (when delimiter
     ..empty (..together texts)
-    _ (list:mix (function (_ right left)
+    _ (list.mix (function (_ right left)
                   (if (identical? ..empty left)
                       right
                       (text left delimiter right)))
-                ..empty
-                texts)))
+                texts
+                ..empty)))
 
 (the .public (empty? text)
   (-> Text
@@ -389,15 +388,15 @@
   (-> Character
       Bit)
   (<| (_expansion:let [<options> (with_template [<character>]
-                                   [(.character (,, (static <character>)))
-                                    true]
+                                                [(.character (,, (static <character>)))
+                                                 true]
 
-                                   [[..tab]
-                                    [..vertical_tab]
-                                    [..space]
-                                    [..new_line]
-                                    [..carriage_return]
-                                    [..form_feed]])])
+                                                [[..tab]
+                                                 [..vertical_tab]
+                                                 [..space]
+                                                 [..new_line]
+                                                 [..carriage_return]
+                                                 [..form_feed]])])
       (`` (when character
             <options>
 

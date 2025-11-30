@@ -38,32 +38,25 @@
   (function (expression archive synthesis)
     (`` (when synthesis
           (,, (template.with [<tag> <translator>]
-                [(<tag> @ value)
-                 (phase:pure (<translator> value))]
+                             [(<tag> @ value)
+                              (phase:pure (<translator> value))]
 
-                [[synthesis.bit  /primitive.bit]
-                 [synthesis.i64  /primitive.i64]
-                 [synthesis.f64  /primitive.f64]
-                 [synthesis.text /primitive.text]]
-                ))
+                             [[synthesis.bit  /primitive.bit]
+                              [synthesis.i64  /primitive.i64]
+                              [synthesis.f64  /primitive.f64]
+                              [synthesis.text /primitive.text]]
+                             ))
 
-          (,, (template.with [<tag> <translator>]
-                [(<tag> @ value)
-                 (<translator> expression archive value)]
-
-                [[synthesis.variant /structure.variant]
-                 [synthesis.tuple /structure.tuple]
-                 
-                 [synthesis.reification /function.reification]]
-                ))
+          (synthesis.reification @ value)
+          (/function.reification expression archive value)
 
           (,, (template.with [<tag> <translator>]
-                [(<tag> @ value)
-                 (<translator> ///extension/common.statement expression archive value)]
+                             [(<tag> @ value)
+                              (<translator> ///extension/common.statement expression archive value)]
 
-                [[synthesis.tail_recursion /loop.tail_recursion]
-                 [synthesis.abstraction /function.function]]
-                ))
+                             [[synthesis.tail_recursion /loop.tail_recursion]
+                              [synthesis.abstraction /function.function]]
+                             ))
 
           (synthesis.let @ register input body)
           (/when.let expression archive [register input body])
@@ -88,34 +81,34 @@
 
                     else)
                   (,, (template.with [,synthesis ,translation]
-                        [(when (,synthesis it)
-                           {.:Some it}
-                           (,translation expression archive it)
-                           
-                           else)]
+                                     [(when (,synthesis it)
+                                        {.:Some it}
+                                        (,translation expression archive it)
+                                        
+                                        else)]
 
-                        [[synthesis.its /when.its]]))
+                                     [[synthesis.its /when.its]]))
                   (,, (template.with [,synthesis ,translation]
-                        [(when (,synthesis it)
-                           {.:Some it}
-                           (,translation ///extension/common.statement expression archive it)
-                           
-                           else)]
+                                     [(when (,synthesis it)
+                                        {.:Some it}
+                                        (,translation ///extension/common.statement expression archive it)
+                                        
+                                        else)]
 
-                        [[synthesis.variant_if /when.variant_if]
-                         [synthesis.when_i64 /when.when_i64]
-                         [synthesis.when_f64 /when.when_f64]
-                         [synthesis.when_text /when.when_text]
-                         [synthesis.multi_let /when.multi_let]]))
+                                     [[synthesis.variant_if /when.variant_if]
+                                      [synthesis.when_i64 /when.when_i64]
+                                      [synthesis.when_f64 /when.when_f64]
+                                      [synthesis.when_text /when.when_text]
+                                      [synthesis.multi_let /when.multi_let]]))
                   (/when.when ///extension/common.statement expression archive it)))
 
           (synthesis.tail_iteration @ _)
           (phase.except ..cannot_recur_as_an_expression [])
 
-          [@ {synthesis.:Reference value}]
+          {synthesis.:Reference @ value}
           (//reference.reference /reference.system archive value)
 
-          [@ {synthesis.:Extension [name parameters]}]
+          {synthesis.:Extension @ name parameters}
           (///extension.reification extender lux expression archive .Translation name parameters
                                     (|>>)
                                     (function (_ _) {.:None}))))))

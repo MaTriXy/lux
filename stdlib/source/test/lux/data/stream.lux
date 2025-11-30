@@ -44,36 +44,38 @@
                   (monadT.spec (by /.monad pure) (..comparison natural.equality) /.monad))
 
            (_.coverage [/.one /.mix]
-             (|> (monad.let /.monad
-                   [_ (/.one _0)
-                    _ (/.one _1)
-                    _ (/.one _2)]
-                   (pure []))
-                 (/.mix natural.+ 0)
+             (|> (/.mix natural.+
+                        (monad.let /.monad
+                          [_ (/.one _0)
+                           _ (/.one _1)
+                           _ (/.one _2)]
+                          (pure []))
+                        0)
                  pair.left
                  (natural.= (all natural.+ _0 _1 _2))))
            (_.coverage [/.each]
-             (|> (monad.let /.monad
-                   [_ (/.one _0)
-                    _ (/.one _1)
-                    _ (/.one _2)]
-                   (pure []))
-                 (/.each ++)
-                 (/.mix natural.+ 0)
+             (|> (/.mix natural.+
+                        (/.each ++ (monad.let /.monad
+                                     [_ (/.one _0)
+                                      _ (/.one _1)
+                                      _ (/.one _2)]
+                                     (pure [])))
+                        0)
                  pair.left
                  (natural.= (all natural.+ (++ _0) (++ _1) (++ _2)))))
            (_.coverage [/.only]
              (let [? (natural.> _0)
-                   expected (|> (sequence.new _0 _1 _2)
-                                (sequence.only ?)
-                                (sequence.mix natural.+ 0))]
-               (|> (monad.let /.monad
-                     [_ (/.one _0)
-                      _ (/.one _1)
-                      _ (/.one _2)]
-                     (pure []))
-                   (/.only ?)
-                   (/.mix natural.+ 0)
+                   expected (sequence.mix natural.+
+                                          (|> (sequence.new _0 _1 _2)
+                                              (sequence.only ?))
+                                          0)]
+               (|> (/.mix natural.+
+                          (/.only ? (monad.let /.monad
+                                      [_ (/.one _0)
+                                       _ (/.one _1)
+                                       _ (/.one _2)]
+                                      (pure [])))
+                          0)
                    pair.left
                    (natural.= expected))))
            (_.coverage [/.sequence]

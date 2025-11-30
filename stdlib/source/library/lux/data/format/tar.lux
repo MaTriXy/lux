@@ -26,8 +26,8 @@
      [encoding
       ["[0]" utf8]]]
     [collection
-     ["[0]" list (.open mix)]
-     ["[0]" sequence (.only Sequence) (.open mix)]
+     ["[0]" list]
+     ["[0]" sequence (.only Sequence)]
      [array
       [\\unsafe (.only)]]]]
    [math
@@ -72,66 +72,65 @@
 (template.with [<exception> <limit> <size>
                 <type> <in> <out> <injection> <suffix>
                 <coercion> ,equality]
-  [(the .public <limit>
-     Natural
-     (|> ..size_in_base_08
-         (list.repeated <size>)
-         (list:mix n.x 1)
-         ++))
+               [(the .public <limit>
+                  Natural
+                  (++ (list.mix n.x
+                                (list.repeated <size> ..size_in_base_08)
+                                1)))
 
-   (exception.the .public (<exception> value)
-     (Exception Natural)
-     (exception.report
-      (list ["Value" (%.natural value)]
-            ["Maximum" (%.natural (-- <limit>))])))
+                (exception.the .public (<exception> value)
+                  (Exception Natural)
+                  (exception.report
+                   (list ["Value" (%.natural value)]
+                         ["Maximum" (%.natural (-- <limit>))])))
 
-   (nominal.every .public <type>
-     Natural
+                (nominal.every .public <type>
+                  Natural
 
-     (the .public (<in> value)
-       (-> Natural
-           (Try <type>))
-       (if (n.< <limit> value)
-           {try.:Success (nominal.of value)}
-           (exception.except <exception> [value])))
+                  (the .public (<in> value)
+                    (-> Natural
+                        (Try <type>))
+                    (if (n.< <limit> value)
+                        {try.:Success (nominal.of value)}
+                        (exception.except <exception> [value])))
 
-     (the .public <out>
-       (-> <type>
-           Natural)
-       (|>> nominal.as))
+                  (the .public <out>
+                    (-> <type>
+                        Natural)
+                    (|>> nominal.as))
 
-     (the ,equality
-       (Equality <type>)
-       (by equality.functor each
-           <out>
-           n.equality))
+                  (the ,equality
+                    (Equality <type>)
+                    (by equality.functor each
+                        <out>
+                        n.equality))
 
-     (the <injection>
-       (Injection <type>)
-       (let [suffix <suffix>
-             padded_size (n.+ (text.size suffix) <size>)]
-         (|>> nominal.as
-              (by n.base_08 as)
-              (..padding_in_base_08 <size>)
-              (text.suffix suffix)
-              (by utf8.binary as)
-              (!binary.segment padded_size))))
+                  (the <injection>
+                    (Injection <type>)
+                    (let [suffix <suffix>
+                          padded_size (n.+ (text.size suffix) <size>)]
+                      (|>> nominal.as
+                           (by n.base_08 as)
+                           (..padding_in_base_08 <size>)
+                           (text.suffix suffix)
+                           (by utf8.binary as)
+                           (!binary.segment padded_size))))
 
-     (the <coercion>
-       (-> Natural
-           <type>)
-       (|>> (n.% <limit>)
-            nominal.of))
-     )]
+                  (the <coercion>
+                    (-> Natural
+                        <type>)
+                    (|>> (n.% <limit>)
+                         nominal.of))
+                  )]
 
-  [[not_a_small_number small_limit ..small_size
-    Small small from_small
-    small_binary (text ..blank ..null)
-    as_small equality_of_small]
-   [not_a_big_number big_limit ..big_size
-    Big big from_big
-    big_binary ..blank
-    as_big equality_of_big]])
+               [[not_a_small_number small_limit ..small_size
+                 Small small from_small
+                 small_binary (text ..blank ..null)
+                 as_small equality_of_small]
+                [not_a_big_number big_limit ..big_size
+                 Big big from_big
+                 big_binary ..blank
+                 as_big equality_of_big]])
 
 (exception.the (wrong_character [expected actual])
   (Exception [Character Character])
@@ -201,10 +200,10 @@
   (the checksum_suffix
     (text ..blank ..null))
 
-  (the checksum
+  (the (checksum it)
     (-> Binary
         Natural)
-    (binary.mix n.+ 0))
+    (binary.mix n.+ it 0))
 
   (the checksum_checksum
     (|> ..dummy_checksum
@@ -247,14 +246,14 @@
   Character
   (number.base_16 "007F"))
 
-(the ascii?
+(the (ascii? it)
   (-> Text
       Bit)
-  (|>> (by utf8.binary as)
-       (binary.mix (function (_ character verdict)
-                     (.and verdict
-                           (n.<= ..last_ascii character)))
-                   true)))
+  (binary.mix (function (_ character verdict)
+                (.and verdict
+                      (n.<= ..last_ascii character)))
+              (by utf8.binary as it)
+              true))
 
 (exception.the .public (not_ascii text)
   (Exception Text)
@@ -279,68 +278,68 @@
                 (binary!.slice 0 size string)))))))
 
 (template.with [<type> <representation> <size> <exception> <in> <out> <injection> <projection> <none> ,equality]
-  [(nominal.every .public <type>
-     <representation>
+               [(nominal.every .public <type>
+                  <representation>
 
-     (exception.the .public (<exception> value)
-       (Exception Text)
-       (exception.report
-        (list ["Value" (%.text value)]
-              ["Size" (%.natural (text.size value))]
-              ["Maximum" (%.natural <size>)])))
+                  (exception.the .public (<exception> value)
+                    (Exception Text)
+                    (exception.report
+                     (list ["Value" (%.text value)]
+                           ["Size" (%.natural (text.size value))]
+                           ["Maximum" (%.natural <size>)])))
 
-     (the .public (<in> value)
-       (-> <representation>
-           (Try <type>))
-       (if (..ascii? value)
-           (if (|> value
-                   (by utf8.binary as)
-                   binary!.size
-                   (n.> <size>))
-               (exception.except <exception> [value])
-               {try.:Success (nominal.of value)})
-           (exception.except ..not_ascii [value])))
+                  (the .public (<in> value)
+                    (-> <representation>
+                        (Try <type>))
+                    (if (..ascii? value)
+                        (if (|> value
+                                (by utf8.binary as)
+                                binary!.size
+                                (n.> <size>))
+                            (exception.except <exception> [value])
+                            {try.:Success (nominal.of value)})
+                        (exception.except ..not_ascii [value])))
 
-     (the .public <out>
-       (-> <type>
-           <representation>)
-       (|>> nominal.as))
+                  (the .public <out>
+                    (-> <type>
+                        <representation>)
+                    (|>> nominal.as))
 
-     (the <injection>
-       (Injection <type>)
-       (let [suffix ..null
-             padded_size (n.+ (text.size suffix) <size>)]
-         (|>> nominal.as
-              (text.suffix suffix)
-              (by utf8.binary as)
-              (!binary.segment padded_size))))
+                  (the <injection>
+                    (Injection <type>)
+                    (let [suffix ..null
+                          padded_size (n.+ (text.size suffix) <size>)]
+                      (|>> nominal.as
+                           (text.suffix suffix)
+                           (by utf8.binary as)
+                           (!binary.segment padded_size))))
 
-     (the <projection>
-       (Projection <type>)
-       (<| (function (_ state))
-           (parsed state string (?binary.segment <size>))
-           (parsed state end ?binary.bits_08)
-           (let [expected (`` (.character (,, (static ..null))))])
-           (if (not (n.= expected end))
-               (exception.except ..wrong_character [expected end]))
-           (monad.let [! try.monad]
-             [text (by utf8.binary of (..un_padded string))
-              it (<in> text)]
-             (pure [state it]))))
+                  (the <projection>
+                    (Projection <type>)
+                    (<| (function (_ state))
+                        (parsed state string (?binary.segment <size>))
+                        (parsed state end ?binary.bits_08)
+                        (let [expected (`` (.character (,, (static ..null))))])
+                        (if (not (n.= expected end))
+                            (exception.except ..wrong_character [expected end]))
+                        (monad.let [! try.monad]
+                          [text (by utf8.binary of (..un_padded string))
+                           it (<in> text)]
+                          (pure [state it]))))
 
-     (the .public <none>
-       <type>
-       (try.trusted (<in> "")))
+                  (the .public <none>
+                    <type>
+                    (try.trusted (<in> "")))
 
-     (the ,equality
-       (Equality <type>)
-       (by equality.functor each
-           <out>
-           text.equality))
-     )]
+                  (the ,equality
+                    (Equality <type>)
+                    (by equality.functor each
+                        <out>
+                        text.equality))
+                  )]
 
-  [[Name Text      ..name_size name_is_too_long name from_name name_binary name_of anonymous equality_of_name]
-   [Path file.Path ..path_size path_is_too_long path from_path path_binary path_of no_path equality_of_path]])
+               [[Name Text      ..name_size name_is_too_long name from_name name_binary name_of anonymous equality_of_name]
+                [Path file.Path ..path_size path_is_too_long path from_path path_binary path_of no_path equality_of_path]])
 
 (the magic_size Size 7)
 
@@ -457,11 +456,11 @@
                                    [(.character "6") fifo]
                                    [(.character "7") contiguous])]
     (these (template.with [<flag> <name>]
-             [(the <name>
-                Link_Flag
-                (nominal.of <flag>))]
+                          [(the <name>
+                             Link_Flag
+                             (nominal.of <flag>))]
 
-             [<options>])
+                          [<options>])
 
            (exception.the (invalid_link_flag value)
              (Exception Natural)
@@ -474,10 +473,10 @@
                  (parsed state it ?binary.bits_08)
                  (`` (when (.natural it)
                        (,, (template.with [<value> <link_flag>]
-                             [<value>
-                              {try.:Success [state <link_flag>]}]
+                                          [<value>
+                                           {try.:Success [state <link_flag>]}]
 
-                             [<options>]))
+                                          [<options>]))
 
                        _
                        (exception.except ..invalid_link_flag [(.natural it)]))))))
@@ -535,11 +534,11 @@
                                    ["2000" set_group_id_on_execution]
                                    ["4000" set_user_id_on_execution])]
     (these (template.with [<code> <name>]
-             [(the .public <name>
-                Mode
-                (nominal.of (number.base_08 <code>)))]
+                          [(the .public <name>
+                             Mode
+                             (nominal.of (number.base_08 <code>)))]
 
-             [<options>])
+                          [<options>])
 
            (the maximum_mode
              Mode
@@ -575,9 +574,9 @@
 
 (the maximum_content_size
   Natural
-  (|> ..size_in_base_08
-      (list.repeated ..content_size)
-      (list:mix n.x 1)))
+  (list.mix n.x
+            (list.repeated ..content_size ..size_in_base_08)
+            1))
 
 (nominal.every .public Content
   [Big Binary]
@@ -862,10 +861,10 @@
   (Injection Tar)
   (let [end_of_archive (binary!.empty ..end_of_archive_size)]
     (function (_ tar)
-      (!binary:composite (sequence:mix (function (_ next total)
+      (!binary:composite (sequence.mix (function (_ next total)
                                          (!binary:composite total (..entry_binary next)))
-                                       !binary:identity
-                                       tar)
+                                       tar
+                                       !binary:identity)
                          (!binary.segment ..end_of_archive_size end_of_archive)))))
 
 (exception.the (wrong_checksum [expected actual])
@@ -898,32 +897,32 @@
   (Projection [Binary [Path Mode ID ID Big Big [Natural Checksum]]])
   (function (_ state)
     (`` (<| (,, (template.with [<binding> <projection>]
-                  [(parsed state <binding> <projection>)]
+                               [(parsed state <binding> <projection>)]
 
-                  [[binary_header (<>.speculative (?binary.segment block_size))]
-                   [path ..path_of]
-                   [mode ..mode_of]
-                   [user_id ..small_of]
-                   [group_id ..small_of]
-                   [size ..big_of]
-                   [modification_time ..big_of]
-                   [[actual checksum_code] ..checksum_of]]))
+                               [[binary_header (<>.speculative (?binary.segment block_size))]
+                                [path ..path_of]
+                                [mode ..mode_of]
+                                [user_id ..small_of]
+                                [group_id ..small_of]
+                                [size ..big_of]
+                                [modification_time ..big_of]
+                                [[actual checksum_code] ..checksum_of]]))
             {try.:Success [state [binary_header path mode user_id group_id size modification_time [actual checksum_code]]]}))))
 
 (the header_of/1
   (Projection [Link_Flag Path Magic Name Name Device Device])
   (function (_ state)
     (`` (<| (,, (template.with [<binding> <projection>]
-                  [(parsed state <binding> <projection>)]
+                               [(parsed state <binding> <projection>)]
 
-                  [[link_flag ..link_flag_of]
-                   [link_name ..path_of]
-                   [magic ..magic_of]
-                   [user_name ..name_of]
-                   [group_name ..name_of]
-                   [major_device ..small_of]
-                   [minor_device ..small_of]
-                   [_ (?binary.segment ..header_padding_size)]]))
+                               [[link_flag ..link_flag_of]
+                                [link_name ..path_of]
+                                [magic ..magic_of]
+                                [user_name ..name_of]
+                                [group_name ..name_of]
+                                [major_device ..small_of]
+                                [minor_device ..small_of]
+                                [_ (?binary.segment ..header_padding_size)]]))
             {try.:Success [state [link_flag link_name magic user_name group_name major_device minor_device]]}))))
 
 (the header_of
@@ -956,11 +955,11 @@
     (`` (<| (let [size (its :size header)
                   rounded_size (..rounded_content_size size)])
             (,, (template.with [<binding> <projection>]
-                  [(parsed state <binding> <projection>)]
+                               [(parsed state <binding> <projection>)]
 
-                  [[content (?binary.segment (..from_big size))]
-                   [content (<>.of_try (..content content))]
-                   [_ (?binary.segment (n.- (..from_big size) rounded_size))]]))
+                               [[content (?binary.segment (..from_big size))]
+                                [content (<>.of_try (..content content))]
+                                [_ (?binary.segment (n.- (..from_big size) rounded_size))]]))
             {try.:Success [state [(its :path header)
                                   (|> header
                                       (its :modification_time)

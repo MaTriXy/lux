@@ -8,7 +8,7 @@
     ["[0]" maybe]
     ["[0]" text (.only \n)]
     [collection
-     ["[0]" list (.open functor mix)
+     ["[0]" list (.open functor)
       ["?[1]" \\projection]]]]
    [math
     [number
@@ -97,40 +97,40 @@
 (.the exceptionP
   (Projection [export.Policy [[Text Code] Code Code]])
   (export.with
-    (all <>.either
-         (all <>.and
-              (<code>.form (<>.and <code>.local ?list.any))
-              ?list.any
-              ?list.any)
-         (monad.let <>.monad
-           [name <code>.local]
-           (pure [[name (code.local name)]
-                  (` (Exception Any))
-                  (` "")])))))
+   (all <>.either
+        (all <>.and
+             (<code>.form (<>.and <code>.local ?list.any))
+             ?list.any
+             ?list.any)
+        (monad.let <>.monad
+          [name <code>.local]
+          (pure [[name (code.local name)]
+                 (` (Exception Any))
+                 (` "")])))))
 
 (syntax.the .public (the [[export_policy [[name input] type body]] ..exceptionP])
   (macro.with_names ['descriptor]
-    (monad.let meta.monad
-      [[current_module _] module.current]
-      (let [descriptor (text "{" current_module "." name "}" \n)
-            'self (code.local name)]
-        (pure (list (` (.the (, export_policy)
-                         (, 'self)
-                         (, type)
-                         (let [(, 'descriptor) (, (code.text descriptor))]
-                           [..:label (, 'descriptor)
-                            ..:constructor (function ((, 'self) (, input))
-                                             (by text.monoid (,' composite) (, 'descriptor) (, body)))])))))))))
+                    (monad.let meta.monad
+                      [[current_module _] module.current]
+                      (let [descriptor (text "{" current_module "." name "}" \n)
+                            'self (code.local name)]
+                        (pure (list (` (.the (, export_policy)
+                                         (, 'self)
+                                         (, type)
+                                         (let [(, 'descriptor) (, (code.text descriptor))]
+                                           [..:label (, 'descriptor)
+                                            ..:constructor (function ((, 'self) (, input))
+                                                             (by text.monoid (,' composite) (, 'descriptor) (, body)))])))))))))
 
 (.the .public (report entries)
   (-> (List [Text Text])
       Text)
   (let [header_delimiter ": "
-        largest_header_size (list:mix (function (_ [header _] maximum)
+        largest_header_size (list.mix (function (_ [header _] maximum)
                                         (n.major (text.size header)
                                                  maximum))
-                                      0
-                                      entries)
+                                      entries
+                                      0)
         on_new_line (|> " "
                         (list.repeated (n.+ (text.size header_delimiter)
                                             largest_header_size))

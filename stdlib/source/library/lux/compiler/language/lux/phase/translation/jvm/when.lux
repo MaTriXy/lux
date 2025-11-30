@@ -173,10 +173,10 @@
                                                            then!
                                                            (_.set_label @internal_else)
                                                            else!)))))
+                                        (list.in_reverse (list:composite (list head) tail))
                                         (all _.composite
                                              <pop>
-                                             (_.goto @external_else))
-                                        (list.in_reverse (list:composite (list head) tail))))]
+                                             (_.goto @external_else))))]
                     (pure (all _.composite
                                ..current
                                <unwrap>
@@ -378,8 +378,8 @@
                       (all _.composite
                            so_far!
                            (..projection step)))
-                    record!
-                    path))))
+                    path
+                    record!))))
 
 (the .public (when expression archive [valueS path])
   (Expression [Term (Path Term)])
@@ -407,8 +407,8 @@
                                 _.dup
                                 (..projection member)
                                 (_.astore register)))
-                         input
-                         bindings)
+                         bindings
+                         input)
                _.pop
                body))))
 
@@ -528,12 +528,12 @@
                                                     (_.when_continuous (_.goto @end))
                                                     (_.set_label @else)
                                                     else)))
+                                           (list.in_reverse cases)
                                            (all _.composite
                                                 ,pop
                                                 else
                                                 (<| (_.when_acknowledged @end)
-                                                    (_.set_label @end)))
-                                           (list.in_reverse cases)))))))]
+                                                    (_.set_label @end)))))))))]
 
                [[.private when_i64|general I64 (//value.primitive type.long) //primitive.i64' _.dup2 _.pop2 _.lcmp _.ifne]
                 [.public when_f64 F64 (//value.primitive type.double) //primitive.f64' _.dup2 _.pop2 _.dcmpl _.ifne]
@@ -569,14 +569,14 @@
                                   then
                                   (_.when_continuous (_.goto @end))
                                   else))
+                           (list.in_reverse (list:composite (list [@head head]) tail))
                            (all _.composite
                                 (_.set_label @pre_else)
                                 _.pop2
                                 (_.set_label @else)
                                 else
                                 (<| (_.when_acknowledged @end)
-                                    (_.set_label @end)))
-                           (list.in_reverse (list:composite (list [@head head]) tail))))))))
+                                    (_.set_label @end)))))))))
 
 (the (when_i64|look_up expression archive [input every_case else])
   (Expression [Term (List [i/32.Number Term]) Term])
@@ -608,14 +608,14 @@
                                   then
                                   (_.when_continuous (_.goto @end))
                                   else))
+                           (list.in_reverse every_case)
                            (all _.composite
                                 (_.set_label @pre_else)
                                 _.pop2
                                 (_.set_label @else)
                                 else
                                 (<| (_.when_acknowledged @end)
-                                    (_.set_label @end)))
-                           (list.in_reverse every_case)))))))
+                                    (_.set_label @end)))))))))
 
 (the .public (when_i64 expression archive [input every_case else])
   (Expression [Term (List [I64 Term]) Term])

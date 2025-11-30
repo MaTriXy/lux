@@ -22,7 +22,7 @@
      [encoding
       ["[0]" utf8]]]
     [collection
-     ["[0]" list (.open mix functor monoid)]
+     ["[0]" list (.open functor monoid)]
      ["[0]" dictionary]]]
    [math
     ["[0]" number (.only)
@@ -41,12 +41,12 @@
   Integer)
 
 (template.with [<code> <name>]
-  [(the .public <name>
-     Exit
-     <code>)]
+               [(the .public <name>
+                  Exit
+                  <code>)]
 
-  [[+0 normal]
-   [+1 error]])
+               [[+0 normal]
+                [+1 error]])
 
 (every .public (Process !)
   (Interface
@@ -65,15 +65,15 @@
   (-> (Process IO) (Process Future))
   (`` (implementation
        (,, (template.with [<method>]
-             [(the <method>
-                (|>> (by process <method>)
-                     future.soon))]
+                          [(the <method>
+                             (|>> (by process <method>)
+                                  future.soon))]
 
-             [[read]
-              [fail]
-              [write]
-              [destroy]
-              [await]])))))
+                          [[read]
+                           [fail]
+                           [write]
+                           [destroy]
+                           [await]])))))
 
 (every .public Command
   Text)
@@ -148,13 +148,13 @@
     (-> (Sanitizer Command) (Sanitizer Argument)
         (Policy ?)))
   (?.with_policy
-    (is (Context Safety Policy)
-        (function (_ it)
-          (with "?[0]" it
-            (implementation
-             (the command (|>> safe_command ?:can_upgrade))
-             (the argument (|>> safe_argument ?:can_upgrade))
-             (the value ?:can_downgrade)))))))
+   (is (Context Safety Policy)
+       (function (_ it)
+         (with "?[0]" it
+               (implementation
+                (the command (|>> safe_command ?:can_upgrade))
+                (the argument (|>> safe_argument ?:can_upgrade))
+                (the value ?:can_downgrade)))))))
 
 (the unix_policy
   (let [replacer (is Replacer
@@ -187,12 +187,12 @@
                   (the (jvm:arguments_array arguments)
                     (-> (List Argument)
                         (ffi.type [java/lang/String]))
-                    (pair.right (list:mix (function (_ argument [idx output])
+                    (pair.right (list.mix (function (_ argument [idx output])
                                             [(++ idx) (ffi.write! idx
                                                                   (ffi.as_string argument)
                                                                   output)])
-                                          [0 (ffi.array java/lang/String (list.size arguments))]
-                                          arguments)))
+                                          arguments
+                                          [0 (ffi.array java/lang/String (list.size arguments))])))
 
                   (ffi.the (java/util/Map k v)
                     (put [k v] "?" v))
@@ -201,14 +201,14 @@
                     (-> Environment
                         (java/util/Map java/lang/String java/lang/String)
                         (java/util/Map java/lang/String java/lang/String))
-                    (list:mix (function (_ [key value] target')
+                    (list.mix (function (_ [key value] target')
                                 (exec
                                   (java/util/Map:put [(as (-> Text java/lang/String) key)
                                                       (as (-> Text java/lang/String) value)]
                                                      target')
                                   target'))
-                              target
-                              (dictionary.entries input)))
+                              (dictionary.entries input)
+                              target))
                   
                   (ffi.the java/io/Reader)
 
@@ -248,29 +248,29 @@
                       (pure (is (Process IO)
                                 (`` (implementation
                                      (,, (template.with [<name> <stream>]
-                                           [(the (<name> _)
-                                              (monad.let !
-                                                [output (java/io/BufferedReader:readLine [] <stream>)]
-                                                (when output
-                                                  {.:Some output}
-                                                  (pure (ffi.of_string output))
+                                                        [(the (<name> _)
+                                                           (monad.let !
+                                                             [output (java/io/BufferedReader:readLine [] <stream>)]
+                                                             (when output
+                                                               {.:Some output}
+                                                               (pure (ffi.of_string output))
 
-                                                  {.:None}
-                                                  (by io.monad pure (exception.except ..no_more_output [])))))]
+                                                               {.:None}
+                                                               (by io.monad pure (exception.except ..no_more_output [])))))]
 
-                                           [[read jvm_input]
-                                            [fail jvm_error]]))
+                                                        [[read jvm_input]
+                                                         [fail jvm_error]]))
                                      (the (write message)
                                        (java/io/OutputStream:write [(by utf8.binary as message)]
                                                                    jvm_output))
                                      (,, (template.with [<name> <method>]
-                                           [(the (<name> _)
-                                              (|> process
-                                                  <method>))]
+                                                        [(the (<name> _)
+                                                           (|> process
+                                                               <method>))]
 
-                                           [[destroy (java/lang/Process:destroy [])]
-                                            [await (<| (by ! each (|>> ffi.of_int))
-                                                       (java/lang/Process:waitFor []))]]))))))))
+                                                        [[destroy (java/lang/Process:destroy [])]
+                                                         [await (<| (by ! each (|>> ffi.of_int))
+                                                                    (java/lang/Process:waitFor []))]]))))))))
 
                   (ffi.the java/io/File
                     (new [java/lang/String]))
@@ -330,21 +330,21 @@
       (for_any (_ s) (-> (Atom s) (Memory s) (Process IO)))
       (implementation
        (,, (template.with [<name> <memory>]
-             [(the (<name> _)
-                (monad.let [! io.monad]
-                  [|state| (atom.read! state)]
-                  (when (by memory <memory> |state|)
-                    {try.:Success [|state| output]}
-                    (monad.let !
-                      [_ (atom.write! |state| state)]
-                      (pure {try.:Success output}))
-                    
-                    {try.:Failure error}
-                    (pure {try.:Failure error}))))]
+                          [(the (<name> _)
+                             (monad.let [! io.monad]
+                               [|state| (atom.read! state)]
+                               (when (by memory <memory> |state|)
+                                 {try.:Success [|state| output]}
+                                 (monad.let !
+                                   [_ (atom.write! |state| state)]
+                                   (pure {try.:Success output}))
+                                 
+                                 {try.:Failure error}
+                                 (pure {try.:Failure error}))))]
 
-             [[read on_read]
-              [fail on_fail]
-              [await on_await]]))
+                          [[read on_read]
+                           [fail on_fail]
+                           [await on_await]]))
        (the (write message)
          (monad.let [! io.monad]
            [|state| (atom.read! state)]

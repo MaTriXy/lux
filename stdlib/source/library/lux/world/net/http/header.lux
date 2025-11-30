@@ -16,7 +16,7 @@
      [encoding
       ["[0]" utf8]]]
     [collection
-     ["[0]" list (.open mix)]
+     ["[0]" list]
      ["[0]" dictionary (.only Dictionary)]]
     [format
      ["[0]" base64]]]
@@ -88,24 +88,24 @@
    :out (by natural.base_10 of)])
 
 (template.with [,name ,header]
-  [(the .public ,name
-     (Header MIME)
-     [:name ,header
-      :in mime.name
-      :out (|>> mime.mime {try.:Success})])]
+               [(the .public ,name
+                  (Header MIME)
+                  [:name ,header
+                   :in mime.name
+                   :out (|>> mime.mime {try.:Success})])]
 
-  [[content_type "Content-Type"]
-   [accept "Accept"]])
+               [[content_type "Content-Type"]
+                [accept "Accept"]])
 
 (template.with [,name ,header ,type]
-  [(the .public ,name
-     (Header ,type)
-     [:name ,header
-      :in (|>>)
-      :out (|>> {try.:Success})])]
+               [(the .public ,name
+                  (Header ,type)
+                  [:name ,header
+                   :in (|>>)
+                   :out (|>> {try.:Success})])]
 
-  [[location "Location" URL]
-   [user_agent "User-Agent" Text]])
+               [[location "Location" URL]
+                [user_agent "User-Agent" Text]])
 
 ... https://en.wikipedia.org/wiki/Basic_access_authentication
 (every .public Credential
@@ -171,22 +171,24 @@
 (the .public set_cookies
   (Header cookie.Jar)
   [:name "Set-Cookie"
-   :in (|>> dictionary.entries
-            (list:mix (function (_ [name value] previous)
-                        (expansion.let [<key,value> (these (uri.as_text name) ..assignment value)]
-                          (when previous
-                            "" (text <key,value>)
-                            _ (text previous ..delimiter <key,value>))))
-                      ""))
-   :out (|>> (text.all_split_by ..delimiter)
-             (list.mix' try.monad
-                        (function (_ cookie jar)
-                          (when (text.split_by ..assignment cookie)
-                            {.:Some [name value]}
-                            (monad.let try.monad
-                              [name (uri.of_text name)]
-                              (pure (dictionary.has name value jar)))
-                            
-                            {.:None}
-                            (try:pure jar)))
-                        cookie.empty))])
+   :in (function (_ it)
+         (list.mix (function (_ [name value] previous)
+                     (expansion.let [<key,value> (these (uri.as_text name) ..assignment value)]
+                       (when previous
+                         "" (text <key,value>)
+                         _ (text previous ..delimiter <key,value>))))
+                   (dictionary.entries it)
+                   ""))
+   :out (function (_ it)
+          (list.mix' try.monad
+                     (function (_ cookie jar)
+                       (when (text.split_by ..assignment cookie)
+                         {.:Some [name value]}
+                         (monad.let try.monad
+                           [name (uri.of_text name)]
+                           (pure (dictionary.has name value jar)))
+                         
+                         {.:None}
+                         (try:pure jar)))
+                     (text.all_split_by ..delimiter it)
+                     cookie.empty))])

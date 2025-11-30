@@ -16,7 +16,7 @@
      ["%" \\injection]]
     [collection
      [set (.only Set)]
-     ["[0]" list (.open mix monad)
+     ["[0]" list (.open monad)
       ["[0]" property (.open functor)]]
      ["[0]" dictionary (.only Dictionary)]
      ["[0]" sequence (.only Sequence)]]]
@@ -199,11 +199,12 @@
   Text
   "(Caching System)")
 
-(the cache_of
+(the (cache_of it)
   (-> (List Custom)
       (Projection [(module.Module Any) Registry]))
-  (list:mix (function (_ [custom_state custom_key custom_format custom_of custom_compiler])
+  (list.mix (function (_ [custom_state custom_key custom_format custom_of custom_compiler])
               (<>.either (..of_binary custom_key custom_of)))
+            it
             (..of_binary $.key $.of_binary)))
 
 (the (valid_cache customs fs context import contexts [module_name @module])
@@ -239,14 +240,14 @@
 (the (load_order archive pre_loaded_caches)
   (-> Archive (List Cache)
       (Try (dependency.Order @type.Module)))
-  (|> pre_loaded_caches
-      (list.mix' try.monad
+  (|> (list.mix' try.monad
                  (function (_ [_ [module @module |module| registry]] archive)
                    (archive.has module
                                 [archive.:module |module|
                                  archive.:output (is Output sequence.empty)
                                  archive.:registry registry]
                                 archive))
+                 pre_loaded_caches
                  archive)
       (by try.monad each (dependency.load_order $.key))
       (by try.monad conjoint)))
@@ -283,8 +284,8 @@
        [archive (list.mix' !
                            (function (_ [module entry] archive)
                              (archive.has module entry archive))
-                           archive
-                           loaded_caches)
+                           loaded_caches
+                           archive)
         analysis_state (..analysis_state (its context.:host context) configuration archive)]
        (pure [archive analysis_state])))))
 

@@ -130,7 +130,6 @@
       (list.mix (function (_ [name value] attrs)
                   (ffi.to attrs
                           (java/util/jar/Attributes:put [name (ffi.as_string value)])))
-                (java/util/jar/Manifest:getMainAttributes [] manifest)
                 (all list:composite
                      (list [(java/util/jar/Attributes$Name:MANIFEST_VERSION)
                             ..manifest_version])
@@ -150,7 +149,8 @@
                               resources])
                        
                        {.:None}
-                       (list))))
+                       (list)))
+                (java/util/jar/Manifest:getMainAttributes [] manifest))
       manifest)))
 
 (the (write_class static module artifact custom content sink)
@@ -178,8 +178,8 @@
                  (if (set.member? necessary_dependencies [module artifact])
                      (..write_class static module artifact custom content sink)
                      (by ! pure sink)))
-               sink
-               (sequence.as_list output))))
+               (sequence.as_list output)
+               sink)))
 
 (the (read_jar_entry_with_unknown_size input)
   (-> java/util/jar/JarInputStream [Natural Binary])
@@ -307,8 +307,8 @@
                         (java/util/zip/ZipOutputStream:write [content (ffi.as_int +0) (ffi.as_int (.integer (binary.size content)))])
                         (java/io/Flushable:flush [])
                         (java/util/zip/ZipOutputStream:closeEntry []))))
-            sink
-            resources))
+            resources
+            sink))
 
 (the .public (package static resources)
   (-> Context (Maybe file.Path)
@@ -318,11 +318,11 @@
       [.let [necessary_dependencies (cache/artifact.necessary_dependencies archive)]
        order (cache/module.load_order $.key archive)
        .let [buffer (java/io/ByteArrayOutputStream:new [(ffi.as_int (.integer ..mebi_byte))])]
-       sink (|> order
-                (list:each (function (_ [module [module_id entry]])
-                             [module_id (its archive.:output entry)]))
-                (list.mix' ! (..write_module static necessary_dependencies)
-                           (java/util/jar/JarOutputStream:new [buffer (..manifest program resources)])))
+       sink (list.mix' ! (..write_module static necessary_dependencies)
+                       (list:each (function (_ [module [module_id entry]])
+                                    [module_id (its archive.:output entry)])
+                                  order)
+                       (java/util/jar/JarOutputStream:new [buffer (..manifest program resources)]))
        sink (when resources
               {.:Some resources}
               (monad.let !
@@ -331,12 +331,11 @@
 
               {.:None}
               (pure sink))
-       [entries duplicates sink] (|> host_dependencies
-                                     dictionary.values
-                                     (list.mix' ! ..write_host_dependency
-                                                [(set.empty text.hash)
-                                                 (set.empty text.hash)
-                                                 sink]))
+       [entries duplicates sink] (list.mix' ! ..write_host_dependency
+                                            (dictionary.values host_dependencies)
+                                            [(set.empty text.hash)
+                                             (set.empty text.hash)
+                                             sink])
        .let [_ (ffi.to sink
                        (java/io/Flushable:flush [])
                        (java/io/Closeable:close []))]]

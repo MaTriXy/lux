@@ -36,9 +36,11 @@
                              (monad.let !
                                [value random_value]
                                (pure [cookie value])))))
-         (by ! each (list.mix (function (_ [cookie value] jar)
-                                (/.has cookie value jar))
-                              /.empty)))))
+         (by ! each (function (_ it)
+                      (list.mix (function (_ [cookie value] jar)
+                                  (/.has cookie value jar))
+                                it
+                                /.empty))))))
 
 (the .public test
   Test
@@ -86,27 +88,27 @@
            (_.for [/.Attribute]
                   (`` (all _.and
                            (,, (template.with [<attribute> <value>]
-                                 [(_.coverage [<attribute>]
-                                    (|> /.empty
-                                        (/.has (<attribute> <value> cookie) expected)
-                                        (/.value cookie)
-                                        (try:each (text.= expected))
-                                        (try.else false)))]
+                                              [(_.coverage [<attribute>]
+                                                 (|> /.empty
+                                                     (/.has (<attribute> <value> cookie) expected)
+                                                     (/.value cookie)
+                                                     (try:each (text.= expected))
+                                                     (try.else false)))]
 
-                                 [[/.expires instant]
-                                  [/.max_age duration]
-                                  [/.domain domain]
-                                  [/.path path]]))
+                                              [[/.expires instant]
+                                               [/.max_age duration]
+                                               [/.domain domain]
+                                               [/.path path]]))
                            (,, (template.with [<attribute>]
-                                 [(_.coverage [<attribute>]
-                                    (|> /.empty
-                                        (/.has (<attribute> cookie) expected)
-                                        (/.value cookie)
-                                        (try:each (text.= expected))
-                                        (try.else false)))]
+                                              [(_.coverage [<attribute>]
+                                                 (|> /.empty
+                                                     (/.has (<attribute> cookie) expected)
+                                                     (/.value cookie)
+                                                     (try:each (text.= expected))
+                                                     (try.else false)))]
 
-                                 [[/.secure]
-                                  [/.http_only]]))
+                                              [[/.secure]
+                                               [/.http_only]]))
                            (_.coverage [/.CSRF_Policy
                                         /.strict /.lax /.none /.same_site]
                              (let [uses_policy! (is (-> /.CSRF_Policy Bit)

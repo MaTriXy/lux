@@ -119,25 +119,25 @@
   (< it reference))
 
 (with_template [,<> ,<>=]
-  [(the .public (,<>= reference it)
-     (-> It It
-         Bit)
-     (or (,<> reference it)
-         (= reference it)))]
+               [(the .public (,<>= reference it)
+                  (-> It It
+                      Bit)
+                  (or (,<> reference it)
+                      (= reference it)))]
 
-  [[< <=]
-   [> >=]])
+               [[< <=]
+                [> >=]])
 
 (with_template [,<> ,name]
-  [(the .public (,name reference it)
-     (-> It It
-         It)
-     (if (,<> reference it)
-         it
-         reference))]
+               [(the .public (,name reference it)
+                  (-> It It
+                      It)
+                  (if (,<> reference it)
+                      it
+                      reference))]
 
-  [[> major]
-   [< minor]])
+               [[> major]
+                [< minor]])
 
 (the digit
   (macro (_ ,size ,context ,choice)
@@ -259,8 +259,8 @@
                            [(+ (x' level scale it)
                                accumulation)
                             (++ level)])
-                         [..zero 0]
-                         scale)]
+                         scale
+                         [..zero 0])]
     it))
 
 (error.the .public division_by_zero)
@@ -405,15 +405,15 @@
     [,right]))
 
 (with_template [,name ,type ,choice]
-  [(the .public (,name scale it)
-     (-> It It
-         ,type)
-     (let [quotient (/ scale it)
-           flat (x scale quotient)]
-       (,choice quotient (- flat it))))]
+               [(the .public (,name scale it)
+                  (-> It It
+                      ,type)
+                  (let [quotient (/ scale it)
+                        flat (x scale quotient)]
+                    (,choice quotient (- flat it))))]
 
-  [[/% [It It] both]
-   [% It right]])
+               [[/% [It It] both]
+                [% It right]])
 
 ... https://en.wikipedia.org/wiki/Exponentiation
 ... https://en.wikipedia.org/wiki/Exponentiation_by_squaring
@@ -454,11 +454,11 @@
       It)
   (`` (when [a b]
         (,, (with_template [<pattern>]
-              [<pattern>
-               ..zero]
+                           [<pattern>
+                            ..zero]
 
-              [[[_ (..zero')]]
-               [[(..zero') _]]]))
+                           [[[_ (..zero')]]
+                            [[(..zero') _]]]))
 
         _
         (|> a
@@ -492,15 +492,15 @@
        (.list_item# 0 it)))))
 
 (with_template [<name> <composite> <identity>]
-  [(the .public <name>
-     (Monoid It)
-     (implementation
-      (the identity <identity>)
-      (the composite <composite>)))]
+               [(the .public <name>
+                  (Monoid It)
+                  (implementation
+                   (the identity <identity>)
+                   (the composite <composite>)))]
 
-  [[addition       ..+     ..zero]
-   [multiplication ..x     ..one]
-   [maximum        ..major ..zero]])
+               [[addition       ..+     ..zero]
+                [multiplication ..x     ..one]
+                [maximum        ..major ..zero]])
 
 (the .public (multiple? reference it)
   (-> It
@@ -557,21 +557,21 @@
   19)
 
 (with_template [,name ,per_digit]
-  [(the (,name it)
-     (when (text.size it)
-       ,per_digit
-       it
+               [(the (,name it)
+                  (when (text.size it)
+                    ,per_digit
+                    it
 
-       digits
-       (let [padding (//.- digits ,per_digit)]
-         (text (text.interposed "" (list.repeated padding "0"))
-               it))))]
+                    digits
+                    (let [padding (//.- digits ,per_digit)]
+                      (text (text.interposed "" (list.repeated padding "0"))
+                            it))))]
 
-  [[with_padding_for_02 ..base_02_digits_per_digit]
-   [with_padding_for_16 ..base_16_digits_per_digit]
+               [[with_padding_for_02 ..base_02_digits_per_digit]
+                [with_padding_for_16 ..base_16_digits_per_digit]
 
-   [with_padding_for_08 ..base_08_digits_per_digit]
-   [with_padding_for_10 ..base_10_digits_per_digit]])
+                [with_padding_for_08 ..base_08_digits_per_digit]
+                [with_padding_for_10 ..base_10_digits_per_digit]])
 
 (the (with_no_padding it)
   (Change Text)
@@ -587,28 +587,28 @@
           "0"))))
 
 (with_template [,name ,per_digit ,padding ,//]
-  [(the .public ,name
-     (Format Text It)
-     (implementation
-      (the (as it)
-        (when it
-          (..zero')
-          "0"
+               [(the .public ,name
+                  (Format Text It)
+                  (implementation
+                   (the (as it)
+                     (when it
+                       (..zero')
+                       "0"
 
-          else
-          (|> it
-              (list:each (|>> (by ,// as) ,padding))
-              list.in_reverse
-              (text.interposed "")
-              ..with_no_padding)))
+                       else
+                       (|> it
+                           (list:each (|>> (by ,// as) ,padding))
+                           list.in_reverse
+                           (text.interposed "")
+                           ..with_no_padding)))
 
-      (the of
-        (|>> ..with_no_padding
-             (runs_of_digits ,per_digit)
-             (list.each' try.monad (by ,// of))))))]
+                   (the of
+                     (|>> ..with_no_padding
+                          (runs_of_digits ,per_digit)
+                          (list.each' try.monad (by ,// of))))))]
 
-  [[base_02 ..base_02_digits_per_digit ..with_padding_for_02 //.base_02]
-   [base_16 ..base_16_digits_per_digit ..with_padding_for_16 //.base_16]])
+               [[base_02 ..base_02_digits_per_digit ..with_padding_for_02 //.base_02]
+                [base_16 ..base_16_digits_per_digit ..with_padding_for_16 //.base_16]])
 
 (the initial_shift_for_head 0)
 (the no_head 0)
@@ -643,8 +643,8 @@
                                             [(text (with_padding_for_08 (by //.base_08 as proper_digit)) it)
                                              (/64.>> (/64.opposite shift_for_clean_up) digit)
                                              (//.+ addition_to_shift shift_for_clean_up)])))
-                                      ["" ..initial_carry initial_shift_for_clean_up]
-                                      it)]
+                                      it
+                                      ["" ..initial_carry initial_shift_for_clean_up])]
            (..with_no_padding (when carry
                                 ..initial_carry
                                 it
@@ -658,19 +658,21 @@
                               ..with_no_padding
                               (runs_of_digits ..base_08_digits_per_digit)
                               (list.each' try.monad (by //.base_08 of))
-                              (by ! each (list.mix (function (_ digit [[head tail] shift_for_head])
-                                                     [(when (/64.shift shift_for_head)
-                                                        ..initial_shift_for_head
-                                                        [digit tail]
+                              (by ! each (function (_ it)
+                                           (list.mix (function (_ digit [[head tail] shift_for_head])
+                                                       [(when (/64.shift shift_for_head)
+                                                          ..initial_shift_for_head
+                                                          [digit tail]
 
-                                                        shift_for_head
-                                                        (let [head' (|> digit
-                                                                        (/64.<< (/64.opposite shift_for_head))
-                                                                        (/64.or head))]
-                                                          [(/64.>> shift_for_head digit)
-                                                           (list:composite tail (list head'))]))
-                                                      (//.+ addition_to_shift shift_for_head)])
-                                                   [[..no_head ..zero] ..initial_shift_for_head])))]
+                                                          shift_for_head
+                                                          (let [head' (|> digit
+                                                                          (/64.<< (/64.opposite shift_for_head))
+                                                                          (/64.or head))]
+                                                            [(/64.>> shift_for_head digit)
+                                                             (list:composite tail (list head'))]))
+                                                        (//.+ addition_to_shift shift_for_head)])
+                                                     it
+                                                     [[..no_head ..zero] ..initial_shift_for_head]))))]
          (pure (when head
                  ..no_head
                  tail
@@ -707,13 +709,14 @@
      (|>> ..with_no_padding
           (runs_of_digits ..base_10_digits_per_digit)
           (list.each' try.monad (by //.base_10 of))
-          (try:each (|>> (list.mix (function (_ digit [total factor])
-                                     [(|> (list digit)
-                                          (x factor)
-                                          (+ total))
-                                      (x factor_for_base_10 factor)])
-                                   [..zero ..one])
-                         pair.left))))))
+          (try:each (function (_ it)
+                      (pair.left (list.mix (function (_ digit [total factor])
+                                             [(|> (list digit)
+                                                  (x factor)
+                                                  (+ total))
+                                              (x factor_for_base_10 factor)])
+                                           it
+                                           [..zero ..one]))))))))
 
 (the .public :Zero
   (Case It

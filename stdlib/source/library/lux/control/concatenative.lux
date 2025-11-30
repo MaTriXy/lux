@@ -11,9 +11,9 @@
     ["[0]" pair]
     ["[0]" text]
     [collection
-     ["[0]" list (.open mix functor)
+     ["[0]" list (.open functor)
       ["?[1]" \\projection]]
-     ["[0]" stack (.open mix functor)]]]
+     ["[0]" stack (.open functor)]]]
    [math
     [number
      [/64
@@ -49,28 +49,26 @@
              (<>.and (<>:each (|>> {.:Some}) minimum)
                      (<>:pure (list)))))
 
-(the (stack_type tops minimum)
-  (-> (List Code) Code
-      Code)
-  (list:mix (function (_ top minimum)
-              (` [(, minimum) (, top)]))
-            minimum
-            tops))
+(the stack_type
+  (-> (List Code)
+      (Change Code))
+  (list.mix (function (_ top minimum)
+              (` [(, minimum) (, top)]))))
 
 (syntax.the .public (=> [inputs ..stack
                          outputs ..stack])
   (with_names ['_ common_minimum]
-    (let [input_minimum (maybe.else common_minimum (its :minimum inputs))
-          output_minimum (maybe.else common_minimum (its :minimum outputs))
-          input_stack (stack_type (its :top inputs) input_minimum)
-          output_stack (stack_type (its :top outputs) output_minimum)]
-      (pure (list (.if (or (identical? common_minimum input_minimum)
-                           (identical? common_minimum output_minimum))
-                       (` (for_any ((, '_) (, common_minimum))
-                            (-> (, input_stack)
-                                (, output_stack))))
-                       (` (-> (, input_stack)
-                              (, output_stack)))))))))
+              (let [input_minimum (maybe.else common_minimum (its :minimum inputs))
+                    output_minimum (maybe.else common_minimum (its :minimum outputs))
+                    input_stack (stack_type (its :top inputs) input_minimum)
+                    output_stack (stack_type (its :top outputs) output_minimum)]
+                (pure (list (.if (or (identical? common_minimum input_minimum)
+                                     (identical? common_minimum output_minimum))
+                                 (` (for_any ((, '_) (, common_minimum))
+                                      (-> (, input_stack)
+                                          (, output_stack))))
+                                 (` (-> (, input_stack)
+                                        (, output_stack)))))))))
 
 (the .public (value it)
   (for_any (_ ,,, a)
@@ -81,23 +79,23 @@
 
 (syntax.the .public (of [arity (<>.only (n.> 0) <code>.natural)])
   (with_names ['_ 'func 'stack 'output]
-    (monad.let [! meta.monad]
-      ['inputs (|> (macro.name "input")
-                   (list.repeated arity)
-                   (list.complete !))]
-      (pure (list (` (is (for_any ((, '_) (,* 'inputs) (, 'output))
-                           (-> (-> (,* 'inputs) (, 'output))
-                               (=> [(,* 'inputs)] [(, 'output)])))
-                         (function ((, '_) (, 'func))
-                           (function ((, '_) (, (stack_type 'inputs 'stack)))
-                             [(, 'stack) ((, 'func) (,* 'inputs))])))))))))
+              (monad.let [! meta.monad]
+                ['inputs (|> (macro.name "input")
+                             (list.repeated arity)
+                             (list.complete !))]
+                (pure (list (` (is (for_any ((, '_) (,* 'inputs) (, 'output))
+                                     (-> (-> (,* 'inputs) (, 'output))
+                                         (=> [(,* 'inputs)] [(, 'output)])))
+                                   (function ((, '_) (, 'func))
+                                     (function ((, '_) (, (stack_type 'inputs 'stack)))
+                                       [(, 'stack) ((, 'func) (,* 'inputs))])))))))))
 
 (template.with [<arity>]
-  [(`` (the .public (,, (template.name ["of_" <arity>]))
-         (..of <arity>)))]
+               [(`` (the .public (,, (template.name ["of_" <arity>]))
+                      (..of <arity>)))]
 
-  [[1] [2] [3] [4]
-   [5] [6] [7] [8]])
+               [[1] [2] [3] [4]
+                [5] [6] [7] [8]])
 
 (the .public (push x)
   (for_any (_ a) (-> a (=> [] [a])))
@@ -150,54 +148,54 @@
     [stack {1b r}]))
 
 (template.with [<input> <output> <word> <func>]
-  [(`` (the .public <word>
-         (=> [<input> <input>] [<output>])
-         (function (_ [[stack subject] param])
-           [stack (<func> param subject)])))]
+               [(`` (the .public <word>
+                      (=> [<input> <input>] [<output>])
+                      (function (_ [[stack subject] param])
+                        [stack (<func> param subject)])))]
 
-  [[Natural Natural  n/+  n.+]
-   [Natural Natural  n/-  n.-]
-   [Natural Natural  n/x  n.x]
-   [Natural Natural  n//  n./]
-   [Natural Natural  n/%  n.%]
-   [Natural Bit  n/=  n.=]
-   [Natural Bit  n/<  n.<]
-   [Natural Bit  n/<= n.<=]
-   [Natural Bit  n/>  n.>]
-   [Natural Bit  n/>= n.>=]
+               [[Natural Natural  n/+  n.+]
+                [Natural Natural  n/-  n.-]
+                [Natural Natural  n/x  n.x]
+                [Natural Natural  n//  n./]
+                [Natural Natural  n/%  n.%]
+                [Natural Bit  n/=  n.=]
+                [Natural Bit  n/<  n.<]
+                [Natural Bit  n/<= n.<=]
+                [Natural Bit  n/>  n.>]
+                [Natural Bit  n/>= n.>=]
 
-   [Integer Integer  i/+  i.+]
-   [Integer Integer  i/-  i.-]
-   [Integer Integer  i/x  i.x]
-   [Integer Integer  i//  i./]
-   [Integer Integer  i/%  i.%]
-   [Integer Bit  i/=  i.=]
-   [Integer Bit  i/<  i.<]
-   [Integer Bit  i/<= i.<=]
-   [Integer Bit  i/>  i.>]
-   [Integer Bit  i/>= i.>=]
+                [Integer Integer  i/+  i.+]
+                [Integer Integer  i/-  i.-]
+                [Integer Integer  i/x  i.x]
+                [Integer Integer  i//  i./]
+                [Integer Integer  i/%  i.%]
+                [Integer Bit  i/=  i.=]
+                [Integer Bit  i/<  i.<]
+                [Integer Bit  i/<= i.<=]
+                [Integer Bit  i/>  i.>]
+                [Integer Bit  i/>= i.>=]
 
-   [Revolution Revolution  r/+  r.+]
-   [Revolution Revolution  r/-  r.-]
-   [Revolution Revolution  r/x  r.x]
-   [Revolution Revolution  r//  r./]
-   [Revolution Revolution  r/%  r.%]
-   [Revolution Bit  r/=  r.=]
-   [Revolution Bit  r/<  r.<]
-   [Revolution Bit  r/<= r.<=]
-   [Revolution Bit  r/>  r.>]
-   [Revolution Bit  r/>= r.>=]
+                [Revolution Revolution  r/+  r.+]
+                [Revolution Revolution  r/-  r.-]
+                [Revolution Revolution  r/x  r.x]
+                [Revolution Revolution  r//  r./]
+                [Revolution Revolution  r/%  r.%]
+                [Revolution Bit  r/=  r.=]
+                [Revolution Bit  r/<  r.<]
+                [Revolution Bit  r/<= r.<=]
+                [Revolution Bit  r/>  r.>]
+                [Revolution Bit  r/>= r.>=]
 
-   [Real Real f/+  real.+]
-   [Real Real f/-  real.-]
-   [Real Real f/x  real.x]
-   [Real Real f//  real./]
-   [Real Real f/%  real.%]
-   [Real Bit f/=  real.=]
-   [Real Bit f/<  real.<]
-   [Real Bit f/<= real.<=]
-   [Real Bit f/>  real.>]
-   [Real Bit f/>= real.>=]])
+                [Real Real f/+  real.+]
+                [Real Real f/-  real.-]
+                [Real Real f/x  real.x]
+                [Real Real f//  real./]
+                [Real Real f/%  real.%]
+                [Real Bit f/=  real.=]
+                [Real Bit f/<  real.<]
+                [Real Bit f/<= real.<=]
+                [Real Bit f/>  real.>]
+                [Real Bit f/>= real.>=]])
 
 (the .public if
   (for_any (_ ,,,0 ,,,1)

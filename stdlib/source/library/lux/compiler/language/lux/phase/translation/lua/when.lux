@@ -7,7 +7,7 @@
    [data
     ["[0]" text]
     [collection
-     ["[0]" list (.open functor mix monoid)]
+     ["[0]" list (.open functor monoid)]
      ["[0]" set]]]
    [macro
     ["[0]" template]]
@@ -80,9 +80,9 @@
     (comment "TODO: Find some way to do 'let' without paying the price of the closure."
              (pure (<| (_.of (list))
                        (_.closure (list))
-                       (list:mix _.then
-                                 (_.return body)
-                                 (list.in_reverse bindings)))))))
+                       (list.mix _.then
+                                 (list.in_reverse bindings)
+                                 (_.return body)))))))
 
 (the .public (let! statement expression archive [register valueS bodyS])
   (Statement synthesis.Let)
@@ -102,9 +102,9 @@
   (Expression synthesis.Its)
   (monad.let phase.monad
     [valueO (expression archive valueS)]
-    (pure (list:mix ..projection
-                    valueO
-                    pathP))))
+    (pure (list.mix ..projection
+                    pathP
+                    valueO))))
 
 (the .public (if! statement expression archive [testS thenS elseS])
   (Statement (synthesis.If synthesis.Term))
@@ -334,10 +334,10 @@
                                                      (list:composite (list head) tail))]
                                 (pure (all _.then
                                            (_.local/1 'input ..current)
-                                           (list:mix (function (_ [when then!] else!)
+                                           (list.mix (function (_ [when then!] else!)
                                                        (_.if when then! else!))
-                                                     ..fail!
-                                                     (list.in_reverse clauses)))))]
+                                                     (list.in_reverse clauses)
+                                                     ..fail!))))]
 
                              [[path.:I64_Fork //primitive.i64]
                               [path.:F64_Fork //primitive.f64]
@@ -454,12 +454,12 @@
      body (statement expression archive body)
      'tuple (phase:each _.var (/////translation.name "tuple"))]
     (pure (all _.then
-               (list:mix (function (_ [register member] left)
+               (list.mix (function (_ [register member] left)
                            (all _.then
                                 left
                                 (_.local/1 (..register register) (..projection member 'tuple))))
-                         (_.local/1 'tuple input)
-                         bindings)
+                         bindings
+                         (_.local/1 'tuple input))
                body))))
 
 (the .public (multi_let statement expression archive)
@@ -492,13 +492,13 @@
                      else (statement expression archive else)]
                     (pure (all _.then
                                (_.local/1 'input input)
-                               (list:mix (function (_ [when then] else)
+                               (list.mix (function (_ [when then] else)
                                            (_.if (_.= (,injection when)
                                                       'input)
                                                  then
                                                  else))
-                                         else
-                                         (list.in_reverse clauses))))))
+                                         (list.in_reverse clauses)
+                                         else)))))
 
                 (the .public (,expression statement expression archive)
                   (-> Phase!

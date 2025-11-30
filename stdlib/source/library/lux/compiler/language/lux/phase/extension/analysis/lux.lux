@@ -224,7 +224,7 @@
       (monad.let [! phase.monad]
         [module (eval archive (@type.new @type.Text) module)]
         (analysis.with_current_module (as (-> Any Text) module)
-          (analysis archive (code.with [(as (-> Any Text) module) 0 0] 'expression)))))]))
+                                      (analysis archive (code.with [(as (-> Any Text) module) 0 0] 'expression)))))]))
 
 (the .public (is#_extension eval)
   (-> Eval
@@ -402,7 +402,7 @@
           typeA.with_var (.function (_ [_ type_of_right]))
           (monad.let phase.monad
             [case (typeA.with (Or type_of_left type_of_right)
-                    (analysis archive case))
+                              (analysis archive case))
              left_body (<| (scope.with_local [left_variable type_of_left])
                            (analysis archive)
                            left_body)
@@ -434,8 +434,8 @@
       (Change Type))
   (stack.mix (.function (_ closure body)
                {.:Quantification .universal closure body})
-             it
-             context))
+             context
+             it))
 
 (the (every_type_of_pair it)
   (-> Type
@@ -518,22 +518,22 @@
       (function.function analysis function_name arg_name archive body))]))
 
 (template.with [,name ,type ,new ,numerator ,denominator ,numerator_projection ,numerator_analysis]
-  [(the ,name
-     Handler
-     (..custom
-      [(all ?.and
-            ,numerator_projection
-            ?code.natural)
-       (.function (_ extension_name analysis archive [numerator denominator])
-         (monad.let phase.monad
-           [.let [it (,new denominator numerator)]
-            _ (typeA.inference ,type)
-            @ analysis.provenance]
-           (pure (analysis.tuple @ (list (,numerator_analysis @ (,numerator it))
-                                         (analysis.natural @ (,denominator it)))))))]))]
+               [(the ,name
+                  Handler
+                  (..custom
+                   [(all ?.and
+                         ,numerator_projection
+                         ?code.natural)
+                    (.function (_ extension_name analysis archive [numerator denominator])
+                      (monad.let phase.monad
+                        [.let [it (,new denominator numerator)]
+                         _ (typeA.inference ,type)
+                         @ analysis.provenance]
+                        (pure (analysis.tuple @ (list (,numerator_analysis @ (,numerator it))
+                                                      (analysis.natural @ (,denominator it)))))))]))]
 
-  [[fraction fraction.Number fraction.new fraction.numerator fraction.denominator ?code.natural analysis.natural]
-   [rational rational.Number rational.new rational.numerator rational.denominator ?code.integer analysis.integer]])
+               [[fraction fraction.Number fraction.new fraction.numerator fraction.denominator ?code.natural analysis.natural]
+                [rational rational.Number rational.new rational.numerator rational.denominator ?code.integer analysis.integer]])
 
 (exception.the .public (constant_is_not_known [name])
   (Exception Text)

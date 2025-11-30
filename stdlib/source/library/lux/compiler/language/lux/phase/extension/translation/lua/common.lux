@@ -12,7 +12,7 @@
    [data
     [collection
      ["[0]" dictionary]
-     ["[0]" list (.open functor mix)
+     ["[0]" list (.open functor)
       ["?[1]" \\projection]]]]
    [macro
     ["[0]" template]]
@@ -67,32 +67,28 @@
 (the .public (statement expression archive synthesis)
   Phase!
   (`` (when synthesis
-        [@ {synthesis.:Extension [.prelude (,, (static.text (extension.synthesis extension/lux.when_char)))] parameters}]
+        {synthesis.:Extension @ [.prelude (,, (static.text (extension.synthesis extension/lux.when_char)))] parameters}
         (comment "TODO: Get rid of this ASAP"
                  (monad.let phase.monad
                    [body (expression archive synthesis)]
                    (pure (as (-> _.Expression _.Statement) body))))
         
         (,, (template.with [<tag>]
-              [(<tag> @ value)
-               (phase:each _.return (expression archive synthesis))]
+                           [(<tag> @ value)
+                            (phase:each _.return (expression archive synthesis))]
 
-              [[synthesis.bit]
-               [synthesis.i64]
-               [synthesis.f64]
-               [synthesis.text]
-               [synthesis.variant]
-               [synthesis.tuple]
-               [synthesis.reification]]
-              ))
+                           [[synthesis.bit]
+                            [synthesis.i64]
+                            [synthesis.f64]
+                            [synthesis.text]
+                            [synthesis.reification]]))
 
         (,, (template.with [<tag>]
-              [[@ {<tag> value}]
-               (phase:each _.return (expression archive synthesis))]
+                           [{<tag> @ value}
+                            (phase:each _.return (expression archive synthesis))]
 
-              [[synthesis.:Reference]
-               [synthesis.:Extension]]
-              ))
+                           [[synthesis.:Reference]
+                            [synthesis.:Extension]]))
 
         (synthesis.let @ register input body)
         (//when.let! statement expression archive [register input body])
@@ -102,28 +98,26 @@
 
         (synthesis.when @ it)
         (<| (,, (template.with [,tag]
-                  [(when (,tag it)
-                     {.:Some it}
-                     (phase:each _.return (expression archive synthesis))
+                               [(when (,tag it)
+                                  {.:Some it}
+                                  (phase:each _.return (expression archive synthesis))
 
-                     else)]
+                                  else)]
 
-                  [[synthesis.its]]
-                  ))
+                               [[synthesis.its]]))
             (,, (template.with [,tag ,translation]
-                  [(when (,tag it)
-                     {.:Some it}
-                     (,translation statement expression archive it)
+                               [(when (,tag it)
+                                  {.:Some it}
+                                  (,translation statement expression archive it)
 
-                     else)]
+                                  else)]
 
-                  [[synthesis.variant_if //when.variant_if!]
-                   [synthesis.if //when.if!]
-                   [synthesis.when_i64 //when.when_i64!]
-                   [synthesis.when_f64 //when.when_f64!]
-                   [synthesis.when_text //when.when_text!]
-                   [synthesis.multi_let //when.multi_let!]]
-                  ))
+                               [[synthesis.variant_if //when.variant_if!]
+                                [synthesis.if //when.if!]
+                                [synthesis.when_i64 //when.when_i64!]
+                                [synthesis.when_f64 //when.when_f64!]
+                                [synthesis.when_text //when.when_text!]
+                                [synthesis.multi_let //when.multi_let!]]))
             (//when.when! statement expression archive it))
 
         (synthesis.tail_recursion @ tail_recursion)
@@ -135,8 +129,7 @@
         (//loop.tail_iteration! statement expression archive updates)
 
         (synthesis.abstraction @ abstraction)
-        (phase:each _.return (//function.function statement expression archive abstraction))
-        )))
+        (phase:each _.return (//function.function statement expression archive abstraction)))))
 
 (comment "TODO: Get rid of this ASAP"
          (the lux//syntax_char_case!
@@ -147,22 +140,22 @@
                                                            (?synthesis.tuple (<>.many ?synthesis.i64))
                                                            ?list.any))))
                       (function (_ phase archive [input else conditionals])
-                        (|> conditionals
-                            (list:each (function (_ [chars branch])
-                                         {path.:And (when (view.as list.stack chars)
-                                                      {.:Empty}
-                                                      {path.:Pop}
-                                                      
-                                                      {.:Top head tail}
-                                                      {path.:I64_Fork
-                                                       [head {path.:Pop}]
-                                                       (list:each (function (_ char)
-                                                                    [char {path.:Pop}])
-                                                                  (view.of list.stack tail))})
-                                                    {path.:Then branch}}))
-                            list.in_reverse
-                            (list:mix (function (_ pre post)
+                        (|> (list.mix (function (_ pre post)
                                         {path.:Or pre post})
+                                      (|> conditionals
+                                          (list:each (function (_ [chars branch])
+                                                       {path.:And (when (view.as list.stack chars)
+                                                                    {.:Empty}
+                                                                    {path.:Pop}
+                                                                    
+                                                                    {.:Top head tail}
+                                                                    {path.:I64_Fork
+                                                                     [head {path.:Pop}]
+                                                                     (list:each (function (_ char)
+                                                                                  [char {path.:Pop}])
+                                                                                (view.of list.stack tail))})
+                                                                  {path.:Then branch}}))
+                                          list.in_reverse)
                                       {path.:Then else})
                             [input]
                             (//when.when! statement phase archive)

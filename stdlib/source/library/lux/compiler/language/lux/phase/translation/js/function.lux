@@ -7,7 +7,7 @@
     ["[0]" pair]
     ["[0]" text]
     [collection
-     ["[0]" list (.open monoid functor mix)]]]
+     ["[0]" list (.open monoid functor)]]]
    [math
     [number
      [/64
@@ -153,7 +153,7 @@
                                                            [scope (by ! each ..@scope
                                                                       (translation.context archive))
                                                             body (translation.with_anchor [1 scope]
-                                                                   (statement expression archive bodyS))]
+                                                                                          (statement expression archive bodyS))]
                                                            (pure [scope body])))]
                                      (when environment
                                        (list)
@@ -173,39 +173,39 @@
            on_poly (.function (_ args func)
                      (|> func (_.do "apply" (list _.null args))))
            initialize_self! (_.define (//when.register 0) @self)
-           initialize! (list:mix (.function (_ post pre!)
+           initialize! (list.mix (.function (_ post pre!)
                                    (all _.then
                                         pre!
                                         (_.define (..input post) (_.at (_.i32 (.integer post)) @@arguments))))
-                                 initialize_self!
-                                 (list.domain arity))
+                                 (list.domain arity)
+                                 initialize_self!)
            [definition instantiation] (with_closure @self environment
-                                        (all _.then
-                                             (_.define @num_args (_.its "length" @@arguments))
-                                             (<| (_.if (|> @num_args (_.= arityO))
-                                                       (all _.then
-                                                            initialize!
-                                                            (<| (_.with_label (_.label @scope))
-                                                                (_.do_while (_.boolean true))
-                                                                body!)))
-                                                 (_.if (|> @num_args (_.< arityO))
-                                                       (let [all_inputs (_.do "call" (list @@arguments)
-                                                                          //runtime.array:slice)]
-                                                         (all _.then
-                                                              (_.define @curried all_inputs)
-                                                              (_.return (_.closure (list)
-                                                                                   (let [@missing all_inputs]
-                                                                                     (_.return (on_poly (_.do "concat" (list @missing) @curried)
-                                                                                                        @self))))))))
-                                                 (comment (|> @num_args (_.> arityO))
-                                                          (let [arity_inputs (_.do "call" (list @@arguments (_.i32 +0) arityO)
-                                                                               //runtime.array:slice)
-                                                                extra_inputs (_.do "call" (list @@arguments arityO)
-                                                                               //runtime.array:slice)]
-                                                            (_.return (|> @self
-                                                                          (on_poly arity_inputs)
-                                                                          (on_poly extra_inputs))))))
-                                             ))]
+                                                    (all _.then
+                                                         (_.define @num_args (_.its "length" @@arguments))
+                                                         (<| (_.if (|> @num_args (_.= arityO))
+                                                                   (all _.then
+                                                                        initialize!
+                                                                        (<| (_.with_label (_.label @scope))
+                                                                            (_.do_while (_.boolean true))
+                                                                            body!)))
+                                                             (_.if (|> @num_args (_.< arityO))
+                                                                   (let [all_inputs (_.do "call" (list @@arguments)
+                                                                                      //runtime.array:slice)]
+                                                                     (all _.then
+                                                                          (_.define @curried all_inputs)
+                                                                          (_.return (_.closure (list)
+                                                                                               (let [@missing all_inputs]
+                                                                                                 (_.return (on_poly (_.do "concat" (list @missing) @curried)
+                                                                                                                    @self))))))))
+                                                             (comment (|> @num_args (_.> arityO))
+                                                                      (let [arity_inputs (_.do "call" (list @@arguments (_.i32 +0) arityO)
+                                                                                           //runtime.array:slice)
+                                                                            extra_inputs (_.do "call" (list @@arguments arityO)
+                                                                                           //runtime.array:slice)]
+                                                                        (_.return (|> @self
+                                                                                      (on_poly arity_inputs)
+                                                                                      (on_poly extra_inputs))))))
+                                                         ))]
      _ (translation.execute! definition)
      _ (translation.save! (pair.right abstraction_id) {.:None} definition)]
     (pure instantiation)))

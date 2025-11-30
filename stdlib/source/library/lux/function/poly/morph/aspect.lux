@@ -13,7 +13,7 @@
     ["[0]" text (.only)
      ["%" \\injection]]
     [collection
-     ["[0]" list (.open mix)
+     ["[0]" list (.only)
       ["?[1]" \\projection]
       ["[0]" property]]]]
    ["[0]" macro (.only)
@@ -82,19 +82,19 @@
        ?))
 
 (template.with [<type> <tag> <name>]
-  [(the .public (<name> ?)
-     (-> (Predicate <type>)
-         Point_Cut)
-     (function (_ it)
-       (when (its :scenario it)
-         {<tag> it}
-         (? it)
+               [(the .public (<name> ?)
+                  (-> (Predicate <type>)
+                      Point_Cut)
+                  (function (_ it)
+                    (when (its :scenario it)
+                      {<tag> it}
+                      (? it)
 
-         _
-         false)))]
+                      _
+                      false)))]
 
-  [[Local :Local when_local]
-   [Global :Global when_global]])
+               [[Local :Local when_local]
+                [Global :Global when_global]])
 
 (the .public (typed? expected)
   (-> Type
@@ -234,47 +234,47 @@
     (pure it)))
 
 (template.with [<name> <parameters> <scenario> ,extension ,term <advised>]
-  [(the (<name> original aspect old)
-     (-> Code Aspect .Global
-         Analysis)
-     (analysis (_ phase archive <parameters>)
-       (monad.let [! phase.monad]
-         [[type term] (<| type.inferring
-                          (with_temporary_global [(name ,extension) (////.constant old)])
-                          (phase archive)
-                          ,term)
-          _ (type.inference type)
-          provenance meta.provenance
-          .let [join_point [:provenance provenance
-                            :scenario {<scenario> [it type]}]]]
-         (when (list.one (function (_ [point_cut advice])
-                           (if (point_cut join_point)
-                               {.:Some advice}
-                               {.:None}))
-                         aspect)
-           {try.:Success advice}
-           (<| (with_cached_expression [type term])
-               (function (_ analysis))
-               (with_temporary_global [(name ,extension) (////.constant old)])
-               (phase archive)
-               <advised>)
-           
-           {try.:Failure _}
-           (pure term)))))]
+               [(the (<name> original aspect old)
+                  (-> Code Aspect .Global
+                      Analysis)
+                  (analysis (_ phase archive <parameters>)
+                    (monad.let [! phase.monad]
+                      [[type term] (<| type.inferring
+                                       (with_temporary_global [(name ,extension) (////.constant old)])
+                                       (phase archive)
+                                       ,term)
+                       _ (type.inference type)
+                       provenance meta.provenance
+                       .let [join_point [:provenance provenance
+                                         :scenario {<scenario> [it type]}]]]
+                      (when (list.one (function (_ [point_cut advice])
+                                        (if (point_cut join_point)
+                                            {.:Some advice}
+                                            {.:None}))
+                                      aspect)
+                        {try.:Success advice}
+                        (<| (with_cached_expression [type term])
+                            (function (_ analysis))
+                            (with_temporary_global [(name ,extension) (////.constant old)])
+                            (phase archive)
+                            <advised>)
+                        
+                        {try.:Failure _}
+                        (pure term)))))]
 
-  [[local [it ?code.local]
-    :Local
-    .local#
-    (` (.local# (, (code.local it))))
-    (` ((, (code.name advice)) ((, analysis))))]
-   [global [quoted_module ?list.any
-            it ?code.global]
-    :Global
-    .global#
-    (` (.global# (, quoted_module) (, (code.name it))))
-    (let [[advice_module _] advice]
-      (` ((.global# (, (code.text advice_module)) (, (code.name advice)))
-          ((, analysis)))))]])
+               [[local [it ?code.local]
+                 :Local
+                 .local#
+                 (` (.local# (, (code.local it))))
+                 (` ((, (code.name advice)) ((, analysis))))]
+                [global [quoted_module ?list.any
+                         it ?code.global]
+                 :Global
+                 .global#
+                 (` (.global# (, quoted_module) (, (code.name it))))
+                 (let [[advice_module _] advice]
+                   (` ((.global# (, (code.text advice_module)) (, (code.name advice)))
+                       ((, analysis)))))]])
 
 (the with|analysis
   Analysis
@@ -283,14 +283,14 @@
     (monad.let [! phase.monad]
       [aspect (meta.eval Aspect aspect)
        .let [aspect (as (-> Any Aspect) aspect)]]
-      (list:mix (function (_ [original value] then)
+      (list.mix (function (_ [original value] then)
                   (<| (with_cached_analysis original)
                       (function (_ ['original original_global]))
                       (with_temporary_global [original (|>> (value 'original aspect) [Analysis {.:None}] {.:Definition})])
                       then))
-                (phase archive body)
                 (list [(name .local#) ..local]
-                      [(name .global#) ..global])))))
+                      [(name .global#) ..global])
+                (phase archive body)))))
 
 (the with|declaration
   Declaration
@@ -300,14 +300,14 @@
       [aspect (declaration.of_analysis
                (meta.eval Aspect aspect))
        .let [aspect (as (-> Any Aspect) aspect)]]
-      (list:mix (function (_ [original value] then)
+      (list.mix (function (_ [original value] then)
                   (<| (with_cached_analysis' original)
                       (function (_ ['original original_global]))
                       (with_temporary_global' [original (|>> (value 'original aspect) [Analysis {.:None}] {.:Definition})])
                       then))
-                (phase archive body)
                 (list [(name .local#) ..local]
-                      [(name .global#) ..global])))))
+                      [(name .global#) ..global])
+                (phase archive body)))))
 
 (the expression?
   (Meta Bit)

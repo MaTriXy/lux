@@ -43,31 +43,32 @@
     (|>> nominal.as))
 
   (template.with [<name> <kind> <algorithm>]
-    [(the .public (<name> value)
-       (-> Binary (Hash <kind>))
-       (|> (java/security/MessageDigest:getInstance [(ffi.as_string <algorithm>)])
-           (java/security/MessageDigest:digest [value])
-           nominal.of))]
+                 [(the .public (<name> value)
+                    (-> Binary (Hash <kind>))
+                    (|> (java/security/MessageDigest:getInstance [(ffi.as_string <algorithm>)])
+                        (java/security/MessageDigest:digest [value])
+                        nominal.of))]
 
-    [[sha1 ..SHA1 "SHA1"]
-     [md5 ..MD5 "MD5"]])
+                 [[sha1 ..SHA1 "SHA1"]
+                  [md5 ..MD5 "MD5"]])
 
-  (the as_text
+  (the (as_text it)
     (Injection Binary)
     (binary.mix (function (_ byte representation)
                   (text representation
                         (if (n.< (number.base_16 "10") byte)
                             (text "0" (by n.base_16 as byte))
                             (by n.base_16 as byte))))
+                it
                 ""))
 
   (template.with [<factor> <name>]
-    [(the <name>
-       Natural
-       <factor>)]
+                 [(the <name>
+                    Natural
+                    <factor>)]
 
-    [[20 sha1:size]
-     [16 md5:size]])
+                 [[20 sha1:size]
+                  [16 md5:size]])
 
   (the hex_per_byte
     2)
@@ -83,25 +84,25 @@
            ["Actual size" (%.natural (text.size value))])))
   
   (template.with [<name> <size>]
-    [(exception.the .public (<name> data)
-       (Exception Binary)
-       (exception.report
-        (list ["Pseudo hash" (%.text (..as_text data))]
-              ["Expected size" (%.natural <size>)]
-              ["Actual size" (%.natural (binary.size data))])))]
+                 [(exception.the .public (<name> data)
+                    (Exception Binary)
+                    (exception.report
+                     (list ["Pseudo hash" (%.text (..as_text data))]
+                           ["Expected size" (%.natural <size>)]
+                           ["Actual size" (%.natural (binary.size data))])))]
 
-    [[not_a_sha1 ..sha1:size]
-     [not_a_md5 ..md5:size]])
+                 [[not_a_sha1 ..sha1:size]
+                  [not_a_md5 ..md5:size]])
 
   (template.with [<name> <kind> <size> <exception>]
-    [(the .public (<name> data)
-       (-> Binary (Try (Hash <kind>)))
-       (if (n.= <size> (binary.size data))
-           {try.:Success (nominal.of data)}
-           (exception.except <exception> [data])))]
+                 [(the .public (<name> data)
+                    (-> Binary (Try (Hash <kind>)))
+                    (if (n.= <size> (binary.size data))
+                        {try.:Success (nominal.of data)}
+                        (exception.except <exception> [data])))]
 
-    [[as_sha1 SHA1 ..sha1:size ..not_a_sha1]
-     [as_md5 MD5 ..md5:size ..not_a_md5]])
+                 [[as_sha1 SHA1 ..sha1:size ..not_a_sha1]
+                  [as_md5 MD5 ..md5:size ..not_a_md5]])
 
   (the hash_size
     (-> Text Natural)
@@ -134,27 +135,27 @@
                       (constructor output)
                       
                       (,, (template.with [<size> <write>]
-                            [<size>
-                             (monad.let try.monad
-                               [head (by n.base_16 of input)
-                                output (<write> index head output)]
-                               (constructor output))]
+                                         [<size>
+                                          (monad.let try.monad
+                                            [head (by n.base_16 of input)
+                                             output (<write> index head output)]
+                                            (constructor output))]
 
-                            [[1 binary.has_08!]
-                             [2 binary.has_16!]
-                             [4 binary.has_32!]]))
+                                         [[1 binary.has_08!]
+                                          [2 binary.has_16!]
+                                          [4 binary.has_32!]]))
                       _ (exception.except ..not_a_hash [(..encoding_size size) injection]))))))
           (exception.except ..not_a_hash [(..encoding_size size) injection]))))
 
   (template.with [<format> <hash> <natural> <constructor>]
-    [(the .public <format>
-       (Format Text (Hash <hash>))
-       (implementation
-        (the as (|>> nominal.as ..as_text))
-        (the of (..of_text <natural> <constructor>))))]
+                 [(the .public <format>
+                    (Format Text (Hash <hash>))
+                    (implementation
+                     (the as (|>> nominal.as ..as_text))
+                     (the of (..of_text <natural> <constructor>))))]
 
-    [[sha1_format SHA1 ..sha1:size ..as_sha1]
-     [md5_format MD5 ..md5:size ..as_md5]])
+                 [[sha1_format SHA1 ..sha1:size ..as_sha1]
+                  [md5_format MD5 ..md5:size ..as_md5]])
 
   (the .public equality
     (for_any (_ h)

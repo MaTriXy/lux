@@ -16,7 +16,7 @@
     ["[0]" text (.only)
      ["%" \\injection]]
     [collection
-     ["[0]" list (.open functor mix)]
+     ["[0]" list (.open functor)]
      ["[0]" stack]
      ["[0]" dictionary (.only Dictionary)]
      ["[0]" set (.only Set)]]]
@@ -72,10 +72,7 @@
 (the .public (minimum [maximum cases])
   (-> Variant
       Natural)
-  (maybe.else (|> cases
-                  dictionary.domain
-                  (list:mix n.major 0)
-                  ++)
+  (maybe.else (++ (list.mix n.major (dictionary.domain cases) 0))
               maximum))
 
 (the .public (maximum [maximum cases])
@@ -105,14 +102,14 @@
            (bit.= sideR sideS)
 
            (,, (template.with [<tag>]
-                 [[{<tag> partialR} {<tag> partialS}]
-                  (set.= partialR partialS)]
+                              [[{<tag> partialR} {<tag> partialS}]
+                               (set.= partialR partialS)]
 
-                 [[:Natural]
-                  [:Integer]
-                  [:Revolution]
-                  [:Real]
-                  [:Text]]))
+                              [[:Natural]
+                               [:Integer]
+                               [:Revolution]
+                               [:Real]
+                               [:Text]]))
 
            [{:Variant allR casesR} {:Variant allS casesS}]
            (and (by (maybe.equality n.equality) = allR allS)
@@ -147,18 +144,18 @@
         (bit.as_text it)
 
         (,, (template.with [<tag> <injection>]
-              [{<tag> it}
-               (|> it
-                   set.as_list
-                   (list:each <injection>)
-                   (text.interposed " ")
-                   (text.enclosed ["[" "]"]))]
+                           [{<tag> it}
+                            (|> it
+                                set.as_list
+                                (list:each <injection>)
+                                (text.interposed " ")
+                                (text.enclosed ["[" "]"]))]
 
-              [[:Natural %.natural]
-               [:Integer %.integer]
-               [:Revolution %.revolution]
-               [:Real %.real]
-               [:Text %.text]]))
+                           [[:Natural %.natural]
+                            [:Integer %.integer]
+                            [:Revolution %.revolution]
+                            [:Real %.real]
+                            [:Text %.text]]))
         
         {:Variant ?max_cases cases}
         (|> cases
@@ -199,16 +196,16 @@
         {try.:Success {:Exhaustive}}
 
         (,, (template.with [<from> <to> <hash>]
-              [{@type.:Simple_Pattern {<from> it}}
-               (comment "Simple patterns (other than unit/[]) always have partial coverage because there"
-                        "are too many possibilities as far as values go."
-                        {try.:Success {<to> (set.of_list <hash> (list it))}})]
+                           [{@type.:Simple_Pattern {<from> it}}
+                            (comment "Simple patterns (other than unit/[]) always have partial coverage because there"
+                                     "are too many possibilities as far as values go."
+                                     {try.:Success {<to> (set.of_list <hash> (list it))}})]
 
-              [[@type.:Simple_Natural :Natural n.hash]
-               [@type.:Simple_Integer :Integer i.hash]
-               [@type.:Simple_Revolution :Revolution r.hash]
-               [@type.:Simple_Real :Real real.hash]
-               [@type.:Simple_Text :Text text.hash]]))
+                           [[@type.:Simple_Natural :Natural n.hash]
+                            [@type.:Simple_Integer :Integer i.hash]
+                            [@type.:Simple_Revolution :Revolution r.hash]
+                            [@type.:Simple_Real :Real real.hash]
+                            [@type.:Simple_Text :Text text.hash]]))
 
         {@type.:Simple_Pattern {@type.:Simple_Bit value}}
         (comment "Bits are the exception, since there is only 0b and"
@@ -235,8 +232,8 @@
 
                                     _
                                     (pure {:And leftC rightC}))))
-                              {:Exhaustive}
-                              members)))
+                              members
+                              {:Exhaustive})))
 
         {@type.:List_Pattern it}
         (|> it
@@ -311,16 +308,16 @@
                                 <redundancy>))
 
                    (,, (template.with [<tag>]
-                         [[{<tag> partialA} {<tag> partialSF}]
-                          (if (set.empty? (set.intersection partialA partialSF))
-                              {try.:Success {<tag> (set.union partialA partialSF)}}
-                              <redundancy>)]
+                                      [[{<tag> partialA} {<tag> partialSF}]
+                                       (if (set.empty? (set.intersection partialA partialSF))
+                                           {try.:Success {<tag> (set.union partialA partialSF)}}
+                                           <redundancy>)]
 
-                         [[:Natural]
-                          [:Integer]
-                          [:Revolution]
-                          [:Real]
-                          [:Text]]))
+                                      [[:Natural]
+                                       [:Integer]
+                                       [:Revolution]
+                                       [:Real]
+                                       [:Text]]))
 
                    [{:Variant addition'} {:Variant so_far'}]
                    (let [[allA casesA] addition'
@@ -349,8 +346,8 @@
 
                                                   {try.:Failure _}
                                                   (pure (dictionary.has tagA coverageA casesSF'))))
-                                              casesSF
-                                              (dictionary.entries casesA))]
+                                              (dictionary.entries casesA)
+                                              casesSF)]
                            (pure (if (and (n.= (n.minor addition_cases so_far_cases)
                                                (dictionary.size casesM))
                                           (list.every? ..exhaustive? (dictionary.values casesM)))
@@ -455,9 +452,10 @@
                                     {.:None}
                                     (when (stack.in_reverse possibilitiesSF')
                                       {.:Top last prevs}
-                                      (pure (stack.mix (function (_ left right) {:Or left right})
-                                                       last
-                                                       prevs))
+                                      (pure (stack.mix (function (_ left right)
+                                                         {:Or left right})
+                                                       prevs
+                                                       last))
 
                                       {.:Empty}
                                       (undefined)))))))

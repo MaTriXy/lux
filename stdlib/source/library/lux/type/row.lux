@@ -15,7 +15,7 @@
     ["[0]" text (.only)
      ["%" \\injection]]
     [collection
-     ["[0]" list (.open monad mix monoid)
+     ["[0]" list (.open monad monoid)
       ["?[1]" \\projection]]
      ["[0]" dictionary (.only Dictionary)]
      ["[0]" set]]]
@@ -129,32 +129,32 @@
                      _
                      (pure {.:None}))]
           (with_names ['_ '&]
-            (let [self (` (Row ((, name') (,* parameters))
-                               (, '&)))]
-              (pure (list (` (these (.every (, export_policy) ((, name') (,* parameters))
-                                      (Record
-                                       [(,* (un_paired slots'))]))
-                                    (.every (, export_policy) ((, (code.local name)) (,* parameters))
-                                      (for_some ((, '_) (, '&))
-                                        (, (when super
-                                             {.:Some super}
-                                             (` ((, super) (, self)))
+                      (let [self (` (Row ((, name') (,* parameters))
+                                         (, '&)))]
+                        (pure (list (` (these (.every (, export_policy) ((, name') (,* parameters))
+                                                (Record
+                                                 [(,* (un_paired slots'))]))
+                                              (.every (, export_policy) ((, (code.local name)) (,* parameters))
+                                                (for_some ((, '_) (, '&))
+                                                  (, (when super
+                                                       {.:Some super}
+                                                       (` ((, super) (, self)))
 
-                                             _
-                                             self))))
-                                    (,* (list:each (function (_ [[row_slot _] [record_slot _]])
-                                                     (` (the (, export_policy) (, (code.local row_slot))
-                                                          (..slot
-                                                           (syntax.macro ((, '_) [])
-                                                             (by meta.monad (,' pure)
-                                                                 (list (,* (list.repeated (|> :super:
-                                                                                              (maybe:each nesting)
-                                                                                              (maybe.else 0))
-                                                                                          (` (` ..:extra))))
-                                                                       (` ..:content)
-                                                                       (` (, record_slot)))))))))
-                                                   (list.zipped_2 slots slots')))
-                                    )))))))
+                                                       _
+                                                       self))))
+                                              (,* (list:each (function (_ [[row_slot _] [record_slot _]])
+                                                               (` (the (, export_policy) (, (code.local row_slot))
+                                                                    (..slot
+                                                                     (syntax.macro ((, '_) [])
+                                                                       (by meta.monad (,' pure)
+                                                                           (list (,* (list.repeated (|> :super:
+                                                                                                        (maybe:each nesting)
+                                                                                                        (maybe.else 0))
+                                                                                                    (` (` ..:extra))))
+                                                                                 (` ..:content)
+                                                                                 (` (, record_slot)))))))))
+                                                             (list.zipped_2 slots slots')))
+                                              )))))))
         (meta.of_try (exception.except ..cannot_repeat_slot_names [slot_names])))))
 
 (syntax.the .public (its [slot ?code.name
@@ -196,14 +196,14 @@
                                      slot (try.trusted (list.item (-- path_size) path))]]
                               (pure [nesting [slot value]])))
                         slots)
-     .let [levels (list:mix (function (_ [nesting slot,value] levels)
+     .let [levels (list.mix (function (_ [nesting slot,value] levels)
                               (dictionary.revised' nesting
                                                    (list)
                                                    (|>> (list:composite (list slot,value)))
                                                    levels))
+                            record
                             (is (Dictionary Natural (List [Code Code]))
-                                (dictionary.empty n.hash))
-                            record)]
+                                (dictionary.empty n.hash)))]
      row (list.mix' ! (function (_ level extra)
                         (when (dictionary.value level levels)
                           {try.:Success record}
@@ -212,8 +212,8 @@
                           
                           failure
                           (meta.of_try (exception.except ..missing_level [level]))))
-                    (` [])
                     (|> (dictionary.size levels)
                         list.domain
-                        list.in_reverse))]
+                        list.in_reverse)
+                    (` []))]
     (pure (list row))))

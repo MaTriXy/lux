@@ -8,9 +8,7 @@
     ["[0]" try (.only Try)]
     ["[0]" exception (.only Exception)]]
    [data
-    ["[0]" maybe]
-    [collection
-     ["[0]" list (.open mix)]]]
+    ["[0]" maybe]]
    [math
     [number
      [/64
@@ -148,13 +146,13 @@
     (pure it)))
 
 (template.with [<minimum> <maximum> <text>]
-  [(the .public <text>
-     (Projection Text)
-     (..range (character <minimum>) (character <maximum>)))]
+               [(the .public <text>
+                  (Projection Text)
+                  (..range (character <minimum>) (character <maximum>)))]
 
-  [["A" "Z" upper]
-   ["a" "z" lower]
-   ["0" "1" base_02]])
+               [["A" "Z" upper]
+                ["a" "z" lower]
+                ["0" "1" base_02]])
 
 (the .public base_08
   (Projection Text)
@@ -179,32 +177,32 @@
 (the .public alpha_numeric (Projection Text) (?.either ..alpha ..base_10))
 
 (template.with [<name>]
-  [(exception.the .public (<name> [options character])
-     (Exception [Text Character])
-     (exception.report
-      (list ["Options" (/.as_text options)]
-            ["Character" (/.as_text (/.of_character character))])))]
+               [(exception.the .public (<name> [options character])
+                  (Exception [Text Character])
+                  (exception.report
+                   (list ["Options" (/.as_text options)]
+                         ["Character" (/.as_text (/.of_character character))])))]
 
-  [[character_should_be]
-   [character_should_not_be]])
+               [[character_should_be]
+                [character_should_not_be]])
 
 (template.with [<name> <modifier> <exception>]
-  [(the .public (<name> options)
-     (-> Text
-         (Projection Text))
-     (function (_ [offset tape])
-       (when (/.character offset tape)
-         {.:Some output}
-         (let [output' (/.of_character output)]
-           (if (<modifier> (/.contains? output' options))
-               {try.:Success [[(.i64_+# 1 offset) tape] output']}
-               (exception.except <exception> [options output])))
+               [(the .public (<name> options)
+                  (-> Text
+                      (Projection Text))
+                  (function (_ [offset tape])
+                    (when (/.character offset tape)
+                      {.:Some output}
+                      (let [output' (/.of_character output)]
+                        (if (<modifier> (/.contains? output' options))
+                            {try.:Success [[(.i64_+# 1 offset) tape] output']}
+                            (exception.except <exception> [options output])))
 
-         _
-         (exception.except ..cannot_parse []))))]
+                      _
+                      (exception.except ..cannot_parse []))))]
 
-  [[one_of  |>   ..character_should_be]
-   [none_of .not ..character_should_not_be]])
+               [[one_of  |>   ..character_should_be]
+                [none_of .not ..character_should_not_be]])
 
 (exception.the .public (character_does_not_satisfy_predicate character)
   (Exception Character)
@@ -237,26 +235,26 @@
     (pure (all /:composite =left =right))))
 
 (template.with [<name> <base> <doc_modifier>]
-  [(the .public (<name> projection)
-     (Change (Projection Text))
-     (|> projection
-         <base>
-         (by ?.monad each /.together)))]
+               [(the .public (<name> projection)
+                  (Change (Projection Text))
+                  (|> projection
+                      <base>
+                      (by ?.monad each /.together)))]
 
-  [[some ?.some "some"]
-   [many ?.many "many"]])
+               [[some ?.some "some"]
+                [many ?.many "many"]])
 
 (template.with [<name> <base> <doc_modifier>]
-  [(the .public (<name> amount projection)
-     (-> Natural
-         (Change (Projection Text)))
-     (|> projection
-         (<base> amount)
-         (by ?.monad each /.together)))]
+               [(the .public (<name> amount projection)
+                  (-> Natural
+                      (Change (Projection Text)))
+                  (|> projection
+                      (<base> amount)
+                      (by ?.monad each /.together)))]
 
-  [[exactly  ?.exactly  "exactly"]
-   [at_most  ?.at_most  "at most"]
-   [at_least ?.at_least "at least"]])
+               [[exactly  ?.exactly  "exactly"]
+                [at_most  ?.at_most  "at most"]
+                [at_least ?.at_least "at least"]])
 
 (the .public (between minimum additional projection)
   (-> Natural Natural

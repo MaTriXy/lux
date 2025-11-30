@@ -19,7 +19,7 @@
     ["[0]" text (.open order)
      ["%" \\injection]]
     [collection
-     ["[0]" list (.open monad mix monoid)]
+     ["[0]" list (.open monad monoid)]
      ["[0]" dictionary (.only Dictionary)]
      ["[0]" set]]]
    [math
@@ -182,27 +182,29 @@
   (for_any (_ !)
     (-> (file.System !) file.Path Resolution
         (List file.Path)))
-  (|>> dictionary.domain
-       (list.only (|>> (its ///dependency.:type)
-                       (text.= ///artifact/type.lux_library)
-                       not))
-       (list:mix (function (_ dependency uniques)
-                   (let [artifact (its ///dependency.:artifact dependency)
-                         identity [(its ///artifact.:group artifact)
-                                   (its ///artifact.:name artifact)]
-                         version (its ///artifact.:version artifact)]
-                     (when (dictionary.value identity uniques)
-                       {try.:Success [current_version current_path]}
-                       (if (by version_order < version current_version)
-                           (dictionary.has identity [version dependency] uniques)
-                           uniques)
-                       
-                       not_found!
-                       (dictionary.has identity [version dependency] uniques))))
-                 (is (Dictionary [Group Name] [Version Dependency])
-                     (dictionary.empty (pair.hash text.hash text.hash))))
-       dictionary.values
-       (list:each (|>> pair.right (..path fs home)))))
+  (function (_ it)
+    (|> (is (Dictionary [Group Name] [Version Dependency])
+            (dictionary.empty (pair.hash text.hash text.hash)))
+        (list.mix (function (_ dependency uniques)
+                    (let [artifact (its ///dependency.:artifact dependency)
+                          identity [(its ///artifact.:group artifact)
+                                    (its ///artifact.:name artifact)]
+                          version (its ///artifact.:version artifact)]
+                      (when (dictionary.value identity uniques)
+                        {try.:Success [current_version current_path]}
+                        (if (by version_order < version current_version)
+                            (dictionary.has identity [version dependency] uniques)
+                            uniques)
+                        
+                        not_found!
+                        (dictionary.has identity [version dependency] uniques))))
+                  (|> it
+                      dictionary.domain
+                      (list.only (|>> (its ///dependency.:type)
+                                      (text.= ///artifact/type.lux_library)
+                                      not))))
+        dictionary.values
+        (list:each (|>> pair.right (..path fs home))))))
 
 (the (singular name)
   (-> Text Text

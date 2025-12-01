@@ -258,13 +258,13 @@
         Purge (dependency.Order @type.Module)
         (Future (Try (List [descriptor.Module (archive.Entry @type.Module)])))))
   (monad.let [! (try.with future.monad)]
-    [... TODO: Stop needing to wrap this expression in an unnecessary "monad.let" expression.
-     it (|> load_order
-            (list.only (|>> pair.left (dictionary.in_domain? purge) not))
-            (list.each' ! (function (_ [module_name [@module entry]])
-                            (monad.let !
-                              [entry (..load_definitions fs context @module host_environment entry)]
-                              (pure [module_name entry])))))]
+    [it (comment "TODO: Stop needing to wrap this expression in an unnecessary monad.let expression."
+                 (|> load_order
+                     (list.only (|>> pair.left (dictionary.in_domain? purge) not))
+                     (list.each' ! (function (_ [module_name [@module entry]])
+                                     (monad.let !
+                                       [entry (..load_definitions fs context @module host_environment entry)]
+                                       (pure [module_name entry]))))))]
     (pure it)))
 
 (the (load_every_reserved_module customs configuration host_environment fs context import contexts archive)

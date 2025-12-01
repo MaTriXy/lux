@@ -5,7 +5,7 @@
 ;; Authors: Eduardo Julian <eduardoejp@gmail.com>
 ;; URL: https://github.com/LuxLang/lux/tree/master/lux-mode
 ;; Keywords: languages lisp lux
-;; Version: 0.6.6
+;; Version: 0.10.0
 ;; Package-Requires: ((emacs "24.1"))
 
 ;; This file is not part of GNU Emacs.
@@ -70,7 +70,7 @@
   :link '(url-link :tag "Github" "https://github.com/LuxLang/lux/tree/master/lux-mode")
   :link '(emacs-commentary-link :tag "Commentary" "lux-mode"))
 
-(defconst lux-mode-version "0.6.0"
+(defconst lux-mode-version "0.10.0"
   "The current version of `lux-mode'.")
 
 (defcustom lux-defun-style-default-indent nil
@@ -458,8 +458,8 @@ Called by `imenu--generic-function'."
 												  "Tuple" "And" "Record"
 												  "Rec"
 												  "Nominal" "->" "<-"
-												  "All" "for_all" "for_any" "for_every"
-												  "Ex" "there_exists" "for_some"
+												  "for_any"
+												  "for_some"
 												  "Interface"
 												  "type"))
 							   (type//checking (or* "is" "as" "let" "as_expected" "type_of" "sharing" "by_example" "hole"))
@@ -662,57 +662,7 @@ This function also returns nil meaning don't specify the indentation."
 							 (quote ,(first x)) ,(second x)))
                kvs)))
 
-(define-lux-indent
-  ("function" 'defun)
-  ("macro" 'defun)
-  ("program" 'defun)
-
-  ("the" 'defun)
-  ("every" 'defun)
-  ("inlined" 'defun)
-  ("method" 'defun)
-  
-  ("analysis" 'defun)
-  ("synthesis" 'defun)
-  ("translation" 'defun)
-  ("declaration" 'defun)
-
-  ("definition" 'defun)
-
-  ("sharing" 'defun)
-  ("by_example" 'defun)
-  ("capability" 'defun)
-
-  ("unless" 1)
-  
-  (let 'defun)
-  (when 'defun)
-  (do 'defun)
-  (exec 'defun)
-  (be 'defun)
-  (loop 1)
-
-  ("All" 'defun)
-  ("for_all" 'defun)
-  ("for_any" 'defun)
-  ("for_every" 'defun)
-  
-  ("Ex" 'defun)
-  ("there_exists" 'defun)
-  ("for_some" 'defun)
-
-  (Rec 'defun)
-
-  (synchronized 'defun)
-  (object 'defun)
-  
-  (remember 'defun)
-  (to_do 'defun)
-  (fix_me 'defun)
-
-  (test 'defun)
-  (coverage 'defun)
-  )
+(define-lux-indent)
 
 ;;;###autoload
 (provide 'lux-mode)

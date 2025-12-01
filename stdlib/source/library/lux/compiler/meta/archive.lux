@@ -131,27 +131,27 @@
             {try.:Success [id {.:Some [existing_module existing_output existing_registry]}]}
             (if (identical? (its module.:document existing_module)
                             (its [:module module.:document] entry))
-                ... TODO: Find out why this code allows for the same module to be added more than once. It looks fishy...
-                {try.:Success archive}
+                (comment "TODO: Find out why this code allows for the same module to be added more than once. It looks fishy."
+                         {try.:Success archive})
                 (exception.except ..cannot_replace_document [module (its module.:document existing_module) (its [:module module.:document] entry)]))
             
             failure
             (exception.except ..module_must_be_reserved_before_it_can_be_added [module]))))
 
-  ... TODO: Eliminate the need for this hack...
-  (the .public (has! module entry archive)
-    (-> descriptor.Module (Entry Any) Archive
-        (Try Archive))
-    (with "/[0]" (nominal.as archive)
-          (when (dictionary.value module /:resolver)
-            {try.:Success [id _]}
-            {try.:Success (|> archive
-                              nominal.as
-                              (revised ..:resolver (dictionary.has module [id {.:Some entry}]))
-                              nominal.of)}
-            
-            failure
-            (exception.except ..module_must_be_reserved_before_it_can_be_added [module]))))
+  (comment "TODO: Eliminate the need for this hack."
+           (the .public (has! module entry archive)
+             (-> descriptor.Module (Entry Any) Archive
+                 (Try Archive))
+             (with "/[0]" (nominal.as archive)
+                   (when (dictionary.value module /:resolver)
+                     {try.:Success [id _]}
+                     {try.:Success (|> archive
+                                       nominal.as
+                                       (revised ..:resolver (dictionary.has module [id {.:Some entry}]))
+                                       nominal.of)}
+                     
+                     failure
+                     (exception.except ..module_must_be_reserved_before_it_can_be_added [module])))))
 
   (the .public entries
     (-> Archive

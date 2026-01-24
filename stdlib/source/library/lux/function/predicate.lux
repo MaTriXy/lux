@@ -10,70 +10,70 @@
 (the with_template (.in_module# .prelude .with_template))
 
 (every .public (Predicate it)
-  (-> it
-      Bit))
+       (-> it
+           Bit))
 
 (with_template [<identity_value> <identity_name> <composition_name> <composition>]
-  [(the .public <identity_name>
-     Predicate
-     (//.constant <identity_value>))
+               [(the .public <identity_name>
+                     Predicate
+                     (//.constant <identity_value>))
 
-   (the .public (<composition_name> left right)
-     (for_any (_ it)
-       (-> (Predicate it) (Predicate it)
-           (Predicate it)))
-     (function (_ value)
-       (<composition> (left value)
-                      (right value))))]
+                (the .public (<composition_name> left right)
+                     (for_any (_ it)
+                              (-> (Predicate it) (Predicate it)
+                                  (Predicate it)))
+                     (function (_ value)
+                               (<composition> (left value)
+                                              (right value))))]
 
-  [[0b none or  .or]
-   [1b all  and .and]])
+               [[0b none or  .or]
+                [1b all  and .and]])
 
 (with_template [<name> <identity> <composition>]
-  [(the .public <name>
-     (for_any (_ it)
-       (Monoid (Predicate it)))
-     (implementation
-      (the identity <identity>)
-      (the composite <composition>)))]
+               [(the .public <name>
+                     (for_any (_ it)
+                              (Monoid (Predicate it)))
+                     (implementation
+                      (the identity <identity>)
+                      (the composite <composition>)))]
 
-  [[union        ..none ..or]
-   [intersection ..all  ..and]])
+               [[union        ..none ..or]
+                [intersection ..all  ..and]])
 
 (the .public (complement predicate)
-  (for_any (_ it)
-    (Change (Predicate it)))
-  (|>> predicate
-       .not))
+     (for_any (_ it)
+              (Change (Predicate it)))
+     (|>> predicate
+          .not))
 
 (alias [not]
        ..complement)
 
 (the .public (difference sub base)
-  (for_any (_ it)
-    (-> (Predicate it) (Predicate it)
-        (Predicate it)))
-  (function (_ value)
-    (.and (base value)
-          (.not (sub value)))))
+     (for_any (_ it)
+              (-> (Predicate it) (Predicate it)
+                  (Predicate it)))
+     (function (_ value)
+               (.and (base value)
+                     (.not (sub value)))))
 
 (alias [-]
        ..difference)
 
 (the .public (rec predicate)
-  (for_any (_ it)
-    (-> (Change (Predicate it))
-        (Predicate it)))
-  (function (of input)
-    (predicate of input)))
+     (for_any (_ it)
+              (-> (Change (Predicate it))
+                  (Predicate it)))
+     (function (of input)
+               (predicate of input)))
 
 (the .public functor
-  (contravariant.Functor Predicate)
-  (implementation
-   (the (each $ it)
-     (|>> $ it))))
+     (contravariant.Functor Predicate)
+     (implementation
+      (the (each $ it)
+           (|>> $ it))))
 
-(the with_monad (.in_module# .prelude with_monad))
+(the monad:let (.in_module# .prelude monad:let))
 (the _generated_name (.in_module# .prelude generated_name))
 (the _meta:monad (.in_module# .prelude meta:monad))
 (the meta:failure (.in_module# .prelude failure))
@@ -86,22 +86,22 @@
 (the ?:some (.in_module# .prelude ?:some))
 
 (the .public if
-  (macro (_ tokens)
-    (.when (|> (.all ?:and
-                     ?:any
-                     (?:some (?:and ?:any ?:any))
-                     ?:any)
-               (?:value tokens))
-      {.:Some ['it each_when,then 'else]}
-      (with_monad _meta:monad
-        ['_ (_generated_name "'_")]
-        (pure (list (` (.let [(, '_) (, 'it)]
-                         (.if (,* (|> each_when,then
-                                      (list:each (function (_ [when then])
-                                                   (list (` ((, when) (, '_)))
-                                                         then)))
-                                      list:conjoint))
-                              (, 'else)))))))
+     (macro (_ tokens)
+            (.when (|> (.all ?:and
+                             ?:any
+                             (?:some (?:and ?:any ?:any))
+                             ?:any)
+                       (?:value tokens))
+                   {.:Some ['it each_when,then 'else]}
+                   (monad:let _meta:monad
+                              ['_ (_generated_name "'_")]
+                              (pure (list (` (.let [(, '_) (, 'it)]
+                                                   (.if (,* (|> each_when,then
+                                                                (list:each (function (_ [when then])
+                                                                                     (list (` ((, when) (, '_)))
+                                                                                           then)))
+                                                                list:conjoint))
+                                                        (, 'else)))))))
 
-      {.:None}
-      (meta:failure ""))))
+                   {.:None}
+                   (meta:failure ""))))

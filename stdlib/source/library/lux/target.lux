@@ -4,107 +4,107 @@
 
 (the with_template (.in_module# .prelude with_template))
 (with_template [,name]
-  [(the ,name (.in_module# .prelude ,name))]
+               [(the ,name (.in_module# .prelude ,name))]
 
-  [[with_monad]
-   [monad:each]
-   
-   [meta:monad]
-   [meta:pure]
-   [failure]
+               [[monad:let]
+                [monad:each]
+                
+                [meta:monad]
+                [meta:pure]
+                [failure]
 
-   [Projection]
-   [?:value]
-   [?:each]
-   [?:either]
-   [?:and]
-   [?:maybe]
-   [?:some]
-   [?:any]
-   [?:tuple]
+                [Projection]
+                [?:value]
+                [?:each]
+                [?:either]
+                [?:and]
+                [?:maybe]
+                [?:some]
+                [?:any]
+                [?:tuple]
 
-   [list:one]])
+                [list:one]])
 
 (every .public Target
-  Text)
+       Text)
 
 (with_template [<name> <value>]
-  [(the .public <name>
-     Target
-     <value>)]
-  
-  [... Available.
-   [js          "JavaScript"]
-   [jvm         "JVM"]
-   [lua         "Lua"]
-   [python      "Python"]
-   [ruby        "Ruby"]
-   ... Not available yet.
-   [c++         "C++"]
-   [common_lisp "Common Lisp"]
-   [php         "PHP"]
-   [r           "R"]])
+               [(the .public <name>
+                     Target
+                     <value>)]
+               
+               [... Available.
+                [js          "JavaScript"]
+                [jvm         "JVM"]
+                [lua         "Lua"]
+                [python      "Python"]
+                [ruby        "Ruby"]
+                ... Not available yet.
+                [c++         "C++"]
+                [common_lisp "Common Lisp"]
+                [php         "PHP"]
+                [r           "R"]])
 
 (the Eval
-  ... TODO: Use the currently-commented definition.
-  ... (.type# "eval")
-  (type (-> Type Code
-            (Meta Any))))
+     ... TODO: Use the currently-commented definition.
+     ... (.type# "eval")
+     (type (-> Type Code
+               (Meta Any))))
 
 (the (eval type code)
-  Eval
-  (with_monad meta:monad
-    [eval (function (_ lux)
-            {.:Right [lux (as (-> Any Eval)
-                              (its .:eval lux))]})]
-    (eval type code)))
+     Eval
+     (monad:let meta:monad
+                [eval (function (_ lux)
+                                {.:Right [lux (as (-> Any Eval)
+                                                  (its .:eval lux))]})]
+                (eval type code)))
 
 (the every_case
-  (Projection (List Code))
-  (all ?:either
-       (?:tuple (?:some ?:any))
-       (?:each (|>> list) ?:any)))
+     (Projection (List Code))
+     (all ?:either
+          (?:tuple (?:some ?:any))
+          (?:each (|>> list) ?:any)))
 
 (the .public if
-  (let [target (is (Meta Target)
-                   (function (_ compiler)
-                     {.:Right [compiler (its [.:info .:target] compiler)]}))
-        platform_name (is (-> Code
-                              (Meta Target))
-                          (function (_ it)
-                            (with_monad meta:monad
-                              [it (eval Target it)]
-                              (pure (as (-> Any Target) it)))))]
-    (macro (_ tokens)
-      (when (?:value tokens
-                     (?:and (?:some (?:and ..every_case ?:any))
-                            (?:maybe ?:any)))
-        {.:Some [options default]}
-        (with_monad meta:monad
-          [target target
-           options (monad:each meta:monad
-                               (function (_ [every_platform pick])
-                                 (with_monad meta:monad
-                                   [every_platform (monad:each meta:monad platform_name every_platform)]
-                                   (pure [every_platform pick])))
-                               options)]
-          (when (list:one (function (_ [every_platform pick])
-                            (list:one (function (_ platform)
-                                        (.if (.text_=# target platform)
-                                             {.:Some pick}
-                                             {.:None}))
-                                      every_platform))
-                          options)
-            {.:Some pick}
-            (meta:pure (list pick))
+     (let [target (is (Meta Target)
+                      (function (_ compiler)
+                                {.:Right [compiler (its [.:info .:target] compiler)]}))
+           platform_name (is (-> Code
+                                 (Meta Target))
+                             (function (_ it)
+                                       (monad:let meta:monad
+                                                  [it (eval Target it)]
+                                                  (pure (as (-> Any Target) it)))))]
+          (macro (_ tokens)
+                 (when (?:value tokens
+                                (?:and (?:some (?:and ..every_case ?:any))
+                                       (?:maybe ?:any)))
+                       {.:Some [options default]}
+                       (monad:let meta:monad
+                                  [target target
+                                   options (monad:each meta:monad
+                                                       (function (_ [every_platform pick])
+                                                                 (monad:let meta:monad
+                                                                            [every_platform (monad:each meta:monad platform_name every_platform)]
+                                                                            (pure [every_platform pick])))
+                                                       options)]
+                                  (when (list:one (function (_ [every_platform pick])
+                                                            (list:one (function (_ platform)
+                                                                                (.if (.text_=# target platform)
+                                                                                     {.:Some pick}
+                                                                                     {.:None}))
+                                                                      every_platform))
+                                                  options)
+                                        {.:Some pick}
+                                        (meta:pure (list pick))
 
-            {.:None}
-            (when default
-              {.:Some default}
-              (meta:pure (list default))
-              
-              {.:None}
-              (failure (text "No code for target platform: " target)))))
+                                        {.:None}
+                                        (when default
+                                              {.:Some default}
+                                              (meta:pure (list default))
+                                              
+                                              {.:None}
+                                              (failure (text "No code for target platform: " target)))))
 
-        {.:None}
-        (failure "")))))
+                       {.:None}
+                       (failure "")))))

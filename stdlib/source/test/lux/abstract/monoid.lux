@@ -20,139 +20,139 @@
    [//
     [equality (.only Equality)]]]])
 
-... https://en.wikipedia.org/wiki/Associative_property
-(template.the (associativity ,+
-                             ,=
-                             ,0 ,1 ,2)
-  [(,= (,+ ,0 (,+ ,1 ,2))
-       (,+ (,+ ,0 ,1) ,2))])
+(comment "https://en.wikipedia.org/wiki/Associative_property"
+         (template.the (associativity ,+
+                                      ,=
+                                      ,0 ,1 ,2)
+                       [(,= (,+ ,0 (,+ ,1 ,2))
+                            (,+ (,+ ,0 ,1) ,2))]))
 
-... https://en.wikipedia.org/wiki/Identity_element
-(template.the (identity ,+ ,zero
-                        ,=
-                        ,0)
-  [(.and (,= ,0
-             (,+ ,zero ,0))
-         (,= ,0
-             (,+ ,0 ,zero)))])
+(comment "https://en.wikipedia.org/wiki/Identity_element"
+         (template.the (identity ,+ ,zero
+                                 ,=
+                                 ,0)
+                       [(.and (,= ,0
+                                  (,+ ,zero ,0))
+                              (,= ,0
+                                  (,+ ,0 ,zero)))]))
 
-... https://en.wikipedia.org/wiki/Semigroup#Definition
-(template.the .public (is_semi_group ,composite
-                                     ,=
-                                     ,0 ,1 ,2)
-  [(..associativity ,composite
-                    ,=
-                    ,0 ,1 ,2)])
+(comment "https://en.wikipedia.org/wiki/Semigroup#Definition"
+         (template.the .public (is_semi_group ,composite
+                                              ,=
+                                              ,0 ,1 ,2)
+                       [(..associativity ,composite
+                                         ,=
+                                         ,0 ,1 ,2)]))
 
-... https://en.wikipedia.org/wiki/Monoid#Definition
-(template.the (monoid' ,composite ,identity
-                       ,=
-                       ,0 ,1 ,2)
-  [(.and (..is_semi_group ,composite
-                          ,=
-                          ,0 ,1 ,2)
-         (..identity ,composite ,identity
-                     ,=
-                     ,0))])
+(comment "https://en.wikipedia.org/wiki/Monoid#Definition"
+         (template.the (monoid' ,composite ,identity
+                                ,=
+                                ,0 ,1 ,2)
+                       [(.and (..is_semi_group ,composite
+                                               ,=
+                                               ,0 ,1 ,2)
+                              (..identity ,composite ,identity
+                                          ,=
+                                          ,0))]))
 
 (template.the .public (monoid ,implementation ,composite ,identity
                               ,=
                               ,random)
-  [(<| (let [random ,random])
-       (monad.let random.monad
-         [it_0 random
-          it_1 random
-          it_2 random])
-       (_.for [,implementation])
-       (_.coverage [/.Monoid
-                    /.composite /.identity])
-       (.and (identical? ,identity
-                         (by ,implementation identity))
-             (identical? ,composite
-                         (by ,implementation composite))
-             (..monoid' ,composite ,identity
-                        ,=
-                        it_0 it_1 it_2)))])
+              [(<| (let [random ,random])
+                   (monad.let random.monad
+                              [it_0 random
+                               it_1 random
+                               it_2 random])
+                   (_.for [,implementation])
+                   (_.coverage [/.Monoid
+                                /.composite /.identity])
+                   (.and (identical? ,identity
+                                     (by ,implementation identity))
+                         (identical? ,composite
+                                     (by ,implementation composite))
+                         (..monoid' ,composite ,identity
+                                    ,=
+                                    it_0 it_1 it_2)))])
 
-... https://en.wikipedia.org/wiki/Group_(mathematics)#Definition
-(template.the (is_group ,composite ,identity ,inversion
-                        ,=
-                        ,0 ,1 ,2)
-  [(.and (..monoid' ,composite ,identity
-                    ,=
-                    ,0 ,1 ,2)
-         (let [cancellation
-               (,= ,identity
-                   (,inversion ,0 ,0))
+(comment "https://en.wikipedia.org/wiki/Group_(mathematics)#Definition"
+         (template.the (is_group ,composite ,identity ,inversion
+                                 ,=
+                                 ,0 ,1 ,2)
+                       [(.and (..monoid' ,composite ,identity
+                                         ,=
+                                         ,0 ,1 ,2)
+                              (let [cancellation
+                                    (,= ,identity
+                                        (,inversion ,0 ,0))
 
-               inversion
-               (,= ,0
-                   (|> ,0
-                       (,composite ,1)
-                       (,inversion ,1)))
+                                    inversion
+                                    (,= ,0
+                                        (|> ,0
+                                            (,composite ,1)
+                                            (,inversion ,1)))
 
-               identity_is_own_inverse
-               (,= ,0
-                   (,inversion ,identity ,0))]
-           (.and cancellation
-                 inversion
-                 identity_is_own_inverse)))])
+                                    identity_is_own_inverse
+                                    (,= ,0
+                                        (,inversion ,identity ,0))]
+                                   (.and cancellation
+                                         inversion
+                                         identity_is_own_inverse)))]))
 
-... https://en.wikipedia.org/wiki/Abelian_group
-(template.the .public (is_commutative_group ,composite ,identity ,inversion
-                                            ,=
-                                            ,0 ,1 ,2)
-  [(.and (..is_group ,composite ,identity ,inversion
-                     ,=
-                     ,0 ,1 ,2)
-         (equalityT.commutativity ,composite
-                                  ,=
-                                  ,0 ,1))])
+(comment "https://en.wikipedia.org/wiki/Abelian_group"
+         (template.the .public (is_commutative_group ,composite ,identity ,inversion
+                                                     ,=
+                                                     ,0 ,1 ,2)
+                       [(.and (..is_group ,composite ,identity ,inversion
+                                          ,=
+                                          ,0 ,1 ,2)
+                              (equalityT.commutativity ,composite
+                                                       ,=
+                                                       ,0 ,1))]))
 
 (the .public test
-  Test
-  (monad.let random.monad
-    [naturalL random.natural
-     naturalR random.natural
-     integerL random.integer
-     integerR random.integer]
-    (<| (_.covering /._)
-        (all _.and
-             (_.coverage [/.and]
-               (let [[naturalLR integerLR] (by (/.and natural.addition integer.multiplication) composite
-                                               [naturalL integerL] [naturalR integerR])]
-                 (and (natural.= (by natural.addition composite naturalL naturalR)
-                                 naturalLR)
-                      (integer.= (by integer.multiplication composite integerL integerR)
-                                 integerLR))))
-             ))))
+     Test
+     (monad.let random.monad
+                [naturalL random.natural
+                 naturalR random.natural
+                 integerL random.integer
+                 integerR random.integer]
+                (<| (_.covering /._)
+                    (all _.and
+                         (_.coverage [/.and]
+                                     (let [[naturalLR integerLR] (by (/.and natural.addition integer.multiplication) composite
+                                                                     [naturalL integerL] [naturalR integerR])]
+                                          (and (natural.= (by natural.addition composite naturalL naturalR)
+                                                          naturalLR)
+                                               (integer.= (by integer.multiplication composite integerL integerR)
+                                                          integerLR))))
+                         ))))
 
 (the .public (spec equality monoid random)
-  (for_any (_ it)
-    (-> (Equality it) (/.Monoid it) (Random it)
-        Test))
-  (<| (with "/:[0]" equality)
-      (with "/:[0]" monoid)
-      (_.for [/.Monoid])
-      (monad.let random.monad
-        [sample random
-         left random
-         mid random
-         right random])
-      (all _.and
-           (_.coverage [/.identity]
-             (let [left_identity!
-                   (/:= sample
-                        (/:composite /:identity sample))
-                   
-                   right_identity!
-                   (/:= sample
-                        (/:composite sample /:identity))]
-               (and left_identity!
-                    right_identity!)))
-           (_.coverage [/.composite]
-             (let [associativity!
-                   (/:= (/:composite left (/:composite mid right))
-                        (/:composite (/:composite left mid) right))]
-               (and associativity!)))
-           )))
+     (for_any (_ it)
+              (-> (Equality it) (/.Monoid it) (Random it)
+                  Test))
+     (<| (with "/:[0]" equality)
+         (with "/:[0]" monoid)
+         (_.for [/.Monoid])
+         (monad.let random.monad
+                    [sample random
+                     left random
+                     mid random
+                     right random])
+         (all _.and
+              (_.coverage [/.identity]
+                          (let [left_identity!
+                                (/:= sample
+                                     (/:composite /:identity sample))
+                                
+                                right_identity!
+                                (/:= sample
+                                     (/:composite sample /:identity))]
+                               (and left_identity!
+                                    right_identity!)))
+              (_.coverage [/.composite]
+                          (let [associativity!
+                                (/:= (/:composite left (/:composite mid right))
+                                     (/:composite (/:composite left mid) right))]
+                               (and associativity!)))
+              )))

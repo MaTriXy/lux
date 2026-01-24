@@ -11,217 +11,217 @@
 (the template:macro (.in_module# .prelude .template:macro))
 
 (every .public (Try it)
-  (Variant
-   {:Failure Error}
-   {:Success it}))
+       (Variant
+        {:Failure Error}
+        {:Success it}))
 
 (the .public functor
-  (Functor Try)
-  (implementation
-   (the (each f ma)
-     (when ma
-       {:Success datum}
-       {:Success (f datum)}
+     (Functor Try)
+     (implementation
+      (the (each f ma)
+           (when ma
+                 {:Success datum}
+                 {:Success (f datum)}
 
-       failure
-       (as_expected failure)))))
+                 failure
+                 (as_expected failure)))))
 
 (the .public monad
-  (Monad Try)
-  (implementation
-   (the functor ..functor)
+     (Monad Try)
+     (implementation
+      (the functor ..functor)
 
-   (the (pure a)
-     {:Success a})
+      (the (pure a)
+           {:Success a})
 
-   (the (conjoint mma)
-     (when mma
-       {:Success ma}
-       ma
-       
-       failure
-       (as_expected failure)))))
+      (the (conjoint mma)
+           (when mma
+                 {:Success ma}
+                 ma
+                 
+                 failure
+                 (as_expected failure)))))
 
 (every .public (With ! it)
-  (! (Try it)))
+       (! (Try it)))
 
 (the .public (with monad)
-  (for_any (_ !)
-    (-> (Monad !)
-        (Monad (With !))))
-  (implementation
-   (the (functor it)
-     (|> it
-         (by ..functor each)
-         (by monad each)))
+     (for_any (_ !)
+              (-> (Monad !)
+                  (Monad (With !))))
+     (implementation
+      (the (functor it)
+           (|> it
+               (by ..functor each)
+               (by monad each)))
 
-   (the pure
-     (|>> (by ..monad pure)
-          (by monad pure)))
-   
-   (the (conjoint it)
-     (monad.let monad
-       [it it]
-       (when it
-         {:Success it}
-         it
-         
-         failure
-         (pure (as_expected failure)))))))
+      (the pure
+           (|>> (by ..monad pure)
+                (by monad pure)))
+      
+      (the (conjoint it)
+           (monad.let monad
+                      [it it]
+                      (when it
+                            {:Success it}
+                            it
+                            
+                            failure
+                            (pure (as_expected failure)))))))
 
 (the .public (lifted monad)
-  (for_any (_ ! it)
-    (-> (Monad !)
-        (-> (! it)
-            (! (Try it)))))
-  (by monad each (by ..monad pure)))
+     (for_any (_ ! it)
+              (-> (Monad !)
+                  (-> (! it)
+                      (! (Try it)))))
+     (by monad each (by ..monad pure)))
 
 (the .public (equality it)
-  (for_any (_ it)
-    (-> (Equality it)
-        (Equality (Try it))))
-  (.with "/:[0]" it
-    (implementation
-     (the (= expected actual)
-       (when [expected actual]
-         [{:Success expected} {:Success actual}]
-         (/:= expected actual)
+     (for_any (_ it)
+              (-> (Equality it)
+                  (Equality (Try it))))
+     (.with "/:[0]" it
+            (implementation
+             (the (= expected actual)
+                  (when [expected actual]
+                        [{:Success expected} {:Success actual}]
+                        (/:= expected actual)
 
-         [{:Failure expected} {:Failure actual}]
-         (.text_=# expected actual)
+                        [{:Failure expected} {:Failure actual}]
+                        (.text_=# expected actual)
 
-         _
-         false
-         )))))
+                        _
+                        false
+                        )))))
 
 (the .public (trusted try)
-  (for_any (_ it)
-    (-> (Try it)
-        it))
-  (when try
-    {:Success value}
-    value
+     (for_any (_ it)
+              (-> (Try it)
+                  it))
+     (when try
+           {:Success value}
+           value
 
-    {:Failure message}
-    (halt! message)))
+           {:Failure message}
+           (halt! message)))
 
 (the .public (maybe try)
-  (for_any (_ it)
-    (-> (Try it)
-        (Maybe it)))
-  (when try
-    {:Success value}
-    {.:Some value}
+     (for_any (_ it)
+              (-> (Try it)
+                  (Maybe it)))
+     (when try
+           {:Success value}
+           {.:Some value}
 
-    failure
-    {.:None}))
+           failure
+           {.:None}))
 
 (the .public (of_maybe error maybe)
-  (for_any (_ it)
-    (-> Error (Maybe it)
-        (Try it)))
-  (when maybe
-    {.:Some value}
-    {:Success value}
+     (for_any (_ it)
+              (-> Error (Maybe it)
+                  (Try it)))
+     (when maybe
+           {.:Some value}
+           {:Success value}
 
-    {.:None}
-    {:Failure error}))
+           {.:None}
+           {:Failure error}))
 
 (the generated_name
-  (macro (_ tokens compiler)
-    (when tokens
-      (list {.:Text _ prefix})
-      (let [generated_name (.in_module# .prelude .generated_name)]
-        (when (generated_name prefix compiler)
-          {:Success [compiler 'it]}
-          {:Success [compiler (list 'it)]}
+     (macro (_ tokens compiler)
+            (when tokens
+                  (list {.:Text _ prefix})
+                  (let [generated_name (.in_module# .prelude .generated_name)]
+                       (when (generated_name prefix compiler)
+                             {:Success [compiler 'it]}
+                             {:Success [compiler (list 'it)]}
 
-          {:Failure error}
-          {:Failure error}))
+                             {:Failure error}
+                             {:Failure error}))
 
-      _
-      (undefined))))
+                  _
+                  (undefined))))
 
 (the _expansion:let (.in_module# .prelude .expansion:let))
 
 (the .public else
-  (<| (_expansion:let ['then (generated_name "'then")
-                       'failure (generated_name "'failure")])
-      (template:macro
-       (_ <else> <try>)
-       [(.when <try>
-          {..:Success 'then}
-          'then
+     (<| (_expansion:let ['then (generated_name "'then")
+                          'failure (generated_name "'failure")])
+         (template:macro
+          (_ <else> <try>)
+          [(.when <try>
+                  {..:Success 'then}
+                  'then
 
-          'failure
-          <else>)])))
+                  'failure
+                  <else>)])))
 
 (the .public whether
-  (template:macro
-   (_ <test> <then>)
-   [(.if <test>
-         <then>
-         {..:Failure (let [name:as (.in_module# .prelude .name:as)]
-                       (.text_composite# "[" (name:as (name ..whether)) "]"
-                                         " " "Invalid condition!"))})]))
+     (template:macro
+      (_ <test> <then>)
+      [(.if <test>
+            <then>
+            {..:Failure (let [name:as (.in_module# .prelude .name:as)]
+                             (.text_composite# "[" (name:as (name ..whether)) "]"
+                                               " " "Invalid condition!"))})]))
 
 (the .public or
-  (<| (_expansion:let ['success (generated_name "'success")
-                       'error (generated_name "'error")])
-      (template:macro
-       (_ ,left ,right)
-       [(.when ,left
-          {..:Failure 'error}
-          ,right
+     (<| (_expansion:let ['success (generated_name "'success")
+                          'error (generated_name "'error")])
+         (template:macro
+          (_ ,left ,right)
+          [(.when ,left
+                  {..:Failure 'error}
+                  ,right
 
-          'success
-          'success)])))
+                  'success
+                  'success)])))
 
 (the .public (as error it)
-  (for_any (_ it)
-    (-> Error (Try it)
-        (Try it)))
-  (when it
-    {..:Failure _}
-    {..:Failure error}
-    
-    success
-    success))
+     (for_any (_ it)
+              (-> Error (Try it)
+                  (Try it)))
+     (when it
+           {..:Failure _}
+           {..:Failure error}
+           
+           success
+           success))
 
 (the .public (is? expected it)
-  (for_any (_ it)
-    (-> Error
-        (Predicate (Try it))))
-  (when it
-    {..:Failure actual}
-    (.text_=# expected actual)
+     (for_any (_ it)
+              (-> Error
+                  (Predicate (Try it))))
+     (when it
+           {..:Failure actual}
+           (.text_=# expected actual)
 
-    else
-    false))
+           else
+           false))
 
 (the .public (as_either value it)
-  (for_any (_ left right)
-    (-> left (Try right)
-        (Either left right)))
-  (when it
-    {..:Success it}
-    {.:Right it}
+     (for_any (_ left right)
+              (-> left (Try right)
+                  (Either left right)))
+     (when it
+           {..:Success it}
+           {.:Right it}
 
-    else
-    {.:Left value}))
+           else
+           {.:Left value}))
 
 (the .public (of_either error it)
-  (for_any (_ left right)
-    (-> Error (Either left right)
-        (Try right)))
-  (when it
-    {.:Right it}
-    {..:Success it}
+     (for_any (_ left right)
+              (-> Error (Either left right)
+                  (Try right)))
+     (when it
+           {.:Right it}
+           {..:Success it}
 
-    else
-    {..:Failure error}))
+           else
+           {..:Failure error}))
 
-(the with_monad (.in_module# .prelude with_monad))
+(the monad:let (.in_module# .prelude monad:let))
 (the _generated_name (.in_module# .prelude generated_name))
 (the _meta:monad (.in_module# .prelude meta:monad))
 (the meta:failure (.in_module# .prelude failure))
@@ -234,25 +234,25 @@
 (the ?:some (.in_module# .prelude ?:some))
 
 (the .public if
-  (.macro (_ tokens)
-    (.when (|> (.all ?:and
-                     (?:some (?:and (?:tuple (?:and ?:any ?:any))
-                                    ?:any))
-                     ?:any)
-               (?:value tokens))
-      {.:Some [each_when,then 'else]}
-      (with_monad _meta:monad
-        ['_ (_generated_name "'_")]
-        (pure (list (list:mix (function (_ [['variable 'when] 'then] 'else)
-                                (` (.when (, 'when)
-                                     {..:Success (, 'variable)}
-                                     (, 'then)
+     (.macro (_ tokens)
+             (.when (|> (.all ?:and
+                              (?:some (?:and (?:tuple (?:and ?:any ?:any))
+                                             ?:any))
+                              ?:any)
+                        (?:value tokens))
+                    {.:Some [each_when,then 'else]}
+                    (monad:let _meta:monad
+                               ['_ (_generated_name "'_")]
+                               (pure (list (list:mix (function (_ [['variable 'when] 'then] 'else)
+                                                               (` (.when (, 'when)
+                                                                         {..:Success (, 'variable)}
+                                                                         (, 'then)
 
-                                     (, '_)
-                                     (, 'else))))
-                              'else
-                              each_when,then))))
+                                                                         (, '_)
+                                                                         (, 'else))))
+                                                     'else
+                                                     each_when,then))))
 
-      {.:None}
-      (meta:failure ""))))
+                    {.:None}
+                    (meta:failure ""))))
 

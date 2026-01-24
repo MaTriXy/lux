@@ -31,245 +31,244 @@
 (exception.the .public dead)
 
 (local.let [<Mail> (template.macro (_ Actor state)
-                     [(-> state (Actor state)
-                          (Future (Try state)))])
+                                   [(-> state (Actor state)
+                                        (Future (Try state)))])
             <Obituary> (template.macro (_ Actor state)
-                         [[Text state (List (<Mail> Actor state))]])
+                                       [[Text state (List (<Mail> Actor state))]])
             <Mailbox> (template.macro (_ Actor state)
-                        [(Rec Mailbox
-                           [(Future [(<Mail> Actor state) Mailbox])
-                            (Resolver [(<Mail> Actor state) Mailbox])])])]
-  (these (the (pending [read write])
-           (for_any (_ it)
-             (-> (Rec Mailbox
-                   [(Future [it Mailbox])
-                    (Resolver [it Mailbox])])
-                 (IO (List it))))
-           (monad.let [! io.monad]
-             [current (future.value read)]
-             (when current
-               {.:Some [head tail]}
-               (by ! each (list:composite (list head))
-                   (pending tail))
-               
-               {.:None}
-               (pure (list)))))
-         
-         (nominal.every .public (Actor state)
-           (Record
-            [:obituary [(Future (<Obituary> Actor state))
-                        (Resolver (<Obituary> Actor state))]
-             :mailbox (Atom (<Mailbox> Actor state))])
+                                      [(Rec Mailbox
+                                            [(Future [(<Mail> Actor state) Mailbox])
+                                             (Resolver [(<Mail> Actor state) Mailbox])])])]
+           (these (the (pending [read write])
+                       (for_any (_ it)
+                                (-> (Rec Mailbox
+                                         [(Future [it Mailbox])
+                                          (Resolver [it Mailbox])])
+                                    (IO (List it))))
+                       (monad.let [! io.monad]
+                                  [current (future.value read)]
+                                  (when current
+                                        {.:Some [head tail]}
+                                        (by ! each (list:composite (list head))
+                                            (pending tail))
+                                        
+                                        {.:None}
+                                        (pure (list)))))
+                  
+                  (nominal.every .public (Actor state)
+                                 (Record
+                                  [:obituary [(Future (<Obituary> Actor state))
+                                              (Resolver (<Obituary> Actor state))]
+                                   :mailbox (Atom (<Mailbox> Actor state))])
 
-           (every .public (Mail state)
-             (<Mail> Actor state))
+                                 (every .public (Mail state)
+                                        (<Mail> Actor state))
 
-           (every .public (Obituary state)
-             (<Obituary> Actor state))
+                                 (every .public (Obituary state)
+                                        (<Obituary> Actor state))
 
-           (every .public (Behavior state)
-             (-> (Mail state) state (Actor state)
-                 (Future (Try state))))
+                                 (every .public (Behavior state)
+                                        (-> (Mail state) state (Actor state)
+                                            (Future (Try state))))
 
-           (the .public (spawn! behavior init)
-             (for_any (_ state)
-               (-> (Behavior state) state
-                   (IO (Actor state))))
-             (io (let [self (`` (is (Actor (,, (type_of init)))
-                                    (nominal.of
-                                     [:obituary (future.future [])
-                                      :mailbox (atom (future.future []))])))
-                       process (loop (of [state init
-                                          [|mailbox| _] (io.value (atom.read! (its :mailbox (nominal.as self))))])
-                                 (monad.let [! future.monad]
-                                   [[head tail] |mailbox|
-                                    ?state' (behavior head state self)]
-                                   (when ?state'
-                                     {try.:Failure error}
-                                     (let [[_ resolve] (its :obituary (nominal.as self))]
-                                       (exec
-                                         (io.value
-                                          (monad.let io.monad
-                                            [pending (..pending tail)]
-                                            (resolve [error state (list:composite (list head) pending)])))
-                                         (pure [])))
+                                 (the .public (spawn! behavior init)
+                                      (for_any (_ state)
+                                               (-> (Behavior state) state
+                                                   (IO (Actor state))))
+                                      (io (let [self (`` (is (Actor (,, (type_of init)))
+                                                             (nominal.of
+                                                              [:obituary (future.future [])
+                                                               :mailbox (atom (future.future []))])))
+                                                process (loop (of [state init
+                                                                   [|mailbox| _] (io.value (atom.read! (its :mailbox (nominal.as self))))])
+                                                              (monad.let [! future.monad]
+                                                                         [[head tail] |mailbox|
+                                                                          ?state' (behavior head state self)]
+                                                                         (when ?state'
+                                                                               {try.:Failure error}
+                                                                               (let [[_ resolve] (its :obituary (nominal.as self))]
+                                                                                    (exec
+                                                                                     (io.value
+                                                                                      (monad.let io.monad
+                                                                                                 [pending (..pending tail)]
+                                                                                                 (resolve [error state (list:composite (list head) pending)])))
+                                                                                     (pure [])))
 
-                                     {try.:Success state'}
-                                     (of state' tail))))]
-                   self)))
+                                                                               {try.:Success state'}
+                                                                               (of state' tail))))]
+                                               self)))
 
-           (the .public (alive? actor)
-             (for_any (_ state)
-               (-> (Actor state)
-                   (IO Bit)))
-             (let [[obituary _] (its :obituary (nominal.as actor))]
-               (|> obituary
-                   future.value
-                   (by io.functor each
-                       (|>> (pipe.when
-                              {.:None}
-                              bit.yes
+                                 (the .public (alive? actor)
+                                      (for_any (_ state)
+                                               (-> (Actor state)
+                                                   (IO Bit)))
+                                      (let [[obituary _] (its :obituary (nominal.as actor))]
+                                           (|> obituary
+                                               future.value
+                                               (by io.functor each
+                                                   (|>> (pipe.when
+                                                         {.:None}
+                                                         bit.yes
 
-                              _
-                              bit.no))))))
+                                                         _
+                                                         bit.no))))))
 
-           (the .public (obituary' actor)
-             (for_any (_ state)
-               (-> (Actor state)
-                   (IO (Maybe (Obituary state)))))
-             (let [[obituary _] (its :obituary (nominal.as actor))]
-               (future.value obituary)))
+                                 (the .public (obituary' actor)
+                                      (for_any (_ state)
+                                               (-> (Actor state)
+                                                   (IO (Maybe (Obituary state)))))
+                                      (let [[obituary _] (its :obituary (nominal.as actor))]
+                                           (future.value obituary)))
 
-           (the .public obituary
-             (for_any (_ state)
-               (-> (Actor state)
-                   (Future (Obituary state))))
-             (|>> nominal.as
-                  (its :obituary)
-                  pair.left))
+                                 (the .public obituary
+                                      (for_any (_ state)
+                                               (-> (Actor state)
+                                                   (Future (Obituary state))))
+                                      (|>> nominal.as
+                                           (its :obituary)
+                                           pair.left))
 
-           (the .public (mail! mail actor)
-             (for_any (_ state)
-               (-> (Mail state) (Actor state)
-                   (IO (Try Any))))
-             (monad.let [! io.monad]
-               [alive? (..alive? actor)]
-               (if alive?
-                   (let [entry [mail (future.future [])]]
-                     (monad.let !
-                       [|mailbox|&resolve (atom.read! (its :mailbox (nominal.as actor)))]
-                       (loop (of [[|mailbox| resolve] |mailbox|&resolve])
-                         (monad.let !
-                           [|mailbox| (future.value |mailbox|)]
-                           (when |mailbox|
-                             {.:None}
-                             (monad.let !
-                               [resolved? (resolve entry)]
-                               (if resolved?
-                                   (monad.let !
-                                     [_ (atom.write! (pair.right entry) (its :mailbox (nominal.as actor)))]
-                                     (pure {try.:Success []}))
-                                   (of |mailbox|&resolve)))
-                             
-                             {.:Some [_ |mailbox|']}
-                             (of |mailbox|'))))))
-                   (pure (exception.except ..dead [])))))
+                                 (the .public (mail! mail actor)
+                                      (for_any (_ state)
+                                               (-> (Mail state) (Actor state)
+                                                   (IO (Try Any))))
+                                      (monad.let [! io.monad]
+                                                 [alive? (..alive? actor)]
+                                                 (if alive?
+                                                     (let [entry [mail (future.future [])]]
+                                                          (monad.let !
+                                                                     [|mailbox|&resolve (atom.read! (its :mailbox (nominal.as actor)))]
+                                                                     (loop (of [[|mailbox| resolve] |mailbox|&resolve])
+                                                                           (monad.let !
+                                                                                      [|mailbox| (future.value |mailbox|)]
+                                                                                      (when |mailbox|
+                                                                                            {.:None}
+                                                                                            (monad.let !
+                                                                                                       [resolved? (resolve entry)]
+                                                                                                       (if resolved?
+                                                                                                           (monad.let !
+                                                                                                                      [_ (atom.write! (pair.right entry) (its :mailbox (nominal.as actor)))]
+                                                                                                                      (pure {try.:Success []}))
+                                                                                                           (of |mailbox|&resolve)))
+                                                                                            
+                                                                                            {.:Some [_ |mailbox|']}
+                                                                                            (of |mailbox|'))))))
+                                                     (pure (exception.except ..dead [])))))
 
-           (every .public (Message state it)
-             (-> state (Actor state)
-                 (Future (Try [state it]))))
+                                 (every .public (Message state it)
+                                        (-> state (Actor state)
+                                            (Future (Try [state it]))))
 
-           (the (mail message)
-             (for_any (_ state it)
-               (-> (Message state it)
-                   [(Future (Try it))
-                    (Mail state)]))
-             (let [[future resolve] (sharing [state it]
-                                      (is (Message state it)
-                                          message)
-                                      (is [(Future (Try it))
-                                           (Resolver (Try it))]
-                                          (future.future [])))]
-               [future
-                (function (_ state self)
-                  (monad.let [! future.monad]
-                    [outcome (message state self)]
-                    (when outcome
-                      {try.:Success [state' return]}
-                      (exec
-                        (io.value (resolve {try.:Success return}))
-                        (future.resolved {try.:Success state'}))
-                      
-                      {try.:Failure error}
-                      (exec
-                        (io.value (resolve {try.:Failure error}))
-                        (future.resolved {try.:Failure error})))))]))
+                                 (the (mail message)
+                                      (for_any (_ state it)
+                                               (-> (Message state it)
+                                                   [(Future (Try it))
+                                                    (Mail state)]))
+                                      (let [[future resolve] (sharing [state it]
+                                                                      (is (Message state it)
+                                                                          message)
+                                                                      (is [(Future (Try it))
+                                                                           (Resolver (Try it))]
+                                                                          (future.future [])))]
+                                           [future
+                                            (function (_ state self)
+                                                      (monad.let [! future.monad]
+                                                                 [outcome (message state self)]
+                                                                 (when outcome
+                                                                       {try.:Success [state' return]}
+                                                                       (exec
+                                                                        (io.value (resolve {try.:Success return}))
+                                                                        (future.resolved {try.:Success state'}))
+                                                                       
+                                                                       {try.:Failure error}
+                                                                       (exec
+                                                                        (io.value (resolve {try.:Failure error}))
+                                                                        (future.resolved {try.:Failure error})))))]))
 
-           (the .public (request! message actor)
-             (for_any (_ state it)
-               (-> (Message state it) (Actor state)
-                   (Future (Try it))))
-             (let [[future mail] (..mail message)]
-               (monad.let future.monad
-                 [outcome (future.soon (..mail! mail actor))]
-                 (when outcome
-                   {try.:Success _}
-                   future
-                   
-                   {try.:Failure error}
-                   (pure {try.:Failure error})))))
-           )))
+                                 (the .public (request! message actor)
+                                      (for_any (_ state it)
+                                               (-> (Message state it) (Actor state)
+                                                   (Future (Try it))))
+                                      (let [[future mail] (..mail message)]
+                                           (monad.let future.monad
+                                                      [outcome (future.soon (..mail! mail actor))]
+                                                      (when outcome
+                                                            {try.:Success _}
+                                                            future
+                                                            
+                                                            {try.:Failure error}
+                                                            (pure {try.:Failure error})))))
+                                 )))
 
 (the .public default
-  Behavior
-  (function (_ mail state self)
-    (mail state self)))
+     Behavior
+     (function (_ mail state self)
+               (mail state self)))
 
 (the .public (poison! actor)
-  (for_any (_ state)
-    (-> (Actor state)
-        (IO (Try Any))))
-  (..mail! (function (_ state self)
-             (future.resolved (exception.except ..poisoned [])))
-           actor))
+     (for_any (_ state)
+              (-> (Actor state)
+                  (IO (Try Any))))
+     (..mail! (function (_ state self)
+                        (future.resolved (exception.except ..poisoned [])))
+              actor))
 
 (every .public Stop
-  (IO Any))
+       (IO Any))
 
 (the continue! true)
 (the stop! false)
 
 (the .public (observe! action channel actor)
-  (for_any (_ read write state)
-    (-> (-> read Stop (Mail state)) (Channel' read write) (Actor state)
-        (IO Any)))
-  (let [signal (is (Atom Bit)
-                   (atom.atom ..continue!))
-        stop (is Stop
-                 (atom.write! ..stop! signal))]
-    (frp.subscribe! (function (_ event)
-                      (monad.let [! io.monad]
-                        [continue? (atom.read! signal)]
-                        (if continue?
-                            (|> actor
-                                (..mail! (action event stop))
-                                (by ! each try.maybe))
-                            (pure {.:None}))))
-                    channel)))
-
-... The following behavior and messages allow Lux's actors to behave like Clojure's agents.
-... https://clojure.org/reference/agents
+     (for_any (_ read write state)
+              (-> (-> read Stop (Mail state)) (Channel' read write) (Actor state)
+                  (IO Any)))
+     (let [signal (is (Atom Bit)
+                      (atom.atom ..continue!))
+           stop (is Stop
+                    (atom.write! ..stop! signal))]
+          (frp.subscribe! (function (_ event)
+                                    (monad.let [! io.monad]
+                                               [continue? (atom.read! signal)]
+                                               (if continue?
+                                                   (|> actor
+                                                       (..mail! (action event stop))
+                                                       (by ! each try.maybe))
+                                                   (pure {.:None}))))
+                          channel)))
 
 (exception.the .public invalid)
 
-(the .public (validated ? it)
-  (for_any (_ state)
-    (-> (Predicate state) (Behavior state)
-        (Behavior state)))
-  (function (_ mail before actor)
-    (monad.let (try.with future.monad)
-      [after (mail before actor)]
-      (if (? after)
-          (pure after)
-          (future:pure (exception.except ..invalid []))))))
+(comment "The following behavior and messages allow Lux's actors to behave like Clojure's agents."
+         "https://clojure.org/reference/agents"
+         (the .public (validated ? it)
+              (for_any (_ state)
+                       (-> (Predicate state)
+                           (Change (Behavior state))))
+              (function (_ mail before actor)
+                        (monad.let (try.with future.monad)
+                                   [after (mail before actor)]
+                                   (if (? after)
+                                       (pure after)
+                                       (future:pure (exception.except ..invalid [])))))))
 
 (the .public state
-  (for_any (_ state)
-    (Message state state))
-  (function (_ state self)
-    (future:pure {try.:Success [state state]})))
+     (for_any (_ state)
+              (Message state state))
+     (function (_ state self)
+               (future:pure {try.:Success [state state]})))
 
 (the .public (update $)
-  (for_any (_ state)
-    (-> (-> state state)
-        (Message state [state state])))
-  (function (_ before self)
-    (let [after ($ before)]
-      (future:pure {try.:Success [after [before after]]}))))
+     (for_any (_ state)
+              (-> (-> state state)
+                  (Message state [state state])))
+     (function (_ before self)
+               (let [after ($ before)]
+                    (future:pure {try.:Success [after [before after]]}))))
 
 (the .public (reset after)
-  (for_any (_ state)
-    (-> state
-        (Message state state)))
-  (function (_ before self)
-    (future:pure {try.:Success [after before]})))
+     (for_any (_ state)
+              (-> state
+                  (Message state state)))
+     (function (_ before self)
+               (future:pure {try.:Success [after before]})))

@@ -63,6 +63,7 @@
 
 # Reference
 
+0. [Communicating with Interactive Articles](https://distill.pub/2020/communicating-with-interactive-articles/)
 0. [SVGs that feel like GIFs](https://danq.me/2025/11/24/svgs-that-feel-like-gifs/)
 0. [How to Make Your Developer Documentation Work with LLMs: Lessons from the Trenches](https://fusionauth.io/blog/llms-for-docs)
 0. [BLUF (communication)](https://en.wikipedia.org/wiki/BLUF_(communication))

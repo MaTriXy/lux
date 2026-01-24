@@ -25,284 +25,284 @@
   ["[0]" future (.only Future Future') (.open monad)]])
 
 (every .public (Channel' r w)
-  (Future' (Maybe [r (Channel' r w)])
-           (Maybe [w (Channel' r w)])))
+       (Future' (Maybe [r (Channel' r w)])
+                (Maybe [w (Channel' r w)])))
 
 (every .public (Channel a)
-  (Channel' a a))
+       (Channel' a a))
 
 (exception.the .public already_closed)
 
 (every .public (Sink w)
-  (Interface
-   (is (IO (Try Any))
-       close)
-   (is (-> w (IO (Try Any)))
-       feed)))
+       (Interface
+        (is (IO (Try Any))
+            close)
+        (is (-> w (IO (Try Any)))
+            feed)))
 
 (the (sink resolution)
-  (for_any (_ a)
-    (-> (future.Resolver (Maybe [a (Channel a)]))
-        (Sink a)))
-  (let [sink (atom.atom resolution)]
-    (implementation
-     (the close
-       (loop (of [_ []])
-         (monad.let [! io.monad]
-           [current (atom.read! sink)
-            stopped? (current {.:None})]
-           (if stopped?
-               ... I closed the sink.
-               (pure {try.:Success []})
-               ... Someone else interacted with the sink.
-               (monad.let !
-                 [latter (atom.read! sink)]
-                 (if (identical? current latter)
-                     ... Someone else closed the sink.
-                     (pure (exception.except ..already_closed []))
-                     ... Someone else fed the sink while I was closing it.
-                     (of [])))))))
-     
-     (the (feed value)
-       (loop (of [_ []])
-         (monad.let [! io.monad]
-           [current (atom.read! sink)
-            .let [[next resolve_next] (sharing [a]
-                                        (is (future.Resolver (Maybe [a (Channel a)]))
-                                            current)
-                                        (is [(Channel a)
-                                             (future.Resolver (Maybe [a (Channel a)]))]
-                                            (future.future [])))]
-            fed? (current {.:Some [value next]})]
-           (if fed?
-               ... I fed the sink.
-               (monad.let !
-                 [_ (atom.compare_and_swap! current resolve_next sink)]
-                 (pure {try.:Success []}))
-               ... Someone else interacted with the sink.
-               (monad.let !
-                 [latter (atom.read! sink)]
-                 (if (identical? current latter)
-                     ... Someone else closed the sink while I was feeding it.
-                     (pure (exception.except ..already_closed []))
-                     ... Someone else fed the sink.
-                     (of []))))))))))
+     (for_any (_ a)
+              (-> (future.Resolver (Maybe [a (Channel a)]))
+                  (Sink a)))
+     (let [sink (atom.atom resolution)]
+          (implementation
+           (the close
+                (loop (of [_ []])
+                      (monad.let [! io.monad]
+                                 [current (atom.read! sink)
+                                  stopped? (current {.:None})]
+                                 (if stopped?
+                                     (comment "I closed the sink."
+                                              (pure {try.:Success []}))
+                                     (comment "Someone else interacted with the sink."
+                                              (monad.let !
+                                                         [latter (atom.read! sink)]
+                                                         (if (identical? current latter)
+                                                             (comment "Someone else closed the sink."
+                                                                      (pure (exception.except ..already_closed [])))
+                                                             (comment "Someone else fed the sink while I was closing it."
+                                                                      (of [])))))))))
+           
+           (the (feed value)
+                (loop (of [_ []])
+                      (monad.let [! io.monad]
+                                 [current (atom.read! sink)
+                                  .let [[next resolve_next] (sharing [a]
+                                                                     (is (future.Resolver (Maybe [a (Channel a)]))
+                                                                         current)
+                                                                     (is [(Channel a)
+                                                                          (future.Resolver (Maybe [a (Channel a)]))]
+                                                                         (future.future [])))]
+                                  fed? (current {.:Some [value next]})]
+                                 (if fed?
+                                     (comment "I fed the sink."
+                                              (monad.let !
+                                                         [_ (atom.compare_and_swap! current resolve_next sink)]
+                                                         (pure {try.:Success []})))
+                                     (comment "Someone else interacted with the sink."
+                                              (monad.let !
+                                                         [latter (atom.read! sink)]
+                                                         (if (identical? current latter)
+                                                             (comment "Someone else closed the sink while I was feeding it."
+                                                                      (pure (exception.except ..already_closed [])))
+                                                             (comment "Someone else fed the sink."
+                                                                      (of []))))))))))))
 
 (the .public (channel _)
-  (for_any (_ a) (-> Any [(Channel a) (Sink a)]))
-  (let [[future resolve] (future.future [])]
-    [future (..sink resolve)]))
+     (for_any (_ a) (-> Any [(Channel a) (Sink a)]))
+     (let [[future resolve] (future.future [])]
+          [future (..sink resolve)]))
 
 (the .public functor
-  (Functor Channel)
-  (implementation
-   (the (each f)
-     (future:each
-      (maybe:each
-       (function (_ [head tail])
-         [(f head)
-          (each f tail)]))))))
+     (Functor Channel)
+     (implementation
+      (the (each f)
+           (future:each
+            (maybe:each
+             (function (_ [head tail])
+                       [(f head)
+                        (each f tail)]))))))
 
 (the empty
-  Channel
-  (future.resolved {.:None}))
+     Channel
+     (future.resolved {.:None}))
 
 (the .public monad
-  (Monad Channel)
-  (implementation
-   (the functor ..functor)
+     (Monad Channel)
+     (implementation
+      (the functor ..functor)
 
-   (the (pure a)
-     (future.resolved {.:Some [a ..empty]}))
+      (the (pure a)
+           (future.resolved {.:Some [a ..empty]}))
 
-   (the (conjoint mma)
-     (let [[output sink] (sharing [a]
-                           (is (Channel (Channel a))
-                               mma)
-                           (is [(Channel a) (Sink a)]
-                               (channel [])))]
-       (exec
-         (is (Future Any)
-             (loop (of [mma mma])
-               (monad.let [! future.monad]
-                 [?mma mma]
-                 (when ?mma
-                   {.:Some [ma mma']}
-                   (monad.let !
-                     [_ (loop (of [ma ma])
-                          (monad.let !
-                            [?ma ma]
-                            (when ?ma
-                              {.:Some [a ma']}
-                              (exec
-                                (io.value (by sink feed a))
-                                (of ma'))
-                              
-                              {.:None}
-                              (pure []))))]
-                     (of mma'))
-                   
-                   {.:None}
-                   (pure (is Any (io.value (by sink close))))))))
-         output)))))
+      (the (conjoint mma)
+           (let [[output sink] (sharing [a]
+                                        (is (Channel (Channel a))
+                                            mma)
+                                        (is [(Channel a) (Sink a)]
+                                            (channel [])))]
+                (exec
+                 (is (Future Any)
+                     (loop (of [mma mma])
+                           (monad.let [! future.monad]
+                                      [?mma mma]
+                                      (when ?mma
+                                            {.:Some [ma mma']}
+                                            (monad.let !
+                                                       [_ (loop (of [ma ma])
+                                                                (monad.let !
+                                                                           [?ma ma]
+                                                                           (when ?ma
+                                                                                 {.:Some [a ma']}
+                                                                                 (exec
+                                                                                  (io.value (by sink feed a))
+                                                                                  (of ma'))
+                                                                                 
+                                                                                 {.:None}
+                                                                                 (pure []))))]
+                                                       (of mma'))
+                                            
+                                            {.:None}
+                                            (pure (is Any (io.value (by sink close))))))))
+                 output)))))
 
 (every .public (Subscriber it)
-  (-> it
-      (IO (Maybe Any))))
+       (-> it
+           (IO (Maybe Any))))
 
 (the .public (subscribe! subscriber it)
-  (for_any (_ r w)
-    (-> (Subscriber r) (Channel' r w)
-        (IO Any)))
-  (io (exec
-        (is (Future Any)
-            (loop (of [it (as (for_any (_ r w)
-                                (-> (Channel' r w)
-                                    (Channel r)))
-                              it)])
-              (monad.let future.monad
-                [item it]
-                (when item
-                  {.:Some [head tail]}
-                  (when (io.value (subscriber head))
-                    {.:Some _}
-                    (of tail)
-                    
-                    {.:None}
-                    (pure []))
-                  
-                  {.:None}
-                  (pure [])))))
-        [])))
+     (for_any (_ r w)
+              (-> (Subscriber r) (Channel' r w)
+                  (IO Any)))
+     (io (exec
+          (is (Future Any)
+              (loop (of [it (as (for_any (_ r w)
+                                         (-> (Channel' r w)
+                                             (Channel r)))
+                                it)])
+                    (monad.let future.monad
+                               [item it]
+                               (when item
+                                     {.:Some [head tail]}
+                                     (when (io.value (subscriber head))
+                                           {.:Some _}
+                                           (of tail)
+                                           
+                                           {.:None}
+                                           (pure []))
+                                     
+                                     {.:None}
+                                     (pure [])))))
+          [])))
 
 (the .public (only pass? it)
-  (for_any (_ a) (-> (-> a Bit) (Channel a) (Channel a)))
-  (monad.let future.monad
-    [item it]
-    (when item
-      {.:Some [head tail]}
-      (let [tail' (only pass? tail)]
-        (if (pass? head)
-            (pure {.:Some [head tail']})
-            tail'))
-      
-      {.:None}
-      (pure {.:None}))))
+     (for_any (_ a) (-> (-> a Bit) (Channel a) (Channel a)))
+     (monad.let future.monad
+                [item it]
+                (when item
+                      {.:Some [head tail]}
+                      (let [tail' (only pass? tail)]
+                           (if (pass? head)
+                               (pure {.:Some [head tail']})
+                               tail'))
+                      
+                      {.:None}
+                      (pure {.:None}))))
 
 (the .public (of_future future)
-  (for_any (_ a) (-> (Future a) (Channel a)))
-  (future:each (function (_ value)
-                 {.:Some [value ..empty]})
-               future))
+     (for_any (_ a) (-> (Future a) (Channel a)))
+     (future:each (function (_ value)
+                            {.:Some [value ..empty]})
+                  future))
 
 (the .public (mix f it init)
-  (for_any (_ a b)
-    (-> (-> b a (Future a))
-        (-> (Channel b) a (Future a))))
-  (monad.let [! future.monad]
-    [item it]
-    (when item
-      {.:None}
-      (pure init)
-      
-      {.:Some [head tail]}
-      (monad.let !
-        [init' (f head init)]
-        (mix f tail init')))))
+     (for_any (_ a b)
+              (-> (-> b a (Future a))
+                  (-> (Channel b) a (Future a))))
+     (monad.let [! future.monad]
+                [item it]
+                (when item
+                      {.:None}
+                      (pure init)
+                      
+                      {.:Some [head tail]}
+                      (monad.let !
+                                 [init' (f head init)]
+                                 (mix f tail init')))))
 
 (the .public (mixes f init it)
-  (for_any (_ a b)
-    (-> (-> b a (Future a))
-        (-> a (Channel b) (Channel a))))
-  (<| future:pure
-      {.:Some}
-      [init]
-      (monad.let [! future.monad]
-        [item it]
-        (when item
-          {.:None}
-          (pure {.:None})
-          
-          {.:Some [head tail]}
-          (monad.let !
-            [init' (f head init)]
-            (mixes f init' tail))))))
+     (for_any (_ a b)
+              (-> (-> b a (Future a))
+                  (-> a (Channel b) (Channel a))))
+     (<| future:pure
+         {.:Some}
+         [init]
+         (monad.let [! future.monad]
+                    [item it]
+                    (when item
+                          {.:None}
+                          (pure {.:None})
+                          
+                          {.:Some [head tail]}
+                          (monad.let !
+                                     [init' (f head init)]
+                                     (mixes f init' tail))))))
 
 (the .public (poll milli_seconds action)
-  (for_any (_ a)
-    (-> Delay (IO a) [(Channel a) (Sink a)]))
-  (let [[output sink] (channel [])]
-    (exec
-      (io.value (loop (of [_ []])
-                  (monad.let io.monad
-                    [value action
-                     _ (by sink feed value)]
-                    (future.upon! of (future.delay milli_seconds)))))
-      [output sink])))
+     (for_any (_ a)
+              (-> Delay (IO a) [(Channel a) (Sink a)]))
+     (let [[output sink] (channel [])]
+          (exec
+           (io.value (loop (of [_ []])
+                           (monad.let io.monad
+                                      [value action
+                                       _ (by sink feed value)]
+                                      (future.upon! of (future.delay milli_seconds)))))
+           [output sink])))
 
 (the .public (periodic milli_seconds)
-  (-> Delay [(Channel Any) (Sink Any)])
-  (..poll milli_seconds (io [])))
+     (-> Delay [(Channel Any) (Sink Any)])
+     (..poll milli_seconds (io [])))
 
 (the .public (iterations f init)
-  (for_any (_ s o) (-> (-> s (Future (Maybe [s o]))) s (Channel o)))
-  (monad.let future.monad
-    [?next (f init)]
-    (pure (when ?next
-            {.:Some [state output]}
-            {.:Some [output (iterations f state)]}
-            
-            {.:None}
-            {.:None}))))
+     (for_any (_ s o) (-> (-> s (Future (Maybe [s o]))) s (Channel o)))
+     (monad.let future.monad
+                [?next (f init)]
+                (pure (when ?next
+                            {.:Some [state output]}
+                            {.:Some [output (iterations f state)]}
+                            
+                            {.:None}
+                            {.:None}))))
 
 (the (distinct' equality previous it)
-  (for_any (_ a) (-> (Equality a) a (Channel a) (Channel a)))
-  (monad.let future.monad
-    [item it]
-    (when item
-      {.:Some [head tail]}
-      (if (by equality = previous head)
-          (distinct' equality previous tail)
-          (pure {.:Some [head (distinct' equality head tail)]}))
-      
-      {.:None}
-      (pure {.:None}))))
+     (for_any (_ a) (-> (Equality a) a (Channel a) (Channel a)))
+     (monad.let future.monad
+                [item it]
+                (when item
+                      {.:Some [head tail]}
+                      (if (by equality = previous head)
+                          (distinct' equality previous tail)
+                          (pure {.:Some [head (distinct' equality head tail)]}))
+                      
+                      {.:None}
+                      (pure {.:None}))))
 
 (the .public (distinct equality it)
-  (for_any (_ a) (-> (Equality a) (Channel a) (Channel a)))
-  (monad.let future.monad
-    [item it]
-    (pure (when item
-            {.:Some [head tail]}
-            {.:Some [head (distinct' equality head tail)]}
-            
-            {.:None}
-            {.:None}))))
+     (for_any (_ a) (-> (Equality a) (Channel a) (Channel a)))
+     (monad.let future.monad
+                [item it]
+                (pure (when item
+                            {.:Some [head tail]}
+                            {.:Some [head (distinct' equality head tail)]}
+                            
+                            {.:None}
+                            {.:None}))))
 
 (the .public (as_list it)
-  (for_any (_ it)
-    (-> (Channel it)
-        (Future (List it))))
-  (monad.let [! future.monad]
-    [item it]
-    (when item
-      {.:Some [head tail]}
-      (by ! each (list:composite (list head))
-          (as_list tail))
+     (for_any (_ it)
+              (-> (Channel it)
+                  (Future (List it))))
+     (monad.let [! future.monad]
+                [item it]
+                (when item
+                      {.:Some [head tail]}
+                      (by ! each (list:composite (list head))
+                          (as_list tail))
 
-      {.:None}
-      (pure (list)))))
+                      {.:None}
+                      (pure (list)))))
 
 (the .public (sequential milli_seconds values)
-  (for_any (_ it)
-    (-> Delay (List it)
-        (Channel it)))
-  (let [limit (list.size values)]
-    (loop (sequential [index 0])
-      (if (n.< limit index)
-          (future.resolved {.:Some [(.list_item# index values)
-                                    (monad.let future.monad
-                                      [_ (future.delay milli_seconds)]
-                                      (sequential (++ index)))]})
-          
-          ..empty))))
+     (for_any (_ it)
+              (-> Delay (List it)
+                  (Channel it)))
+     (let [limit (list.size values)]
+          (loop (sequential [index 0])
+                (if (n.< limit index)
+                    (future.resolved {.:Some [(.list_item# index values)
+                                              (monad.let future.monad
+                                                         [_ (future.delay milli_seconds)]
+                                                         (sequential (++ index)))]})
+                    
+                    ..empty))))

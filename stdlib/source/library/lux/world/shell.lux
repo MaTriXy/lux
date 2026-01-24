@@ -38,344 +38,344 @@
    [\\projection (.only Environment)]]])
 
 (every .public Exit
-  Integer)
+       Integer)
 
 (template.with [<code> <name>]
                [(the .public <name>
-                  Exit
-                  <code>)]
+                     Exit
+                     <code>)]
 
                [[+0 normal]
                 [+1 error]])
 
 (every .public (Process !)
-  (Interface
-   (is (-> [] (! (Try Text)))
-       read)
-   (is (-> [] (! (Try Text)))
-       fail)
-   (is (-> Text (! (Try Any)))
-       write)
-   (is (-> [] (! (Try Any)))
-       destroy)
-   (is (-> [] (! (Try Exit)))
-       await)))
+       (Interface
+        (is (-> [] (! (Try Text)))
+            read)
+        (is (-> [] (! (Try Text)))
+            fail)
+        (is (-> Text (! (Try Any)))
+            write)
+        (is (-> [] (! (Try Any)))
+            destroy)
+        (is (-> [] (! (Try Exit)))
+            await)))
 
 (the (future_process process)
-  (-> (Process IO) (Process Future))
-  (`` (implementation
-       (,, (template.with [<method>]
-                          [(the <method>
-                             (|>> (by process <method>)
-                                  future.soon))]
+     (-> (Process IO) (Process Future))
+     (`` (implementation
+          (,, (template.with [<method>]
+                             [(the <method>
+                                   (|>> (by process <method>)
+                                        future.soon))]
 
-                          [[read]
-                           [fail]
-                           [write]
-                           [destroy]
-                           [await]])))))
+                             [[read]
+                              [fail]
+                              [write]
+                              [destroy]
+                              [await]])))))
 
 (every .public Command
-  Text)
+       Text)
 
 (every .public Argument
-  Text)
+       Text)
 
 (every .public (Shell !)
-  (Interface
-   (is (-> [Environment Path Command (List Argument)]
-           (! (Try (Process !))))
-       execute)))
+       (Interface
+        (is (-> [Environment Path Command (List Argument)]
+                (! (Try (Process !))))
+            execute)))
 
 (the .public (future shell)
-  (-> (Shell IO) (Shell Future))
-  (implementation
-   (the (execute input)
-     (future.soon
-      (monad.let (try.with io.monad)
-        [process (by shell execute input)]
-        (pure (..future_process process)))))))
+     (-> (Shell IO) (Shell Future))
+     (implementation
+      (the (execute input)
+           (future.soon
+            (monad.let (try.with io.monad)
+                       [process (by shell execute input)]
+                       (pure (..future_process process)))))))
 
-... https://en.wikipedia.org/wiki/Code_injection#Shell_injection
-(every (Policy ?)
-  (Interface
-   (is (-> Command (Safe Command ?))
-       command)
-   (is (-> Argument (Safe Argument ?))
-       argument)
-   (is (for_any (_ it)
-         (-> (Safe it ?)
-             it))
-       value)))
+(comment "https://en.wikipedia.org/wiki/Code_injection#Shell_injection"
+         (every (Policy ?)
+                (Interface
+                 (is (-> Command (Safe Command ?))
+                     command)
+                 (is (-> Argument (Safe Argument ?))
+                     argument)
+                 (is (for_any (_ it)
+                              (-> (Safe it ?)
+                                  it))
+                     value))))
 
 (every Sanitizer
-  Change)
+       Change)
 
 (every Replacer
-  (Change Text))
+       (Change Text))
 
 (the (replaced bad replacer)
-  (-> Text
-      (Change Replacer))
-  (text.replaced bad (replacer bad)))
+     (-> Text
+         (Change Replacer))
+     (text.replaced bad (replacer bad)))
 
 (the safe_common_command
-  (-> Replacer
-      (Sanitizer Command))
-  (let [x0A (text.of_character (number.base_16 "0A"))
-        xFF (text.of_character (number.base_16 "FF"))]
-    (function (_ replacer)
-      (|>> (..replaced x0A replacer)
-           (..replaced xFF replacer)
-           (..replaced "\" replacer)
-           (..replaced "&" replacer)
-           (..replaced "#" replacer)
-           (..replaced ";" replacer)
-           (..replaced "`" replacer)
-           (..replaced "|" replacer)
-           (..replaced "*" replacer)
-           (..replaced "?" replacer)
-           (..replaced "~" replacer)
-           (..replaced "^" replacer)
-           (..replaced "$" replacer)
-           (..replaced "<" replacer) (..replaced ">" replacer)
-           (..replaced "(" replacer) (..replaced ")" replacer)
-           (..replaced "[" replacer) (..replaced "]" replacer)
-           (..replaced "{" replacer) (..replaced "}" replacer)))))
+     (-> Replacer
+         (Sanitizer Command))
+     (let [x0A (text.of_character (number.base_16 "0A"))
+           xFF (text.of_character (number.base_16 "FF"))]
+          (function (_ replacer)
+                    (|>> (..replaced x0A replacer)
+                         (..replaced xFF replacer)
+                         (..replaced "\" replacer)
+                         (..replaced "&" replacer)
+                         (..replaced "#" replacer)
+                         (..replaced ";" replacer)
+                         (..replaced "`" replacer)
+                         (..replaced "|" replacer)
+                         (..replaced "*" replacer)
+                         (..replaced "?" replacer)
+                         (..replaced "~" replacer)
+                         (..replaced "^" replacer)
+                         (..replaced "$" replacer)
+                         (..replaced "<" replacer) (..replaced ">" replacer)
+                         (..replaced "(" replacer) (..replaced ")" replacer)
+                         (..replaced "[" replacer) (..replaced "]" replacer)
+                         (..replaced "{" replacer) (..replaced "}" replacer)))))
 
 (the (policy safe_command safe_argument)
-  (for_some (_ ?)
-    (-> (Sanitizer Command) (Sanitizer Argument)
-        (Policy ?)))
-  (?.with_policy
-   (is (Context Safety Policy)
-       (function (_ it)
-         (with "?[0]" it
-               (implementation
-                (the command (|>> safe_command ?:can_upgrade))
-                (the argument (|>> safe_argument ?:can_upgrade))
-                (the value ?:can_downgrade)))))))
+     (for_some (_ ?)
+               (-> (Sanitizer Command) (Sanitizer Argument)
+                   (Policy ?)))
+     (?.with_policy
+      (is (Context Safety Policy)
+          (function (_ it)
+                    (with "?[0]" it
+                          (implementation
+                           (the command (|>> safe_command ?:can_upgrade))
+                           (the argument (|>> safe_argument ?:can_upgrade))
+                           (the value ?:can_downgrade)))))))
 
 (the unix_policy
-  (let [replacer (is Replacer
-                     (|>> (text "\")))
-        safe_command (is (Sanitizer Command)
-                         (..safe_common_command replacer))
-        safe_argument (is (Sanitizer Argument)
-                          (|>> (..replaced "'" replacer)
-                               (text.enclosed' "'")))]
-    (..policy safe_command safe_argument)))
+     (let [replacer (is Replacer
+                        (|>> (text "\")))
+           safe_command (is (Sanitizer Command)
+                            (..safe_common_command replacer))
+           safe_argument (is (Sanitizer Argument)
+                             (|>> (..replaced "'" replacer)
+                                  (text.enclosed' "'")))]
+          (..policy safe_command safe_argument)))
 
 (the windows_policy
-  (let [replacer (is Replacer
-                     (function.constant " "))
-        safe_command (is (Sanitizer Command)
-                         (|>> (..safe_common_command replacer)
-                              (..replaced "%" replacer)
-                              (..replaced "!" replacer)))
-        safe_argument (is (Sanitizer Argument)
-                          (|>> (..replaced "%" replacer)
-                               (..replaced "!" replacer)
-                               (..replaced text.double_quote replacer)
-                               (text.enclosed' text.double_quote)))]
-    (..policy safe_command safe_argument)))
+     (let [replacer (is Replacer
+                        (function.constant " "))
+           safe_command (is (Sanitizer Command)
+                            (|>> (..safe_common_command replacer)
+                                 (..replaced "%" replacer)
+                                 (..replaced "!" replacer)))
+           safe_argument (is (Sanitizer Argument)
+                             (|>> (..replaced "%" replacer)
+                                  (..replaced "!" replacer)
+                                  (..replaced text.double_quote replacer)
+                                  (text.enclosed' text.double_quote)))]
+          (..policy safe_command safe_argument)))
 
 (target.if target.jvm
            (these (ffi.the java/lang/String
-                    (toLowerCase [] java/lang/String))
+                           (toLowerCase [] java/lang/String))
 
                   (the (jvm:arguments_array arguments)
-                    (-> (List Argument)
-                        (ffi.type [java/lang/String]))
-                    (pair.right (list.mix (function (_ argument [idx output])
-                                            [(++ idx) (ffi.write! idx
-                                                                  (ffi.as_string argument)
-                                                                  output)])
-                                          arguments
-                                          [0 (ffi.array java/lang/String (list.size arguments))])))
+                       (-> (List Argument)
+                           (ffi.type [java/lang/String]))
+                       (pair.right (list.mix (function (_ argument [idx output])
+                                                       [(++ idx) (ffi.write! idx
+                                                                             (ffi.as_string argument)
+                                                                             output)])
+                                             arguments
+                                             [0 (ffi.array java/lang/String (list.size arguments))])))
 
                   (ffi.the (java/util/Map k v)
-                    (put [k v] "?" v))
+                           (put [k v] "?" v))
 
                   (the (jvm:load_environment input target)
-                    (-> Environment
-                        (java/util/Map java/lang/String java/lang/String)
-                        (java/util/Map java/lang/String java/lang/String))
-                    (list.mix (function (_ [key value] target')
-                                (exec
-                                  (java/util/Map:put [(as (-> Text java/lang/String) key)
-                                                      (as (-> Text java/lang/String) value)]
-                                                     target')
-                                  target'))
-                              (dictionary.entries input)
-                              target))
+                       (-> Environment
+                           (java/util/Map java/lang/String java/lang/String)
+                           (java/util/Map java/lang/String java/lang/String))
+                       (list.mix (function (_ [key value] target')
+                                           (exec
+                                            (java/util/Map:put [(as (-> Text java/lang/String) key)
+                                                                (as (-> Text java/lang/String) value)]
+                                                               target')
+                                            target'))
+                                 (dictionary.entries input)
+                                 target))
                   
                   (ffi.the java/io/Reader)
 
                   (ffi.the java/io/BufferedReader
-                    (new [java/io/Reader])
-                    (readLine [] "io" "try" "?" java/lang/String))
+                           (new [java/io/Reader])
+                           (readLine [] "io" "try" "?" java/lang/String))
 
                   (ffi.the java/io/InputStream)
                   
                   (ffi.the java/io/InputStreamReader
-                    (new [java/io/InputStream]))
+                           (new [java/io/InputStream]))
 
                   (ffi.the java/io/OutputStream
-                    (write [[byte]] "io" "try" void))
+                           (write [[byte]] "io" "try" void))
 
                   (ffi.the java/lang/Process
-                    (getInputStream [] "io" "try" java/io/InputStream)
-                    (getErrorStream [] "io" "try" java/io/InputStream)
-                    (getOutputStream [] "io" "try" java/io/OutputStream)
-                    (destroy [] "io" "try" void)
-                    (waitFor [] "io" "try" int))
+                           (getInputStream [] "io" "try" java/io/InputStream)
+                           (getErrorStream [] "io" "try" java/io/InputStream)
+                           (getOutputStream [] "io" "try" java/io/OutputStream)
+                           (destroy [] "io" "try" void)
+                           (waitFor [] "io" "try" int))
 
                   (exception.the .public no_more_output)
 
                   (the (default_process process)
-                    (-> java/lang/Process (IO (Try (Process IO))))
-                    (monad.let [! (try.with io.monad)]
-                      [jvm_input (java/lang/Process:getInputStream [] process)
-                       jvm_error (java/lang/Process:getErrorStream [] process)
-                       jvm_output (java/lang/Process:getOutputStream [] process)
-                       .let [jvm_input (|> jvm_input
-                                           [] java/io/InputStreamReader:new
-                                           [] java/io/BufferedReader:new)
-                             jvm_error (|> jvm_error
-                                           [] java/io/InputStreamReader:new
-                                           [] java/io/BufferedReader:new)]]
-                      (pure (is (Process IO)
-                                (`` (implementation
-                                     (,, (template.with [<name> <stream>]
-                                                        [(the (<name> _)
-                                                           (monad.let !
-                                                             [output (java/io/BufferedReader:readLine [] <stream>)]
-                                                             (when output
-                                                               {.:Some output}
-                                                               (pure (ffi.of_string output))
+                       (-> java/lang/Process (IO (Try (Process IO))))
+                       (monad.let [! (try.with io.monad)]
+                                  [jvm_input (java/lang/Process:getInputStream [] process)
+                                   jvm_error (java/lang/Process:getErrorStream [] process)
+                                   jvm_output (java/lang/Process:getOutputStream [] process)
+                                   .let [jvm_input (|> jvm_input
+                                                       [] java/io/InputStreamReader:new
+                                                       [] java/io/BufferedReader:new)
+                                         jvm_error (|> jvm_error
+                                                       [] java/io/InputStreamReader:new
+                                                       [] java/io/BufferedReader:new)]]
+                                  (pure (is (Process IO)
+                                            (`` (implementation
+                                                 (,, (template.with [<name> <stream>]
+                                                                    [(the (<name> _)
+                                                                          (monad.let !
+                                                                                     [output (java/io/BufferedReader:readLine [] <stream>)]
+                                                                                     (when output
+                                                                                           {.:Some output}
+                                                                                           (pure (ffi.of_string output))
 
-                                                               {.:None}
-                                                               (by io.monad pure (exception.except ..no_more_output [])))))]
+                                                                                           {.:None}
+                                                                                           (by io.monad pure (exception.except ..no_more_output [])))))]
 
-                                                        [[read jvm_input]
-                                                         [fail jvm_error]]))
-                                     (the (write message)
-                                       (java/io/OutputStream:write [(by utf8.binary as message)]
-                                                                   jvm_output))
-                                     (,, (template.with [<name> <method>]
-                                                        [(the (<name> _)
-                                                           (|> process
-                                                               <method>))]
+                                                                    [[read jvm_input]
+                                                                     [fail jvm_error]]))
+                                                 (the (write message)
+                                                      (java/io/OutputStream:write [(by utf8.binary as message)]
+                                                                                  jvm_output))
+                                                 (,, (template.with [<name> <method>]
+                                                                    [(the (<name> _)
+                                                                          (|> process
+                                                                              <method>))]
 
-                                                        [[destroy (java/lang/Process:destroy [])]
-                                                         [await (<| (by ! each (|>> ffi.of_int))
-                                                                    (java/lang/Process:waitFor []))]]))))))))
+                                                                    [[destroy (java/lang/Process:destroy [])]
+                                                                     [await (<| (by ! each (|>> ffi.of_int))
+                                                                                (java/lang/Process:waitFor []))]]))))))))
 
                   (ffi.the java/io/File
-                    (new [java/lang/String]))
+                           (new [java/lang/String]))
 
                   (ffi.the java/lang/ProcessBuilder
-                    (new [[java/lang/String]])
-                    (environment [] "try" (java/util/Map java/lang/String java/lang/String))
-                    (directory [java/io/File] java/lang/ProcessBuilder)
-                    (start [] "io" "try" java/lang/Process))
+                           (new [[java/lang/String]])
+                           (environment [] "try" (java/util/Map java/lang/String java/lang/String))
+                           (directory [java/io/File] java/lang/ProcessBuilder)
+                           (start [] "io" "try" java/lang/Process))
 
                   (ffi.the java/lang/System
-                    ("static" getProperty [java/lang/String] "io" "try" java/lang/String))
+                           ("static" getProperty [java/lang/String] "io" "try" java/lang/String))
 
-                  ... https://en.wikipedia.org/wiki/Code_injection#Shell_injection
-                  (the windows?
-                    (IO (Try Bit))
-                    (by (try.with io.monad) each
-                        (|>> (java/lang/String:toLowerCase [])
-                             ffi.of_string
-                             (text.starts_with? "windows"))
-                        (java/lang/System:getProperty [(ffi.as_string "os.name")])))
+                  (comment "https://en.wikipedia.org/wiki/Code_injection#Shell_injection"
+                           (the windows?
+                                (IO (Try Bit))
+                                (by (try.with io.monad) each
+                                    (|>> (java/lang/String:toLowerCase [])
+                                         ffi.of_string
+                                         (text.starts_with? "windows"))
+                                    (java/lang/System:getProperty [(ffi.as_string "os.name")]))))
 
                   (the .public default
-                    (Shell IO)
-                    (implementation
-                     (the (execute [environment working_directory the_command arguments])
-                       (monad.let [! (try.with io.monad)]
-                         [.let [builder (|> (list:composite (list the_command) arguments)
-                                            ..jvm:arguments_array
-                                            [] java/lang/ProcessBuilder:new
-                                            (java/lang/ProcessBuilder:directory [(java/io/File:new [(ffi.as_string working_directory)])]))]
-                          _ (|> builder
-                                (java/lang/ProcessBuilder:environment [])
-                                (by try.functor each (..jvm:load_environment environment))
-                                (by io.monad pure))
-                          process (java/lang/ProcessBuilder:start [] builder)]
-                         (..default_process process)))))
+                       (Shell IO)
+                       (implementation
+                        (the (execute [environment working_directory the_command arguments])
+                             (monad.let [! (try.with io.monad)]
+                                        [.let [builder (|> (list:composite (list the_command) arguments)
+                                                           ..jvm:arguments_array
+                                                           [] java/lang/ProcessBuilder:new
+                                                           (java/lang/ProcessBuilder:directory [(java/io/File:new [(ffi.as_string working_directory)])]))]
+                                         _ (|> builder
+                                               (java/lang/ProcessBuilder:environment [])
+                                               (by try.functor each (..jvm:load_environment environment))
+                                               (by io.monad pure))
+                                         process (java/lang/ProcessBuilder:start [] builder)]
+                                        (..default_process process)))))
                   )
 
-           ... else
-           (these))
+           (comment "else"
+                    (these)))
 
 (every .public (Memory s)
-  (Interface
-   (is (-> s (Try [s Text]))
-       on_read)
-   (is (-> s (Try [s Text]))
-       on_fail)
-   (is (-> Text s (Try s))
-       on_write)
-   (is (-> s (Try s))
-       on_destroy)
-   (is (-> s (Try [s Exit]))
-       on_await)))
+       (Interface
+        (is (-> s (Try [s Text]))
+            on_read)
+        (is (-> s (Try [s Text]))
+            on_fail)
+        (is (-> Text s (Try s))
+            on_write)
+        (is (-> s (Try s))
+            on_destroy)
+        (is (-> s (Try [s Exit]))
+            on_await)))
 
 (`` (the (memory_process state memory)
-      (for_any (_ s) (-> (Atom s) (Memory s) (Process IO)))
-      (implementation
-       (,, (template.with [<name> <memory>]
-                          [(the (<name> _)
-                             (monad.let [! io.monad]
-                               [|state| (atom.read! state)]
-                               (when (by memory <memory> |state|)
-                                 {try.:Success [|state| output]}
-                                 (monad.let !
-                                   [_ (atom.write! |state| state)]
-                                   (pure {try.:Success output}))
-                                 
-                                 {try.:Failure error}
-                                 (pure {try.:Failure error}))))]
+         (for_any (_ s) (-> (Atom s) (Memory s) (Process IO)))
+         (implementation
+          (,, (template.with [<name> <memory>]
+                             [(the (<name> _)
+                                   (monad.let [! io.monad]
+                                              [|state| (atom.read! state)]
+                                              (when (by memory <memory> |state|)
+                                                    {try.:Success [|state| output]}
+                                                    (monad.let !
+                                                               [_ (atom.write! |state| state)]
+                                                               (pure {try.:Success output}))
+                                                    
+                                                    {try.:Failure error}
+                                                    (pure {try.:Failure error}))))]
 
-                          [[read on_read]
-                           [fail on_fail]
-                           [await on_await]]))
-       (the (write message)
-         (monad.let [! io.monad]
-           [|state| (atom.read! state)]
-           (when (by memory on_write message |state|)
-             {try.:Success |state|}
-             (monad.let !
-               [_ (atom.write! |state| state)]
-               (pure {try.:Success []}))
-             
-             {try.:Failure error}
-             (pure {try.:Failure error}))))
-       (the (destroy _)
-         (monad.let [! io.monad]
-           [|state| (atom.read! state)]
-           (when (by memory on_destroy |state|)
-             {try.:Success |state|}
-             (monad.let !
-               [_ (atom.write! |state| state)]
-               (pure {try.:Success []}))
-             
-             {try.:Failure error}
-             (pure {try.:Failure error})))))))
+                             [[read on_read]
+                              [fail on_fail]
+                              [await on_await]]))
+          (the (write message)
+               (monad.let [! io.monad]
+                          [|state| (atom.read! state)]
+                          (when (by memory on_write message |state|)
+                                {try.:Success |state|}
+                                (monad.let !
+                                           [_ (atom.write! |state| state)]
+                                           (pure {try.:Success []}))
+                                
+                                {try.:Failure error}
+                                (pure {try.:Failure error}))))
+          (the (destroy _)
+               (monad.let [! io.monad]
+                          [|state| (atom.read! state)]
+                          (when (by memory on_destroy |state|)
+                                {try.:Success |state|}
+                                (monad.let !
+                                           [_ (atom.write! |state| state)]
+                                           (pure {try.:Success []}))
+                                
+                                {try.:Failure error}
+                                (pure {try.:Failure error})))))))
 
 (the .public (memory memory init)
-  (for_any (_ s)
-    (-> (-> [Environment Path Command (List Argument)]
-            (Try (Memory s)))
-        s
-        (Shell IO)))
-  (implementation
-   (the execute
-     (|>> memory
-          (by try.monad each (..memory_process (atom.atom init)))
-          io.io))))
+     (for_any (_ s)
+              (-> (-> [Environment Path Command (List Argument)]
+                      (Try (Memory s)))
+                  s
+                  (Shell IO)))
+     (implementation
+      (the execute
+           (|>> memory
+                (by try.monad each (..memory_process (atom.atom init)))
+                io.io))))

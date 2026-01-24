@@ -29,218 +29,218 @@
    [//
     [equality (.only Equality)]]]])
 
-... https://en.wikipedia.org/wiki/Preorder#Definition
-(template.the (is_pre ,<~ ,>~
-                      ,0 ,1 ,2)
-  [(and (bit.= (,<~ ,0 ,1)
-               (,>~ ,1 ,0))
-        (equalityT.reflexivity ,<~
-                               ,0)
-        (equalityT.transitivity ,<~
-                                ,0 ,1 ,2))])
+(comment "https://en.wikipedia.org/wiki/Preorder#Definition"
+         (template.the (is_pre ,<~ ,>~
+                               ,0 ,1 ,2)
+                       [(and (bit.= (,<~ ,0 ,1)
+                                    (,>~ ,1 ,0))
+                             (equalityT.reflexivity ,<~
+                                                    ,0)
+                             (equalityT.transitivity ,<~
+                                                     ,0 ,1 ,2))]))
 
-... https://en.wikipedia.org/wiki/Partially_ordered_set
-(template.the (partial ,<= ,>=
-                       ,=
-                       ,0 ,1 ,2
-                       ,*additionally)
-  [(_.coverage [,<= ,>=]
-     (`` (and (..is_pre ,<= ,>=
-                        ,0 ,1 ,2)
-              (let [... https://en.wikipedia.org/wiki/Antisymmetric_relation
-                    anti_symmetry
-                    (bit.if (and (,<= ,0 ,1)
-                                 (,<= ,1 ,0))
-                            (,= ,0 ,1))]
-                (and anti_symmetry))
-              (,, (template.spliced ,*additionally)))))])
+(comment "https://en.wikipedia.org/wiki/Partially_ordered_set"
+         (template.the (partial ,<= ,>=
+                                ,=
+                                ,0 ,1 ,2
+                                ,*additionally)
+                       [(_.coverage [,<= ,>=]
+                                    (`` (and (..is_pre ,<= ,>=
+                                                       ,0 ,1 ,2)
+                                             (let [anti_symmetry
+                                                   (comment "https://en.wikipedia.org/wiki/Antisymmetric_relation"
+                                                            (bit.if (and (,<= ,0 ,1)
+                                                                         (,<= ,1 ,0))
+                                                                    (,= ,0 ,1)))]
+                                                  (and anti_symmetry))
+                                             (,, (template.spliced ,*additionally)))))]))
 
 (template.the (strict ,< ,>
                       ,0 ,1 ,2)
-  [(_.coverage [,< ,>]
-     (and (bit.= (,< ,0 ,1)
-                 (,> ,1 ,0))
-          (equalityT.transitivity ,<
-                                  ,0 ,1 ,2)
-          (let [... https://en.wikipedia.org/wiki/Reflexive_relation#Irreflexive_relation
-                anti_reflexivity
-                (not (,< ,0 ,0))
+              [(_.coverage [,< ,>]
+                           (and (bit.= (,< ,0 ,1)
+                                       (,> ,1 ,0))
+                                (equalityT.transitivity ,<
+                                                        ,0 ,1 ,2)
+                                (let [anti_reflexivity
+                                      (comment "https://en.wikipedia.org/wiki/Reflexive_relation#Irreflexive_relation"
+                                               (not (,< ,0 ,0)))
 
-                ... https://en.wikipedia.org/wiki/Antisymmetric_relation
-                anti_symmetry
-                (bit.if (,< ,0 ,1)
-                        (not (,< ,1 ,0)))]
-            (and anti_reflexivity
-                 anti_symmetry))))])
+                                      anti_symmetry
+                                      (comment "https://en.wikipedia.org/wiki/Antisymmetric_relation"
+                                               (bit.if (,< ,0 ,1)
+                                                       (not (,< ,1 ,0))))]
+                                     (and anti_reflexivity
+                                          anti_symmetry))))])
 
 (template.the (strict_partial ,< ,> ,<= ,>=
                               ,=
                               ,0 ,1 ,2)
-  [(all _.and
-        (..partial ,<= ,>=
-                   ,=
-                   ,0 ,1 ,2
-                   [])
-        (..strict ,< ,>
-                  ,0 ,1 ,2))])
+              [(all _.and
+                    (..partial ,<= ,>=
+                               ,=
+                               ,0 ,1 ,2
+                               [])
+                    (..strict ,< ,>
+                              ,0 ,1 ,2))])
 
-... https://en.wikipedia.org/wiki/Total_order
-(template.the (total ,<= ,>=
-                     ,=
-                     ,0 ,1 ,2)
-  [(..partial ,<= ,>=
-              ,=
-              ,0 ,1 ,2
-              [(let [... https://en.wikipedia.org/wiki/Connected_relation
-                     connectivity
-                     (or (,<= ,0 ,1)
-                         (,<= ,1 ,0))]
-                 (and connectivity))])])
+(comment "https://en.wikipedia.org/wiki/Total_order"
+         (template.the (total ,<= ,>=
+                              ,=
+                              ,0 ,1 ,2)
+                       [(..partial ,<= ,>=
+                                   ,=
+                                   ,0 ,1 ,2
+                                   [(let [connectivity
+                                          (comment "https://en.wikipedia.org/wiki/Connected_relation"
+                                                   (or (,<= ,0 ,1)
+                                                       (,<= ,1 ,0)))]
+                                         (and connectivity))])]))
 
 (template.the .public (strict_total ,implementation ,< ,> ,<= ,>=
                                     ,=
                                     ,0 ,1 ,2)
-  [(all _.and
-        (<| (_.for [,implementation])
-            (_.coverage [/.Order
-                         /.equality /.<]
-              (and (identical? ,<
-                               (by ,implementation <))
-                   (identical? ,=
-                               (by ,implementation =)))))
-        (..total ,<= ,>=
-                 ,=
-                 ,0 ,1 ,2)
-        (..strict ,< ,>
-                  ,0 ,1 ,2))])
+              [(all _.and
+                    (<| (_.for [,implementation])
+                        (_.coverage [/.Order
+                                     /.equality /.<]
+                                    (and (identical? ,<
+                                                     (by ,implementation <))
+                                         (identical? ,=
+                                                     (by ,implementation =)))))
+                    (..total ,<= ,>=
+                             ,=
+                             ,0 ,1 ,2)
+                    (..strict ,< ,>
+                              ,0 ,1 ,2))])
 
 (template.the .public (choice' ,choice
                                ,=
                                ,random)
-  [(<| (let [random ,random])
-       (monad.let random.monad
-         [it_0 random
-          it_1 random
-          it_2 random])
-       (_.coverage [,choice]
-         (and (equalityT.commutativity ,choice
-                                       ,=
-                                       it_0 it_1)
-              (monoidT.associativity ,choice
-                                     ,=
-                                     it_0 it_1 it_2)
-              (let [... https://en.wikipedia.org/wiki/Idempotence
-                    idempotence
-                    (,= it_0
-                        (,choice it_0 it_0))
+              [(<| (let [random ,random])
+                   (monad.let random.monad
+                              [it_0 random
+                               it_1 random
+                               it_2 random])
+                   (_.coverage [,choice]
+                               (and (equalityT.commutativity ,choice
+                                                             ,=
+                                                             it_0 it_1)
+                                    (monoidT.associativity ,choice
+                                                           ,=
+                                                           it_0 it_1 it_2)
+                                    (let [idempotence
+                                          (comment "https://en.wikipedia.org/wiki/Idempotence"
+                                                   (,= it_0
+                                                       (,choice it_0 it_0)))
 
-                    selection
-                    (or (,= it_0
-                            (,choice it_0 it_1))
-                        (,= it_1
-                            (,choice it_0 it_1)))]
-                (and idempotence
-                     selection)))))])
+                                          selection
+                                          (or (,= it_0
+                                                  (,choice it_0 it_1))
+                                              (,= it_1
+                                                  (,choice it_0 it_1)))]
+                                         (and idempotence
+                                              selection)))))])
 
 (template.the .public (choice ,monoid ,choice ,identity
                               ,=
                               ,random)
-  [(all _.and
-        (monoidT.monoid ,monoid ,choice ,identity
-                        ,=
-                        ,random)
-        (..choice' ,choice
-                   ,=
-                   ,random)
-        )])
+              [(all _.and
+                    (monoidT.monoid ,monoid ,choice ,identity
+                                    ,=
+                                    ,random)
+                    (..choice' ,choice
+                               ,=
+                               ,random)
+                    )])
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (monad.let random.monad
-        [left random.natural
-         right (|> random.natural (random.only (|>> (n.= left) not)))
-         .let [equality (is (Equality (/.Order Natural))
-                            (implementation
-                             (the (= leftO rightO)
-                               (and (bit.= (by leftO < left left)
-                                           (by rightO < left left))
-                                    (bit.= (by leftO < right right)
-                                           (by rightO < right right))
-                                    (bit.= (by leftO < left right)
-                                           (by rightO < left right))))))]])
-      (all _.and
-           (_.for [/.functor]
-                  (contravariantT.spec equality n.order /.functor))
+     Test
+     (<| (_.covering /._)
+         (monad.let random.monad
+                    [left random.natural
+                     right (|> random.natural (random.only (|>> (n.= left) not)))
+                     .let [equality (is (Equality (/.Order Natural))
+                                        (implementation
+                                         (the (= leftO rightO)
+                                              (and (bit.= (by leftO < left left)
+                                                          (by rightO < left left))
+                                                   (bit.= (by leftO < right right)
+                                                          (by rightO < right right))
+                                                   (bit.= (by leftO < left right)
+                                                          (by rightO < left right))))))]])
+         (all _.and
+              (_.for [/.functor]
+                     (contravariantT.spec equality n.order /.functor))
 
-           (_.coverage [/.boundary]
-             (bit.= (by n.order < left right)
-                    ((/.boundary n.order left) right)))
-           (_.coverage [/.Choice /.minor /.major]
-             (n.< (/.major n.order left right)
-                  (/.minor n.order left right)))
-           (_.coverage [/.Comparison /.>]
-             (not (bit.= (n.< left right)
-                         (/.> n.order left right))))
-           (_.coverage [/.<=]
-             (and (/.<= n.order left left)
-                  (/.<= n.order right right)
-                  (bit.= (by n.order < left right)
-                         (/.<= n.order left right))))
-           (_.coverage [/.>=]
-             (and (/.>= n.order left left)
-                  (/.>= n.order right right)
-                  (bit.= (/.> n.order left right)
-                         (/.>= n.order left right))))
+              (_.coverage [/.boundary]
+                          (bit.= (by n.order < left right)
+                                 ((/.boundary n.order left) right)))
+              (_.coverage [/.Choice /.minor /.major]
+                          (n.< (/.major n.order left right)
+                               (/.minor n.order left right)))
+              (_.coverage [/.Comparison /.>]
+                          (not (bit.= (n.< left right)
+                                      (/.> n.order left right))))
+              (_.coverage [/.<=]
+                          (and (/.<= n.order left left)
+                               (/.<= n.order right right)
+                               (bit.= (by n.order < left right)
+                                      (/.<= n.order left right))))
+              (_.coverage [/.>=]
+                          (and (/.>= n.order left left)
+                               (/.>= n.order right right)
+                               (bit.= (/.> n.order left right)
+                                      (/.>= n.order left right))))
 
-           /total/strong.test
-           )))
+              /total/strong.test
+              )))
 
 (the .public (spec order random)
-  (for_any (_ it)
-    (-> (/.Order it) (Random it)
-        Test))
-  (<| (with "/:[0]" order)
-      (_.for [/.Order /.for])
-      (all _.and
-           (_.for [/.equality]
-                  (equalityT.spec /:equality random))
-           
-           (monad.let random.monad
-             [parameter random
-              subject random
-              .let [equal_or_ordered!
-                    (let [equal!
-                          (/:= parameter subject)
+     (for_any (_ it)
+              (-> (/.Order it) (Random it)
+                  Test))
+     (<| (with "/:[0]" order)
+         (_.for [/.Order /.for])
+         (all _.and
+              (_.for [/.equality]
+                     (equalityT.spec /:equality random))
+              
+              (monad.let random.monad
+                         [parameter random
+                          subject random
+                          .let [equal_or_ordered!
+                                (let [equal!
+                                      (/:= parameter subject)
 
-                          ordered!
-                          (or (and (/:< parameter subject)
-                                   (not (/:< subject parameter)))
-                              (and (/:< subject parameter)
-                                   (not (/:< parameter subject))))]
-                      (bit.= equal! (not ordered!)))]
+                                      ordered!
+                                      (or (and (/:< parameter subject)
+                                               (not (/:< subject parameter)))
+                                          (and (/:< subject parameter)
+                                               (not (/:< parameter subject))))]
+                                     (bit.= equal! (not ordered!)))]
 
-              subject (random.only (|>> (/:= parameter) not)
-                                   random)
-              extra (random.only (function (_ value)
-                                   (not (or (/:= parameter value)
-                                            (/:= subject value))))
-                                 random)
-              .let [[maximum minimum] (if (/:< parameter subject)
-                                          [parameter subject]
-                                          [subject parameter])
+                          subject (random.only (|>> (/:= parameter) not)
+                                               random)
+                          extra (random.only (function (_ value)
+                                                       (not (or (/:= parameter value)
+                                                                (/:= subject value))))
+                                             random)
+                          .let [[maximum minimum] (if (/:< parameter subject)
+                                                      [parameter subject]
+                                                      [subject parameter])
 
-                    transitive_property!
-                    (let [greater? (and (/:< maximum extra)
-                                        (/:< minimum extra))
-                          lesser? (and (/:< extra maximum)
-                                       (/:< extra minimum))
-                          in_between? (and (/:< maximum extra)
-                                           (/:< extra minimum))]
-                      (or greater?
-                          lesser?
-                          in_between?))]]
-             (_.coverage [/.<]
-               (and equal_or_ordered!
-                    transitive_property!)))
-           )))
+                                transitive_property!
+                                (let [greater? (and (/:< maximum extra)
+                                                    (/:< minimum extra))
+                                      lesser? (and (/:< extra maximum)
+                                                   (/:< extra minimum))
+                                      in_between? (and (/:< maximum extra)
+                                                       (/:< extra minimum))]
+                                     (or greater?
+                                         lesser?
+                                         in_between?))]]
+                         (_.coverage [/.<]
+                                     (and equal_or_ordered!
+                                          transitive_property!)))
+              )))

@@ -7,19 +7,19 @@
   [functor (.only Functor)]])
 
 (every .public (Monad !)
-  (Interface
-   (is (Functor !)
-       functor)
-   (is (for_any (_ it)
-         (-> it
-             (! it)))
-       pure)
-   (is (for_any (_ it)
-         (-> (! (! it))
-             (! it)))
-       conjoint)))
+       (Interface
+        (is (Functor !)
+            functor)
+        (is (for_any (_ it)
+                     (-> it
+                         (! it)))
+            pure)
+        (is (for_any (_ it)
+                     (-> (! (! it))
+                         (! it)))
+            conjoint)))
 
-(the with_monad (.in_module# .prelude with_monad))
+(the monad:let (.in_module# .prelude monad:let))
 (the _generated_name (.in_module# .prelude generated_name))
 (the _meta:monad (.in_module# .prelude meta:monad))
 (the meta:failure (.in_module# .prelude failure))
@@ -42,124 +42,124 @@
 (the ?:rest (.in_module# .prelude ?:rest))
 
 (the .public let
-  (macro (_ tokens)
-    (.when (|> (all ?:and
-                    (?:either (?:tuple (?:and (?:each (|>> {.:Some}) ?:local) ?:any))
-                              (?:and (?:pure {.:None}) ?:any))
-                    (?:tuple (?:some (?:and ?:any ?:any)))
-                    ?:any)
-               (?:value tokens))
-      {.:Some [[?name monad] bindings body]}
-      (with_monad _meta:monad
-        ['_ (_generated_name "'_")
-         'each (_generated_name "'each")
-         'conjoint (_generated_name "'conjoint")]
-        (.let [[module proper] (name ..let)
-               name (is (-> Text Code)
-                        (|>> (.text_composite# module " " proper " ")
-                             [""]
-                             [provenance.dummy]
-                             {.:Name}))
-               body' (list:mix (is (-> [Code Code] Code Code)
-                                   (function (_ binding body')
-                                     (<| (_expansion:let [<default> (` (|> (, value)
-                                                                           ((, 'each) (function ((, '_) (, var))
-                                                                                        (, body')))
-                                                                           (, 'conjoint)))])
-                                         (.let [[var value] binding]
-                                           (.when var
-                                             {.:Name _ ["" _]}
-                                             <default>
+     (macro (_ tokens)
+            (.when (|> (all ?:and
+                            (?:either (?:tuple (?:and (?:each (|>> {.:Some}) ?:local) ?:any))
+                                      (?:and (?:pure {.:None}) ?:any))
+                            (?:tuple (?:some (?:and ?:any ?:any)))
+                            ?:any)
+                       (?:value tokens))
+                   {.:Some [[?name monad] bindings body]}
+                   (monad:let _meta:monad
+                              ['_ (_generated_name "'_")
+                               'each (_generated_name "'each")
+                               'conjoint (_generated_name "'conjoint")]
+                              (.let [[module proper] (name ..let)
+                                     name (is (-> Text Code)
+                                              (|>> (.text_composite# module " " proper " ")
+                                                   [""]
+                                                   [provenance.dummy]
+                                                   {.:Name}))
+                                     body' (list:mix (is (-> [Code Code] Code Code)
+                                                         (function (_ binding body')
+                                                                   (<| (_expansion:let [<default> (` (|> (, value)
+                                                                                                         ((, 'each) (function ((, '_) (, var))
+                                                                                                                              (, body')))
+                                                                                                         (, 'conjoint)))])
+                                                                       (.let [[var value] binding]
+                                                                             (.when var
+                                                                                    {.:Name _ ["" _]}
+                                                                                    <default>
 
-                                             {.:Name _ _}
-                                             (` ((, var) (, value) (, body')))
+                                                                                    {.:Name _ _}
+                                                                                    (` ((, var) (, value) (, body')))
 
-                                             _
-                                             <default>)))))
-                               body
-                               (list:in_reverse bindings))]
-          (pure (list (.when ?name
-                        {.:Some name}
-                        (.let [name {.:Name provenance.dummy ["" name]}]
-                          (` (.when (, monad)
-                               (, name)
-                               (.when (, name)
-                                 [(, 'each) (,' pure) (, 'conjoint)]
-                                 (, body')))))
-                        
-                        {.:None}
-                        (` (.when (, monad)
-                             [(, 'each) (,' pure) (, 'conjoint)]
-                             (, body'))))))))
+                                                                                    _
+                                                                                    <default>)))))
+                                                     body
+                                                     (list:in_reverse bindings))]
+                                    (pure (list (.when ?name
+                                                       {.:Some name}
+                                                       (.let [name {.:Name provenance.dummy ["" name]}]
+                                                             (` (.when (, monad)
+                                                                       (, name)
+                                                                       (.when (, name)
+                                                                              [(, 'each) (,' pure) (, 'conjoint)]
+                                                                              (, body')))))
+                                                       
+                                                       {.:None}
+                                                       (` (.when (, monad)
+                                                                 [(, 'each) (,' pure) (, 'conjoint)]
+                                                                 (, body'))))))))
 
-      {.:None}
-      (meta:failure ""))))
+                   {.:None}
+                   (meta:failure ""))))
 
 (the .public (then monad f)
-  (for_any (_ ! before after)
-    (-> (Monad !) (-> before (! after))
-        (-> (! before) (! after))))
-  (|>> (by monad each f)
-       (by monad conjoint)))
+     (for_any (_ ! before after)
+              (-> (Monad !) (-> before (! after))
+                  (-> (! before) (! after))))
+     (|>> (by monad each f)
+          (by monad conjoint)))
 
 (the .public deferred
-  (macro (_ tokens)
-    (.when tokens
-      (list {.:Tuple _ (list ! after)}
-            before)
-      (with_monad _meta:monad
-        ['_ (_generated_name "'_")
-         'it (_generated_name "'it")]
-        (pure (list (` (..let (, !)
-                         [(, 'it) (, before)
-                          (, '_) (, after)]
-                         ((,' pure) (, 'it)))))))
+     (macro (_ tokens)
+            (.when tokens
+                   (list {.:Tuple _ (list ! after)}
+                         before)
+                   (monad:let _meta:monad
+                              ['_ (_generated_name "'_")
+                               'it (_generated_name "'it")]
+                              (pure (list (` (..let (, !)
+                                                    [(, 'it) (, before)
+                                                     (, '_) (, after)]
+                                                    ((,' pure) (, 'it)))))))
 
-      _
-      (meta:failure ""))))
+                   _
+                   (meta:failure ""))))
 
 (the .public if
-  (macro (_ tokens)
-    (.when (|> (all ?:and ?:any ?:any ?:any ?:any)
-               (?:value tokens))
-      {.:Some ['! 'when 'then 'else]}
-      (with_monad _meta:monad
-        ['_ (_generated_name "'_")]
-        (pure (list (` (..let (, '!)
-                         [(, '_) (, 'when)]
-                         (.if (, '_)
-                              (, 'then)
-                              (, 'else)))))))
+     (macro (_ tokens)
+            (.when (|> (all ?:and ?:any ?:any ?:any ?:any)
+                       (?:value tokens))
+                   {.:Some ['! 'when 'then 'else]}
+                   (monad:let _meta:monad
+                              ['_ (_generated_name "'_")]
+                              (pure (list (` (..let (, '!)
+                                                    [(, '_) (, 'when)]
+                                                    (.if (, '_)
+                                                         (, 'then)
+                                                         (, 'else)))))))
 
-      {.:None}
-      (meta:failure ""))))
+                   {.:None}
+                   (meta:failure ""))))
 
 (the .public when
-  (macro (_ tokens)
-    (.when (|> (all ?:and
-                    ?:any
-                    ?:any
-                    (?:many (?:and ?:any ?:any)))
-               (?:value tokens))
-      {.:Some ['! 'argument each_case]}
-      (with_monad _meta:monad
-        ['_ (_generated_name "'_")]
-        (pure (list (` (..let (, '!)
-                         [(, '_) (, 'argument)]
-                         (.when (, '_)
-                           (,* (|> each_case
-                                   (list:each (function (_ [when then])
-                                                (list when then)))
-                                   list:conjoint))))))))
+     (macro (_ tokens)
+            (.when (|> (all ?:and
+                            ?:any
+                            ?:any
+                            (?:many (?:and ?:any ?:any)))
+                       (?:value tokens))
+                   {.:Some ['! 'argument each_case]}
+                   (monad:let _meta:monad
+                              ['_ (_generated_name "'_")]
+                              (pure (list (` (..let (, '!)
+                                                    [(, '_) (, 'argument)]
+                                                    (.when (, '_)
+                                                           (,* (|> each_case
+                                                                   (list:each (function (_ [when then])
+                                                                                        (list when then)))
+                                                                   list:conjoint))))))))
 
-      {.:None}
-      (meta:failure ""))))
+                   {.:None}
+                   (meta:failure ""))))
 
 (the .public (and monad this that)
-  (for_any (_ ! this that)
-    (-> (Monad !) (! this) (! that)
-        (! (And this that))))
-  (let monad
-    [this this
-     that that]
-    (pure [this that])))
+     (for_any (_ ! this that)
+              (-> (Monad !) (! this) (! that)
+                  (! (And this that))))
+     (let monad
+          [this this
+           that that]
+          (pure [this that])))

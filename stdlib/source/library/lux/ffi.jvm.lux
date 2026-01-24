@@ -55,24 +55,24 @@
     ["@[0]" type]]]])
 
 (.the internal
-  (-> external.Name Text)
-  (|>> internal.name
-       internal.value))
+      (-> external.Name Text)
+      (|>> internal.name
+           internal.value))
 
 (.the signature
-  (for_any (_ category)
-    (-> (Type category) Text))
-  (|>> jvm.signature signature.signature))
+      (for_any (_ category)
+               (-> (Type category) Text))
+      (|>> jvm.signature signature.signature))
 
 (.the reflection
-  (for_any (_ category)
-    (-> (Type (Value category)) Text))
-  (|>> jvm.reflection reflection.reflection))
+      (for_any (_ category)
+               (-> (Type (Value category)) Text))
+      (|>> jvm.reflection reflection.reflection))
 
 (template.with [,name ,class]
                [(`` (.the .public ,name
-                      .Type
-                      {.:Nominal ,class (list)}))]
+                          .Type
+                          {.:Nominal ,class (list)}))]
 
                [[Boolean   box.boolean]
                 [Byte      box.byte]
@@ -86,8 +86,8 @@
 
 (template.with [,name ,class]
                [(`` (.the .public ,name
-                      .Type
-                      {.:Nominal (reflection.reflection ,class) (list)}))]
+                          .Type
+                          {.:Nominal (reflection.reflection ,class) (list)}))]
 
                [... Primitives
                 [boolean   reflection.boolean]
@@ -100,49 +100,49 @@
                 [char      reflection.char]])
 
 (.the (get_static_field class field)
-  (-> Text Text Code)
-  (` (.jvm_member_get_static# (, (code.text class))
-                              (, (code.text field)))))
+      (-> Text Text Code)
+      (` (.jvm_member_get_static# (, (code.text class))
+                                  (, (code.text field)))))
 
 (.the (get_virtual_field class field object)
-  (-> Text Text Code Code)
-  (` (.jvm_member_get_virtual# (, (code.text class))
-                               (, (code.text field))
-                               (, object))))
+      (-> Text Text Code Code)
+      (` (.jvm_member_get_virtual# (, (code.text class))
+                                   (, (code.text field))
+                                   (, object))))
 
 (.the boxes
-  (Dictionary (Type Value) Text)
-  (|> (list [jvm.boolean box.boolean]
-            [jvm.byte    box.byte]
-            [jvm.short   box.short]
-            [jvm.int     box.int]
-            [jvm.long    box.long]
-            [jvm.float   box.float]
-            [jvm.double  box.double]
-            [jvm.char    box.char])
-      (dictionary.of_list jvm.hash)))
+      (Dictionary (Type Value) Text)
+      (|> (list [jvm.boolean box.boolean]
+                [jvm.byte    box.byte]
+                [jvm.short   box.short]
+                [jvm.int     box.int]
+                [jvm.long    box.long]
+                [jvm.float   box.float]
+                [jvm.double  box.double]
+                [jvm.char    box.char])
+          (dictionary.of_list jvm.hash)))
 
 (template.with [,name ,pre ,post]
                [(.the (,name unboxed boxed raw)
-                  (-> (Type Value) Text Code Code)
-                  (let [unboxed (..reflection unboxed)]
-                    (` (|> (, raw)
-                           (.is (.Nominal (, (code.text ,pre))))
-                           .jvm_object_cast#
-                           (.is (.Nominal (, (code.text ,post))))))))]
+                      (-> (Type Value) Text Code Code)
+                      (let [unboxed (..reflection unboxed)]
+                           (` (|> (, raw)
+                                  (.is (.Nominal (, (code.text ,pre))))
+                                  .jvm_object_cast#
+                                  (.is (.Nominal (, (code.text ,post))))))))]
 
                [[unbox boxed unboxed]
                 [box unboxed boxed]])
 
 (template.with [,name ,op ,from ,to]
                [(.the .public ,name
-                  (template.macro (,name value)
-                    [(|> value
-                         (.is ,from)
-                         .jvm_object_cast#
-                         ,op
-                         .jvm_object_cast#
-                         (.is ,to))]))]
+                      (template.macro (,name value)
+                                      [(|> value
+                                           (.is ,from)
+                                           .jvm_object_cast#
+                                           ,op
+                                           .jvm_object_cast#
+                                           (.is ,to))]))]
 
                [[byte_to_long    .jvm_conversion_byte_to_long#    ..Byte      ..Long]
 
@@ -176,8 +176,8 @@
 
 (template.with [,name ,from ,to ,0 ,1]
                [(.the .public ,name
-                  (template.macro (,name value)
-                    [(|> value ,0 ,1)]))]
+                      (template.macro (,name value)
+                                      [(|> value ,0 ,1)]))]
 
                [[long_to_char ..Long ..Character ..long_to_int ..int_to_char]
                 [byte_to_int ..Byte ..Integer ..byte_to_long ..long_to_int]
@@ -186,732 +186,728 @@
                 [short_to_char ..Short ..Character ..short_to_int ..int_to_char]])
 
 (.the constructor_method_name
-  "<init>")
+      "<init>")
 
 (.every Primitive_Mode
-  (Variant
-   {:ManualPrM}
-   {:AutoPrM}))
+        (Variant
+         {:ManualPrM}
+         {:AutoPrM}))
 
 (.every .public Privacy
-  (Variant
-   {:Public}
-   {:Private}
-   {:Protected}
-   {:Default}))
+        (Variant
+         {:Public}
+         {:Private}
+         {:Protected}
+         {:Default}))
 
 (.every State
-  (Variant
-   {:VolatileS}
-   {:FinalS}
-   {:DefaultS}))
+        (Variant
+         {:VolatileS}
+         {:FinalS}
+         {:DefaultS}))
 
 (.every Inheritance
-  (Variant
-   {:FinalI}
-   {:AbstractI}
-   {:DefaultI}))
+        (Variant
+         {:FinalI}
+         {:AbstractI}
+         {:DefaultI}))
 
 (.every Class_Kind
-  (Variant
-   {:Class}
-   {:Interface}))
+        (Variant
+         {:Class}
+         {:Interface}))
 
 (.every Annotation_Parameter
-  [Text Code])
+        [Text Code])
 
 (.every Annotation
-  (Record
-   [:ann_name   Text
-    :ann_params (List Annotation_Parameter)]))
+        (Record
+         [:ann_name   Text
+          :ann_params (List Annotation_Parameter)]))
 
 (.every Member_Declaration
-  (Record
-   [:member_name Text
-    :member_privacy Privacy
-    :member_anns (List Annotation)]))
+        (Record
+         [:member_name Text
+          :member_privacy Privacy
+          :member_anns (List Annotation)]))
 
 (.every FieldDecl
-  (Variant
-   {:ConstantField (Type Value) Code}
-   {:VariableField [State Bit (Type Value)]}))
+        (Variant
+         {:ConstantField (Type Value) Code}
+         {:VariableField [State Bit (Type Value)]}))
 
 (.every MethodDecl
-  (Record
-   [:method_tvars  (List (Type Var))
-    :method_inputs (List (Type Value))
-    :method_output (Type Return)
-    :method_exs    (List (Type Class))]))
+        (Record
+         [:method_tvars  (List (Type Var))
+          :method_inputs (List (Type Value))
+          :method_output (Type Return)
+          :method_exs    (List (Type Class))]))
 
 (.every Method_Definition
-  (Variant
-   {:ConstructorMethod [Bit
-                        (List (Type Var))
-                        Text
-                        (List Argument)
-                        (List (Typed Code))
-                        Code
-                        (List (Type Class))]}
-   {:VirtualMethod [Bit
-                    Bit
-                    (List (Type Var))
-                    Text
-                    (List Argument)
-                    (Type Return)
-                    Code
-                    (List (Type Class))]}
-   {:OverridenMethod [Bit
-                      (Type Declaration)
-                      (List (Type Var))
-                      Text
-                      (List Argument)
-                      (Type Return)
-                      Code
-                      (List (Type Class))]}
-   {:StaticMethod [Bit
-                   (List (Type Var))
-                   (List Argument)
-                   (Type Return)
-                   Code
-                   (List (Type Class))]}
-   {:AbstractMethod [(List (Type Var))
-                     (List Argument)
-                     (Type Return)
-                     (List (Type Class))]}
-   {:NativeMethod [(List (Type Var))
-                   (List Argument)
-                   (Type Return)
-                   (List (Type Class))]}))
+        (Variant
+         {:ConstructorMethod [Bit
+                              (List (Type Var))
+                              Text
+                              (List Argument)
+                              (List (Typed Code))
+                              Code
+                              (List (Type Class))]}
+         {:VirtualMethod [Bit
+                          Bit
+                          (List (Type Var))
+                          Text
+                          (List Argument)
+                          (Type Return)
+                          Code
+                          (List (Type Class))]}
+         {:OverridenMethod [Bit
+                            (Type Declaration)
+                            (List (Type Var))
+                            Text
+                            (List Argument)
+                            (Type Return)
+                            Code
+                            (List (Type Class))]}
+         {:StaticMethod [Bit
+                         (List (Type Var))
+                         (List Argument)
+                         (Type Return)
+                         Code
+                         (List (Type Class))]}
+         {:AbstractMethod [(List (Type Var))
+                           (List Argument)
+                           (Type Return)
+                           (List (Type Class))]}
+         {:NativeMethod [(List (Type Var))
+                         (List Argument)
+                         (Type Return)
+                         (List (Type Class))]}))
 
 (.every Partial_Call
-  (Record
-   [:pc_method Name
-    :pc_args   (List Code)]))
+        (Record
+         [:pc_method Name
+          :pc_args   (List Code)]))
 
 (.every ImportMethodKind
-  (Variant
-   {:StaticIMK}
-   {:VirtualIMK}))
+        (Variant
+         {:StaticIMK}
+         {:VirtualIMK}))
 
 (.every ImportMethodCommons
-  (Record
-   [:import_member_mode   Primitive_Mode
-    :import_member_alias  Text
-    :import_member_kind   ImportMethodKind
-    :import_member_tvars  (List (Type Var))
-    :import_member_args   (List [Bit (Type Value)])
-    :import_member_maybe? Bit
-    :import_member_try?   Bit
-    :import_member_io?    Bit]))
+        (Record
+         [:import_member_mode   Primitive_Mode
+          :import_member_alias  Text
+          :import_member_kind   ImportMethodKind
+          :import_member_tvars  (List (Type Var))
+          :import_member_args   (List [Bit (Type Value)])
+          :import_member_maybe? Bit
+          :import_member_try?   Bit
+          :import_member_io?    Bit]))
 
 (.every ImportConstructorDecl
-  (Record
-   []))
+        (Record
+         []))
 
 (.every ImportMethodDecl
-  (Record
-   [:import_method_name   Text
-    :import_method_return (Type Return)]))
+        (Record
+         [:import_method_name   Text
+          :import_method_return (Type Return)]))
 
 (.every ImportFieldDecl
-  (Record
-   [:import_field_mode    Primitive_Mode
-    :import_field_name    Text
-    :import_field_static? Bit
-    :import_field_maybe?  Bit
-    :import_field_setter? Bit
-    :import_field_type    (Type Value)]))
+        (Record
+         [:import_field_mode    Primitive_Mode
+          :import_field_name    Text
+          :import_field_static? Bit
+          :import_field_maybe?  Bit
+          :import_field_setter? Bit
+          :import_field_type    (Type Value)]))
 
 (.every Import_Member_Declaration
-  (Variant
-   {:EnumDecl        (List Text)}
-   {:ConstructorDecl [ImportMethodCommons ImportConstructorDecl]}
-   {:MethodDecl      [ImportMethodCommons ImportMethodDecl]}
-   {:FieldAccessDecl ImportFieldDecl}))
+        (Variant
+         {:EnumDecl        (List Text)}
+         {:ConstructorDecl [ImportMethodCommons ImportConstructorDecl]}
+         {:MethodDecl      [ImportMethodCommons ImportMethodDecl]}
+         {:FieldAccessDecl ImportFieldDecl}))
 
 (.the (primitive_type mode type)
-  (-> Primitive_Mode (Type Primitive) Code)
-  (when mode
-    {:ManualPrM}
-    (if (by jvm.equality = jvm.boolean type) (` ..Boolean)
-        (by jvm.equality = jvm.byte type) (` ..Byte)
-        (by jvm.equality = jvm.short type) (` ..Short)
-        (by jvm.equality = jvm.int type) (` ..Integer)
-        (by jvm.equality = jvm.long type) (` ..Long)
-        (by jvm.equality = jvm.float type) (` ..Float)
-        (by jvm.equality = jvm.double type) (` ..Double)
-        (by jvm.equality = jvm.char type) (` ..Character)
-        ... else
-        (undefined))
-    
-    {:AutoPrM}
-    (if (by jvm.equality = jvm.boolean type)
-        (` .Bit)
-        
-        (or (by jvm.equality = jvm.short type)
-            (by jvm.equality = jvm.byte type)
-            (by jvm.equality = jvm.int type)
-            (by jvm.equality = jvm.long type))
-        (` .Integer)
-        
-        (or (by jvm.equality = jvm.float type)
-            (by jvm.equality = jvm.double type))
-        (` .Real)
+      (-> Primitive_Mode (Type Primitive) Code)
+      (when mode
+            {:ManualPrM}
+            (if (by jvm.equality = jvm.boolean type) (` ..Boolean)
+                (by jvm.equality = jvm.byte type) (` ..Byte)
+                (by jvm.equality = jvm.short type) (` ..Short)
+                (by jvm.equality = jvm.int type) (` ..Integer)
+                (by jvm.equality = jvm.long type) (` ..Long)
+                (by jvm.equality = jvm.float type) (` ..Float)
+                (by jvm.equality = jvm.double type) (` ..Double)
+                (by jvm.equality = jvm.char type) (` ..Character)
+                ... else
+                (undefined))
+            
+            {:AutoPrM}
+            (if (by jvm.equality = jvm.boolean type)
+                (` .Bit)
+                
+                (or (by jvm.equality = jvm.short type)
+                    (by jvm.equality = jvm.byte type)
+                    (by jvm.equality = jvm.int type)
+                    (by jvm.equality = jvm.long type))
+                (` .Integer)
+                
+                (or (by jvm.equality = jvm.float type)
+                    (by jvm.equality = jvm.double type))
+                (` .Real)
 
-        (by jvm.equality = jvm.char type)
-        (` .Natural)
+                (by jvm.equality = jvm.char type)
+                (` .Natural)
 
-        ... else
-        (undefined))))
+                ... else
+                (undefined))))
 
 (.the (parameter_type value_type type)
-  (-> (-> (Type Value) Code)
-      (-> (Type Parameter) Code))
-  (`` (<| (,, (template.with [,when ,binding ,then]
-                             [(when (,when type)
-                                {.:Some ,binding}
-                                ,then
+      (-> (-> (Type Value) Code)
+          (-> (Type Parameter) Code))
+      (`` (<| (,, (template.with [,when ,binding ,then]
+                                 [(when (,when type)
+                                        {.:Some ,binding}
+                                        ,then
 
-                                {.:None})]
+                                        {.:None})]
 
-                             [[projection.var? name (code.name ["" name])]
-                              [projection.wildcard? _ (` .Any)]
-                              [projection.lower? _ (` .Any)]
-                              [projection.upper? limit (parameter_type value_type limit)]
-                              [projection.class? [parameters name]
-                               (` (.Nominal (, (code.text name))
-                                            [(,* (list:each (|>> (parameter_type value_type)
-                                                                 (list (code.bit .co_variant))
-                                                                 code.tuple)
-                                                            parameters))]))]
-                              [projection.array? elementT
-                               (when (projection.primitive? elementT)
-                                 {.:Some elementT}
-                                 (` {.:Nominal (, (code.text (..reflection (jvm.array elementT)))) (.list)})
-                                 
-                                 {.:None}
-                                 (` (.Array (, (value_type elementT)))))]]))
-          ... else
-          (undefined)
-          )))
+                                 [[projection.var? name (code.name ["" name])]
+                                  [projection.wildcard? _ (` .Any)]
+                                  [projection.lower? _ (` .Any)]
+                                  [projection.upper? limit (parameter_type value_type limit)]
+                                  [projection.class? [parameters name]
+                                   (` (.Nominal (, (code.text name))
+                                                [(,* (list:each (|>> (parameter_type value_type)
+                                                                     (list (code.bit .co_variant))
+                                                                     code.tuple)
+                                                                parameters))]))]
+                                  [projection.array? elementT
+                                   (when (projection.primitive? elementT)
+                                         {.:Some elementT}
+                                         (` {.:Nominal (, (code.text (..reflection (jvm.array elementT)))) (.list)})
+                                         
+                                         {.:None}
+                                         (` (.Array (, (value_type elementT)))))]]))
+              ... else
+              (undefined)
+              )))
 
 (.the (value_type mode type)
-  (-> Primitive_Mode (Type Value) Code)
-  (`` (<| (,, (template.with [,when ,binding ,then]
-                             [(when (,when type)
-                                {.:Some ,binding}
-                                ,then
+      (-> Primitive_Mode (Type Value) Code)
+      (`` (<| (,, (template.with [,when ,binding ,then]
+                                 [(when (,when type)
+                                        {.:Some ,binding}
+                                        ,then
 
-                                {.:None})]
+                                        {.:None})]
 
-                             [[projection.primitive? type (primitive_type mode type)]
-                              [projection.parameter? type (parameter_type (value_type mode) type)]]))
-          (undefined)
-          )))
+                                 [[projection.primitive? type (primitive_type mode type)]
+                                  [projection.parameter? type (parameter_type (value_type mode) type)]]))
+              (undefined)
+              )))
 
 (.the declaration_type$
-  (-> (Type Declaration) Code)
-  (|>> ..signature code.text))
+      (-> (Type Declaration) Code)
+      (|>> ..signature code.text))
 
 (.the (decorate_input [class value])
-  (-> [(Type Value) Code] Code)
-  (` [(, (code.text (..signature class))) (, value)]))
+      (-> [(Type Value) Code] Code)
+      (` [(, (code.text (..signature class))) (, value)]))
 
 (.the privacy_modifier^
-  (Projection Privacy)
-  (with "[0]" ?.monad
-        (all ?.or
-             (?code.this (' "public"))
-             (?code.this (' "private"))
-             (?code.this (' "protected"))
-             (pure []))))
+      (Projection Privacy)
+      (with "[0]" ?.monad
+            (all ?.or
+                 (?code.this (' "public"))
+                 (?code.this (' "private"))
+                 (?code.this (' "protected"))
+                 (pure []))))
 
 (.the inheritance_modifier^
-  (Projection Inheritance)
-  (with "[0]" ?.monad
-        (all ?.or
-             (?code.this (' "final"))
-             (?code.this (' "abstract"))
-             (pure []))))
+      (Projection Inheritance)
+      (with "[0]" ?.monad
+            (all ?.or
+                 (?code.this (' "final"))
+                 (?code.this (' "abstract"))
+                 (pure []))))
 
 (exception.the .public (class_names_cannot_contain_periods name)
-  (Exception Text)
-  (exception.report
-   (list ["Name" (%.text name)])))
+               (Exception Text)
+               (exception.report
+                (list ["Name" (%.text name)])))
 
 (exception.the .public (class_name_cannot_be_a_type_variable [name type_vars])
-  (Exception [Text (List (Type Var))])
-  (exception.report
-   (list ["Name" (%.text name)]
-         ["Type Variables" (exception.listing projection.name type_vars)])))
+               (Exception [Text (List (Type Var))])
+               (exception.report
+                (list ["Name" (%.text name)]
+                      ["Type Variables" (exception.listing projection.name type_vars)])))
 
 (.the (assertion exception payload test)
-  (for_any (_ e) (-> (Exception e) e Bit (Projection Any)))
-  (?.assertion (exception.error exception payload)
-               test))
+      (for_any (_ e) (-> (Exception e) e Bit (Projection Any)))
+      (?.assertion (exception.error exception payload)
+                   test))
 
 (.the (valid_class_name type_vars)
-  (-> (List (Type Var))
-      (Projection external.Name))
-  (monad.let ?.monad
-    [name ?code.local
-     _ (..assertion ..class_names_cannot_contain_periods [name]
-                    (not (text.contains? external.delimiter name)))
-     _ (..assertion ..class_name_cannot_be_a_type_variable [name type_vars]
-                    (not (list.member? text.equality
-                                       (list:each projection.name type_vars)
-                                       name)))]
-    (pure name)))
+      (-> (List (Type Var))
+          (Projection external.Name))
+      (monad.let ?.monad
+                 [name ?code.local
+                  _ (..assertion ..class_names_cannot_contain_periods [name]
+                                 (not (text.contains? external.delimiter name)))
+                  _ (..assertion ..class_name_cannot_be_a_type_variable [name type_vars]
+                                 (not (list.member? text.equality
+                                                    (list:each projection.name type_vars)
+                                                    name)))]
+                 (pure name)))
 
 (.the (class^' parameter^ type_vars)
-  (-> (-> (List (Type Var)) (Projection (Type Parameter)))
-      (-> (List (Type Var)) (Projection (Type Class))))
-  (monad.let ?.monad
-    [.let [class_name^ (..valid_class_name type_vars)]
-     [name parameters] (.is (Projection [external.Name (List (Type Parameter))])
-                            (all ?.either
-                                 (?.and class_name^ (?:pure (list)))
-                                 (?code.form (?.and class_name^ (?.some (parameter^ type_vars))))))]
-    (pure (jvm.class parameters (internal.safe name)))))
+      (-> (-> (List (Type Var)) (Projection (Type Parameter)))
+          (-> (List (Type Var)) (Projection (Type Class))))
+      (monad.let ?.monad
+                 [.let [class_name^ (..valid_class_name type_vars)]
+                  [name parameters] (.is (Projection [external.Name (List (Type Parameter))])
+                                         (all ?.either
+                                              (?.and class_name^ (?:pure (list)))
+                                              (?code.form (?.and class_name^ (?.some (parameter^ type_vars))))))]
+                 (pure (jvm.class parameters (internal.safe name)))))
 
 (exception.the .public (unknown_type_variable [name type_vars])
-  (Exception [Text (List (Type Var))])
-  (exception.report
-   (list ["Unexpected type variable" (%.text name)]
-         ["Expected type variables" (exception.listing projection.name type_vars)])))
+               (Exception [Text (List (Type Var))])
+               (exception.report
+                (list ["Unexpected type variable" (%.text name)]
+                      ["Expected type variables" (exception.listing projection.name type_vars)])))
 
 (.the (type_variable options)
-  (-> (List (Type Var)) (Projection (Type Parameter)))
-  (monad.let ?.monad
-    [name ?code.local
-     _ (..assertion ..unknown_type_variable [name options]
-                    (list.member? text.equality (list:each projection.name options) name))]
-    (pure (jvm.var name))))
+      (-> (List (Type Var)) (Projection (Type Parameter)))
+      (monad.let ?.monad
+                 [name ?code.local
+                  _ (..assertion ..unknown_type_variable [name options]
+                                 (list.member? text.equality (list:each projection.name options) name))]
+                 (pure (jvm.var name))))
 
 (.the wildcard^
-  (Projection (Type Parameter))
-  (monad.let ?.monad
-    [_ (?code.this (' ?))]
-    (pure jvm.wildcard)))
+      (Projection (Type Parameter))
+      (monad.let ?.monad
+                 [_ (?code.this (' ?))]
+                 (pure jvm.wildcard)))
 
 (template.with [,name ,comparison ,constructor]
                [(.the ,name
-                  (-> (Projection (Type Class)) (Projection (Type Parameter)))
-                  (|>> (?.after (?code.this_text ,comparison))
-                       (?.after ..wildcard^)
-                       ?code.tuple
-                       (by ?.monad each ,constructor)))]
+                      (-> (Projection (Type Class)) (Projection (Type Parameter)))
+                      (|>> (?.after (?code.this_text ,comparison))
+                           (?.after ..wildcard^)
+                           ?code.tuple
+                           (by ?.monad each ,constructor)))]
 
                [[upper^ "<" jvm.upper]
                 [lower^ ">" jvm.lower]])
 
 (.the (parameter^ type_vars)
-  (-> (List (Type Var)) (Projection (Type Parameter)))
-  (?.rec
-   (function (_ _)
-     (let [class^ (..class^' parameter^ type_vars)]
-       (all ?.either
-            (..type_variable type_vars)
-            ..wildcard^
-            (upper^ class^)
-            (lower^ class^)
-            class^
-            )))))
+      (-> (List (Type Var)) (Projection (Type Parameter)))
+      (?.rec
+       (function (_ _)
+                 (let [class^ (..class^' parameter^ type_vars)]
+                      (all ?.either
+                           (..type_variable type_vars)
+                           ..wildcard^
+                           (upper^ class^)
+                           (lower^ class^)
+                           class^
+                           )))))
 
 (.the (itself^ type)
-  (for_any (_ category)
-    (-> (Type (Value category))
-        (Projection (Type (Value category)))))
-  (monad.let ?.monad
-    [_ (?code.this_name ["" (..reflection type)])]
-    (pure type)))
+      (for_any (_ category)
+               (-> (Type (Value category))
+                   (Projection (Type (Value category)))))
+      (monad.let ?.monad
+                 [_ (?code.this_name ["" (..reflection type)])]
+                 (pure type)))
 
 (.the primitive^
-  (Projection (Type Primitive))
-  (all ?.either
-       (itself^ jvm.boolean)
-       (itself^ jvm.byte)
-       (itself^ jvm.short)
-       (itself^ jvm.int)
-       (itself^ jvm.long)
-       (itself^ jvm.float)
-       (itself^ jvm.double)
-       (itself^ jvm.char)
-       ))
+      (Projection (Type Primitive))
+      (all ?.either
+           (itself^ jvm.boolean)
+           (itself^ jvm.byte)
+           (itself^ jvm.short)
+           (itself^ jvm.int)
+           (itself^ jvm.long)
+           (itself^ jvm.float)
+           (itself^ jvm.double)
+           (itself^ jvm.char)
+           ))
 
 (.the array^
-  (-> (Projection (Type Value)) (Projection (Type Array)))
-  (|>> ?code.tuple
-       (by ?.monad each jvm.array)))
+      (-> (Projection (Type Value)) (Projection (Type Array)))
+      (|>> ?code.tuple
+           (by ?.monad each jvm.array)))
 
 (.the (type^ type_vars)
-  (-> (List (Type Var)) (Projection (Type Value)))
-  (?.rec
-   (function (_ type^)
-     (all ?.either
-          ..primitive^
-          (..parameter^ type_vars)
-          (..array^ type^)
-          ))))
+      (-> (List (Type Var)) (Projection (Type Value)))
+      (?.rec
+       (function (_ type^)
+                 (all ?.either
+                      ..primitive^
+                      (..parameter^ type_vars)
+                      (..array^ type^)
+                      ))))
 
 (.the void^
-  (Projection (Type Void))
-  (monad.let ?.monad
-    [_ (?code.this_name ["" (reflection.reflection reflection.void)])]
-    (pure jvm.void)))
+      (Projection (Type Void))
+      (monad.let ?.monad
+                 [_ (?code.this_name ["" (reflection.reflection reflection.void)])]
+                 (pure jvm.void)))
 
 (.the (return^ type_vars)
-  (-> (List (Type Var)) (Projection (Type Return)))
-  (?.either ..void^
-            (..type^ type_vars)))
+      (-> (List (Type Var)) (Projection (Type Return)))
+      (?.either ..void^
+                (..type^ type_vars)))
 
 (.the var^
-  (Projection (Type Var))
-  (by ?.monad each jvm.var ?code.local))
+      (Projection (Type Var))
+      (by ?.monad each jvm.var ?code.local))
 
 (.the vars^
-  (Projection (List (Type Var)))
-  (?code.tuple (?.some var^)))
+      (Projection (List (Type Var)))
+      (?code.tuple (?.some var^)))
 
 (.the declaration^
-  (Projection (Type Declaration))
-  (monad.let ?.monad
-    [[name variables] (.is (Projection [external.Name (List (Type Var))])
-                           (?.either (?.and (..valid_class_name (list))
-                                            (?:pure (list)))
-                                     (?code.form (?.and (..valid_class_name (list))
-                                                        (?.some var^)))
-                                     ))]
-    (pure (jvm.declaration variables name))))
+      (Projection (Type Declaration))
+      (monad.let ?.monad
+                 [[name variables] (.is (Projection [external.Name (List (Type Var))])
+                                        (?.either (?.and (..valid_class_name (list))
+                                                         (?:pure (list)))
+                                                  (?code.form (?.and (..valid_class_name (list))
+                                                                     (?.some var^)))
+                                                  ))]
+                 (pure (jvm.declaration variables name))))
 
 (.the (class^ type_vars)
-  (-> (List (Type Var)) (Projection (Type Class)))
-  (class^' parameter^ type_vars))
+      (-> (List (Type Var)) (Projection (Type Class)))
+      (class^' parameter^ type_vars))
 
 (.the annotation_parameters^
-  (Projection (List Annotation_Parameter))
-  (?code.tuple (?.some (?.and ?code.text ?list.any))))
+      (Projection (List Annotation_Parameter))
+      (?code.tuple (?.some (?.and ?code.text ?list.any))))
 
 (.the annotation^
-  (Projection Annotation)
-  (?.either (monad.let ?.monad
-              [ann_name ?code.local]
-              (pure [ann_name (list)]))
-            (?code.form (?.and ?code.local
-                               annotation_parameters^))))
+      (Projection Annotation)
+      (?.either (monad.let ?.monad
+                           [ann_name ?code.local]
+                           (pure [ann_name (list)]))
+                (?code.form (?.and ?code.local
+                                   annotation_parameters^))))
 
 (.the annotations^
-  (Projection (List Annotation))
-  (<| (?.else (list))
-      (monad.let ?.monad
-        [_ (?code.this (' "ann"))]
-        (?code.tuple (?.some ..annotation^)))))
+      (Projection (List Annotation))
+      (<| (?.else (list))
+          (monad.let ?.monad
+                     [_ (?code.this (' "ann"))]
+                     (?code.tuple (?.some ..annotation^)))))
 
 (.the (throws_decl^ type_vars)
-  (-> (List (Type Var)) (Projection (List (Type Class))))
-  (<| (?.else (list))
-      (monad.let ?.monad
-        [_ (?code.this (' "throws"))]
-        (?code.tuple (?.some (..class^ type_vars))))))
+      (-> (List (Type Var)) (Projection (List (Type Class))))
+      (<| (?.else (list))
+          (monad.let ?.monad
+                     [_ (?code.this (' "throws"))]
+                     (?code.tuple (?.some (..class^ type_vars))))))
 
 (.the (method_decl^ type_vars)
-  (-> (List (Type Var)) (Projection [Member_Declaration MethodDecl]))
-  (?code.form (monad.let ?.monad
-                [tvars (?.else (list) ..vars^)
-                 .let [total_vars (list:composite tvars type_vars)]
-                 name ?code.local
-                 anns ..annotations^
-                 inputs (?code.tuple (?.some (..type^ total_vars)))
-                 output (..return^ total_vars)
-                 exs (..throws_decl^ total_vars)]
-                (pure [[name {:Public} anns] [:method_tvars tvars
-                                              :method_inputs inputs
-                                              :method_output output
-                                              :method_exs exs]]))))
+      (-> (List (Type Var)) (Projection [Member_Declaration MethodDecl]))
+      (?code.form (monad.let ?.monad
+                             [tvars (?.else (list) ..vars^)
+                              .let [total_vars (list:composite tvars type_vars)]
+                              name ?code.local
+                              anns ..annotations^
+                              inputs (?code.tuple (?.some (..type^ total_vars)))
+                              output (..return^ total_vars)
+                              exs (..throws_decl^ total_vars)]
+                             (pure [[name {:Public} anns] [:method_tvars tvars
+                                                           :method_inputs inputs
+                                                           :method_output output
+                                                           :method_exs exs]]))))
 
 (.the state_modifier^
-  (Projection State)
-  (all ?.or
-       (?code.this (' "volatile"))
-       (?code.this (' "final"))
-       (by ?.monad pure [])))
+      (Projection State)
+      (all ?.or
+           (?code.this (' "volatile"))
+           (?code.this (' "final"))
+           (by ?.monad pure [])))
 
 (.the (field_decl^ type_vars)
-  (-> (List (Type Var)) (Projection [Member_Declaration FieldDecl]))
-  (?.either (?code.form (monad.let ?.monad
-                          [_ (?code.this (' "const"))
-                           name ?code.local
-                           anns ..annotations^
-                           type (..type^ type_vars)
-                           body ?list.any]
-                          (pure [[name {:Public} anns] {:ConstantField [type body]}])))
-            (?code.form (monad.let ?.monad
-                          [pm privacy_modifier^
-                           sm state_modifier^
-                           static? (?.parses? (?code.this (' "static")))
-                           name ?code.local
-                           anns ..annotations^
-                           type (..type^ type_vars)]
-                          (pure [[name pm anns] {:VariableField [sm static? type]}])))))
+      (-> (List (Type Var)) (Projection [Member_Declaration FieldDecl]))
+      (?.either (?code.form (monad.let ?.monad
+                                       [_ (?code.this (' "const"))
+                                        name ?code.local
+                                        anns ..annotations^
+                                        type (..type^ type_vars)
+                                        body ?list.any]
+                                       (pure [[name {:Public} anns] {:ConstantField [type body]}])))
+                (?code.form (monad.let ?.monad
+                                       [pm privacy_modifier^
+                                        sm state_modifier^
+                                        static? (?.parses? (?code.this (' "static")))
+                                        name ?code.local
+                                        anns ..annotations^
+                                        type (..type^ type_vars)]
+                                       (pure [[name pm anns] {:VariableField [sm static? type]}])))))
 
 (.the (argument^ type_vars)
-  (-> (List (Type Var)) (Projection Argument))
-  (?.and ?code.local
-         (..type^ type_vars)))
+      (-> (List (Type Var)) (Projection Argument))
+      (?.and ?code.local
+             (..type^ type_vars)))
 
 (.the (arguments^ type_vars)
-  (-> (List (Type Var)) (Projection (List Argument)))
-  (?code.tuple (?.some (..argument^ type_vars))))
+      (-> (List (Type Var)) (Projection (List Argument)))
+      (?code.tuple (?.some (..argument^ type_vars))))
 
 (.the (constructor_arg^ type_vars)
-  (-> (List (Type Var)) (Projection (Typed Code)))
-  (?.and (..type^ type_vars) ?list.any))
+      (-> (List (Type Var)) (Projection (Typed Code)))
+      (?.and (..type^ type_vars) ?list.any))
 
 (.the (constructor_args^ type_vars)
-  (-> (List (Type Var)) (Projection (List (Typed Code))))
-  (?code.tuple (?.some (..constructor_arg^ type_vars))))
+      (-> (List (Type Var)) (Projection (List (Typed Code))))
+      (?code.tuple (?.some (..constructor_arg^ type_vars))))
 
 (.the (constructor_method^ class_vars)
-  (-> (List (Type Var)) (Projection [Member_Declaration Method_Definition]))
-  (?code.form (monad.let ?.monad
-                [pm privacy_modifier^
-                 strict_fp? (?.parses? (?code.this_text "strict"))
-                 method_vars (?.else (list) ..vars^)
-                 .let [total_vars (list:composite class_vars method_vars)]
-                 [_ self_name arguments] (?code.form (all ?.and
-                                                          (?code.this (' new))
-                                                          ?code.local
-                                                          (..arguments^ total_vars)))
-                 constructor_args (..constructor_args^ total_vars)
-                 exs (throws_decl^ total_vars)
-                 annotations ..annotations^
-                 body ?list.any]
-                (pure [[:member_name constructor_method_name
-                        :member_privacy pm
-                        :member_anns annotations]
-                       {:ConstructorMethod strict_fp? method_vars self_name arguments constructor_args body exs}]))))
+      (-> (List (Type Var)) (Projection [Member_Declaration Method_Definition]))
+      (?code.form (monad.let ?.monad
+                             [pm privacy_modifier^
+                              strict_fp? (?.parses? (?code.this_text "strict"))
+                              method_vars (?.else (list) ..vars^)
+                              .let [total_vars (list:composite class_vars method_vars)]
+                              [_ self_name arguments] (?code.form (all ?.and
+                                                                       (?code.this (' new))
+                                                                       ?code.local
+                                                                       (..arguments^ total_vars)))
+                              constructor_args (..constructor_args^ total_vars)
+                              exs (throws_decl^ total_vars)
+                              annotations ..annotations^
+                              body ?list.any]
+                             (pure [[:member_name constructor_method_name
+                                     :member_privacy pm
+                                     :member_anns annotations]
+                                    {:ConstructorMethod strict_fp? method_vars self_name arguments constructor_args body exs}]))))
 
 (.the (virtual_method_def^ class_vars)
-  (-> (List (Type Var)) (Projection [Member_Declaration Method_Definition]))
-  (?code.form (monad.let ?.monad
-                [pm privacy_modifier^
-                 strict_fp? (?.parses? (?code.this (' "strict")))
-                 final? (?.parses? (?code.this (' "final")))
-                 method_vars (?.else (list) ..vars^)
-                 .let [total_vars (list:composite class_vars method_vars)]
-                 [name self_name arguments] (?code.form (all ?.and
-                                                             ?code.local
-                                                             ?code.local
-                                                             (..arguments^ total_vars)))
-                 return_type (..return^ total_vars)
-                 exs (throws_decl^ total_vars)
-                 annotations ..annotations^
-                 body ?list.any]
-                (pure [[:member_name name
-                        :member_privacy pm
-                        :member_anns annotations]
-                       {:VirtualMethod final? strict_fp? method_vars self_name arguments return_type body exs}]))))
+      (-> (List (Type Var)) (Projection [Member_Declaration Method_Definition]))
+      (?code.form (monad.let ?.monad
+                             [pm privacy_modifier^
+                              strict_fp? (?.parses? (?code.this (' "strict")))
+                              final? (?.parses? (?code.this (' "final")))
+                              method_vars (?.else (list) ..vars^)
+                              .let [total_vars (list:composite class_vars method_vars)]
+                              [name self_name arguments] (?code.form (all ?.and
+                                                                          ?code.local
+                                                                          ?code.local
+                                                                          (..arguments^ total_vars)))
+                              return_type (..return^ total_vars)
+                              exs (throws_decl^ total_vars)
+                              annotations ..annotations^
+                              body ?list.any]
+                             (pure [[:member_name name
+                                     :member_privacy pm
+                                     :member_anns annotations]
+                                    {:VirtualMethod final? strict_fp? method_vars self_name arguments return_type body exs}]))))
 
 (.the overriden_method_def^
-  (Projection [Member_Declaration Method_Definition])
-  (?code.form (monad.let ?.monad
-                [strict_fp? (?.parses? (?code.this (' "strict")))
-                 owner_class ..declaration^
-                 method_vars (?.else (list) ..vars^)
-                 .let [total_vars (list:composite (pair.left (projection.declaration owner_class))
-                                                  method_vars)]
-                 [name self_name arguments] (?code.form (all ?.and
-                                                             ?code.local
-                                                             ?code.local
-                                                             (..arguments^ total_vars)))
-                 return_type (..return^ total_vars)
-                 exs (throws_decl^ total_vars)
-                 annotations ..annotations^
-                 body ?list.any]
-                (pure [[:member_name name
-                        :member_privacy {:Public}
-                        :member_anns annotations]
-                       {:OverridenMethod strict_fp? owner_class method_vars self_name arguments return_type body exs}]))))
+      (Projection [Member_Declaration Method_Definition])
+      (?code.form (monad.let ?.monad
+                             [strict_fp? (?.parses? (?code.this (' "strict")))
+                              owner_class ..declaration^
+                              method_vars (?.else (list) ..vars^)
+                              .let [total_vars (list:composite (pair.left (projection.declaration owner_class))
+                                                               method_vars)]
+                              [name self_name arguments] (?code.form (all ?.and
+                                                                          ?code.local
+                                                                          ?code.local
+                                                                          (..arguments^ total_vars)))
+                              return_type (..return^ total_vars)
+                              exs (throws_decl^ total_vars)
+                              annotations ..annotations^
+                              body ?list.any]
+                             (pure [[:member_name name
+                                     :member_privacy {:Public}
+                                     :member_anns annotations]
+                                    {:OverridenMethod strict_fp? owner_class method_vars self_name arguments return_type body exs}]))))
 
 (.the static_method_def^
-  (Projection [Member_Declaration Method_Definition])
-  (?code.form (monad.let ?.monad
-                [pm privacy_modifier^
-                 strict_fp? (?.parses? (?code.this (' "strict")))
-                 _ (?code.this (' "static"))
-                 method_vars (?.else (list) ..vars^)
-                 .let [total_vars method_vars]
-                 [name arguments] (?code.form (?.and ?code.local
-                                                     (..arguments^ total_vars)))
-                 return_type (..return^ total_vars)
-                 exs (throws_decl^ total_vars)
-                 annotations ..annotations^
-                 body ?list.any]
-                (pure [[:member_name name
-                        :member_privacy pm
-                        :member_anns annotations]
-                       {:StaticMethod strict_fp? method_vars arguments return_type body exs}]))))
+      (Projection [Member_Declaration Method_Definition])
+      (?code.form (monad.let ?.monad
+                             [pm privacy_modifier^
+                              strict_fp? (?.parses? (?code.this (' "strict")))
+                              _ (?code.this (' "static"))
+                              method_vars (?.else (list) ..vars^)
+                              .let [total_vars method_vars]
+                              [name arguments] (?code.form (?.and ?code.local
+                                                                  (..arguments^ total_vars)))
+                              return_type (..return^ total_vars)
+                              exs (throws_decl^ total_vars)
+                              annotations ..annotations^
+                              body ?list.any]
+                             (pure [[:member_name name
+                                     :member_privacy pm
+                                     :member_anns annotations]
+                                    {:StaticMethod strict_fp? method_vars arguments return_type body exs}]))))
 
 (.the abstract_method_def^
-  (Projection [Member_Declaration Method_Definition])
-  (?code.form (monad.let ?.monad
-                [pm privacy_modifier^
-                 _ (?code.this (' "abstract"))
-                 method_vars (?.else (list) ..vars^)
-                 .let [total_vars method_vars]
-                 [name arguments] (?code.form (?.and ?code.local
-                                                     (..arguments^ total_vars)))
-                 return_type (..return^ total_vars)
-                 exs (throws_decl^ total_vars)
-                 annotations ..annotations^]
-                (pure [[:member_name name
-                        :member_privacy pm
-                        :member_anns annotations]
-                       {:AbstractMethod method_vars arguments return_type exs}]))))
+      (Projection [Member_Declaration Method_Definition])
+      (?code.form (monad.let ?.monad
+                             [pm privacy_modifier^
+                              _ (?code.this (' "abstract"))
+                              method_vars (?.else (list) ..vars^)
+                              .let [total_vars method_vars]
+                              [name arguments] (?code.form (?.and ?code.local
+                                                                  (..arguments^ total_vars)))
+                              return_type (..return^ total_vars)
+                              exs (throws_decl^ total_vars)
+                              annotations ..annotations^]
+                             (pure [[:member_name name
+                                     :member_privacy pm
+                                     :member_anns annotations]
+                                    {:AbstractMethod method_vars arguments return_type exs}]))))
 
 (.the native_method_def^
-  (Projection [Member_Declaration Method_Definition])
-  (?code.form (monad.let ?.monad
-                [pm privacy_modifier^
-                 _ (?code.this (' "native"))
-                 method_vars (?.else (list) ..vars^)
-                 .let [total_vars method_vars]
-                 [name arguments] (?code.form (?.and ?code.local
-                                                     (..arguments^ total_vars)))
-                 return_type (..return^ total_vars)
-                 exs (throws_decl^ total_vars)
-                 annotations ..annotations^]
-                (pure [[:member_name name
-                        :member_privacy pm
-                        :member_anns annotations]
-                       {:NativeMethod method_vars arguments return_type exs}]))))
+      (Projection [Member_Declaration Method_Definition])
+      (?code.form (monad.let ?.monad
+                             [pm privacy_modifier^
+                              _ (?code.this (' "native"))
+                              method_vars (?.else (list) ..vars^)
+                              .let [total_vars method_vars]
+                              [name arguments] (?code.form (?.and ?code.local
+                                                                  (..arguments^ total_vars)))
+                              return_type (..return^ total_vars)
+                              exs (throws_decl^ total_vars)
+                              annotations ..annotations^]
+                             (pure [[:member_name name
+                                     :member_privacy pm
+                                     :member_anns annotations]
+                                    {:NativeMethod method_vars arguments return_type exs}]))))
 
 (.the (method_def^ class_vars)
-  (-> (List (Type Var)) (Projection [Member_Declaration Method_Definition]))
-  (all ?.either
-       (..constructor_method^ class_vars)
-       (..virtual_method_def^ class_vars)
-       ..overriden_method_def^
-       ..static_method_def^
-       ..abstract_method_def^
-       ..native_method_def^))
-
-(.the partial_call^
-  (Projection Partial_Call)
-  (?code.form (?.and ?code.name (?code.tuple (?.some ?list.any)))))
+      (-> (List (Type Var)) (Projection [Member_Declaration Method_Definition]))
+      (all ?.either
+           (..constructor_method^ class_vars)
+           (..virtual_method_def^ class_vars)
+           ..overriden_method_def^
+           ..static_method_def^
+           ..abstract_method_def^
+           ..native_method_def^))
 
 (.the import_member_alias^
-  (Projection (Maybe Text))
-  (?.maybe (monad.let ?.monad
-             [_ (?code.this (' "as"))]
-             ?code.local)))
+      (Projection (Maybe Text))
+      (?.maybe (monad.let ?.monad
+                          [_ (?code.this (' "as"))]
+                          ?code.local)))
 
 (.the (import_member_args^ type_vars)
-  (-> (List (Type Var)) (Projection (List [Bit (Type Value)])))
-  (?code.tuple (?.some (?.and (?.parses? (?code.this (' "?")))
-                              (..type^ type_vars)))))
+      (-> (List (Type Var)) (Projection (List [Bit (Type Value)])))
+      (?code.tuple (?.some (?.and (?.parses? (?code.this (' "?")))
+                                  (..type^ type_vars)))))
 
 (.the import_member_return_flags^
-  (Projection [Bit Bit Bit])
-  (all ?.and
-       (?.parses? (?code.this (' "io")))
-       (?.parses? (?code.this (' "try")))
-       (?.parses? (?code.this (' "?")))))
+      (Projection [Bit Bit Bit])
+      (all ?.and
+           (?.parses? (?code.this (' "io")))
+           (?.parses? (?code.this (' "try")))
+           (?.parses? (?code.this (' "?")))))
 
 (.the primitive_mode^
-  (Projection Primitive_Mode)
-  (?.or (?code.this (' "manual"))
-        (?code.this (' "auto"))))
+      (Projection Primitive_Mode)
+      (?.or (?code.this (' "manual"))
+            (?code.this (' "auto"))))
 
 (.the (import_member_decl^ owner_vars)
-  (-> (List (Type Var)) (Projection Import_Member_Declaration))
-  (all ?.either
-       (?code.form (monad.let ?.monad
-                     [_ (?code.this (' "enum"))
-                      enum_members (?.some ?code.local)]
-                     (pure {:EnumDecl enum_members})))
-       (?code.form (monad.let ?.monad
-                     [tvars (?.else (list) ..vars^)
-                      _ (?code.this_name ["" "new"])
-                      ?alias import_member_alias^
-                      .let [total_vars (list:composite owner_vars tvars)]
-                      ?prim_mode (?.maybe primitive_mode^)
-                      args (..import_member_args^ total_vars)
-                      [io? try? maybe?] import_member_return_flags^]
-                     (pure {:ConstructorDecl [[:import_member_mode    (maybe.else {:AutoPrM} ?prim_mode)
-                                               :import_member_alias   (maybe.else "new" ?alias)
-                                               :import_member_kind    {:VirtualIMK}
-                                               :import_member_tvars   tvars
-                                               :import_member_args    args
-                                               :import_member_maybe?  maybe?
-                                               :import_member_try?    try?
-                                               :import_member_io?     io?]
-                                              []]})
-                     ))
-       (?code.form (monad.let ?.monad
-                     [kind (.is (Projection ImportMethodKind)
-                                (?.or (?code.this (' "static"))
-                                      (pure [])))
-                      tvars (?.else (list) ..vars^)
-                      name ?code.local
-                      ?alias import_member_alias^
-                      .let [total_vars (list:composite owner_vars tvars)]
-                      ?prim_mode (?.maybe primitive_mode^)
-                      args (..import_member_args^ total_vars)
-                      [io? try? maybe?] import_member_return_flags^
-                      return (..return^ total_vars)]
-                     (pure {:MethodDecl [[:import_member_mode    (maybe.else {:AutoPrM} ?prim_mode)
-                                          :import_member_alias   (maybe.else name ?alias)
-                                          :import_member_kind    kind
-                                          :import_member_tvars   tvars
-                                          :import_member_args    args
-                                          :import_member_maybe?  maybe?
-                                          :import_member_try?    try?
-                                          :import_member_io?     io?]
-                                         [:import_method_name    name
-                                          :import_method_return  return]]})))
-       (?code.form (monad.let ?.monad
-                     [read_only? (?.parses? (?code.this (' "read_only")))
-                      static? (?.parses? (?code.this (' "static")))
-                      name ?code.local
-                      ?prim_mode (?.maybe primitive_mode^)
-                      maybe? (?.parses? (?code.this (' "?")))
-                      gtype (..type^ owner_vars)]
-                     (pure {:FieldAccessDecl [:import_field_mode    (maybe.else {:AutoPrM} ?prim_mode)
-                                              :import_field_name    name
-                                              :import_field_static? static?
-                                              :import_field_maybe?  maybe?
-                                              :import_field_setter? (not read_only?)
-                                              :import_field_type    gtype]})))
-       ))
+      (-> (List (Type Var)) (Projection Import_Member_Declaration))
+      (all ?.either
+           (?code.form (monad.let ?.monad
+                                  [_ (?code.this (' "enum"))
+                                   enum_members (?.some ?code.local)]
+                                  (pure {:EnumDecl enum_members})))
+           (?code.form (monad.let ?.monad
+                                  [tvars (?.else (list) ..vars^)
+                                   _ (?code.this_name ["" "new"])
+                                   ?alias import_member_alias^
+                                   .let [total_vars (list:composite owner_vars tvars)]
+                                   ?prim_mode (?.maybe primitive_mode^)
+                                   args (..import_member_args^ total_vars)
+                                   [io? try? maybe?] import_member_return_flags^]
+                                  (pure {:ConstructorDecl [[:import_member_mode    (maybe.else {:AutoPrM} ?prim_mode)
+                                                            :import_member_alias   (maybe.else "new" ?alias)
+                                                            :import_member_kind    {:VirtualIMK}
+                                                            :import_member_tvars   tvars
+                                                            :import_member_args    args
+                                                            :import_member_maybe?  maybe?
+                                                            :import_member_try?    try?
+                                                            :import_member_io?     io?]
+                                                           []]})
+                                  ))
+           (?code.form (monad.let ?.monad
+                                  [kind (.is (Projection ImportMethodKind)
+                                             (?.or (?code.this (' "static"))
+                                                   (pure [])))
+                                   tvars (?.else (list) ..vars^)
+                                   name ?code.local
+                                   ?alias import_member_alias^
+                                   .let [total_vars (list:composite owner_vars tvars)]
+                                   ?prim_mode (?.maybe primitive_mode^)
+                                   args (..import_member_args^ total_vars)
+                                   [io? try? maybe?] import_member_return_flags^
+                                   return (..return^ total_vars)]
+                                  (pure {:MethodDecl [[:import_member_mode    (maybe.else {:AutoPrM} ?prim_mode)
+                                                       :import_member_alias   (maybe.else name ?alias)
+                                                       :import_member_kind    kind
+                                                       :import_member_tvars   tvars
+                                                       :import_member_args    args
+                                                       :import_member_maybe?  maybe?
+                                                       :import_member_try?    try?
+                                                       :import_member_io?     io?]
+                                                      [:import_method_name    name
+                                                       :import_method_return  return]]})))
+           (?code.form (monad.let ?.monad
+                                  [read_only? (?.parses? (?code.this (' "read_only")))
+                                   static? (?.parses? (?code.this (' "static")))
+                                   name ?code.local
+                                   ?prim_mode (?.maybe primitive_mode^)
+                                   maybe? (?.parses? (?code.this (' "?")))
+                                   gtype (..type^ owner_vars)]
+                                  (pure {:FieldAccessDecl [:import_field_mode    (maybe.else {:AutoPrM} ?prim_mode)
+                                                           :import_field_name    name
+                                                           :import_field_static? static?
+                                                           :import_field_maybe?  maybe?
+                                                           :import_field_setter? (not read_only?)
+                                                           :import_field_type    gtype]})))
+           ))
 
 (.the (privacy_modifier$ pm)
-  (-> Privacy Code)
-  (when pm
-    {:Public}    (code.text "public")
-    {:Private}   (code.text "private")
-    {:Protected} (code.text "protected")
-    {:Default}   (code.text "default")))
+      (-> Privacy Code)
+      (when pm
+            {:Public}    (code.text "public")
+            {:Private}   (code.text "private")
+            {:Protected} (code.text "protected")
+            {:Default}   (code.text "default")))
 
 (.the (inheritance_modifier$ im)
-  (-> Inheritance Code)
-  (when im
-    {:FinalI}    (code.text "final")
-    {:AbstractI} (code.text "abstract")
-    {:DefaultI}  (code.text "default")))
+      (-> Inheritance Code)
+      (when im
+            {:FinalI}    (code.text "final")
+            {:AbstractI} (code.text "abstract")
+            {:DefaultI}  (code.text "default")))
 
 (.the (annotation_parameter$ [name value])
-  (-> Annotation_Parameter Code)
-  (` [(, (code.text name)) (, value)]))
+      (-> Annotation_Parameter Code)
+      (` [(, (code.text name)) (, value)]))
 
 (.the (annotation$ [name params])
-  (-> Annotation Code)
-  (` ((, (code.text name)) (,* (list:each annotation_parameter$ params)))))
+      (-> Annotation Code)
+      (` ((, (code.text name)) (,* (list:each annotation_parameter$ params)))))
 
 (template.with [,name ,category]
                [(.the ,name
-                  (-> (Type ,category) Code)
-                  (|>> ..signature code.text))]
+                      (-> (Type ,category) Code)
+                      (|>> ..signature code.text))]
 
                [[var$ Var]
                 [parameter$ Parameter]
@@ -921,199 +917,199 @@
                 [class$ Class]])
 
 (.the var$'
-  (-> (Type Var) Code)
-  (|>> ..signature code.local))
+      (-> (Type Var) Code)
+      (|>> ..signature code.local))
 
 (.the (method_decl$ [[name pm anns] method_decl])
-  (-> [Member_Declaration MethodDecl] Code)
-  (with "[0]" method_decl
-        (` ((, (code.text name))
-            [(,* (list:each annotation$ anns))]
-            [(,* (list:each var$ :method_tvars))]
-            [(,* (list:each class$ :method_exs))]
-            [(,* (list:each value$ :method_inputs))]
-            (, (return$ :method_output))))))
+      (-> [Member_Declaration MethodDecl] Code)
+      (with "[0]" method_decl
+            (` ((, (code.text name))
+                [(,* (list:each annotation$ anns))]
+                [(,* (list:each var$ :method_tvars))]
+                [(,* (list:each class$ :method_exs))]
+                [(,* (list:each value$ :method_inputs))]
+                (, (return$ :method_output))))))
 
 (.the (state_modifier$ it)
-  (-> State Code)
-  (when it
-    {:VolatileS} (' "volatile")
-    {:FinalS}    (' "final")
-    {:DefaultS}  (' "default")))
+      (-> State Code)
+      (when it
+            {:VolatileS} (' "volatile")
+            {:FinalS}    (' "final")
+            {:DefaultS}  (' "default")))
 
 (.the (field_decl$ [[name pm anns] field])
-  (-> [Member_Declaration FieldDecl] Code)
-  (when field
-    {:ConstantField class value}
-    (` ("constant" (, (code.text name))
-        [(,* (list:each annotation$ anns))]
-        (, (value$ class))
-        (, value)
-        ))
+      (-> [Member_Declaration FieldDecl] Code)
+      (when field
+            {:ConstantField class value}
+            (` ("constant" (, (code.text name))
+                [(,* (list:each annotation$ anns))]
+                (, (value$ class))
+                (, value)
+                ))
 
-    {:VariableField [state static? class]}
-    (` ("variable" (, (code.text name))
-        (, (privacy_modifier$ pm))
-        (, (state_modifier$ state))
-        (,* (if static?
-                (list (' "static"))
-                (list)))
-        [(,* (list:each annotation$ anns))]
-        (, (value$ class))
-        ))
-    ))
+            {:VariableField [state static? class]}
+            (` ("variable" (, (code.text name))
+                (, (privacy_modifier$ pm))
+                (, (state_modifier$ state))
+                (,* (if static?
+                        (list (' "static"))
+                        (list)))
+                [(,* (list:each annotation$ anns))]
+                (, (value$ class))
+                ))
+            ))
 
 (.the (argument$ [name type])
-  (-> Argument Code)
-  (` [(, (code.text name)) (, (value$ type))]))
+      (-> Argument Code)
+      (` [(, (code.text name)) (, (value$ type))]))
 
 (.the (constructor_arg$ [class term])
-  (-> (Typed Code) Code)
-  (` [(, (value$ class)) (, term)]))
+      (-> (Typed Code) Code)
+      (` [(, (value$ class)) (, term)]))
 
 (.every Super
-  [[(List (Type Var)) external.Name]
-   [Member_Declaration MethodDecl]])
+        [[(List (Type Var)) external.Name]
+         [Member_Declaration MethodDecl]])
 
 (context.the
-  [super_context]
-  [super_expression]
-  [super_declaration]
-  Super)
+ [super_context]
+ [super_expression]
+ [super_declaration]
+ Super)
 
 (.the var^^
-  (Projection (Type Var))
-  (?text.then projection.var ?code.text))
+      (Projection (Type Var))
+      (?text.then projection.var ?code.text))
 
 (.the class^^
-  (Projection (Type Class))
-  (?text.then projection.class ?code.text))
+      (Projection (Type Class))
+      (?text.then projection.class ?code.text))
 
 (.the value^^
-  (Projection (Type Value))
-  (?text.then projection.value ?code.text))
+      (Projection (Type Value))
+      (?text.then projection.value ?code.text))
 
 (.the return^^
-  (Projection (Type Return))
-  (?text.then projection.return ?code.text))
+      (Projection (Type Return))
+      (?text.then projection.return ?code.text))
 
 (.the method_decl^^
-  (Projection [Member_Declaration MethodDecl])
-  (?code.form
-   (monad.let ?.monad
-     [tvars (?code.tuple (?.some var^^))
-      name ?code.text
-      anns (?code.tuple (?.some ..annotation^))
-      inputs (?code.tuple (?.some value^^))
-      output return^^
-      exs (?code.tuple (?.some class^^))]
-     (pure [[name {:Public} anns] [:method_tvars tvars
-                                   :method_inputs inputs
-                                   :method_output output
-                                   :method_exs exs]]))))
+      (Projection [Member_Declaration MethodDecl])
+      (?code.form
+       (monad.let ?.monad
+                  [tvars (?code.tuple (?.some var^^))
+                   name ?code.text
+                   anns (?code.tuple (?.some ..annotation^))
+                   inputs (?code.tuple (?.some value^^))
+                   output return^^
+                   exs (?code.tuple (?.some class^^))]
+                  (pure [[name {:Public} anns] [:method_tvars tvars
+                                                :method_inputs inputs
+                                                :method_output output
+                                                :method_exs exs]]))))
 
 (.the (method_decl$$ [[name pm anns] method_decl])
-  (-> [Member_Declaration MethodDecl] Code)
-  (with "[0]" method_decl
-        (` ([(,* (list:each var$ :method_tvars))]
-            (, (code.text name))
-            [(,* (list:each annotation$ anns))]
-            [(,* (list:each value$ :method_inputs))]
-            (, (return$ :method_output))
-            [(,* (list:each class$ :method_exs))]))))
+      (-> [Member_Declaration MethodDecl] Code)
+      (with "[0]" method_decl
+            (` ([(,* (list:each var$ :method_tvars))]
+                (, (code.text name))
+                [(,* (list:each annotation$ anns))]
+                [(,* (list:each value$ :method_inputs))]
+                (, (return$ :method_output))
+                [(,* (list:each class$ :method_exs))]))))
 
 (syntax.the (with_super [declaration,method (?code.tuple
                                              (all ?.and
                                                   (?text.then projection.declaration' ?code.text)
                                                   method_decl^^))
                          body ?list.any])
-  (monad.let meta.monad
-    [body (super_expression declaration,method body)]
-    (pure (list body))))
+            (monad.let meta.monad
+                       [body (super_expression declaration,method body)]
+                       (pure (list body))))
 
 (exception.the .public (insufficient_parameters [expected actual])
-  (Exception [Natural Natural])
-  (exception.report
-   (list ["Expected" (%.natural expected)]
-         ["Actual" (%.natural actual)])))
+               (Exception [Natural Natural])
+               (exception.report
+                (list ["Expected" (%.natural expected)]
+                      ["Actual" (%.natural actual)])))
 
 (syntax.the .public (super [inputs (?code.tuple (?.some ?list.any))
                             self ?list.any])
-  (monad.let meta.monad
-    [[[super_vars super_name] [member method]] (context.peek ..super_context)
-     .let [expected_arguments (list.size (its :method_inputs method))
-           actual_arguments (list.size inputs)]]
-    (if (n.= expected_arguments actual_arguments)
-        (pure (list (` (.jvm_member_invoke_special# [(,* (list:each (|>> ..signature code.text) super_vars))]
-                                                    (, (code.text super_name))
-                                                    (, (code.text (its :member_name member)))
-                                                    [(,* (list:each (|>> ..signature code.text) (its :method_tvars method)))]
-                                                    (.jvm_object_cast# (, self))
-                                                    (,* (|> inputs
-                                                            (list:each (|>> , .jvm_object_cast# `))
-                                                            (list.zipped_2 (its :method_inputs method))
-                                                            (list:each ..decorate_input)))))))
-        (meta.failure (exception.error ..insufficient_parameters [expected_arguments actual_arguments])))))
+            (monad.let meta.monad
+                       [[[super_vars super_name] [member method]] (context.peek ..super_context)
+                        .let [expected_arguments (list.size (its :method_inputs method))
+                              actual_arguments (list.size inputs)]]
+                       (if (n.= expected_arguments actual_arguments)
+                           (pure (list (` (.jvm_member_invoke_special# [(,* (list:each (|>> ..signature code.text) super_vars))]
+                                                                       (, (code.text super_name))
+                                                                       (, (code.text (its :member_name member)))
+                                                                       [(,* (list:each (|>> ..signature code.text) (its :method_tvars method)))]
+                                                                       (.jvm_object_cast# (, self))
+                                                                       (,* (|> inputs
+                                                                               (list:each (|>> , .jvm_object_cast# `))
+                                                                               (list.zipped_2 (its :method_inputs method))
+                                                                               (list:each ..decorate_input)))))))
+                           (meta.failure (exception.error ..insufficient_parameters [expected_arguments actual_arguments])))))
 
 (.every Get|Set
-  [external.Name
-   (List [Member_Declaration FieldDecl])])
+        [external.Name
+         (List [Member_Declaration FieldDecl])])
 
 (context.the
-  [get|set_context]
-  [get|set_expression]
-  [get|set_declaration]
-  Get|Set)
+ [get|set_context]
+ [get|set_expression]
+ [get|set_declaration]
+ Get|Set)
 
 (.the privacy_modifier^^
-  (Projection Privacy)
-  (all ?.or
-       (?code.this (' "public"))
-       (?code.this (' "private"))
-       (?code.this (' "protected"))
-       (?code.this (' "default"))))
+      (Projection Privacy)
+      (all ?.or
+           (?code.this (' "public"))
+           (?code.this (' "private"))
+           (?code.this (' "protected"))
+           (?code.this (' "default"))))
 
 (.the state_modifier^^
-  (Projection State)
-  (all ?.or
-       (?code.this (' "volatile"))
-       (?code.this (' "final"))
-       (?code.this (' "default"))))
+      (Projection State)
+      (all ?.or
+           (?code.this (' "volatile"))
+           (?code.this (' "final"))
+           (?code.this (' "default"))))
 
 (.the field_decl^^
-  (Projection [Member_Declaration FieldDecl])
-  (?.either (?code.form (monad.let ?.monad
-                          [_ (?code.this (' "constant"))
-                           name ?code.text
-                           anns (?code.tuple (?.some ..annotation^))
-                           type value^^
-                           value ?list.any]
-                          (pure [[name {:Public} anns] {:ConstantField [type value]}])))
-            (?code.form (monad.let ?.monad
-                          [_ (?code.this (' "variable"))
-                           name ?code.text
-                           pm privacy_modifier^^
-                           sm state_modifier^^
-                           static? (?.parses? (?code.this (' "static")))
-                           anns (?code.tuple (?.some ..annotation^))
-                           type value^^]
-                          (pure [[name pm anns] {:VariableField [sm static? type]}])))))
+      (Projection [Member_Declaration FieldDecl])
+      (?.either (?code.form (monad.let ?.monad
+                                       [_ (?code.this (' "constant"))
+                                        name ?code.text
+                                        anns (?code.tuple (?.some ..annotation^))
+                                        type value^^
+                                        value ?list.any]
+                                       (pure [[name {:Public} anns] {:ConstantField [type value]}])))
+                (?code.form (monad.let ?.monad
+                                       [_ (?code.this (' "variable"))
+                                        name ?code.text
+                                        pm privacy_modifier^^
+                                        sm state_modifier^^
+                                        static? (?.parses? (?code.this (' "static")))
+                                        anns (?code.tuple (?.some ..annotation^))
+                                        type value^^]
+                                       (pure [[name pm anns] {:VariableField [sm static? type]}])))))
 
 (syntax.the (with_get|set [declaration,fields (?code.tuple
                                                (all ?.and
                                                     ?code.text
                                                     (?code.tuple (?.some field_decl^^))))
                            body ?list.any])
-  (monad.let meta.monad
-    [body (get|set_expression declaration,fields body)]
-    (pure (list body))))
+            (monad.let meta.monad
+                       [body (get|set_expression declaration,fields body)]
+                       (pure (list body))))
 
 (template.with [,member ,name]
                [(exception.the .public (,name [class member])
-                  (Exception [Text Text])
-                  (exception.report
-                   (list ["Class" (%.text class)]
-                         [,member (%.text member)])))]
+                               (Exception [Text Text])
+                               (exception.report
+                                (list ["Class" (%.text class)]
+                                      [,member (%.text member)])))]
 
                [["Field" cannot_get_field]
                 ["Field" cannot_set_field]
@@ -1121,237 +1117,232 @@
 
 (syntax.the .public (get [field ?code.local
                           this (?.maybe ?list.any)])
-  (monad.let meta.monad
-    [[class_name member,field/*] (context.peek ..get|set_context)
-     .let [fields (|> member,field/*
-                      (list:each (function (_ [member field])
-                                   [(its :member_name member) [member field]]))
-                      (dictionary.of_list text.hash))]]
-    (when (dictionary.value field fields)
-      {try.:Success [member {:VariableField _ static? :field:}]}
-      (when [static? this]
-        [.true {.:None}]
-        (pure (list (` (.jvm_member_get_static# (, (code.text class_name))
-                                                (, (code.text (its :member_name member)))))))
-        
-        [.false {.:Some this}]
-        (pure (list (` (.jvm_member_get_virtual# (, (code.text class_name))
-                                                 (, (code.text (its :member_name member)))
-                                                 (, this)))))
+            (monad.let meta.monad
+                       [[class_name member,field/*] (context.peek ..get|set_context)
+                        .let [fields (|> member,field/*
+                                         (list:each (function (_ [member field])
+                                                              [(its :member_name member) [member field]]))
+                                         (dictionary.of_list text.hash))]]
+                       (when (dictionary.value field fields)
+                             {try.:Success [member {:VariableField _ static? :field:}]}
+                             (when [static? this]
+                                   [.true {.:None}]
+                                   (pure (list (` (.jvm_member_get_static# (, (code.text class_name))
+                                                                           (, (code.text (its :member_name member)))))))
+                                   
+                                   [.false {.:Some this}]
+                                   (pure (list (` (.jvm_member_get_virtual# (, (code.text class_name))
+                                                                            (, (code.text (its :member_name member)))
+                                                                            (, this)))))
 
-        _
-        (meta.failure (exception.error ..cannot_get_field [class_name field])))
+                                   _
+                                   (meta.failure (exception.error ..cannot_get_field [class_name field])))
 
-      failure
-      (meta.failure (exception.error ..cannot_get_field [class_name field])))))
+                             failure
+                             (meta.failure (exception.error ..cannot_get_field [class_name field])))))
 
 (syntax.the .public (set [field ?code.local
                           value ?list.any
                           this (?.maybe ?list.any)])
-  (monad.let meta.monad
-    [[class_name member,field/*] (context.peek ..get|set_context)
-     .let [fields (|> member,field/*
-                      (list:each (function (_ [member field])
-                                   [(its :member_name member) [member field]]))
-                      (dictionary.of_list text.hash))]]
-    (when (dictionary.value field fields)
-      {try.:Success [member {:VariableField state static? :field:}]}
-      (when state
-        {:FinalS}
-        (meta.failure (exception.error ..cannot_set_field [class_name field]))
+            (monad.let meta.monad
+                       [[class_name member,field/*] (context.peek ..get|set_context)
+                        .let [fields (|> member,field/*
+                                         (list:each (function (_ [member field])
+                                                              [(its :member_name member) [member field]]))
+                                         (dictionary.of_list text.hash))]]
+                       (when (dictionary.value field fields)
+                             {try.:Success [member {:VariableField state static? :field:}]}
+                             (when state
+                                   {:FinalS}
+                                   (meta.failure (exception.error ..cannot_set_field [class_name field]))
 
-        _
-        (when [static? this]
-          [.true {.:None}]
-          (pure (list (` (.jvm_member_put_static# (, (code.text class_name))
-                                                  (, (code.text (its :member_name member)))
-                                                  (, value)))))
-          
-          [.false {.:Some this}]
-          (pure (list (` (.jvm_member_put_virtual# (, (code.text class_name))
-                                                   (, (code.text (its :member_name member)))
-                                                   (, value)
-                                                   (, this)))))
+                                   _
+                                   (when [static? this]
+                                         [.true {.:None}]
+                                         (pure (list (` (.jvm_member_put_static# (, (code.text class_name))
+                                                                                 (, (code.text (its :member_name member)))
+                                                                                 (, value)))))
+                                         
+                                         [.false {.:Some this}]
+                                         (pure (list (` (.jvm_member_put_virtual# (, (code.text class_name))
+                                                                                  (, (code.text (its :member_name member)))
+                                                                                  (, value)
+                                                                                  (, this)))))
 
-          _
-          (meta.failure (exception.error ..cannot_set_field [class_name field]))))
+                                         _
+                                         (meta.failure (exception.error ..cannot_set_field [class_name field]))))
 
-      failure
-      (meta.failure (exception.error ..cannot_set_field [class_name field])))))
+                             failure
+                             (meta.failure (exception.error ..cannot_set_field [class_name field])))))
 
 (.every Call
-  [[(List (Type Var)) external.Name]
-   (List [Member_Declaration MethodDecl])])
+        [[(List (Type Var)) external.Name]
+         (List [Member_Declaration MethodDecl])])
 
 (context.the
-  [call_context]
-  [call_expression]
-  [call_declaration]
-  Call)
+ [call_context]
+ [call_expression]
+ [call_declaration]
+ Call)
 
 (syntax.the (with_call [declaration,methods (?code.tuple
                                              (all ?.and
                                                   (?text.then projection.declaration' ?code.text)
                                                   (?code.tuple (?.some method_decl^^))))
                         body ?list.any])
-  (monad.let meta.monad
-    [body (call_expression declaration,methods body)]
-    (pure (list body))))
+            (monad.let meta.monad
+                       [body (call_expression declaration,methods body)]
+                       (pure (list body))))
 
 (syntax.the .public (call [method ?code.local
                            inputs (?code.tuple (?.some ?list.any))
                            self ?list.any])
-  (monad.let meta.monad
-    [[[class_vars class_name] member,virtual/*] (context.peek ..call_context)
-     .let [virtuals (|> member,virtual/*
-                        (list:each (function (_ [member virtual])
-                                     [(its :member_name member) [member virtual]]))
-                        (dictionary.of_list text.hash))]]
-    (when (dictionary.value method virtuals)
-      {try.:Success [member method]}
-      (let [expected_arguments (list.size (its :method_inputs method))
-            actual_arguments (list.size inputs)]
-        (if (n.= expected_arguments actual_arguments)
-            (pure (list (` (.jvm_member_invoke_virtual# [(,* (list:each (|>> ..signature code.text) class_vars))]
-                                                        (, (code.text class_name))
-                                                        (, (code.text (its :member_name member)))
-                                                        [(,* (list:each (|>> ..signature code.text) (its :method_tvars method)))]
-                                                        (.jvm_object_cast# (, self))
-                                                        (,* (|> inputs
-                                                                (list:each (|>> , .jvm_object_cast# `))
-                                                                (list.zipped_2 (its :method_inputs method))
-                                                                (list:each ..decorate_input)))))))
-            (meta.failure (exception.error ..insufficient_parameters [expected_arguments actual_arguments]))))
+            (monad.let meta.monad
+                       [[[class_vars class_name] member,virtual/*] (context.peek ..call_context)
+                        .let [virtuals (|> member,virtual/*
+                                           (list:each (function (_ [member virtual])
+                                                                [(its :member_name member) [member virtual]]))
+                                           (dictionary.of_list text.hash))]]
+                       (when (dictionary.value method virtuals)
+                             {try.:Success [member method]}
+                             (let [expected_arguments (list.size (its :method_inputs method))
+                                   actual_arguments (list.size inputs)]
+                                  (if (n.= expected_arguments actual_arguments)
+                                      (pure (list (` (.jvm_member_invoke_virtual# [(,* (list:each (|>> ..signature code.text) class_vars))]
+                                                                                  (, (code.text class_name))
+                                                                                  (, (code.text (its :member_name member)))
+                                                                                  [(,* (list:each (|>> ..signature code.text) (its :method_tvars method)))]
+                                                                                  (.jvm_object_cast# (, self))
+                                                                                  (,* (|> inputs
+                                                                                          (list:each (|>> , .jvm_object_cast# `))
+                                                                                          (list.zipped_2 (its :method_inputs method))
+                                                                                          (list:each ..decorate_input)))))))
+                                      (meta.failure (exception.error ..insufficient_parameters [expected_arguments actual_arguments]))))
 
-      failure
-      (meta.failure (exception.error ..cannot_call_method [class_name method])))))
+                             failure
+                             (meta.failure (exception.error ..cannot_call_method [class_name method])))))
 
 (.the (method_declaration [member definition])
-  (-> [Member_Declaration Method_Definition]
-      (Maybe [Member_Declaration MethodDecl]))
-  (when definition
-    {:VirtualMethod final? strict_fp? type_vars self_name arguments return_type body exs}
-    {.:Some [member
-             [:method_tvars  type_vars
-              :method_inputs (list:each pair.right arguments)
-              :method_output return_type
-              :method_exs    exs]]}
+      (-> [Member_Declaration Method_Definition]
+          (Maybe [Member_Declaration MethodDecl]))
+      (when definition
+            {:VirtualMethod final? strict_fp? type_vars self_name arguments return_type body exs}
+            {.:Some [member
+                     [:method_tvars  type_vars
+                      :method_inputs (list:each pair.right arguments)
+                      :method_output return_type
+                      :method_exs    exs]]}
 
-    _
-    {.:None}))
+            _
+            {.:None}))
 
 (.the (method_def$ fully_qualified_class_name class_vars super_class fields methods [method_declaration method_def])
-  (-> external.Name (List (Type Var)) (Type Class) (List [Member_Declaration FieldDecl]) (List [Member_Declaration Method_Definition]) [Member_Declaration Method_Definition] (Meta Code))
-  (let [[name pm anns] method_declaration
-        virtual_methods (.is (List Code)
-                             (when (list.all ..method_declaration methods)
-                               (list)
-                               (list)
+      (-> external.Name (List (Type Var)) (Type Class) (List [Member_Declaration FieldDecl]) (List [Member_Declaration Method_Definition]) [Member_Declaration Method_Definition] (Meta Code))
+      (let [[name pm anns] method_declaration
+            virtual_methods (.is (List Code)
+                                 (when (list.all ..method_declaration methods)
+                                       (list)
+                                       (list)
 
-                               virtual_methods
-                               (list (` (..with_call [(, (declaration$ (jvm.declaration class_vars fully_qualified_class_name)))
-                                                      [(,* (list:each method_decl$$ virtual_methods))]])))))]
-    (when method_def
-      {:ConstructorMethod strict_fp? type_vars self_name arguments constructor_args body exs}
-      (meta:pure (` ("init"
-                     (, (privacy_modifier$ pm))
-                     (, (code.bit strict_fp?))
-                     [(,* (list:each annotation$ anns))]
-                     [(,* (list:each var$ type_vars))]
-                     [(,* (list:each class$ exs))]
-                     (, (code.text self_name))
-                     [(,* (list:each argument$ arguments))]
-                     [(,* (list:each constructor_arg$ constructor_args))]
-                     (<| (..with_get|set [(, (code.text fully_qualified_class_name))
-                                          [(,* (list:each field_decl$ fields))]])
-                         (,* virtual_methods)
-                         (, body))
-                     )))
-      
-      {:VirtualMethod final? strict_fp? type_vars self_name arguments return_type body exs}
-      (meta:pure (` ("virtual"
-                     (, (code.text name))
-                     (, (privacy_modifier$ pm))
-                     (, (code.bit final?))
-                     (, (code.bit strict_fp?))
-                     [(,* (list:each annotation$ anns))]
-                     [(,* (list:each var$ type_vars))]
-                     (, (code.text self_name))
-                     [(,* (list:each argument$ arguments))]
-                     (, (return$ return_type))
-                     [(,* (list:each class$ exs))]
-                     (<| (..with_get|set [(, (code.text fully_qualified_class_name))
-                                          [(,* (list:each field_decl$ fields))]])
-                         (,* virtual_methods)
-                         (, body))
-                     )))
-      
-      {:OverridenMethod strict_fp? declaration type_vars self_name expected_arguments return_type body exs}
-      (monad.let meta.monad
-        [[@ _] module.current]
-        (pure (` ("override"
-                  (, (declaration$ declaration))
-                  (, (code.text name))
-                  (, (code.bit strict_fp?))
-                  [(,* (list:each annotation$ anns))]
-                  [(,* (list:each var$ type_vars))]
-                  (, (code.text self_name))
-                  [(,* (list:each argument$ expected_arguments))]
-                  (, (return$ return_type))
-                  [(,* (list:each class$ exs))]
-                  (<| (..with_super [(, (declaration$ declaration))
-                                     (, (method_decl$$ [method_declaration
-                                                        [:method_tvars  type_vars
-                                                         :method_inputs (list:each pair.right expected_arguments)
-                                                         :method_output return_type
-                                                         :method_exs    exs]]))])
-                      (..with_get|set [(, (code.text fully_qualified_class_name))
-                                       [(,* (list:each field_decl$ fields))]])
-                      (,* virtual_methods)
-                      (, body))
-                  ))))
+                                       virtual_methods
+                                       (list (` (..with_call [(, (declaration$ (jvm.declaration class_vars fully_qualified_class_name)))
+                                                              [(,* (list:each method_decl$$ virtual_methods))]])))))]
+           (when method_def
+                 {:ConstructorMethod strict_fp? type_vars self_name arguments constructor_args body exs}
+                 (meta:pure (` ("init"
+                                (, (privacy_modifier$ pm))
+                                (, (code.bit strict_fp?))
+                                [(,* (list:each annotation$ anns))]
+                                [(,* (list:each var$ type_vars))]
+                                [(,* (list:each class$ exs))]
+                                (, (code.text self_name))
+                                [(,* (list:each argument$ arguments))]
+                                [(,* (list:each constructor_arg$ constructor_args))]
+                                (<| (..with_get|set [(, (code.text fully_qualified_class_name))
+                                                     [(,* (list:each field_decl$ fields))]])
+                                    (,* virtual_methods)
+                                    (, body))
+                                )))
+                 
+                 {:VirtualMethod final? strict_fp? type_vars self_name arguments return_type body exs}
+                 (meta:pure (` ("virtual"
+                                (, (code.text name))
+                                (, (privacy_modifier$ pm))
+                                (, (code.bit final?))
+                                (, (code.bit strict_fp?))
+                                [(,* (list:each annotation$ anns))]
+                                [(,* (list:each var$ type_vars))]
+                                (, (code.text self_name))
+                                [(,* (list:each argument$ arguments))]
+                                (, (return$ return_type))
+                                [(,* (list:each class$ exs))]
+                                (<| (..with_get|set [(, (code.text fully_qualified_class_name))
+                                                     [(,* (list:each field_decl$ fields))]])
+                                    (,* virtual_methods)
+                                    (, body))
+                                )))
+                 
+                 {:OverridenMethod strict_fp? declaration type_vars self_name expected_arguments return_type body exs}
+                 (monad.let meta.monad
+                            [[@ _] module.current]
+                            (pure (` ("override"
+                                      (, (declaration$ declaration))
+                                      (, (code.text name))
+                                      (, (code.bit strict_fp?))
+                                      [(,* (list:each annotation$ anns))]
+                                      [(,* (list:each var$ type_vars))]
+                                      (, (code.text self_name))
+                                      [(,* (list:each argument$ expected_arguments))]
+                                      (, (return$ return_type))
+                                      [(,* (list:each class$ exs))]
+                                      (<| (..with_super [(, (declaration$ declaration))
+                                                         (, (method_decl$$ [method_declaration
+                                                                            [:method_tvars  type_vars
+                                                                             :method_inputs (list:each pair.right expected_arguments)
+                                                                             :method_output return_type
+                                                                             :method_exs    exs]]))])
+                                          (..with_get|set [(, (code.text fully_qualified_class_name))
+                                                           [(,* (list:each field_decl$ fields))]])
+                                          (,* virtual_methods)
+                                          (, body))
+                                      ))))
 
-      {:StaticMethod strict_fp? type_vars arguments return_type body exs}
-      (meta:pure (` ("static"
-                     (, (code.text name))
-                     (, (privacy_modifier$ pm))
-                     (, (code.bit strict_fp?))
-                     [(,* (list:each annotation$ anns))]
-                     [(,* (list:each var$ type_vars))]
-                     [(,* (list:each argument$ arguments))]
-                     (, (return$ return_type))
-                     [(,* (list:each class$ exs))]
-                     (, body))))
+                 {:StaticMethod strict_fp? type_vars arguments return_type body exs}
+                 (meta:pure (` ("static"
+                                (, (code.text name))
+                                (, (privacy_modifier$ pm))
+                                (, (code.bit strict_fp?))
+                                [(,* (list:each annotation$ anns))]
+                                [(,* (list:each var$ type_vars))]
+                                [(,* (list:each argument$ arguments))]
+                                (, (return$ return_type))
+                                [(,* (list:each class$ exs))]
+                                (, body))))
 
-      {:AbstractMethod type_vars arguments return_type exs}
-      (meta:pure (` ("abstract"
-                     (, (code.text name))
-                     (, (privacy_modifier$ pm))
-                     [(,* (list:each annotation$ anns))]
-                     [(,* (list:each var$ type_vars))]
-                     [(,* (list:each argument$ arguments))]
-                     (, (return$ return_type))
-                     [(,* (list:each class$ exs))])))
+                 {:AbstractMethod type_vars arguments return_type exs}
+                 (meta:pure (` ("abstract"
+                                (, (code.text name))
+                                (, (privacy_modifier$ pm))
+                                [(,* (list:each annotation$ anns))]
+                                [(,* (list:each var$ type_vars))]
+                                [(,* (list:each argument$ arguments))]
+                                (, (return$ return_type))
+                                [(,* (list:each class$ exs))])))
 
-      {:NativeMethod type_vars arguments return_type exs}
-      (meta:pure (` ("native"
-                     (, (code.text name))
-                     (, (privacy_modifier$ pm))
-                     [(,* (list:each annotation$ anns))]
-                     [(,* (list:each var$ type_vars))]
-                     [(,* (list:each class$ exs))]
-                     [(,* (list:each argument$ arguments))]
-                     (, (return$ return_type)))))
-      )))
-
-(.the (complete_call$ 'obj [method args])
-  (-> Code Partial_Call
-      Code)
-  (` ((, (code.name method)) [(,* args)] (, 'obj))))
+                 {:NativeMethod type_vars arguments return_type exs}
+                 (meta:pure (` ("native"
+                                (, (code.text name))
+                                (, (privacy_modifier$ pm))
+                                [(,* (list:each annotation$ anns))]
+                                [(,* (list:each var$ type_vars))]
+                                [(,* (list:each class$ exs))]
+                                [(,* (list:each argument$ arguments))]
+                                (, (return$ return_type)))))
+                 )))
 
 (.the $Object
-  (Type Class)
-  (jvm.class (list) "java.lang.Object"))
+      (Type Class)
+      (jvm.class (list) "java.lang.Object"))
 
 (syntax.the .public (class [.let [! ?.monad]
                             im inheritance_modifier^
@@ -1363,15 +1354,15 @@
                             annotations ..annotations^
                             fields (?.some (..field_decl^ class_vars))
                             methods (?.some (..method_def^ class_vars))])
-  (monad.let meta.monad
-    [methods (list.each' ! (method_def$ full_class_name class_vars super fields methods) methods)]
-    (pure (list (` (.jvm_class# (, (declaration$ (jvm.declaration class_vars full_class_name)))
-                                (, (class$ super))
-                                [(,* (list:each class$ interfaces))]
-                                (, (inheritance_modifier$ im))
-                                [(,* (list:each annotation$ annotations))]
-                                [(,* (list:each field_decl$ fields))]
-                                [(,* methods)]))))))
+            (monad.let meta.monad
+                       [methods (list.each' ! (method_def$ full_class_name class_vars super fields methods) methods)]
+                       (pure (list (` (.jvm_class# (, (declaration$ (jvm.declaration class_vars full_class_name)))
+                                                   (, (class$ super))
+                                                   [(,* (list:each class$ interfaces))]
+                                                   (, (inheritance_modifier$ im))
+                                                   [(,* (list:each annotation$ annotations))]
+                                                   [(,* (list:each field_decl$ fields))]
+                                                   [(,* methods)]))))))
 
 (syntax.the .public (interface [.let [! ?.monad]
                                 [class_vars full_class_name] (by ! each projection.declaration ..declaration^)
@@ -1379,10 +1370,10 @@
                                                (?code.tuple (?.some (class^ class_vars))))
                                 annotations ..annotations^
                                 members (?.some (..method_decl^ class_vars))])
-  (pure (list (` (.jvm_class_interface# (, (declaration$ (jvm.declaration class_vars full_class_name)))
-                                        [(,* (list:each class$ supers))]
-                                        [(,* (list:each annotation$ annotations))]
-                                        (,* (list:each method_decl$ members)))))))
+            (pure (list (` (.jvm_class_interface# (, (declaration$ (jvm.declaration class_vars full_class_name)))
+                                                  [(,* (list:each class$ supers))]
+                                                  [(,* (list:each annotation$ annotations))]
+                                                  (,* (list:each method_decl$ members)))))))
 
 (syntax.the .public (object [class_vars ..vars^
                              super (?.else $Object
@@ -1391,209 +1382,210 @@
                                                 (?code.tuple (?.some (class^ class_vars))))
                              constructor_args (..constructor_args^ class_vars)
                              methods (?.some ..overriden_method_def^)])
-  (monad.let [! meta.monad]
-    [methods (list.each' ! (method_def$ "" (list) super (list) methods) methods)]
-    (pure (list (` (.jvm_class_anonymous# [(,* (list:each var$ class_vars))]
-                                          (, (class$ super))
-                                          [(,* (list:each class$ interfaces))]
-                                          [(,* (list:each constructor_arg$ constructor_args))]
-                                          [(,* methods)]))))))
+            (monad.let [! meta.monad]
+                       [methods (list.each' ! (method_def$ "" (list) super (list) methods) methods)]
+                       (pure (list (` (.jvm_class_anonymous# [(,* (list:each var$ class_vars))]
+                                                             (, (class$ super))
+                                                             [(,* (list:each class$ interfaces))]
+                                                             [(,* (list:each constructor_arg$ constructor_args))]
+                                                             [(,* methods)]))))))
 
 (syntax.the .public (null [])
-  (pure (list (` (.jvm_object_null#)))))
+            (pure (list (` (.jvm_object_null#)))))
 
 (.the .public (null? obj)
-  (-> (.Nominal "java.lang.Object")
-      Bit)
-  (.jvm_object_null?# obj))
+      (-> (.Nominal "java.lang.Object")
+          Bit)
+      (.jvm_object_null?# obj))
 
 (syntax.the .public (??? [expr ?list.any])
-  (with_names ['temp]
-              (pure (list (` (let [(, 'temp) (, expr)]
-                               (if (not (.jvm_object_null?# (, 'temp)))
-                                   {.:Some (, 'temp)}
-                                   {.:None})))))))
+            (with_names ['temp]
+                        (pure (list (` (let [(, 'temp) (, expr)]
+                                            (if (not (.jvm_object_null?# (, 'temp)))
+                                                {.:Some (, 'temp)}
+                                                {.:None})))))))
 
 (syntax.the .public (!!! [expr ?list.any])
-  (with_names ['value]
-              (pure (list (` (.when (, expr)
-                               {.:Some (, 'value)}
-                               (, 'value)
+            (with_names ['value]
+                        (pure (list (` (.when (, expr)
+                                              {.:Some (, 'value)}
+                                              (, 'value)
 
-                               {.:None}
-                               (.jvm_object_null#)))))))
+                                              {.:None}
+                                              (.jvm_object_null#)))))))
 
 (syntax.the .public (as [class (..type^ (list))
                          unchecked (?.maybe ?list.any)])
-  (with_names ['_ 'unchecked]
-              (let [class_name (..reflection class)
-                    class_type (` (.Nominal (, (code.text class_name))))
-                    check_type (` (.Maybe (, class_type)))
-                    check_code (` (if (.jvm_object_instance?# (, (code.text class_name)) (, 'unchecked))
-                                      {.:Some (.as (-> Any (, class_type))
-                                                   (, 'unchecked))}
-                                      {.:None}))]
-                (when unchecked
-                  {.:Some unchecked}
-                  (pure (list (` (.is (, check_type)
-                                      (let [(, 'unchecked) (, unchecked)]
-                                        (, check_code))))))
+            (with_names ['_ 'unchecked]
+                        (let [class_name (..reflection class)
+                              class_type (` (.Nominal (, (code.text class_name))))
+                              check_type (` (.Maybe (, class_type)))
+                              check_code (` (if (.jvm_object_instance?# (, (code.text class_name)) (, 'unchecked))
+                                                {.:Some (.as (-> Any (, class_type))
+                                                             (, 'unchecked))}
+                                                {.:None}))]
+                             (when unchecked
+                                   {.:Some unchecked}
+                                   (pure (list (` (.is (, check_type)
+                                                       (let [(, 'unchecked) (, unchecked)]
+                                                            (, check_code))))))
 
-                  {.:None}
-                  (pure (list (` (.is (-> (.Nominal "java.lang.Object") (, check_type))
-                                      (function ((, '_) (, 'unchecked))
-                                        (, check_code))))))
-                  ))))
+                                   {.:None}
+                                   (pure (list (` (.is (-> (.Nominal "java.lang.Object") (, check_type))
+                                                       (function ((, '_) (, 'unchecked))
+                                                                 (, check_code))))))
+                                   ))))
 
 (template.the .public (is? ,class ,term)
-  [(.when (..as ,class ,term)
-     {.:Some _}
-     .true
+              [(.when (..as ,class ,term)
+                      {.:Some _}
+                      .true
 
-     {.:None}
-     .false)])
+                      {.:None}
+                      .false)])
 
 (syntax.the .public (synchronized [lock ?list.any
                                    body ?list.any])
-  (pure (list (` (.jvm_object_synchronized# (, lock) (, body))))))
+            (pure (list (` (.jvm_object_synchronized# (, lock) (, body))))))
 
 (syntax.the .public (to [obj ?list.any
-                         methods (?.some partial_call^)])
-  (with_names ['obj]
-              (pure (list (` (let [(, 'obj) (, obj)]
-                               (exec
-                                 (,* (list:each (complete_call$ 'obj) methods))
-                                 (, 'obj))))))))
+                         methods (?.some ?list.any)])
+            (with_names ['obj]
+                        (pure (list (` (let [(, 'obj) (, obj)]
+                                            (exec (,* (list:each (function (_ 'method)
+                                                                           (` (|> (, 'obj) (, 'method))))
+                                                                 methods))
+                                                  (, 'obj))))))))
 
 (.the (class_import$ declaration)
-  (-> (Type Declaration) Code)
-  (let [[params full_name] (projection.declaration declaration)
-        def_name (..internal full_name)
-        params' (list:each ..var$' params)]
-    (template.with_locals ['_]
-                          (` (.the (, (code.name ["" def_name]))
-                               .Type
-                               (for_any ((, (' '_)) (,* params'))
-                                 (.Nominal (, (code.text full_name))
-                                           [(,* (list:each (|>> (list (code.bit .co_variant))
-                                                                code.tuple)
-                                                           params'))])))))))
+      (-> (Type Declaration) Code)
+      (let [[params full_name] (projection.declaration declaration)
+            def_name (..internal full_name)
+            params' (list:each ..var$' params)]
+           (template.with_locals ['_]
+                                 (` (.the (, (code.name ["" def_name]))
+                                          .Type
+                                          (for_any ((, (' '_)) (,* params'))
+                                                   (.Nominal (, (code.text full_name))
+                                                             [(,* (list:each (|>> (list (code.bit .co_variant))
+                                                                                  code.tuple)
+                                                                             params'))])))))))
 
 (.the (member_type_vars class_tvars member)
-  (-> (List (Type Var)) Import_Member_Declaration (List (Type Var)))
-  (when member
-    {:ConstructorDecl [commons _]}
-    (list:composite class_tvars (its :import_member_tvars commons))
+      (-> (List (Type Var)) Import_Member_Declaration (List (Type Var)))
+      (when member
+            {:ConstructorDecl [commons _]}
+            (list:composite class_tvars (its :import_member_tvars commons))
 
-    {:MethodDecl [commons _]}
-    (when (its :import_member_kind commons)
-      {:StaticIMK}
-      (its :import_member_tvars commons)
+            {:MethodDecl [commons _]}
+            (when (its :import_member_kind commons)
+                  {:StaticIMK}
+                  (its :import_member_tvars commons)
 
-      _
-      (list:composite class_tvars (its :import_member_tvars commons)))
+                  _
+                  (list:composite class_tvars (its :import_member_tvars commons)))
 
-    _
-    class_tvars))
+            _
+            class_tvars))
 
 (.the (member_def_arg_bindings vars member)
-  (-> (List (Type Var)) Import_Member_Declaration (Meta [(List [Bit Code]) (List (Type Value)) (List Code)]))
-  (when member
-    (^.or {:ConstructorDecl [commons _]} {:MethodDecl [commons _]})
-    (with "[0]" commons
-          (monad.let [! meta.monad]
-            [arg_inputs (list.each' !
-                                    (.is (-> [Bit (Type Value)] (Meta [Bit Code]))
-                                         (function (_ [maybe? _])
-                                           (with_names [arg_name]
-                                                       (pure [maybe? arg_name]))))
-                                    :import_member_args)
-             .let [input_jvm_types (list:each pair.right :import_member_args)
-                   arg_types (list:each (.is (-> [Bit (Type Value)] Code)
-                                             (function (_ [maybe? arg])
-                                               (let [arg_type (value_type (its :import_member_mode commons) arg)]
-                                                 (if maybe?
-                                                     (` (Maybe (, arg_type)))
-                                                     arg_type))))
-                                        :import_member_args)]]
-            (pure [arg_inputs input_jvm_types arg_types])))
+      (-> (List (Type Var)) Import_Member_Declaration (Meta [(List [Bit Code]) (List (Type Value)) (List Code)]))
+      (when member
+            (^.or {:ConstructorDecl [commons _]} {:MethodDecl [commons _]})
+            (with "[0]" commons
+                  (monad.let [! meta.monad]
+                             [arg_inputs (list.each' !
+                                                     (.is (-> [Bit (Type Value)] (Meta [Bit Code]))
+                                                          (function (_ [maybe? _])
+                                                                    (with_names [arg_name]
+                                                                                (pure [maybe? arg_name]))))
+                                                     :import_member_args)
+                              .let [input_jvm_types (list:each pair.right :import_member_args)
+                                    arg_types (list:each (.is (-> [Bit (Type Value)] Code)
+                                                              (function (_ [maybe? arg])
+                                                                        (let [arg_type (value_type (its :import_member_mode commons) arg)]
+                                                                             (if maybe?
+                                                                                 (` (Maybe (, arg_type)))
+                                                                                 arg_type))))
+                                                         :import_member_args)]]
+                             (pure [arg_inputs input_jvm_types arg_types])))
 
-    _
-    (by meta.monad pure [(list) (list) (list)])))
+            _
+            (by meta.monad pure [(list) (list) (list)])))
 
 (.the (with_return_maybe member never_null? unboxed return_term)
-  (-> Import_Member_Declaration Bit (Type Value) Code Code)
-  (when member
-    (^.or {:ConstructorDecl [commons _]} {:MethodDecl [commons _]})
-    (if (or never_null?
-            (dictionary.in_domain? ..boxes unboxed))
-        return_term
+      (-> Import_Member_Declaration Bit (Type Value) Code Code)
+      (when member
+            (^.or {:ConstructorDecl [commons _]} {:MethodDecl [commons _]})
+            (if (or never_null?
+                    (dictionary.in_domain? ..boxes unboxed))
+                return_term
 
-        (its :import_member_maybe? commons)
-        (` (??? (, return_term)))
+                (its :import_member_maybe? commons)
+                (` (??? (, return_term)))
 
-        ... else
-        (let ['temp (` ((,' ,') (, (code.name ["" " Ω "]))))]
-          (` (let [(, 'temp) (, return_term)]
-               (if (not (..null? (.as (-> Any (.Nominal "java.lang.Object"))
-                                      (, 'temp))))
-                   (, 'temp)
-                   (halt! "Cannot produce null references from method calls."))))))
+                ... else
+                (let ['temp (` ((,' ,') (, (code.name ["" " Ω "]))))]
+                     (` (let [(, 'temp) (, return_term)]
+                             (if (not (..null? (.as (-> Any (.Nominal "java.lang.Object"))
+                                                    (, 'temp))))
+                                 (, 'temp)
+                                 (halt! "Cannot produce null references from method calls."))))))
 
-    _
-    return_term))
+            _
+            return_term))
 
 (template.with [,name ,tag ,term_trans]
                [(.the (,name member return_term)
-                  (-> Import_Member_Declaration Code Code)
-                  (when member
-                    (^.or {:ConstructorDecl [commons _]} {:MethodDecl [commons _]})
-                    (if (its ,tag commons)
-                        ,term_trans
-                        return_term)
+                      (-> Import_Member_Declaration Code Code)
+                      (when member
+                            (^.or {:ConstructorDecl [commons _]} {:MethodDecl [commons _]})
+                            (if (its ,tag commons)
+                                ,term_trans
+                                return_term)
 
-                    _
-                    return_term))]
+                            _
+                            return_term))]
 
                [[with_return_try :import_member_try? (` (.try (, return_term)))]
                 [with_return_io  :import_member_io?  (` (io.io (, return_term)))]])
 
 (template.with [,input? ,name ,unbox/box ,special+]
                [(.the (,name mode [unboxed raw])
-                  (-> Primitive_Mode [(Type Value) Code] Code)
-                  (let [[unboxed refined post] (.is [(Type Value) Code (List Code)]
-                                                    (when mode
-                                                      {:ManualPrM}
-                                                      [unboxed raw (list)]
-                                                      
-                                                      {:AutoPrM}
-                                                      (expansion.let [,if_cases (template.with [,primitive ,pre ,post]
-                                                                                               [(by jvm.equality = ,primitive unboxed)
-                                                                                                (expansion.let [,post' (template.spliced ,post)]
-                                                                                                  [,primitive
-                                                                                                   (` (.|> (, raw) (,* ,pre)))
-                                                                                                   (list ,post')])]
+                      (-> Primitive_Mode [(Type Value) Code] Code)
+                      (let [[unboxed refined post] (.is [(Type Value) Code (List Code)]
+                                                        (when mode
+                                                              {:ManualPrM}
+                                                              [unboxed raw (list)]
+                                                              
+                                                              {:AutoPrM}
+                                                              (expansion.let [,if_cases (template.with [,primitive ,pre ,post]
+                                                                                                       [(by jvm.equality = ,primitive unboxed)
+                                                                                                        (expansion.let [,post' (template.spliced ,post)]
+                                                                                                                       [,primitive
+                                                                                                                        (` (.|> (, raw) (,* ,pre)))
+                                                                                                                        (list ,post')])]
 
-                                                                                               ,special+)]
-                                                        (if ,if_cases
-                                                            ... else
-                                                            [unboxed
-                                                             (if ,input?
-                                                                 (` (.jvm_object_cast# (, raw)))
-                                                                 raw)
-                                                             (list)]))))
-                        unboxed/boxed (when (dictionary.value unboxed ..boxes)
-                                        {try.:Success boxed}
-                                        (,unbox/box unboxed boxed refined)
-                                        
-                                        failure
-                                        refined)]
-                    (when post
-                      (list)
-                      unboxed/boxed
+                                                                                                       ,special+)]
+                                                                             (if ,if_cases
+                                                                                 ... else
+                                                                                 [unboxed
+                                                                                  (if ,input?
+                                                                                      (` (.jvm_object_cast# (, raw)))
+                                                                                      raw)
+                                                                                  (list)]))))
+                            unboxed/boxed (when (dictionary.value unboxed ..boxes)
+                                                {try.:Success boxed}
+                                                (,unbox/box unboxed boxed refined)
+                                                
+                                                failure
+                                                refined)]
+                           (when post
+                                 (list)
+                                 unboxed/boxed
 
-                      _
-                      (` (.|> (, unboxed/boxed) (,* post))))))]
+                                 _
+                                 (` (.|> (, unboxed/boxed) (,* post))))))]
 
                [[1b with_automatic_input_conversion ..unbox
                  [[jvm.boolean (list (` (.as (-> Any (.Nominal (, (code.text box.boolean))))))) []]
@@ -1615,501 +1607,497 @@
                   [jvm.double (list) [(` (.is (.Nominal (, (code.text box.double)))))]]]]])
 
 (.the (un_quoted quoted)
-  (-> Code Code)
-  (` ((,' ,) (, quoted))))
+      (-> Code Code)
+      (` ((,' ,) (, quoted))))
 
 (.the (type_for_class class)
-  (-> (Type Value)
-      Code)
-  (when (projection.array? class)
-    {.:Some class_of_element}
-    (` (.Array (, (type_for_class class_of_element))))
-    
-    else
-    (` (.Nominal (, (code.text (..reflection class)))))))
+      (-> (Type Value)
+          Code)
+      (when (projection.array? class)
+            {.:Some class_of_element}
+            (` (.Array (, (type_for_class class_of_element))))
+            
+            else
+            (` (.Nominal (, (code.text (..reflection class)))))))
 
 (.the (jvm_invoke_inputs mode classes inputs)
-  (-> Primitive_Mode (List (Type Value)) (List [Bit Code]) (List Code))
-  (|> inputs
-      (list.zipped_2 classes)
-      (list:each (function (_ [class [maybe? input]])
-                   (|> (if maybe?
-                           (` (.is (, (type_for_class class))
-                                   (!!! (, (..un_quoted input)))))
-                           (..un_quoted input))
-                       [class]
-                       (with_automatic_input_conversion mode))))))
+      (-> Primitive_Mode (List (Type Value)) (List [Bit Code]) (List Code))
+      (|> inputs
+          (list.zipped_2 classes)
+          (list:each (function (_ [class [maybe? input]])
+                               (|> (if maybe?
+                                       (` (.is (, (type_for_class class))
+                                               (!!! (, (..un_quoted input)))))
+                                       (..un_quoted input))
+                                   [class]
+                                   (with_automatic_input_conversion mode))))))
 
 (.the (import_name format class member)
-  (-> Text Text Text Text)
-  (|> format
-      (text.replaced "[1]" class)
-      (text.replaced "[0]" member)))
+      (-> Text Text Text Text)
+      (|> format
+          (text.replaced "[1]" class)
+          (text.replaced "[0]" member)))
 
 (.the (syntax_inputs it)
-  (-> (List Code)
-      (List Code))
-  (list (` [(,* it)])
-        (` (?code.tuple (, (when it
-                             (list)
-                             (` (by ?.monad (,' pure) []))
+      (-> (List Code)
+          (List Code))
+      (list (` [(,* it)])
+            (` (?code.tuple (, (when it
+                                     (list)
+                                     (` (by ?.monad (,' pure) []))
 
-                             _
-                             (` (all ?.and
-                                     (,* (list.repeated (list.size it) (` ?list.any)))))))))))
+                                     _
+                                     (` (all ?.and
+                                             (,* (list.repeated (list.size it) (` ?list.any)))))))))))
 
 (exception.the .public (cannot_write_to_field [class field])
-  (Exception [Text Text])
-  (exception.report
-   (list ["Class" (%.text class)]
-         ["Field" (%.text field)])))
+               (Exception [Text Text])
+               (exception.report
+                (list ["Class" (%.text class)]
+                      ["Field" (%.text field)])))
 
 (.the (member_def_interop vars kind class [arg_function_inputs input_jvm_types arg_types] member method_prefix import_format)
-  (-> (List (Type Var)) Class_Kind (Type Declaration) [(List [Bit Code]) (List (Type Value)) (List Code)] Import_Member_Declaration Text Text (Meta (List Code)))
-  (let [[class_tvars full_name] (projection.declaration class)]
-    (when member
-      {:EnumDecl enum_members}
-      (with_names ['_]
-                  (monad.let meta.monad
-                    [.let [enum_type (.is Code
-                                          (when class_tvars
-                                            (list)
-                                            (` (.Nominal (, (code.text full_name))))
+      (-> (List (Type Var)) Class_Kind (Type Declaration) [(List [Bit Code]) (List (Type Value)) (List Code)] Import_Member_Declaration Text Text (Meta (List Code)))
+      (let [[class_tvars full_name] (projection.declaration class)]
+           (when member
+                 {:EnumDecl enum_members}
+                 (with_names ['_]
+                             (monad.let meta.monad
+                                        [.let [enum_type (.is Code
+                                                              (when class_tvars
+                                                                    (list)
+                                                                    (` (.Nominal (, (code.text full_name))))
 
-                                            _
-                                            (let [=class_tvars (list:each ..var$' class_tvars)]
-                                              (` (for_any ((, '_) (,* =class_tvars))
-                                                   (.Nominal (, (code.text full_name))
-                                                             [(,* (list:each (|>> (list (code.bit .co_variant))
-                                                                                  code.tuple)
-                                                                             =class_tvars))]))))))
-                           getter_interop (.is (-> Text Code)
-                                               (function (_ name)
-                                                 (let [getter_name (code.name ["" (..import_name import_format method_prefix name)])]
-                                                   (` (.the (, getter_name)
-                                                        (, enum_type)
-                                                        (, (get_static_field full_name name)))))))]]
-                    (pure (list:each getter_interop enum_members))))
-      
-      {:ConstructorDecl [commons _]}
-      (monad.let meta.monad
-        [.let [classT (jvm.class (list) full_name)
-               def_name (code.name ["" (..import_name import_format method_prefix (its :import_member_alias commons))])
-               jvm_interop (|> [classT
-                                (` (.jvm_member_invoke_constructor# [(,* (list:each ..var$ class_tvars))]
-                                                                    (, (code.text full_name))
-                                                                    [(,* (list:each ..var$ (its :import_member_tvars commons)))]
-                                                                    (,* (|> (jvm_invoke_inputs (its :import_member_mode commons) input_jvm_types arg_function_inputs)
-                                                                            (list.zipped_2 input_jvm_types)
-                                                                            (list:each ..decorate_input)))))]
-                               (with_automatic_output_conversion (its :import_member_mode commons))
-                               (with_return_maybe member true classT)
-                               (with_return_try member)
-                               (with_return_io member))]]
-        (pure (list (` (syntax.the ((, def_name) [(,* (syntax_inputs (list:each pair.right arg_function_inputs)))])
-                         ((,' pure) (list (.` (, jvm_interop)))))))))
+                                                                    _
+                                                                    (let [=class_tvars (list:each ..var$' class_tvars)]
+                                                                         (` (for_any ((, '_) (,* =class_tvars))
+                                                                                     (.Nominal (, (code.text full_name))
+                                                                                               [(,* (list:each (|>> (list (code.bit .co_variant))
+                                                                                                                    code.tuple)
+                                                                                                               =class_tvars))]))))))
+                                               getter_interop (.is (-> Text Code)
+                                                                   (function (_ name)
+                                                                             (let [getter_name (code.name ["" (..import_name import_format method_prefix name)])]
+                                                                                  (` (.the (, getter_name)
+                                                                                           (, enum_type)
+                                                                                           (, (get_static_field full_name name)))))))]]
+                                        (pure (list:each getter_interop enum_members))))
+                 
+                 {:ConstructorDecl [commons _]}
+                 (monad.let meta.monad
+                            [.let [classT (jvm.class (list) full_name)
+                                   def_name (code.name ["" (..import_name import_format method_prefix (its :import_member_alias commons))])
+                                   jvm_interop (|> [classT
+                                                    (` (.jvm_member_invoke_constructor# [(,* (list:each ..var$ class_tvars))]
+                                                                                        (, (code.text full_name))
+                                                                                        [(,* (list:each ..var$ (its :import_member_tvars commons)))]
+                                                                                        (,* (|> (jvm_invoke_inputs (its :import_member_mode commons) input_jvm_types arg_function_inputs)
+                                                                                                (list.zipped_2 input_jvm_types)
+                                                                                                (list:each ..decorate_input)))))]
+                                                   (with_automatic_output_conversion (its :import_member_mode commons))
+                                                   (with_return_maybe member true classT)
+                                                   (with_return_try member)
+                                                   (with_return_io member))]]
+                            (pure (list (` (syntax.the ((, def_name) [(,* (syntax_inputs (list:each pair.right arg_function_inputs)))])
+                                                       ((,' pure) (list (.` (, jvm_interop)))))))))
 
-      {:MethodDecl [commons method]}
-      (<| (with_names ['obj])
-          (with "[0]" commons)
-          (with "[0]" method)
-          (monad.let meta.monad
-            [.let [def_name (code.name ["" (..import_name import_format method_prefix (its :import_member_alias commons))])
-                   [jvm_op object_ast] (.is [Code (List Code)]
-                                            (when :import_member_kind
-                                              {:StaticIMK}
-                                              [(` .jvm_member_invoke_static#)
-                                               (list)]
+                 {:MethodDecl [commons method]}
+                 (<| (with_names ['obj])
+                     (with "[0]" commons)
+                     (with "[0]" method)
+                     (monad.let meta.monad
+                                [.let [def_name (code.name ["" (..import_name import_format method_prefix (its :import_member_alias commons))])
+                                       [jvm_op object_ast] (.is [Code (List Code)]
+                                                                (when :import_member_kind
+                                                                      {:StaticIMK}
+                                                                      [(` .jvm_member_invoke_static#)
+                                                                       (list)]
 
-                                              {:VirtualIMK}
-                                              (when kind
-                                                {:Class}
-                                                [(` .jvm_member_invoke_virtual#)
-                                                 (list 'obj)]
-                                                
-                                                {:Interface}
-                                                [(` .jvm_member_invoke_interface#)
-                                                 (list 'obj)]
-                                                )))
-                   method_return (its :import_method_return method)
-                   callC (.is Code
-                              (` ((, jvm_op)
-                                  [(,* (list:each ..var$ class_tvars))]
-                                  (, (code.text full_name))
-                                  (, (code.text :import_method_name))
-                                  [(,* (list:each ..var$ (its :import_member_tvars commons)))]
-                                  (,* (|> object_ast
-                                          (list:each ..un_quoted)
-                                          (list.zipped_2 (list (jvm.class (list) full_name)))
-                                          (list:each (with_automatic_input_conversion (its :import_member_mode commons)))))
-                                  (,* (|> (jvm_invoke_inputs (its :import_member_mode commons) input_jvm_types arg_function_inputs)
-                                          (list.zipped_2 input_jvm_types)
-                                          (list:each ..decorate_input))))))
-                   jvm_interop (.is Code
-                                    (when (jvm.void? method_return)
-                                      {.:Left method_return}
-                                      (|> [method_return
-                                           callC]
-                                          (with_automatic_output_conversion (its :import_member_mode commons))
-                                          (with_return_maybe member false method_return)
-                                          (with_return_try member)
-                                          (with_return_io member))
-                                      
-                                      
-                                      {.:Right method_return}
-                                      (|> callC
-                                          (with_return_try member)
-                                          (with_return_io member))))]]
-            (pure (list (` (syntax.the ((, def_name) [(,* (syntax_inputs (list:each pair.right arg_function_inputs)))
-                                                      (,* (when object_ast
-                                                            (list)
-                                                            (list)
+                                                                      {:VirtualIMK}
+                                                                      (when kind
+                                                                            {:Class}
+                                                                            [(` .jvm_member_invoke_virtual#)
+                                                                             (list 'obj)]
+                                                                            
+                                                                            {:Interface}
+                                                                            [(` .jvm_member_invoke_interface#)
+                                                                             (list 'obj)]
+                                                                            )))
+                                       method_return (its :import_method_return method)
+                                       callC (.is Code
+                                                  (` ((, jvm_op)
+                                                      [(,* (list:each ..var$ class_tvars))]
+                                                      (, (code.text full_name))
+                                                      (, (code.text :import_method_name))
+                                                      [(,* (list:each ..var$ (its :import_member_tvars commons)))]
+                                                      (,* (|> object_ast
+                                                              (list:each ..un_quoted)
+                                                              (list.zipped_2 (list (jvm.class (list) full_name)))
+                                                              (list:each (with_automatic_input_conversion (its :import_member_mode commons)))))
+                                                      (,* (|> (jvm_invoke_inputs (its :import_member_mode commons) input_jvm_types arg_function_inputs)
+                                                              (list.zipped_2 input_jvm_types)
+                                                              (list:each ..decorate_input))))))
+                                       jvm_interop (.is Code
+                                                        (when (jvm.void? method_return)
+                                                              {.:Left method_return}
+                                                              (|> [method_return
+                                                                   callC]
+                                                                  (with_automatic_output_conversion (its :import_member_mode commons))
+                                                                  (with_return_maybe member false method_return)
+                                                                  (with_return_try member)
+                                                                  (with_return_io member))
+                                                              
+                                                              
+                                                              {.:Right method_return}
+                                                              (|> callC
+                                                                  (with_return_try member)
+                                                                  (with_return_io member))))]]
+                                (pure (list (` (syntax.the ((, def_name) [(,* (syntax_inputs (list:each pair.right arg_function_inputs)))
+                                                                          (,* (when object_ast
+                                                                                    (list)
+                                                                                    (list)
 
-                                                            _
-                                                            (list:composite object_ast
-                                                                            (list (` ?list.any)))))])
-                             ((,' pure) (list (.` (, jvm_interop))))))))))
+                                                                                    _
+                                                                                    (list:composite object_ast
+                                                                                                    (list (` ?list.any)))))])
+                                                           ((,' pure) (list (.` (, jvm_interop))))))))))
 
-      {:FieldAccessDecl fad}
-      (<| (with "_[0]" fad)
-          (monad.let meta.monad
-            [.let ['name (code.name ["" (..import_name import_format method_prefix _:import_field_name)])]]
-            (with_names ['obj 'value write|read]
-                        (pure (let [getter_body (<| (with_automatic_output_conversion _:import_field_mode)
-                                                    [_:import_field_type
-                                                     (if _:import_field_static?
-                                                         (get_static_field full_name _:import_field_name)
-                                                         (get_virtual_field full_name _:import_field_name (..un_quoted 'obj)))])
-                                    getter_body (if _:import_field_maybe?
-                                                    (` (??? (, getter_body)))
-                                                    getter_body)
-                                    getter_body (if _:import_field_setter?
-                                                    (` (io.io (, getter_body)))
-                                                    getter_body)
-                                    
-                                    setter_value (|> [_:import_field_type (..un_quoted 'value)]
-                                                     (with_automatic_input_conversion _:import_field_mode))
-                                    setter_value (if _:import_field_maybe?
-                                                     (` (!!! (, setter_value)))
-                                                     setter_value)
-                                    setter_command (if _:import_field_static? (` .jvm_member_put_static#) (` .jvm_member_put_virtual#))
-                                    'obj+ (.is (List Code)
-                                               (if _:import_field_static?
-                                                   (list)
-                                                   (list (..un_quoted 'obj))))
+                 {:FieldAccessDecl fad}
+                 (<| (with "_[0]" fad)
+                     (monad.let meta.monad
+                                [.let ['name (code.name ["" (..import_name import_format method_prefix _:import_field_name)])]]
+                                (with_names ['obj 'value write|read]
+                                            (pure (let [getter_body (<| (with_automatic_output_conversion _:import_field_mode)
+                                                                        [_:import_field_type
+                                                                         (if _:import_field_static?
+                                                                             (get_static_field full_name _:import_field_name)
+                                                                             (get_virtual_field full_name _:import_field_name (..un_quoted 'obj)))])
+                                                        getter_body (if _:import_field_maybe?
+                                                                        (` (??? (, getter_body)))
+                                                                        getter_body)
+                                                        getter_body (if _:import_field_setter?
+                                                                        (` (io.io (, getter_body)))
+                                                                        getter_body)
+                                                        
+                                                        setter_value (|> [_:import_field_type (..un_quoted 'value)]
+                                                                         (with_automatic_input_conversion _:import_field_mode))
+                                                        setter_value (if _:import_field_maybe?
+                                                                         (` (!!! (, setter_value)))
+                                                                         setter_value)
+                                                        setter_command (if _:import_field_static? (` .jvm_member_put_static#) (` .jvm_member_put_virtual#))
+                                                        'obj+ (.is (List Code)
+                                                                   (if _:import_field_static?
+                                                                       (list)
+                                                                       (list (..un_quoted 'obj))))
 
-                                    projection (let [write (if _:import_field_static?
-                                                               (` ?list.any)
-                                                               (` (?.and ?list.any
-                                                                         ?list.any)))
-                                                     read (if _:import_field_static?
-                                                              (` (by ?.monad (,' pure) []))
-                                                              (` ?list.any))]
-                                                 (` (?.or (, write) (, read))))
-                                    write (list (if _:import_field_static?
-                                                    (` {.:Left [(, 'value)]})
-                                                    (` {.:Left [(, 'value) (, 'obj)]}))
-                                                (if _:import_field_setter?
-                                                    (` ((,' pure) (list (.` (io.io ((, setter_command)
-                                                                                    (, (code.text full_name))
-                                                                                    (, (code.text _:import_field_name))
-                                                                                    (, setter_value)
-                                                                                    (,* 'obj+)))))))
-                                                    (` (meta.failure (, (code.text (exception.error ..cannot_write_to_field [full_name _:import_field_name])))))))
-                                    read (list (if _:import_field_static?
-                                                   (` {.:Right []})
-                                                   (` {.:Right [(, 'obj)]}))
-                                               (` ((,' pure) (list (.` (, getter_body))))))]
-                                (list (` (syntax.the ((, 'name) [(, write|read) (, projection)])
-                                           (when (, write|read)
-                                             (,* write)
-                                             (,* read))))))))))
-      )))
+                                                        projection (let [write (if _:import_field_static?
+                                                                                   (` ?list.any)
+                                                                                   (` (?.and ?list.any
+                                                                                             ?list.any)))
+                                                                         read (if _:import_field_static?
+                                                                                  (` (by ?.monad (,' pure) []))
+                                                                                  (` ?list.any))]
+                                                                        (` (?.or (, write) (, read))))
+                                                        write (list (if _:import_field_static?
+                                                                        (` {.:Left [(, 'value)]})
+                                                                        (` {.:Left [(, 'value) (, 'obj)]}))
+                                                                    (if _:import_field_setter?
+                                                                        (` ((,' pure) (list (.` (io.io ((, setter_command)
+                                                                                                        (, (code.text full_name))
+                                                                                                        (, (code.text _:import_field_name))
+                                                                                                        (, setter_value)
+                                                                                                        (,* 'obj+)))))))
+                                                                        (` (meta.failure (, (code.text (exception.error ..cannot_write_to_field [full_name _:import_field_name])))))))
+                                                        read (list (if _:import_field_static?
+                                                                       (` {.:Right []})
+                                                                       (` {.:Right [(, 'obj)]}))
+                                                                   (` ((,' pure) (list (.` (, getter_body))))))]
+                                                       (list (` (syntax.the ((, 'name) [(, write|read) (, projection)])
+                                                                            (when (, write|read)
+                                                                                  (,* write)
+                                                                                  (,* read))))))))))
+                 )))
 
 (.the (member_import$ vars kind class [import_format member])
-  (-> (List (Type Var)) Class_Kind (Type Declaration) [Text Import_Member_Declaration]
-      (Meta (List Code)))
-  (let [[_ full_name] (projection.declaration class)
-        method_prefix (..internal full_name)]
-    (monad.let meta.monad
-      [=args (member_def_arg_bindings vars member)]
-      (member_def_interop vars kind class =args member method_prefix import_format))))
+      (-> (List (Type Var)) Class_Kind (Type Declaration) [Text Import_Member_Declaration]
+          (Meta (List Code)))
+      (let [[_ full_name] (projection.declaration class)
+            method_prefix (..internal full_name)]
+           (monad.let meta.monad
+                      [=args (member_def_arg_bindings vars member)]
+                      (member_def_interop vars kind class =args member method_prefix import_format))))
 
 (.the interface?
-  (for_any (_ a)
-    (-> (.Nominal "java.lang.Class" [[1b a]])
-        Bit))
-  (|>> (.jvm_member_invoke_virtual# [] "java.lang.Class" "isInterface" [])
-       .jvm_object_cast#
-       (.as (-> ..Boolean Bit))))
+      (for_any (_ a)
+               (-> (.Nominal "java.lang.Class" [[1b a]])
+                   Bit))
+      (|>> (.jvm_member_invoke_virtual# [] "java.lang.Class" "isInterface" [])
+           .jvm_object_cast#
+           (.as (-> ..Boolean Bit))))
 
 (.the load_class
-  (-> external.Name
-      (Try (.Nominal "java.lang.Class" [[1b Any]])))
-  (|>> (.as (-> Any (.Nominal "java.lang.String")))
-       ["Ljava/lang/String;"]
-       (.jvm_member_invoke_static# [] "java.lang.Class" "forName" [])
-       try))
+      (-> external.Name
+          (Try (.Nominal "java.lang.Class" [[1b Any]])))
+      (|>> (.as (-> Any (.Nominal "java.lang.String")))
+           ["Ljava/lang/String;"]
+           (.jvm_member_invoke_static# [] "java.lang.Class" "forName" [])
+           try))
 
 (.the (class_kind declaration)
-  (-> (Type Declaration) (Meta Class_Kind))
-  (let [[_ class_name] (projection.declaration declaration)]
-    (when (load_class class_name)
-      {try.:Success class}
-      (by meta.monad pure (if (interface? class)
-                              {:Interface}
-                              {:Class}))
+      (-> (Type Declaration) (Meta Class_Kind))
+      (let [[_ class_name] (projection.declaration declaration)]
+           (when (load_class class_name)
+                 {try.:Success class}
+                 (by meta.monad pure (if (interface? class)
+                                         {:Interface}
+                                         {:Class}))
 
-      {try.:Failure _}
-      (meta.failure (text "Unknown class: " class_name)))))
+                 {try.:Failure _}
+                 (meta.failure (text "Unknown class: " class_name)))))
 
 (syntax.the .public (the [declaration ..declaration^
                           .let [[class_type_vars class_name] (projection.declaration declaration)]
                           import_format (?.else "[1]:[0]" ?code.text)
                           members (?.some (..import_member_decl^ class_type_vars))])
-  (monad.let [! meta.monad]
-    [kind (class_kind declaration)
-     =members (|> members
-                  (list:each (|>> [import_format]))
-                  (list.each' ! (member_import$ class_type_vars kind declaration)))]
-    (pure (list (` (these (, (class_import$ declaration))
-                          (,* (list:conjoint =members))))))))
+            (monad.let [! meta.monad]
+                       [kind (class_kind declaration)
+                        =members (|> members
+                                     (list:each (|>> [import_format]))
+                                     (list.each' ! (member_import$ class_type_vars kind declaration)))]
+                       (pure (list (` (these (, (class_import$ declaration))
+                                             (,* (list:conjoint =members))))))))
 
 (exception.the .public (cannot_convert_to_jvm_type type)
-  (Exception .Type)
-  (exception.report
-   (list ["Lux type" (type.as_text type)])))
+               (Exception .Type)
+               (exception.report
+                (list ["Lux type" (type.as_text type)])))
 
 (expansion.let [,failure (these (meta.failure (exception.error ..cannot_convert_to_jvm_type [type])))]
-  (.the (lux_type->jvm_type context type)
-    (-> Type_Context .Type (Meta (Type Value)))
-    (if (type.= .Any type)
-        (by meta.monad pure $Object)
-        (when type
-          (@type.Array to_write to_read)
-          (by meta.monad each jvm.array
-              (lux_type->jvm_type context to_read))
-          
-          {.:Nominal name params}
-          (`` (if (,, (template.with [,type]
-                                     [(text.= (..reflection ,type) name)
-                                      (when params
-                                        (list)
-                                        (by meta.monad pure ,type)
+               (.the (lux_type->jvm_type context type)
+                     (-> Type_Context .Type (Meta (Type Value)))
+                     (if (type.= .Any type)
+                         (by meta.monad pure $Object)
+                         (when type
+                               (@type.Array to_write to_read)
+                               (by meta.monad each jvm.array
+                                   (lux_type->jvm_type context to_read))
+                               
+                               {.:Nominal name params}
+                               (`` (if (,, (template.with [,type]
+                                                          [(text.= (..reflection ,type) name)
+                                                           (when params
+                                                                 (list)
+                                                                 (by meta.monad pure ,type)
 
-                                        _
-                                        ,failure)]
-                                     
-                                     [[jvm.boolean]
-                                      [jvm.byte]
-                                      [jvm.short]
-                                      [jvm.int]
-                                      [jvm.long]
-                                      [jvm.float]
-                                      [jvm.double]
-                                      [jvm.char]]))
+                                                                 _
+                                                                 ,failure)]
+                                                          
+                                                          [[jvm.boolean]
+                                                           [jvm.byte]
+                                                           [jvm.short]
+                                                           [jvm.int]
+                                                           [jvm.long]
+                                                           [jvm.float]
+                                                           [jvm.double]
+                                                           [jvm.char]]))
 
-                  (,, (template.with [,type]
-                                     [(text.= (..reflection (jvm.array ,type)) name)
-                                      (when params
-                                        (list)
-                                        (by meta.monad pure (jvm.array ,type))
+                                       (,, (template.with [,type]
+                                                          [(text.= (..reflection (jvm.array ,type)) name)
+                                                           (when params
+                                                                 (list)
+                                                                 (by meta.monad pure (jvm.array ,type))
 
-                                        _
-                                        ,failure)]
-                                     
-                                     [[jvm.boolean]
-                                      [jvm.byte]
-                                      [jvm.short]
-                                      [jvm.int]
-                                      [jvm.long]
-                                      [jvm.float]
-                                      [jvm.double]
-                                      [jvm.char]]))
+                                                                 _
+                                                                 ,failure)]
+                                                          
+                                                          [[jvm.boolean]
+                                                           [jvm.byte]
+                                                           [jvm.short]
+                                                           [jvm.int]
+                                                           [jvm.long]
+                                                           [jvm.float]
+                                                           [jvm.double]
+                                                           [jvm.char]]))
 
-                  (text.starts_with? descriptor.array_prefix name)
-                  (when params
-                    (list)
-                    (let [[_ unprefixed] (maybe.trusted (text.split_by descriptor.array_prefix name))]
-                      (by meta.monad each jvm.array
-                          (lux_type->jvm_type context {.:Nominal unprefixed (list)})))
+                                       (text.starts_with? descriptor.array_prefix name)
+                                       (when params
+                                             (list)
+                                             (let [[_ unprefixed] (maybe.trusted (text.split_by descriptor.array_prefix name))]
+                                                  (by meta.monad each jvm.array
+                                                      (lux_type->jvm_type context {.:Nominal unprefixed (list)})))
 
-                    _
-                    ,failure)
+                                             _
+                                             ,failure)
 
-                  ... else
-                  (by meta.monad each
-                      (function (_ parameters)
-                        (jvm.class parameters name))
-                      (.is (Meta (List (Type Parameter)))
-                           (list.each' meta.monad
-                                       (function (_ [polarity paramLT])
-                                         (monad.let meta.monad
-                                           [paramJT (lux_type->jvm_type context paramLT)]
-                                           (when (projection.parameter? paramJT)
-                                             {.:Some paramJT}
-                                             (pure paramJT)
+                                       ... else
+                                       (by meta.monad each
+                                           (function (_ parameters)
+                                                     (jvm.class parameters name))
+                                           (.is (Meta (List (Type Parameter)))
+                                                (list.each' meta.monad
+                                                            (function (_ [polarity paramLT])
+                                                                      (monad.let meta.monad
+                                                                                 [paramJT (lux_type->jvm_type context paramLT)]
+                                                                                 (when (projection.parameter? paramJT)
+                                                                                       {.:Some paramJT}
+                                                                                       (pure paramJT)
 
-                                             {.:None}
-                                             ,failure)))
-                                       params)))))
+                                                                                       {.:None}
+                                                                                       ,failure)))
+                                                            params)))))
 
-          {.:Reification A F}
-          (when (type.reified (list A) F)
-            {.:None}
-            ,failure
+                               {.:Reification A F}
+                               (when (type.reified (list A) F)
+                                     {.:None}
+                                     ,failure
 
-            {.:Some type'}
-            (lux_type->jvm_type context type'))
-          
-          {.:Named _ type'}
-          (lux_type->jvm_type context type')
+                                     {.:Some type'}
+                                     (lux_type->jvm_type context type'))
+                               
+                               {.:Named _ type'}
+                               (lux_type->jvm_type context type')
 
-          {.:Variable .general @it}
-          (when (check.value context (check.type @it))
-            {try.:Success :it:}
-            (lux_type->jvm_type context :it:)
+                               {.:Variable .general @it}
+                               (when (check.value context (check.type @it))
+                                     {try.:Success :it:}
+                                     (lux_type->jvm_type context :it:)
 
-            _
-            ,failure)
+                                     _
+                                     ,failure)
 
-          _
-          ,failure))))
+                               _
+                               ,failure))))
 
 (syntax.the .public (length [array ?list.any])
-  (when array
-    {.:Name _ array_name}
-    (monad.let meta.monad
-      [array_type (binding.type array_name)
-       context meta.type_context
-       array_jvm_type (lux_type->jvm_type context array_type)
-       .let ['extension (`` (if (,, (template.with [,primitive ,extension]
-                                                   [(by jvm.equality =
-                                                        (jvm.array ,primitive)
-                                                        array_jvm_type)
-                                                    (` ,extension)]
+            (when array
+                  {.:Name _ array_name}
+                  (monad.let meta.monad
+                             [array_type (binding.type array_name)
+                              context meta.type_context
+                              array_jvm_type (lux_type->jvm_type context array_type)
+                              .let ['extension (`` (if (,, (template.with [,primitive ,extension]
+                                                                          [(by jvm.equality =
+                                                                               (jvm.array ,primitive)
+                                                                               array_jvm_type)
+                                                                           (` ,extension)]
 
-                                                   [[jvm.boolean .jvm_array_length_boolean#]
-                                                    [jvm.byte .jvm_array_length_byte#]
-                                                    [jvm.short .jvm_array_length_short#]
-                                                    [jvm.int .jvm_array_length_int#]
-                                                    [jvm.long .jvm_array_length_long#]
-                                                    [jvm.float .jvm_array_length_float#]
-                                                    [jvm.double .jvm_array_length_double#]
-                                                    [jvm.char .jvm_array_length_char#]]))
-                                
-                                ... else
-                                (` .jvm_array_length_object#)))]]
-      (pure (list (` (.|> ((, 'extension) (, array))
-                          .jvm_conversion_int_to_long#
-                          .jvm_object_cast#
-                          (.as (-> (.Nominal (, (code.text box.long)))
-                                   .Natural)))))))
+                                                                          [[jvm.boolean .jvm_array_length_boolean#]
+                                                                           [jvm.byte .jvm_array_length_byte#]
+                                                                           [jvm.short .jvm_array_length_short#]
+                                                                           [jvm.int .jvm_array_length_int#]
+                                                                           [jvm.long .jvm_array_length_long#]
+                                                                           [jvm.float .jvm_array_length_float#]
+                                                                           [jvm.double .jvm_array_length_double#]
+                                                                           [jvm.char .jvm_array_length_char#]]))
+                                                       
+                                                       ... else
+                                                       (` .jvm_array_length_object#)))]]
+                             (pure (list (` (.|> ((, 'extension) (, array))
+                                                 .jvm_conversion_int_to_long#
+                                                 .jvm_object_cast#
+                                                 (.as (-> (.Nominal (, (code.text box.long)))
+                                                          .Natural)))))))
 
-    _
-    (with_names ['array]
-                (pure (list (` (let [(, 'array) (, array)]
-                                 (..length (, 'array)))))))))
+                  _
+                  (with_names ['array]
+                              (pure (list (` (let [(, 'array) (, array)]
+                                                  (..length (, 'array)))))))))
 
 (syntax.the .public (read! [idx ?list.any
                             array ?list.any])
-  (when array
-    {.:Name _ array_name}
-    (monad.let meta.monad
-      [array_type (binding.type array_name)
-       context meta.type_context
-       array_jvm_type (lux_type->jvm_type context array_type)
-       .let ['idx (` (.|> (, idx)
-                          (.as (-> .Natural
-                                   (.Nominal (, (code.text box.long)))))
-                          .jvm_object_cast#
-                          .jvm_conversion_long_to_int#))]]
-      (`` (if (,, (template.with [,primitive ,extension ,box]
-                                 [(by jvm.equality =
-                                      (jvm.array ,primitive)
-                                      array_jvm_type)
-                                  (pure (list (` (.|> (,extension (, 'idx) (, array))
-                                                      .jvm_object_cast#
-                                                      (.is (.Nominal (, (code.text ,box))))))))]
+            (when array
+                  {.:Name _ array_name}
+                  (monad.let meta.monad
+                             [array_type (binding.type array_name)
+                              context meta.type_context
+                              array_jvm_type (lux_type->jvm_type context array_type)
+                              .let ['idx (` (.|> (, idx)
+                                                 (.as (-> .Natural
+                                                          (.Nominal (, (code.text box.long)))))
+                                                 .jvm_object_cast#
+                                                 .jvm_conversion_long_to_int#))]]
+                             (`` (if (,, (template.with [,primitive ,extension ,box]
+                                                        [(by jvm.equality =
+                                                             (jvm.array ,primitive)
+                                                             array_jvm_type)
+                                                         (pure (list (` (.|> (,extension (, 'idx) (, array))
+                                                                             .jvm_object_cast#
+                                                                             (.is (.Nominal (, (code.text ,box))))))))]
 
-                                 [[jvm.boolean .jvm_array_read_boolean# box.boolean]
-                                  [jvm.byte .jvm_array_read_byte# box.byte]
-                                  [jvm.short .jvm_array_read_short# box.short]
-                                  [jvm.int .jvm_array_read_int# box.int]
-                                  [jvm.long .jvm_array_read_long# box.long]
-                                  [jvm.float .jvm_array_read_float# box.float]
-                                  [jvm.double .jvm_array_read_double# box.double]
-                                  [jvm.char .jvm_array_read_char# box.char]]))
-              
-              ... else
-              (pure (list (` (.jvm_array_read_object# (, 'idx) (, array))))))))
+                                                        [[jvm.boolean .jvm_array_read_boolean# box.boolean]
+                                                         [jvm.byte .jvm_array_read_byte# box.byte]
+                                                         [jvm.short .jvm_array_read_short# box.short]
+                                                         [jvm.int .jvm_array_read_int# box.int]
+                                                         [jvm.long .jvm_array_read_long# box.long]
+                                                         [jvm.float .jvm_array_read_float# box.float]
+                                                         [jvm.double .jvm_array_read_double# box.double]
+                                                         [jvm.char .jvm_array_read_char# box.char]]))
+                                     
+                                     ... else
+                                     (pure (list (` (.jvm_array_read_object# (, 'idx) (, array))))))))
 
-    _
-    (with_names ['array]
-                (pure (list (` (let [(, 'array) (, array)]
-                                 (..read! (, idx) (, 'array)))))))))
+                  _
+                  (with_names ['array]
+                              (pure (list (` (let [(, 'array) (, array)]
+                                                  (..read! (, idx) (, 'array)))))))))
 
 (syntax.the .public (write! [idx ?list.any
                              value ?list.any
                              array ?list.any])
-  (when array
-    {.:Name _ array_name}
-    (monad.let meta.monad
-      [array_type (binding.type array_name)
-       context meta.type_context
-       array_jvm_type (lux_type->jvm_type context array_type)
-       .let ['idx (` (.|> (, idx)
-                          (.as (-> .Natural
-                                   (.Nominal (, (code.text box.long)))))
-                          .jvm_object_cast#
-                          .jvm_conversion_long_to_int#))]]
-      (`` (if (,, (template.with [,primitive ,extension ,box]
-                                 [(by jvm.equality =
-                                      (jvm.array ,primitive)
-                                      array_jvm_type)
-                                  (let ['value (` (.|> (, value)
-                                                       (.as (-> Any
-                                                                (.Nominal (, (code.text ,box)))))
-                                                       .jvm_object_cast#))]
-                                    (pure (list (` (,extension (, 'idx) (, 'value) (, array))))))]
+            (when array
+                  {.:Name _ array_name}
+                  (monad.let meta.monad
+                             [array_type (binding.type array_name)
+                              context meta.type_context
+                              array_jvm_type (lux_type->jvm_type context array_type)
+                              .let ['idx (` (.|> (, idx)
+                                                 (.as (-> .Natural
+                                                          (.Nominal (, (code.text box.long)))))
+                                                 .jvm_object_cast#
+                                                 .jvm_conversion_long_to_int#))]]
+                             (`` (if (,, (template.with [,primitive ,extension ,box]
+                                                        [(by jvm.equality =
+                                                             (jvm.array ,primitive)
+                                                             array_jvm_type)
+                                                         (let ['value (` (.|> (, value)
+                                                                              (.as (-> Any
+                                                                                       (.Nominal (, (code.text ,box)))))
+                                                                              .jvm_object_cast#))]
+                                                              (pure (list (` (,extension (, 'idx) (, 'value) (, array))))))]
 
-                                 [[jvm.boolean .jvm_array_write_boolean# box.boolean]
-                                  [jvm.byte .jvm_array_write_byte# box.byte]
-                                  [jvm.short .jvm_array_write_short# box.short]
-                                  [jvm.int .jvm_array_write_int# box.int]
-                                  [jvm.long .jvm_array_write_long# box.long]
-                                  [jvm.float .jvm_array_write_float# box.float]
-                                  [jvm.double .jvm_array_write_double# box.double]
-                                  [jvm.char .jvm_array_write_char# box.char]]))
-              
-              ... else
-              (pure (list (` (.jvm_array_write_object# (, 'idx) (, value) (, array))))))))
+                                                        [[jvm.boolean .jvm_array_write_boolean# box.boolean]
+                                                         [jvm.byte .jvm_array_write_byte# box.byte]
+                                                         [jvm.short .jvm_array_write_short# box.short]
+                                                         [jvm.int .jvm_array_write_int# box.int]
+                                                         [jvm.long .jvm_array_write_long# box.long]
+                                                         [jvm.float .jvm_array_write_float# box.float]
+                                                         [jvm.double .jvm_array_write_double# box.double]
+                                                         [jvm.char .jvm_array_write_char# box.char]]))
+                                     
+                                     ... else
+                                     (pure (list (` (.jvm_array_write_object# (, 'idx) (, value) (, array))))))))
 
-    _
-    (with_names ['array]
-                (pure (list (` (let [(, 'array) (, array)]
-                                 (..write! (, idx) (, value) (, 'array)))))))))
+                  _
+                  (with_names ['array]
+                              (pure (list (` (let [(, 'array) (, array)]
+                                                  (..write! (, idx) (, value) (, 'array)))))))))
 
-(syntax.the .public (array [type (..type^ (list))
-                            elements_or_size (?.or (?code.tuple (?.some ?list.any))
-                                                   ?list.any)])
-  (let [['size '*elements] (when elements_or_size
-                             {.:Left elements}
-                             [(code.natural (list.size elements))
-                              elements]
-
-                             {.:Right size}
-                             [size
-                              (list)])
-        'size (` (|> (, 'size)
-                     (.as (-> .Natural
-                              (.Nominal (, (code.text box.long)))))
-                     .jvm_object_cast#
-                     .jvm_conversion_long_to_int#))]
-    (pure (list (list.mix (function (_ [index 'value] 'it)
-                            (` (..write! (, (code.natural index)) (, 'value) (, 'it))))
-                          (list.enumeration '*elements)
-                          (`` (if (,, (template.with [,primitive ,array_op]
+(syntax.the .public (as_array [type (..type^ (list))
+                               it ?list.any])
+            (<| (with_names ['it 'size '_ 'index 'value])
+                pure
+                list
+                (` (<| (let [(, 'it) (.is (List (, (value_type {:ManualPrM} type)))
+                                          (, it))
+                             (, 'size) (|> (list.size (, 'it))
+                                           (.as (-> .Natural
+                                                    (.Nominal (, (code.text box.long)))))
+                                           .jvm_object_cast#
+                                           .jvm_conversion_long_to_int#)])
+                       (list.mix (function ((, '_) [(, 'index) (, 'value)])
+                                           (|>> (..write! (, 'index) (, 'value))))
+                                 (list.enumeration (, 'it)))
+                       (, (`` (if (,, (template.with [,primitive ,array_op]
                                                      [(by jvm.equality = ,primitive type)
                                                       (` (,array_op (, 'size)))]
 
@@ -2126,37 +2114,73 @@
                                               (.Array (, (value_type {:ManualPrM} type))))
                                           (.jvm_array_new_object# (, 'size)))))))))))
 
+(syntax.the .public (array [type (..type^ (list))
+                            elements_or_size (?.or (?code.tuple (?.some ?list.any))
+                                                   ?list.any)])
+            (let [['size '*elements] (when elements_or_size
+                                           {.:Left elements}
+                                           [(code.natural (list.size elements))
+                                            elements]
+
+                                           {.:Right size}
+                                           [size
+                                            (list)])
+                  'size (` (|> (, 'size)
+                               (.as (-> .Natural
+                                        (.Nominal (, (code.text box.long)))))
+                               .jvm_object_cast#
+                               .jvm_conversion_long_to_int#))]
+                 (pure (list (list.mix (function (_ [index 'value] 'it)
+                                                 (` (..write! (, (code.natural index)) (, 'value) (, 'it))))
+                                       (list.enumeration '*elements)
+                                       (`` (if (,, (template.with [,primitive ,array_op]
+                                                                  [(by jvm.equality = ,primitive type)
+                                                                   (` (,array_op (, 'size)))]
+
+                                                                  [[jvm.boolean .jvm_array_new_boolean#]
+                                                                   [jvm.byte    .jvm_array_new_byte#]
+                                                                   [jvm.short   .jvm_array_new_short#]
+                                                                   [jvm.int     .jvm_array_new_int#]
+                                                                   [jvm.long    .jvm_array_new_long#]
+                                                                   [jvm.float   .jvm_array_new_float#]
+                                                                   [jvm.double  .jvm_array_new_double#]
+                                                                   [jvm.char    .jvm_array_new_char#]]))
+                                               ... else
+                                               (` (.as (-> (, (value_type {:ManualPrM} (jvm.array type)))
+                                                           (.Array (, (value_type {:ManualPrM} type))))
+                                                       (.jvm_array_new_object# (, 'size)))))))))))
+
 (syntax.the .public (class_for [type (..type^ (list))])
-  (pure (list (` (.jvm_object_class# (, (code.text (..reflection type))))))))
+            (pure (list (` (.jvm_object_class# (, (code.text (..reflection type))))))))
 
 (syntax.the .public (type [type (..type^ (list))])
-  (pure (list (..value_type {:ManualPrM} type))))
+            (pure (list (..value_type {:ManualPrM} type))))
 
 (exception.the .public (cannot_cast_to_non_object type)
-  (Exception (Type Value))
-  (exception.report
-   (list ["Signature" (..signature type)]
-         ["Reflection" (..reflection type)])))
+               (Exception (Type Value))
+               (exception.report
+                (list ["Signature" (..signature type)]
+                      ["Reflection" (..reflection type)])))
 
 (syntax.the .public (is [type (..type^ (list))
                          object ?list.any])
-  (when [(projection.array? type)
-         (projection.class? type)]
-    (^.or [{.:Some _} _] [_ {.:Some _}])
-    (pure (list (` (.is (, (..value_type {:ManualPrM} type))
-                        (.jvm_object_cast# (, object))))))
+            (when [(projection.array? type)
+                   (projection.class? type)]
+                  (^.or [{.:Some _} _] [_ {.:Some _}])
+                  (pure (list (` (.is (, (..value_type {:ManualPrM} type))
+                                      (.jvm_object_cast# (, object))))))
 
-    _
-    (meta.failure (exception.error ..cannot_cast_to_non_object [type]))))
+                  _
+                  (meta.failure (exception.error ..cannot_cast_to_non_object [type]))))
 
 (template.with [,forward ,from ,to ,backward]
                [(.the .public ,forward
-                  (template.macro (,forward ,it)
-                    [(.as (-> ,from ,to) ,it)]))
+                      (template.macro (,forward ,it)
+                                      [(.as (-> ,from ,to) ,it)]))
 
                 (.the .public ,backward
-                  (template.macro (,backward ,it)
-                    [(.as (-> ,to ,from) ,it)]))]
+                      (template.macro (,backward ,it)
+                                      [(.as (-> ,to ,from) ,it)]))]
 
                [[as_boolean .Bit ..Boolean of_boolean]
                 [as_long .Integer ..Long of_long]
@@ -2165,12 +2189,12 @@
 
 (template.with [,forward ,from ,$ ,mid ,$' ,to ,backward]
                [(.the .public ,forward
-                  (template.macro (,forward it)
-                    [(|> it (.as (-> ,from ,mid)) ,$ (.is ,to))]))
+                      (template.macro (,forward it)
+                                      [(|> it (.as (-> ,from ,mid)) ,$ (.is ,to))]))
 
                 (.the .public ,backward
-                  (template.macro (,backward it)
-                    [(|> it (.is ,to) ,$' (.as (-> ,mid ,from)))]))]
+                      (template.macro (,backward it)
+                                      [(|> it (.is ,to) ,$' (.as (-> ,mid ,from)))]))]
 
                [[as_byte .Integer ..long_to_byte ..Long ..byte_to_long ..Byte of_byte]
                 [as_short .Integer ..long_to_short ..Long ..short_to_long ..Short of_short]

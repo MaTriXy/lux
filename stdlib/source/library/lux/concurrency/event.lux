@@ -1,109 +1,109 @@
-... https://en.wikipedia.org/wiki/Event_loop
-(.using
- [library
-  [lux (.except loop)
-   [abstract
-    ["[0]" monad]]
-   [control
-    ["[0]" io (.only IO)]]
-   [error
-    ["[0]" try (.only Try)]
-    ["[0]" exception (.only Exception)]]
-   [data
-    [text
-     ["%" \\injection]]
-    [collection
-     ["[0]" list (.open monoid)]]]
-   [math
-    [number
-     [/64
-      ["n" natural]]]]
-   [time
-    ["[0]" instant (.only Instant) (.open order)]
-    ["[0]" duration]]]]
- [//
-  ["[0]" atom (.only Atom)]])
+(.comment "https://en.wikipedia.org/wiki/Event_loop"
+          (.using
+           [library
+            [lux (.except loop)
+             [abstract
+              ["[0]" monad]]
+             [control
+              ["[0]" io (.only IO)]]
+             [error
+              ["[0]" try (.only Try)]
+              ["[0]" exception (.only Exception)]]
+             [data
+              [text
+               ["%" \\injection]]
+              [collection
+               ["[0]" list (.open monoid)]]]
+             [math
+              [number
+               [/64
+                ["n" natural]]]]
+             [time
+              ["[0]" instant (.only Instant) (.open order)]
+              ["[0]" duration]]]]
+           [//
+            ["[0]" atom (.only Atom)]]))
 
 (the Action
-  (type (IO Any)))
+     (type (IO Any)))
 
 (every Event
-  (Record
-   [:when Instant
-    :what Action]))
+       (Record
+        [:when Instant
+         :what Action]))
 
 (the Scheduler
-  (type (-> Natural Action
-            (IO Any))))
+     (type (-> Natural Action
+               (IO Any))))
 
 (the Loop
-  (type (IO (Try Natural))))
+     (type (IO (Try Natural))))
 
 (exception.the .public (error_during_execution [loop error])
-  (Exception [Text Text])
-  (exception.report
-   (list ["Loop" (%.text loop)]
-         ["Error" error])))
+               (Exception [Text Text])
+               (exception.report
+                (list ["Loop" (%.text loop)]
+                      ["Error" error])))
 
 (the (execute! loop action)
-  (-> Text Action (Try Any))
-  (when (try (io.value action))
-    {try.:Failure error}
-    (exception.except ..error_during_execution [loop error])
-    
-    success
-    success))
+     (-> Text Action (Try Any))
+     (when (try (io.value action))
+           {try.:Failure error}
+           (exception.except ..error_during_execution [loop error])
+           
+           success
+           success))
 
 (exception.the .public (already_started loop)
-  (Exception Text)
-  (exception.report
-   (list ["Loop" (%.text loop)])))
+               (Exception Text)
+               (exception.report
+                (list ["Loop" (%.text loop)])))
 
 (the .public (loop name)
-  (-> Text [Scheduler Loop])
-  (let [state (is (Atom [Bit (List Event)])
-                  (atom.atom [false (list)]))]
-    [(is Scheduler
-         (function (schedule! milli_seconds action)
-           (monad.let io.monad
-             [now instant.now
-              _ (atom.update! (function (_ [stated? events])
-                                [stated?
-                                 (list:composite (list [:when (instant.after (duration.of_millis (.integer milli_seconds))
-                                                                             now)
-                                                        :what action])
-                                                 events)])
-                              state)]
-             (pure []))))
-     (is Loop
-         (.loop (retry! [_ []])
-           (monad.let [! io.monad]
-             [started?,events (atom.read! state)
-              .let [[started? events] started?,events]]
-             (if started?
-                 (pure (exception.except ..already_started [name]))
-                 (monad.let !
-                   [swapped? (atom.compare_and_swap! started?,events [true events] state)]
-                   (if swapped?
-                       (.loop (again [events_processed 0])
-                         (monad.let !
-                           [started?,events (atom.read! state)
-                            .let [[started? events] started?,events]]
-                           (when events
-                             ... And... we're done!
-                             (list)
-                             (pure {try.:Success events_processed})
+     (-> Text [Scheduler Loop])
+     (let [state (is (Atom [Bit (List Event)])
+                     (atom.atom [false (list)]))]
+          [(is Scheduler
+               (function (schedule! milli_seconds action)
+                         (monad.let io.monad
+                                    [now instant.now
+                                     _ (atom.update! (function (_ [stated? events])
+                                                               [stated?
+                                                                (list:composite (list [:when (instant.after (duration.of_millis (.integer milli_seconds))
+                                                                                                            now)
+                                                                                       :what action])
+                                                                                events)])
+                                                     state)]
+                                    (pure []))))
+           (is Loop
+               (.loop (retry! [_ []])
+                      (monad.let [! io.monad]
+                                 [started?,events (atom.read! state)
+                                  .let [[started? events] started?,events]]
+                                 (if started?
+                                     (pure (exception.except ..already_started [name]))
+                                     (monad.let !
+                                                [swapped? (atom.compare_and_swap! started?,events [true events] state)]
+                                                (if swapped?
+                                                    (.loop (again [events_processed 0])
+                                                           (monad.let !
+                                                                      [started?,events (atom.read! state)
+                                                                       .let [[started? events] started?,events]]
+                                                                      (when events
+                                                                            (list)
+                                                                            (comment "And... we're done!"
+                                                                                     (pure {try.:Success events_processed}))
 
-                             _
-                             (monad.let !
-                               [now instant.now
-                                .let [[pending ready] (list.partition (function (_ thread)
-                                                                        (instant:< (its :when thread) now))
-                                                                      events)]
-                                swapped? (atom.compare_and_swap! started?,events [started? pending] state)]
-                               (if swapped?
-                                   (monad.let [! (try.with !)]
-                                     [_ (list.each' ! (|>> (its :what) (..execute! name) io.io) ready)]
-                                     (again (n.+ (list.size ready) events_processed)))
-                                   (again events_processed))))))
-                       (retry! [])))))))]))
+                                                                            _
+                                                                            (monad.let !
+                                                                                       [now instant.now
+                                                                                        .let [[pending ready] (list.partition (function (_ thread)
+                                                                                                                                        (instant:< (its :when thread) now))
+                                                                                                                              events)]
+                                                                                        swapped? (atom.compare_and_swap! started?,events [started? pending] state)]
+                                                                                       (if swapped?
+                                                                                           (monad.let [! (try.with !)]
+                                                                                                      [_ (list.each' ! (|>> (its :what) (..execute! name) io.io) ready)]
+                                                                                                      (again (n.+ (list.size ready) events_processed)))
+                                                                                           (again events_processed))))))
+                                                    (retry! [])))))))]))

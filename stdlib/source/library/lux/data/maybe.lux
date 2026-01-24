@@ -16,158 +16,157 @@
 ...    {.:Some it}))
 
 (the .public monoid
-  (for_any (_ it)
-    (Monoid (Maybe it)))
-  (implementation
-   (the identity
-     {.:None})
-   
-   (the (composite mx my)
-     (when mx
-       {.:None}
-       my
-       
-       _
-       mx))))
+     (for_any (_ it)
+              (Monoid (Maybe it)))
+     (implementation
+      (the identity
+           {.:None})
+      
+      (the (composite mx my)
+           (when mx
+                 {.:None}
+                 my
+                 
+                 _
+                 mx))))
 
 (the .public functor
-  (Functor Maybe)
-  (implementation
-   (the (each f ma)
-     (when ma
-       {.:Some a}
-       {.:Some (f a)}
-       
-       ... {.:None}
-       it
-       (as_expected it)))))
+     (Functor Maybe)
+     (implementation
+      (the (each f ma)
+           (when ma
+                 {.:Some a}
+                 {.:Some (f a)}
+                 
+                 ... {.:None}
+                 it
+                 (as_expected it)))))
 
 (the .public monad
-  (Monad Maybe)
-  (implementation
-   (the functor ..functor)
+     (Monad Maybe)
+     (implementation
+      (the functor ..functor)
 
-   (the (pure x)
-     {.:Some x})
+      (the (pure x)
+           {.:Some x})
 
-   (the (conjoint mma)
-     (when mma
-       {.:Some mx}
-       mx
-       
-       ... {.:None}
-       it
-       (as_expected it)))))
+      (the (conjoint mma)
+           (when mma
+                 {.:Some mx}
+                 mx
+                 
+                 ... {.:None}
+                 it
+                 (as_expected it)))))
 
 (the .public (equality super)
-  (for_any (_ it)
-    (-> (Equality it)
-        (Equality (Maybe it))))
-  (implementation
-   (the (= mx my)
-     (when [mx my]
-       [{.:None} {.:None}]
-       true
+     (for_any (_ it)
+              (-> (Equality it)
+                  (Equality (Maybe it))))
+     (implementation
+      (the (= mx my)
+           (when [mx my]
+                 [{.:None} {.:None}]
+                 true
 
-       [{.:Some x} {.:Some y}]
-       (by super = x y)
-       
-       _
-       false))))
+                 [{.:Some x} {.:Some y}]
+                 (by super = x y)
+                 
+                 _
+                 false))))
 
 (the .public (hash super)
-  (for_any (_ it)
-    (-> (Hash it)
-        (Hash (Maybe it))))
-  (implementation
-   (the equality
-     (..equality (by super equality)))
-   
-   (the (hash value)
-     (when value
-       {.:None}
-       1
+     (for_any (_ it)
+              (-> (Hash it)
+                  (Hash (Maybe it))))
+     (implementation
+      (the equality
+           (..equality (by super equality)))
+      
+      (the (hash value)
+           (when value
+                 {.:None}
+                 1
 
-       {.:Some value}
-       (by super hash value)))))
+                 {.:Some value}
+                 (by super hash value)))))
 
 (every .public (With ! it)
-  (! (Maybe it)))
+       (! (Maybe it)))
 
 (the .public (with monad)
-  (for_any (_ !)
-    (-> (Monad !)
-        (Monad (With !))))
-  (implementation
-   (the (functor it)
-     (|> it
-         (by ..functor each)
-         (by monad each)))
+     (for_any (_ !)
+              (-> (Monad !)
+                  (Monad (With !))))
+     (implementation
+      (the (functor it)
+           (|> it
+               (by ..functor each)
+               (by monad each)))
 
-   (the pure
-     (|>> (by ..monad pure)
-          (by monad pure)))
-   
-   (the (conjoint MmMma)
-     (monad.let monad
-       [mMma MmMma]
-       (when mMma
-         {.:Some Mma}
-         Mma
+      (the pure
+           (|>> (by ..monad pure)
+                (by monad pure)))
+      
+      (the (conjoint MmMma)
+           (monad.let monad
+                      [mMma MmMma]
+                      (when mMma
+                            {.:Some Mma}
+                            Mma
 
-         ... {.:None}
-         it
-         (pure (as_expected it)))))))
+                            ... {.:None}
+                            it
+                            (pure (as_expected it)))))))
 
 (the .public (lifted monad)
-  (for_any (_ ! it)
-    (-> (Monad !)
-        (-> (! it)
-            (! (Maybe it)))))
-  (by monad each (by ..monad pure)))
+     (for_any (_ ! it)
+              (-> (Monad !)
+                  (-> (! it)
+                      (! (Maybe it)))))
+     (by monad each (by ..monad pure)))
 
 (the .public else
-  (macro (_ ,else ,maybe)
-    [(.when ,maybe
-       {.:Some 'it}
-       'it
+     (macro (_ ,else ,maybe)
+            [(.when ,maybe
+                    {.:Some 'it}
+                    'it
 
-       {.:None}
-       ,else)]))
+                    {.:None}
+                    ,else)]))
 
 (the .public trusted
-  (for_any (_ it)
-    (-> (Maybe it)
-        it))
-  (|>> (..else (undefined))))
+     (for_any (_ it)
+              (-> (Maybe it)
+                  it))
+     (|>> (..else (undefined))))
 
 (the .public (as_list value)
-  (for_any (_ it)
-    (-> (Maybe it)
-        (List it)))
-  (when value
-    {.:Some value}
-    (list value)
+     (for_any (_ it)
+              (-> (Maybe it)
+                  (List it)))
+     (when value
+           {.:Some value}
+           (list value)
 
-    {.:None}
-    (list)))
+           {.:None}
+           (list)))
 
 (the .public whether
-  (macro (_ <test> <then>)
-    [(.if <test>
-          <then>
-          {.:None})]))
+     (macro (_ <test> <then>)
+            [(.if <test>
+                  <then>
+                  {.:None})]))
 
 (the .public or
-  (macro (_ ,left ,right)
-    [(.when ,left
-       {.:Some 'it}
-       {.:Some 'it}
+     (macro (_ ,left ,right)
+            [(.when ,left
+                    {.:Some 'it}
+                    {.:Some 'it}
 
-       {.:None}
-       ,right)]))
+                    {.:None}
+                    ,right)]))
 
-(the with_monad (.in_module# .prelude with_monad))
 (the _generated_name (.in_module# .prelude generated_name))
 (the meta:pure (.in_module# .prelude meta:pure))
 (the meta:failure (.in_module# .prelude failure))
@@ -180,22 +179,22 @@
 (the ?:some (.in_module# .prelude ?:some))
 
 (the .public if
-  (.macro (_ tokens)
-    (.when (|> (.all ?:and
-                     (?:some (?:and (?:tuple (?:and ?:any ?:any))
-                                    ?:any))
-                     ?:any)
-               (?:value tokens))
-      {.:Some [each_when,then 'else]}
-      (meta:pure (list (list:mix (function (_ [['variable 'when] 'then] 'else)
-                                   (` (.when (, 'when)
-                                        {.:Some (, 'variable)}
-                                        (, 'then)
+     (.macro (_ tokens)
+             (.when (|> (.all ?:and
+                              (?:some (?:and (?:tuple (?:and ?:any ?:any))
+                                             ?:any))
+                              ?:any)
+                        (?:value tokens))
+                    {.:Some [each_when,then 'else]}
+                    (meta:pure (list (list:mix (function (_ [['variable 'when] 'then] 'else)
+                                                         (` (.when (, 'when)
+                                                                   {.:Some (, 'variable)}
+                                                                   (, 'then)
 
-                                        {.:None}
-                                        (, 'else))))
-                                 'else
-                                 each_when,then)))
+                                                                   {.:None}
+                                                                   (, 'else))))
+                                               'else
+                                               each_when,then)))
 
-      {.:None}
-      (meta:failure ""))))
+                    {.:None}
+                    (meta:failure ""))))

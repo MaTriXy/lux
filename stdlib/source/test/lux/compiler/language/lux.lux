@@ -46,104 +46,101 @@
   ["[1][0]" analysis]
   ["[1][0]" synthesis]
   ["[1][0]" translation]
-  ["[1][0]" phase
-   ... ["[1][0]" analysis]
-   ... ["[1][0]" synthesis]
-   ]])
+  ["[1][0]" phase]])
 
 (the any_equality
-  (Equality Any)
-  (implementation
-   (the (= _ _)
-     true)))
+     (Equality Any)
+     (implementation
+      (the (= _ _)
+           true)))
 
 (the definition_equality
-  (Equality Definition)
-  (all pair.equality
-       type.equality
-       (maybe.equality (pair.equality analysis.equality
-                                      (maybe.equality analysis.equality)))
-       ..any_equality
-       ))
+     (Equality Definition)
+     (all pair.equality
+          type.equality
+          (maybe.equality (pair.equality analysis.equality
+                                         (maybe.equality analysis.equality)))
+          ..any_equality
+          ))
 
 (the definition
-  (Random Definition)
-  (monad.let random.monad
-    [type (typeT.random 1)]
-    (pure [type {.:None} []])))
+     (Random Definition)
+     (monad.let random.monad
+                [type (typeT.random 1)]
+                (pure [type {.:None} []])))
 
 (the global_equality
-  (Equality Global)
-  (all case.equality
-       name.equality
-       ..definition_equality
-       ))
+     (Equality Global)
+     (all case.equality
+          name.equality
+          ..definition_equality
+          ))
 
 (the global
-  (Random Global)
-  (all random.or
-       (nameT.random 1 1)
-       ..definition
-       ))
+     (Random Global)
+     (all random.or
+          (nameT.random 1 1)
+          ..definition
+          ))
 
 (the module_state_equality
-  (Equality Module_State)
-  (all case.equality
-       ..any_equality
-       ..any_equality
-       ..any_equality
-       ))
+     (Equality Module_State)
+     (all case.equality
+          ..any_equality
+          ..any_equality
+          ..any_equality
+          ))
 
 (the module_state
-  (Random Module_State)
-  (all random.or
-       (random:pure [])
-       (random:pure [])
-       (random:pure [])
-       ))
+     (Random Module_State)
+     (all random.or
+          (random:pure [])
+          (random:pure [])
+          (random:pure [])
+          ))
 
 (the module_equality
-  (Equality Module)
-  (all pair.equality
-       natural.equality
-       (list.equality (pair.equality text.equality text.equality))
-       (list.equality (all pair.equality text.equality bit.equality global_equality))
-       (list.equality text.equality)
-       ..module_state_equality
-       ))
+     (Equality Module)
+     (all pair.equality
+          natural.equality
+          (list.equality (pair.equality text.equality text.equality))
+          (list.equality (all pair.equality text.equality bit.equality global_equality))
+          (list.equality text.equality)
+          ..module_state_equality
+          ))
 
 (the module
-  (Random Module)
-  (all random.and
-       random.natural
-       (random.list 1 (random.and (random.upper_cased 2) (random.upper_cased 3)))
-       (random.list 4 (all random.and (random.upper_cased 5) random.bit ..global))
-       (random.list 6 (random.upper_cased 7))
-       ..module_state
-       ))
+     (Random Module)
+     (all random.and
+          random.natural
+          (random.list 1 (random.and (random.upper_cased 2) (random.upper_cased 3)))
+          (random.list 4 (all random.and (random.upper_cased 5) random.bit ..global))
+          (random.list 6 (random.upper_cased 7))
+          ..module_state
+          ))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (monad.let [! random.monad]
-        [expected ..module])
-      (all _.and
-           (_.coverage [/.as_binary /.of_binary]
-             (|> expected
-                 (!binary.value /.as_binary)
-                 (?binary.value /.of_binary)
-                 (try:each (by module_equality = (has .:module_state {.:Cached} expected)))
-                 (try.else false)))
-           (_.coverage [/.key]
-             (let [it (key.signature /.key)]
-               (and (let [[expected_module _] (name /._)
-                          [actual_module actual_proper] (its signature.:name it)]
-                      (and (text.= expected_module actual_module)))
-                    (identical? version.latest (its signature.:version it)))))
+     Test
+     (<| (_.covering /._)
+         (monad.let [! random.monad]
+                    [expected ..module])
+         (all _.and
+              (_.coverage [/.as_binary /.of_binary]
+                          (|> expected
+                              (!binary.value /.as_binary)
+                              (?binary.value /.of_binary)
+                              (try:each (by module_equality = (has .:module_state {.:Cached} expected)))
+                              (try.else false)))
+              (_.coverage [/.key]
+                          (let [it (key.signature /.key)]
+                               (and (let [[expected_module _] (name /._)
+                                          [actual_module actual_proper] (its signature.:name it)]
+                                         (and (text.= expected_module actual_module)))
+                                    (identical? version.latest (its signature.:version it)))))
 
-           /syntax.test
-           /analysis.test
-           /synthesis.test
-           /translation.test
-           /phase.test
-           )))
+              /syntax.test
+              /analysis.test
+              /synthesis.test
+              /translation.test
+              /phase.test
+              )))

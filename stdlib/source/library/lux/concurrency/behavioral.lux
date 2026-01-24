@@ -8,46 +8,46 @@
   ["[0]" frp (.only Channel)]])
 
 (the <Event>
-  (template.macro (_ Constructor data)
-    [[(Constructor data) data]]))
+     (template.macro (_ Constructor data)
+                     [[(Constructor data) data]]))
 
 (every .public (Constructor data)
-  (-> data
-      (<Event> Constructor data)))
+       (-> data
+           (<Event> Constructor data)))
 
 (every .public (Event data)
-  (<Event> Constructor data))
+       (<Event> Constructor data))
 
 (the .public (event constructor)
-  (for_any (_ data)
-    (-> (Change data)
-        (Constructor data)))
-  (exec
-    []
-    ... This was added to avoid having auto-currying to fuse the "event" and "self" functions.
-    ... Otherwise, the "identical?" comparison done later would fail.
-    (function (self data)
-      [self (constructor data)])))
+     (for_any (_ data)
+              (-> (Change data)
+                  (Constructor data)))
+     (exec
+      []
+      (comment "This was added to avoid having auto-currying to fuse the 'event' and 'self' functions."
+               "Otherwise, the 'identical?' comparison done later would fail."
+               (function (self data)
+                         [self (constructor data)]))))
 
 (the .public (event? expected it)
-  (for_any (_ data)
-    (-> (Constructor data) (Event data)
-        (Maybe data)))
-  (let [[actual data] it]
-    (if (identical? expected actual)
-        {.:Some data}
-        {.:None})))
+     (for_any (_ data)
+              (-> (Constructor data) (Event data)
+                  (Maybe data)))
+     (let [[actual data] it]
+          (if (identical? expected actual)
+              {.:Some data}
+              {.:None})))
 
 (the .public (scenario events expected initial behavior)
-  (for_any (_ state data)
-    (-> (Channel (Event data)) (Constructor data) state (-> data state (Future state))
-        (Future state)))
-  (frp.mix (function (_ event state)
-             (when (event? expected event)
-               {.:Some data}
-               (behavior data state)
-               
-               {.:None}
-               (future:pure state)))
-           events
-           initial))
+     (for_any (_ state data)
+              (-> (Channel (Event data)) (Constructor data) state (-> data state (Future state))
+                  (Future state)))
+     (frp.mix (function (_ event state)
+                        (when (event? expected event)
+                              {.:Some data}
+                              (behavior data state)
+                              
+                              {.:None}
+                              (future:pure state)))
+              events
+              initial))

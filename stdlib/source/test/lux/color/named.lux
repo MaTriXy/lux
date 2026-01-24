@@ -26,7 +26,6 @@
 (expansion.let [<colors> (these [letter/a
                                  [/.alice_blue
                                   /.antique_white
-                                  ... /.aqua
                                   /.aquamarine
                                   /.azure]]
                                 
@@ -76,9 +75,7 @@
                                 [letter/f
                                  [/.fire_brick
                                   /.floral_white
-                                  /.forest_green
-                                  ... /.fuchsia
-                                  ]]
+                                  /.forest_green]]
                                 
                                 [letter/g
                                  [/.gainsboro
@@ -205,48 +202,48 @@
                                  [/.yellow
                                   /.yellow_green]]
                                 )]
-  (these (the all_colors
-           (list:conjoint (`` (list (,, (template.with [<definition> <by_letter>]
-                                          [((is (-> Any (List RGB))
-                                                (function (_ _)
-                                                  (`` (list (,, (template.spliced <by_letter>))))))
-                                            123)]
-                                          
-                                          [<colors>]))))))
-         
-         (the unique_colors
-           (set.of_list rgb.hash ..all_colors))
+               (these (the all_colors
+                           (list:conjoint (`` (list (,, (template.with [<definition> <by_letter>]
+                                                                       [((is (-> Any (List RGB))
+                                                                             (function (_ _)
+                                                                                       (`` (list (,, (template.spliced <by_letter>))))))
+                                                                         123)]
+                                                                       
+                                                                       [<colors>]))))))
+                      
+                      (the unique_colors
+                           (set.of_list rgb.hash ..all_colors))
 
-         (the .public random
-           (Random RGB)
-           (monad.let [! random.monad]
-             [choice (by ! each (n.% (set.size ..unique_colors))
-                         random.natural)]
-             (pure (maybe.trusted (list.item choice ..all_colors)))))
+                      (the .public random
+                           (Random RGB)
+                           (monad.let [! random.monad]
+                                      [choice (by ! each (n.% (set.size ..unique_colors))
+                                                  random.natural)]
+                                      (pure (maybe.trusted (list.item choice ..all_colors)))))
 
-         (the verdict
-           (n.= (list.size ..all_colors)
-                (set.size ..unique_colors)))
+                      (the verdict
+                           (n.= (list.size ..all_colors)
+                                (set.size ..unique_colors)))
 
-         (template.with [<definition> <by_letter>]
-           [(the <definition>
-              Test
-              (_.coverage <by_letter>
-                ..verdict))]
-           
-           [<colors>])
+                      (template.with [<definition> <by_letter>]
+                                     [(the <definition>
+                                           Test
+                                           (_.coverage <by_letter>
+                                                       ..verdict))]
+                                     
+                                     [<colors>])
 
-         (the .public test
-           Test
-           (<| (_.covering /._)
-               (`` (all _.and
-                        (,, (template.with [<definition> <by_letter>]
-                              [<definition>]
-                              
-                              [<colors>]))
-                        (_.coverage [/.aqua]
-                          (by rgb.equality = /.cyan /.aqua))
-                        (_.coverage [/.fuchsia]
-                          (by rgb.equality = /.magenta /.fuchsia))
-                        )))))
-  )
+                      (the .public test
+                           Test
+                           (<| (_.covering /._)
+                               (`` (all _.and
+                                        (,, (template.with [<definition> <by_letter>]
+                                                           [<definition>]
+                                                           
+                                                           [<colors>]))
+                                        (_.coverage [/.aqua]
+                                                    (by rgb.equality = /.cyan /.aqua))
+                                        (_.coverage [/.fuchsia]
+                                                    (by rgb.equality = /.magenta /.fuchsia))
+                                        )))))
+               )

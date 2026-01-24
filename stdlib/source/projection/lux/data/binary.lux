@@ -42,57 +42,57 @@
     ["[0]" provenance]]]])
 
 (.every .public Offset
-  Natural)
+        Natural)
 
 (.every .public Projection
-  (//.Projection [Offset Binary]))
+        (//.Projection [Offset Binary]))
 
 (exception.the .public (binary_was_not_fully_read [binary_length bytes_read])
-  (Exception [Natural Natural])
-  (exception.report
-   (.list ["Binary length" (%.natural binary_length)]
-          ["Bytes read" (%.natural bytes_read)])))
+               (Exception [Natural Natural])
+               (exception.report
+                (.list ["Binary length" (%.natural binary_length)]
+                       ["Bytes read" (%.natural bytes_read)])))
 
 (template.with [<name> <extension>]
-  [(the <name>
-     (template.macro (<name> <parameter> <subject>)
-       [(<extension> <parameter> <subject>)]))]
+               [(the <name>
+                     (template.macro (<name> <parameter> <subject>)
+                                     [(<extension> <parameter> <subject>)]))]
 
-  [[n:= .i64_=#]
-   [n:+ .i64_+#]
-   [n:- .i64_-#]])
+               [[n:= .i64_=#]
+                [n:+ .i64_+#]
+                [n:- .i64_-#]])
 
 (the .public (value projection input)
-  (for_any (_ it)
-    (-> (Projection it) Binary
-        (Try it)))
-  (when (projection [0 input])
-    {try.:Success [[end _] output]}
-    (let [length (/.size input)]
-      (if (n:= end length)
-          {try.:Success output}
-          (exception.except ..binary_was_not_fully_read [length end])))
+     (for_any (_ it)
+              (-> (Projection it) Binary
+                  (Try it)))
+     (when (projection [0 input])
+           {try.:Success [[end _] output]}
+           (let [length (/.size input)]
+                (if (n:= end length)
+                    {try.:Success output}
+                    (exception.except ..binary_was_not_fully_read [length end])))
 
-    failure
-    (as_expected failure)))
+           failure
+           (as_expected failure)))
 
 (the .public end?
-  (Projection Bit)
-  (function (_ (^.let input [offset data]))
-    {try.:Success [input (n:= offset (/.size data))]}))
+     (Projection Bit)
+     (function (_ (^.let input [offset data]))
+               {try.:Success [input (n:= offset (/.size data))]}))
 
 (the .public offset
-  (Projection Offset)
-  (function (_ (^.let input [offset data]))
-    {try.:Success [input offset]}))
+     (Projection Offset)
+     (function (_ (^.let input [offset data]))
+               {try.:Success [input offset]}))
 
 (the .public remaining
-  (Projection Natural)
-  (function (_ (^.let input [offset data]))
-    {try.:Success [input (n:- offset (/.size data))]}))
+     (Projection Natural)
+     (function (_ (^.let input [offset data]))
+               {try.:Success [input (n:- offset (/.size data))]}))
 
 (.every .public Size
-  Natural)
+        Natural)
 
 (the .public size_08 Size 1)
 (the .public size_16 Size (n.x 2 size_08))
@@ -100,312 +100,311 @@
 (the .public size_64 Size (n.x 2 size_32))
 
 (template.with [<name> <size> <read>]
-  [(the .public <name>
-     (Projection I64)
-     (function (_ [start binary])
-       (let [end (n:+ <size> start)]
-         (if (n.< end (/.size binary))
-             {try.:Failure error.not_valid}
-             (|> (<read> start binary)
-                 [[end binary]]
-                 {try.:Success})))))]
+               [(the .public <name>
+                     (Projection I64)
+                     (function (_ [start binary])
+                               (let [end (n:+ <size> start)]
+                                    (if (n.< end (/.size binary))
+                                        {try.:Failure error.not_valid}
+                                        (|> (<read> start binary)
+                                            [[end binary]]
+                                            {try.:Success})))))]
 
-  [[bits_08 ..size_08 /.bits_08]
-   [bits_16 ..size_16 /.bits_16]
-   [bits_32 ..size_32 /.bits_32]
-   [bits_64 ..size_64 /.bits_64]])
+               [[bits_08 ..size_08 /.bits_08]
+                [bits_16 ..size_16 /.bits_16]
+                [bits_32 ..size_32 /.bits_32]
+                [bits_64 ..size_64 /.bits_64]])
 
 (template.with [<name> <type>]
-  [(the .public <name>
-     (Projection <type>)
-     ..bits_64)]
+               [(the .public <name>
+                     (Projection <type>)
+                     ..bits_64)]
 
-  [[natural Natural]
-   [integer Integer]
-   [revolution Revolution]])
+               [[natural Natural]
+                [integer Integer]
+                [revolution Revolution]])
 
 (the .public real
-  (Projection Real)
-  (//:each real.of_bits ..bits_64))
+     (Projection Real)
+     (//:each real.of_bits ..bits_64))
 
 (the !variant
-  (template.macro (!variant <case>+)
-    [(monad.let [! //.monad]
-       [flag (is (Projection Natural)
-                 ..bits_08)]
-       (`` (when flag
-             (,, (template.with [<number> <tag> <projection>]
-                   [<number> (`` (by ! each (|>> {(,, (template.spliced <tag>))}) <projection>))]
+     (template.macro (!variant <case>+)
+                     [(monad.let [! //.monad]
+                                 [flag (is (Projection Natural)
+                                           ..bits_08)]
+                                 (`` (when flag
+                                           (,, (template.with [<number> <tag> <projection>]
+                                                              [<number> (`` (by ! each (|>> {(,, (template.spliced <tag>))}) <projection>))]
 
-                   <case>+))
-             
-             _ (//.of_try {try.:Failure error.not_valid}))))]))
+                                                              <case>+))
+                                           
+                                           _ (//.of_try {try.:Failure error.not_valid}))))]))
 
 (the .public (or left right)
-  (for_any (_ left right)
-    (-> (Projection left) (Projection right)
-        (Projection (Or left right))))
-  (!variant [[0 [.:Left] left]
-             [1 [.:Right] right]]))
+     (for_any (_ left right)
+              (-> (Projection left) (Projection right)
+                  (Projection (Or left right))))
+     (!variant [[0 [.:Left] left]
+                [1 [.:Right] right]]))
 
 (the .public (rec body)
-  (for_any (_ it)
-    (-> (-> (Projection it) (Projection it))
-        (Projection it)))
-  (function (_ input)
-    (let [projection (body (rec body))]
-      (projection input))))
+     (for_any (_ it)
+              (-> (-> (Projection it) (Projection it))
+                  (Projection it)))
+     (function (_ input)
+               (let [projection (body (rec body))]
+                    (projection input))))
 
 (the .public any
-  (Projection Any)
-  (//:pure []))
+     (Projection Any)
+     (//:pure []))
 
 (the .public bit
-  (Projection Bit)
-  (monad.let //.monad
-    [value (is (Projection Natural)
-               ..bits_08)]
-    (when value
-      0 (pure 0b)
-      1 (pure 1b)
-      _ (//.of_try {try.:Failure error.not_valid}))))
+     (Projection Bit)
+     (monad.let //.monad
+                [value (is (Projection Natural)
+                           ..bits_08)]
+                (when value
+                      0 (pure 0b)
+                      1 (pure 1b)
+                      _ (//.of_try {try.:Failure error.not_valid}))))
 
 (the .public (segment size)
-  (-> Natural
-      (Projection Binary))
-  (when size
-    0 (//:pure (/.empty 0))
-    _ (function (_ [start binary])
-        (let [end (n:+ size start)]
-          (if (n.< end (/.size binary))
-              {try.:Failure error.not_valid}
-              (|> binary
-                  (/.slice start size)
-                  [[end binary]]
-                  {try.:Success}))))))
+     (-> Natural
+         (Projection Binary))
+     (when size
+           0 (//:pure (/.empty 0))
+           _ (function (_ [start binary])
+                       (let [end (n:+ size start)]
+                            (if (n.< end (/.size binary))
+                                {try.:Failure error.not_valid}
+                                (|> binary
+                                    (/.slice start size)
+                                    [[end binary]]
+                                    {try.:Success}))))))
 
 (template.with [<size> <name> <bits>]
-  [(the .public <name>
-     (Projection Binary)
-     (monad.let //.monad
-       [size (//:each (|>> .natural) <bits>)]
-       (..segment size)))]
+               [(the .public <name>
+                     (Projection Binary)
+                     (monad.let //.monad
+                                [size (//:each (|>> .natural) <bits>)]
+                                (..segment size)))]
 
-  [[08 binary_08 ..bits_08]
-   [16 binary_16 ..bits_16]
-   [32 binary_32 ..bits_32]
-   [64 binary_64 ..bits_64]])
+               [[08 binary_08 ..bits_08]
+                [16 binary_16 ..bits_16]
+                [32 binary_32 ..bits_32]
+                [64 binary_64 ..bits_64]])
 
 (template.with [<size> <name> <binary>]
-  [(the .public <name>
-     (Projection Text)
-     (monad.let //.monad
-       [utf8 <binary>]
-       (//.of_try (by utf8.binary of utf8))))]
+               [(the .public <name>
+                     (Projection Text)
+                     (monad.let //.monad
+                                [utf8 <binary>]
+                                (//.of_try (by utf8.binary of utf8))))]
 
-  [[08 utf8_08 ..binary_08]
-   [16 utf8_16 ..binary_16]
-   [32 utf8_32 ..binary_32]
-   [64 utf8_64 ..binary_64]])
+               [[08 utf8_08 ..binary_08]
+                [16 utf8_16 ..binary_16]
+                [32 utf8_32 ..binary_32]
+                [64 utf8_64 ..binary_64]])
 
 (the .public text ..utf8_64)
 
 (template.with [<size> <name> <bits>]
-  [(the .public (<name> valueP)
-     (for_any (_ it)
-       (-> (Projection it)
-           (Projection (Sequence it))))
-     (monad.let //.monad
-       [amount (is (Projection Natural)
-                   <bits>)]
-       (function (_ state)
-         (loop (of [state state
-                    index 0
-                    output (sharing [it]
-                             (is (Projection it)
-                                 valueP)
-                             (is (Sequence it)
-                                 sequence.empty))])
-           (if (n.< amount index)
-               (when (valueP state)
-                 {try.:Success [state value]}
-                 (of state
-                     (.++ index)
-                     (sequence.suffix value output))
+               [(the .public (<name> valueP)
+                     (for_any (_ it)
+                              (-> (Projection it)
+                                  (Projection (Sequence it))))
+                     (monad.let //.monad
+                                [amount (is (Projection Natural)
+                                            <bits>)]
+                                (function (_ state)
+                                          (loop (of [state state
+                                                     index 0
+                                                     output (sharing [it]
+                                                                     (is (Projection it)
+                                                                         valueP)
+                                                                     (is (Sequence it)
+                                                                         sequence.empty))])
+                                                (if (n.< amount index)
+                                                    (when (valueP state)
+                                                          {try.:Success [state value]}
+                                                          (of state
+                                                              (.++ index)
+                                                              (sequence.suffix value output))
 
-                 {try.:Failure error}
-                 {try.:Failure error})
-               {try.:Success [state output]})))))]
+                                                          {try.:Failure error}
+                                                          {try.:Failure error})
+                                                    {try.:Success [state output]})))))]
 
-  [[08 sequence_08 ..bits_08]
-   [16 sequence_16 ..bits_16]
-   [32 sequence_32 ..bits_32]
-   [64 sequence_64 ..bits_64]])
+               [[08 sequence_08 ..bits_08]
+                [16 sequence_16 ..bits_16]
+                [32 sequence_32 ..bits_32]
+                [64 sequence_64 ..bits_64]])
 
 (the .public (list it)
-  (for_any (_ it)
-    (-> (Projection it)
-        (Projection (List it))))
-  (monad.let //.monad
-    [amount (is (Projection Natural)
-                ..natural)]
-    (//.exactly amount it)))
+     (for_any (_ it)
+              (-> (Projection it)
+                  (Projection (List it))))
+     (monad.let //.monad
+                [amount (is (Projection Natural)
+                            ..natural)]
+                (//.exactly amount it)))
 
 (the .public maybe
-  (for_any (_ it)
-    (-> (Projection it)
-        (Projection (Maybe it))))
-  (..or ..any))
+     (for_any (_ it)
+              (-> (Projection it)
+                  (Projection (Maybe it))))
+     (..or ..any))
 
 (the .public (stack value)
-  (for_any (_ it)
-    (-> (Projection it)
-        (Projection (Stack it))))
-  (..rec
-   (|>> (//.and value)
-        (..or ..any))))
+     (for_any (_ it)
+              (-> (Projection it)
+                  (Projection (Stack it))))
+     (..rec
+      (|>> (//.and value)
+           (..or ..any))))
 
 (exception.the .public set_elements_are_not_unique)
 
 (the .public (set hash value)
-  (for_any (_ it)
-    (-> (Hash it) (Projection it)
-        (Projection (Set it))))
-  (monad.let //.monad
-    [raw (..list value)
-     .let [output (set.of_list hash raw)]
-     _ (//.assertion (exception.error ..set_elements_are_not_unique [])
-                     (n:= (list.size raw)
-                          (set.size output)))]
-    (pure output)))
+     (for_any (_ it)
+              (-> (Hash it) (Projection it)
+                  (Projection (Set it))))
+     (monad.let //.monad
+                [raw (..list value)
+                 .let [output (set.of_list hash raw)]
+                 _ (//.assertion (exception.error ..set_elements_are_not_unique [])
+                                 (n:= (list.size raw)
+                                      (set.size output)))]
+                (pure output)))
 
 (the .public name
-  (Projection Name)
-  (//.and ..text ..text))
+     (Projection Name)
+     (//.and ..text ..text))
 
 (the .public (type it)
-  (Projection Type)
-  ((let [indexed (//.and bit ..natural)]
-     (!variant [[0 [.:Nominal] (//.and ..text (..list (//.and bit type)))]
-                [1 [.:Parameter] indexed]
-                [2 [.:Variable] indexed]
-                [3 [.:Quantification] (all //.and bit (..stack (//.and type type)) type)]
-                [4 [.:Reification] (//.and type type)]
-                [5 [.:Named] (//.and ..name type)]]))
-   it))
+     (Projection Type)
+     ((let [indexed (//.and bit ..natural)]
+           (!variant [[0 [.:Nominal] (//.and ..text (..list (//.and bit type)))]
+                      [1 [.:Parameter] indexed]
+                      [2 [.:Variable] indexed]
+                      [3 [.:Quantification] (all //.and bit (..stack (//.and type type)) type)]
+                      [4 [.:Reification] (//.and type type)]
+                      [5 [.:Named] (//.and ..name type)]]))
+      it))
 
 (the .public provenance
-  (Projection Provenance)
-  (all //.and ..text ..natural ..natural))
+     (Projection Provenance)
+     (all //.and ..text ..natural ..natural))
 
 (the .public (code it)
-  (Projection Code)
-  ((!variant [[0 [.:Bit] (//.and ..provenance ..bit)]
-              [1 [.:Natural] (//.and ..provenance ..natural)]
-              [2 [.:Integer] (//.and ..provenance ..integer)]
-              [3 [.:Revolution] (//.and ..provenance ..revolution)]
-              [4 [.:Real] (//.and ..provenance ..real)]
-              [5 [.:Text] (//.and ..provenance ..text)]
-              [6 [.:Name] (//.and ..provenance ..name)]
-              [7 [.:Form] (//.and ..provenance (..list code))]
-              [8 [.:Variant] (//.and ..provenance (..list code))]
-              [9 [.:Tuple] (//.and ..provenance (..list code))]])
-   it))
+     (Projection Code)
+     ((!variant [[0 [.:Bit] (//.and ..provenance ..bit)]
+                 [1 [.:Natural] (//.and ..provenance ..natural)]
+                 [2 [.:Integer] (//.and ..provenance ..integer)]
+                 [3 [.:Revolution] (//.and ..provenance ..revolution)]
+                 [4 [.:Real] (//.and ..provenance ..real)]
+                 [5 [.:Text] (//.and ..provenance ..text)]
+                 [6 [.:Name] (//.and ..provenance ..name)]
+                 [7 [.:Form] (//.and ..provenance (..list code))]
+                 [8 [.:Variant] (//.and ..provenance (..list code))]
+                 [9 [.:Tuple] (//.and ..provenance (..list code))]])
+      it))
 
 (template.with [,name ,type ,of_millis]
-  [(the .public ,name
-     (Projection ,type)
-     (by //.monad each ,of_millis ..integer))]
+               [(the .public ,name
+                     (Projection ,type)
+                     (by //.monad each ,of_millis ..integer))]
 
-  [[instant Instant instant.of_millis]
-   [duration Duration duration.of_millis]])
+               [[instant Instant instant.of_millis]
+                [duration Duration duration.of_millis]])
 
 (the simple_expression
-  (Projection @type.Simple)
-  (!variant [[0 [@type.:Simple_Unit] ..any]
-             [1 [@type.:Simple_Bit] ..bit]
-             [2 [@type.:Simple_Natural] ..natural]
-             [3 [@type.:Simple_Integer] ..integer]
-             [4 [@type.:Simple_Revolution] ..revolution]
-             [5 [@type.:Simple_Real] ..real]
-             [6 [@type.:Simple_Text] ..text]]))
+     (Projection @type.Simple)
+     (!variant [[0 [@type.:Simple_Unit] ..any]
+                [1 [@type.:Simple_Bit] ..bit]
+                [2 [@type.:Simple_Natural] ..natural]
+                [3 [@type.:Simple_Integer] ..integer]
+                [4 [@type.:Simple_Revolution] ..revolution]
+                [5 [@type.:Simple_Real] ..real]
+                [6 [@type.:Simple_Text] ..text]]))
 
 (the variant_expression
-  (for_any (_ it)
-    (-> (Projection it)
-        (Projection (@type.Variant it))))
-  (|>> (all //.and
-            ..natural
-            ..bit)))
+     (for_any (_ it)
+              (-> (Projection it)
+                  (Projection (@type.Variant it))))
+     (|>> (all //.and
+               ..natural
+               ..bit)))
 
 (the (complex_expression it)
-  (for_any (_ it)
-    (-> (Projection it)
-        (Projection (@type.Complex it))))
-  (..or (variant_expression it)
-        (..list it)))
+     (for_any (_ it)
+              (-> (Projection it)
+                  (Projection (@type.Complex it))))
+     (..or (variant_expression it)
+           (..list it)))
 
 (the constant_expression
-  (Projection @type.Name)
-  (all //.and
-       ..text
-       ..text))
+     (Projection @type.Name)
+     (all //.and
+          ..text
+          ..text))
 
 (the variable_expression
-  (Projection @type.Variable)
-  (all ..or
-       ..natural
-       ..natural))
+     (Projection @type.Variable)
+     (all ..or
+          ..natural
+          ..natural))
 
 (the reference_expression
-  (Projection @type.Reference)
-  (all ..or
-       ..variable_expression
-       ..constant_expression))
+     (Projection @type.Reference)
+     (all ..or
+          ..variable_expression
+          ..constant_expression))
 
 (the (pattern_expression it)
-  (Projection @type.Pattern)
-  ((!variant [[0 [@type.:Simple_Pattern] ..simple_expression]
-              [1 [@type.:Complex_Pattern] (..complex_expression pattern_expression)]
-              [2 [@type.:List_Pattern] (..list pattern_expression)]
-              [3 [@type.:Bind_Pattern] ..natural]])
-   it))
+     (Projection @type.Pattern)
+     ((!variant [[0 [@type.:Simple_Pattern] ..simple_expression]
+                 [1 [@type.:Complex_Pattern] (..complex_expression pattern_expression)]
+                 [2 [@type.:List_Pattern] (..list pattern_expression)]
+                 [3 [@type.:Bind_Pattern] ..natural]])
+      it))
 
 (the branch_expression
-  (for_any (_ it)
-    (-> (Projection it)
-        (Projection (@type.Branch it))))
-  (//.and pattern_expression))
+     (for_any (_ it)
+              (-> (Projection it)
+                  (Projection (@type.Branch it))))
+     (//.and pattern_expression))
 
 (the (match_expression it)
-  (for_any (_ it)
-    (-> (Projection it)
-        (Projection (@type.Match it))))
-  (all //.and
-       (branch_expression it)
-       (..list (branch_expression it))))
+     (for_any (_ it)
+              (-> (Projection it)
+                  (Projection (@type.Match it))))
+     (all //.and
+          (branch_expression it)
+          (..list (branch_expression it))))
 
 (the extension_expression
-  (for_any (_ it)
-    (-> (Projection it)
-        (Projection (@type.Extension it))))
-  (|>> ..list
-       (//.and name)))
+     (for_any (_ it)
+              (-> (Projection it)
+                  (Projection (@type.Extension it))))
+     (|>> ..list
+          (//.and name)))
 
 (the provenance'
-  (exec
-    ... ..provenance
-    (//:pure provenance.dummy)))
+     (comment ..provenance
+              (//:pure provenance.dummy)))
 
 (the .public (expression it)
-  (Projection @type.Expression)
-  (template.let [(expression' ,it)
-                 [(//.and ..provenance' ,it)]]
-    ((!variant [[0 [@type.:Simple] (expression' ..simple_expression)]
-                [1 [@type.:Complex] (expression' (..complex_expression expression))]
-                [2 [@type.:Reference] (expression' ..reference_expression)]
-                [3 [@type.:When] (expression' (//.and expression (match_expression expression)))]
-                [4 [@type.:Abstraction] (expression' (//.and (..list expression) expression))]
-                [5 [@type.:Application] (expression' (//.and expression expression))]
-                [6 [@type.:Extension] (expression' (..extension_expression expression))]])
-     it)))
+     (Projection @type.Expression)
+     (template.let [(expression' ,it)
+                    [(//.and ..provenance' ,it)]]
+                   ((!variant [[0 [@type.:Simple] (expression' ..simple_expression)]
+                               [1 [@type.:Complex] (expression' (..complex_expression expression))]
+                               [2 [@type.:Reference] (expression' ..reference_expression)]
+                               [3 [@type.:When] (expression' (//.and expression (match_expression expression)))]
+                               [4 [@type.:Abstraction] (expression' (//.and (..list expression) expression))]
+                               [5 [@type.:Application] (expression' (//.and expression expression))]
+                               [6 [@type.:Extension] (expression' (..extension_expression expression))]])
+                    it)))

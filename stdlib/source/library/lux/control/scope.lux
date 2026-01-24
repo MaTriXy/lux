@@ -7,72 +7,72 @@
     ["[0]" monad (.only Monad)]]
    ["[0]" function]]])
 
-... https://en.wikipedia.org/wiki/Scope_(computer_science)
-(every .public (Scope context it)
-  (-> context
-      it))
+(comment "https://en.wikipedia.org/wiki/Scope_(computer_science)"
+         (every .public (Scope context it)
+                (-> context
+                    it)))
 
 (the .public context
-  (for_any (_ context)
-    (Scope context context))
-  function.identity)
+     (for_any (_ context)
+              (Scope context context))
+     function.identity)
 
 (the .public local
-  (for_any (_ context it)
-    (-> (Change context)
-        (Change (Scope context it))))
-  (function.in_reverse function.composite))
+     (for_any (_ context it)
+              (-> (Change context)
+                  (Change (Scope context it))))
+     (function.in_reverse function.composite))
 
 (the .public value
-  (for_any (_ context it)
-    (-> context (Scope context it)
-        it))
-  function.of)
+     (for_any (_ context it)
+              (-> context (Scope context it)
+                  it))
+     function.of)
 
 (the .public functor
-  (for_any (_ context)
-    (Functor (Scope context)))
-  (implementation
-   (the each function.composite)))
+     (for_any (_ context)
+              (Functor (Scope context)))
+     (implementation
+      (the each function.composite)))
 
 (the .public monad
-  (for_any (_ context)
-    (Monad (Scope context)))
-  (implementation
-   (the functor ..functor)
+     (for_any (_ context)
+              (Monad (Scope context)))
+     (implementation
+      (the functor ..functor)
 
-   (the pure function.constant)
+      (the pure function.constant)
 
-   (the (conjoint mma)
-     (function (_ env)
-       (mma env env)))))
+      (the (conjoint mma)
+           (function (_ env)
+                     (mma env env)))))
 
 (every .public (With context ! it)
-  (Scope context (! it)))
+       (Scope context (! it)))
 
 (the .public (with monad)
-  (for_any (_ !)
-    (-> (Monad !)
-        (for_any (_ context)
-          (Monad (With context !)))))
-  (implementation
-   (the (functor it)
-     (|> it
-         (by monad each)
-         (by ..functor each)))
+     (for_any (_ !)
+              (-> (Monad !)
+                  (for_any (_ context)
+                           (Monad (With context !)))))
+     (implementation
+      (the (functor it)
+           (|> it
+               (by monad each)
+               (by ..functor each)))
 
-   (the pure
-     (|>> (by monad pure)
-          (by ..monad pure)))
-   
-   (the (conjoint eMeMa)
-     (function (_ env)
-       (monad.let monad
-         [eMa (value env eMeMa)]
-         (value env eMa))))))
+      (the pure
+           (|>> (by monad pure)
+                (by ..monad pure)))
+      
+      (the (conjoint eMeMa)
+           (function (_ env)
+                     (monad.let monad
+                                [eMa (value env eMeMa)]
+                                (value env eMa))))))
 
 (the .public lifted
-  (for_any (_ ! context it)
-    (-> (! it)
-        (Scope context (! it))))
-  (by ..monad pure))
+     (for_any (_ ! context it)
+              (-> (! it)
+                  (Scope context (! it))))
+     (by ..monad pure))

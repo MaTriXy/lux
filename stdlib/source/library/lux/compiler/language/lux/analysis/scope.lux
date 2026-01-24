@@ -23,181 +23,182 @@
    ["[0]" phase]]])
 
 (every Local
-  (@type.Bindings [@type.Type Register]))
+       (@type.Bindings [@type.Type Register]))
 
 (every Foreign
-  (@type.Bindings [@type.Type Variable]))
+       (@type.Bindings [@type.Type Variable]))
 
 (the (local? name scope)
-  (-> Text
-      (Predicate @type.Scope))
-  (|> scope
-      (its [@type.:locals @type.:mappings])
-      (property.contains? name)))
+     (-> Text
+         (Predicate @type.Scope))
+     (|> scope
+         (its [@type.:locals @type.:mappings])
+         (property.contains? name)))
 
 (the (local name scope)
-  (-> Text @type.Scope
-      (Maybe [@type.Type Variable]))
-  (|> scope
-      (its [@type.:locals @type.:mappings])
-      (property.value name)
-      (maybe:each (function (_ [type value])
-                    [type {@type.:Local value}]))))
+     (-> Text @type.Scope
+         (Maybe [@type.Type Variable]))
+     (|> scope
+         (its [@type.:locals @type.:mappings])
+         (property.value name)
+         (maybe:each (function (_ [type value])
+                               [type {@type.:Local value}]))))
 
 (the (captured? name scope)
-  (-> Text
-      (Predicate @type.Scope))
-  (|> scope
-      (its [@type.:captured @type.:mappings])
-      (property.contains? name)))
+     (-> Text
+         (Predicate @type.Scope))
+     (|> scope
+         (its [@type.:captured @type.:mappings])
+         (property.contains? name)))
 
 (the (captured name scope)
-  (-> Text @type.Scope
-      (Maybe [@type.Type Variable]))
-  (loop (of [idx 0
-             mappings (|> scope
-                          (its [@type.:captured @type.:mappings])
-                          (view.as list.stack))])
-    (when mappings
-      {.:Top [_name [_source_type _source_ref]] mappings'}
-      (if (text.= name _name)
-          {.:Some [_source_type {@type.:Foreign idx}]}
-          (of (++ idx) mappings'))
+     (-> Text @type.Scope
+         (Maybe [@type.Type Variable]))
+     (loop (of [idx 0
+                mappings (|> scope
+                             (its [@type.:captured @type.:mappings])
+                             (view.as list.stack))])
+           (when mappings
+                 {.:Top [_name [_source_type _source_ref]] mappings'}
+                 (if (text.= name _name)
+                     {.:Some [_source_type {@type.:Foreign idx}]}
+                     (of (++ idx) mappings'))
 
-      {.:Empty}
-      {.:None})))
+                 {.:Empty}
+                 {.:None})))
 
 (the (reference? name scope)
-  (-> Text
-      (Predicate @type.Scope))
-  (or (local? name scope)
-      (captured? name scope)))
+     (-> Text
+         (Predicate @type.Scope))
+     (or (local? name scope)
+         (captured? name scope)))
 
 (the (reference name scope)
-  (-> Text @type.Scope
-      (Maybe [@type.Type Variable]))
-  (when (..local name scope)
-    {.:Some type,variable}
-    {.:Some type,variable}
+     (-> Text @type.Scope
+         (Maybe [@type.Type Variable]))
+     (when (..local name scope)
+           {.:Some type,variable}
+           {.:Some type,variable}
 
-    _
-    (..captured name scope)))
+           _
+           (..captured name scope)))
 
 (the .public (variable name)
-  (-> Text
-      (Operation (Maybe [Type Variable])))
-  (function (_ state)
-    (let [[inner outer] (|> state
-                            (its @type.:scopes)
-                            (stack.split_when (reference? name)))]
-      (when outer
-        {.:Empty}
-        {.:Right [state {.:None}]}
+     (-> Text
+         (Operation (Maybe [Type Variable])))
+     (function (_ state)
+               (let [[inner outer] (|> state
+                                       (its @type.:scopes)
+                                       (stack.split_when (reference? name)))]
+                    (when outer
+                          {.:Empty}
+                          {.:Right [state {.:None}]}
 
-        {.:Top maximum_outer _}
-        (let [[ref_type init_ref] (maybe.else (undefined)
-                                              (..reference name maximum_outer))
-              [ref inner'] (stack.mix (is (-> @type.Scope [Variable (Stack @type.Scope)] [Variable (Stack @type.Scope)])
-                                          (function (_ scope ref+inner)
-                                            [{@type.:Foreign (its [@type.:captured @type.:counter] scope)}
-                                             {.:Top (revised @type.:captured
-                                                             (is (-> Foreign Foreign)
-                                                                 (|>> (revised @type.:counter ++)
-                                                                      (revised @type.:mappings (property.has name [ref_type (pair.left ref+inner)]))))
-                                                             scope)
-                                                    (pair.right ref+inner)}]))
-                                      (stack.in_reverse inner)
-                                      [init_ref {.:Empty}])
-              scopes (stack:composite inner' outer)]
-          {.:Right [(has @type.:scopes scopes state)
-                    {.:Some [(@type.old ref_type) ref]}]})
-        ))))
+                          {.:Top maximum_outer _}
+                          (let [[ref_type init_ref] (is [@type.Type Variable]
+                                                        (maybe.else (undefined)
+                                                                    (..reference name maximum_outer)))
+                                [ref inner'] (stack.mix (is (-> @type.Scope [Variable (Stack @type.Scope)] [Variable (Stack @type.Scope)])
+                                                            (function (_ scope ref+inner)
+                                                                      [{@type.:Foreign (its [@type.:captured @type.:counter] scope)}
+                                                                       {.:Top (revised @type.:captured
+                                                                                       (is (-> Foreign Foreign)
+                                                                                           (|>> (revised @type.:counter ++)
+                                                                                                (revised @type.:mappings (property.has name [ref_type (pair.left ref+inner)]))))
+                                                                                       scope)
+                                                                              (pair.right ref+inner)}]))
+                                                        (stack.in_reverse inner)
+                                                        [init_ref {.:Empty}])
+                                scopes (stack:composite inner' outer)]
+                               {.:Right [(has @type.:scopes scopes state)
+                                         {.:Some [(@type.old ref_type) ref]}]})
+                          ))))
 
 (exception.the .public no_scope)
 (exception.the .public drained)
 
 (the .public (with_local [name type] action)
-  (for_any (_ it)
-    (-> [Text Type]
-        (Change (Operation it))))
-  (function (_ state)
-    (when (its @type.:scopes state)
-      {.:Top head tail}
-      (let [new_var_id (its [@type.:locals @type.:counter] head)
-            new_head (revised @type.:locals
-                              (is (Change Local)
-                                  (|>> (revised @type.:counter ++)
-                                       (revised @type.:mappings (property.has name [(@type.new type) new_var_id]))))
-                              head)]
-        (when (phase.value' (has @type.:scopes {.:Top new_head tail} state)
-                            action)
-          {try.:Success [state' output]}
-          (when (its @type.:scopes state')
-            {.:Top head' tail'}
-            (let [scopes' {.:Top (has @type.:locals (its @type.:locals head) head')
-                                 tail'}]
-              {try.:Success [(has @type.:scopes scopes' state')
-                             output]})
+     (for_any (_ it)
+              (-> [Text Type]
+                  (Change (Operation it))))
+     (function (_ state)
+               (when (its @type.:scopes state)
+                     {.:Top head tail}
+                     (let [new_var_id (its [@type.:locals @type.:counter] head)
+                           new_head (revised @type.:locals
+                                             (is (Change Local)
+                                                 (|>> (revised @type.:counter ++)
+                                                      (revised @type.:mappings (property.has name [(@type.new type) new_var_id]))))
+                                             head)]
+                          (when (phase.value' (has @type.:scopes {.:Top new_head tail} state)
+                                              action)
+                                {try.:Success [state' output]}
+                                (when (its @type.:scopes state')
+                                      {.:Top head' tail'}
+                                      (let [scopes' {.:Top (has @type.:locals (its @type.:locals head) head')
+                                                           tail'}]
+                                           {try.:Success [(has @type.:scopes scopes' state')
+                                                          output]})
 
-            _
-            (exception.except ..drained []))
+                                      _
+                                      (exception.except ..drained []))
 
-          {try.:Failure error}
-          {try.:Failure error}))
+                                {try.:Failure error}
+                                {try.:Failure error}))
 
-      _
-      (exception.except ..no_scope []))))
+                     _
+                     (exception.except ..no_scope []))))
 
 (the empty
-  @type.Scope
-  (let [bindings (is @type.Bindings
-                     [@type.:counter 0
-                      @type.:mappings (list)])]
-    [@type.:locals bindings
-     @type.:captured bindings]))
+     @type.Scope
+     (let [bindings (is @type.Bindings
+                        [@type.:counter 0
+                         @type.:mappings (list)])]
+          [@type.:locals bindings
+           @type.:captured bindings]))
 
 (the .public (reset action)
-  (for_any (_ it)
-    (Change (Operation it)))
-  (function (_ state)
-    (when (action (has @type.:scopes (stack ..empty) state))
-      {try.:Success [state' output]}
-      {try.:Success [(has @type.:scopes (its @type.:scopes state) state')
-                     output]}
+     (for_any (_ it)
+              (Change (Operation it)))
+     (function (_ state)
+               (when (action (has @type.:scopes (stack ..empty) state))
+                     {try.:Success [state' output]}
+                     {try.:Success [(has @type.:scopes (its @type.:scopes state) state')
+                                    output]}
 
-      failure
-      failure)))
+                     failure
+                     failure)))
 
 (the .public (with action)
-  (for_any (_ it)
-    (-> (Operation it)
-        (Operation [@type.Scope it])))
-  (function (_ state)
-    (when (action (revised @type.:scopes (|>> {.:Top ..empty}) state))
-      {try.:Success [state' output]}
-      (when (its @type.:scopes state')
-        {.:Top head tail}
-        {try.:Success [(has @type.:scopes tail state')
-                       [head output]]}
+     (for_any (_ it)
+              (-> (Operation it)
+                  (Operation [@type.Scope it])))
+     (function (_ state)
+               (when (action (revised @type.:scopes (|>> {.:Top ..empty}) state))
+                     {try.:Success [state' output]}
+                     (when (its @type.:scopes state')
+                           {.:Top head tail}
+                           {try.:Success [(has @type.:scopes tail state')
+                                          [head output]]}
 
-        {.:Empty}
-        (exception.except ..drained []))
+                           {.:Empty}
+                           (exception.except ..drained []))
 
-      {try.:Failure error}
-      {try.:Failure error})))
+                     {try.:Failure error}
+                     {try.:Failure error})))
 
 (the .public next
-  (Operation Register)
-  (function (_ state)
-    (when (its @type.:scopes state)
-      {.:Top maximum _}
-      {try.:Success [state (its [@type.:locals @type.:counter] maximum)]}
+     (Operation Register)
+     (function (_ state)
+               (when (its @type.:scopes state)
+                     {.:Top maximum _}
+                     {try.:Success [state (its [@type.:locals @type.:counter] maximum)]}
 
-      {.:Empty}
-      (exception.except ..no_scope []))))
+                     {.:Empty}
+                     (exception.except ..no_scope []))))
 
 (the .public environment
-  (-> @type.Scope
-      (Environment Variable))
-  (|>> (its [@type.:captured @type.:mappings])
-       (list:each (function (_ [_ [_ ref]]) ref))))
+     (-> @type.Scope
+         (Environment Variable))
+     (|>> (its [@type.:captured @type.:mappings])
+          (list:each (function (_ [_ [_ ref]]) ref))))

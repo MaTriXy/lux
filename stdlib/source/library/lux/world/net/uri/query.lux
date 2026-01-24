@@ -25,88 +25,88 @@
       ["[1]" encoding]]]]]])
 
 (every .public Query
-  (Dictionary Text Text))
+       (Dictionary Text Text))
 
 (the .public empty
-  Query
-  (dictionary.empty text.hash))
+     Query
+     (dictionary.empty text.hash))
 
 (the .public equality
-  (Equality Query)
-  (dictionary.equality text.equality))
+     (Equality Query)
+     (dictionary.equality text.equality))
 
 (alias [=]
        ..equality)
 
 (the component
-  (Projection Text)
-  (?.rec
-   (function (_ component)
-     (monad.let [! ?.monad]
-       [head (?text.some (?text.none_of "+%&;"))]
-       (all ?.either
-            (?.after (?.either ?text.end
-                               (?text.this "&"))
-                     (pure head))
-            (monad.let !
-              [_ (?text.this "+")
-               tail component]
-              (pure (.text head " " tail)))
-            (monad.let !
-              [_ (?text.this "%")
-               code (|> (?text.exactly 2 ?text.base_16)
-                        (?.of natural.base_16)
-                        (by ! each text.of_character))
-               tail component]
-              (pure (.text head code tail))))))))
+     (Projection Text)
+     (?.rec
+      (function (_ component)
+                (monad.let [! ?.monad]
+                           [head (?text.some (?text.none_of "+%&;"))]
+                           (all ?.either
+                                (?.after (?.either ?text.end
+                                                   (?text.this "&"))
+                                         (pure head))
+                                (monad.let !
+                                           [_ (?text.this "+")
+                                            tail component]
+                                           (pure (.text head " " tail)))
+                                (monad.let !
+                                           [_ (?text.this "%")
+                                            code (|> (?text.exactly 2 ?text.base_16)
+                                                     (?.of natural.base_16)
+                                                     (by ! each text.of_character))
+                                            tail component]
+                                           (pure (.text head code tail))))))))
 
-... https://en.wikipedia.org/wiki/Delimiter
-(the delimiters
-  "&;")
+(comment "https://en.wikipedia.org/wiki/Delimiter"
+         (the delimiters
+              "&;"))
 
 (the assignment
-  "=")
+     "=")
 
 (the invalid
-  (.text "=" "&;"))
+     (.text "=" "&;"))
 
 (the (form query)
-  (-> Query (Projection Query))
-  (all ?.either
-       (monad.let ?.monad
-         [_ ?text.end]
-         (pure query))
-       (monad.let [! ?.monad]
-         [key (?text.some (?text.none_of ..invalid))
-          key (?text.local key ..component)
-          key (?.of_try (uri.of_text key))]
-         (?.either (monad.let !
-                     [_ (?text.this ..assignment)
-                      value ..component
-                      value (?.of_try (uri.of_text value))]
-                     (form (dictionary.has key value query)))
-                   (monad.let !
-                     [_ (all ?.or
-                             (?text.one_of ..delimiters)
-                             ?text.end)]
-                     (form (dictionary.has key "" query)))))
-       ... if invalid form data, just stop parsing...
-       (by ?.monad pure query)))
+     (-> Query (Projection Query))
+     (all ?.either
+          (monad.let ?.monad
+                     [_ ?text.end]
+                     (pure query))
+          (monad.let [! ?.monad]
+                     [key (?text.some (?text.none_of ..invalid))
+                      key (?text.local key ..component)
+                      key (?.of_try (uri.of_text key))]
+                     (?.either (monad.let !
+                                          [_ (?text.this ..assignment)
+                                           value ..component
+                                           value (?.of_try (uri.of_text value))]
+                                          (form (dictionary.has key value query)))
+                               (monad.let !
+                                          [_ (all ?.or
+                                                  (?text.one_of ..delimiters)
+                                                  ?text.end)]
+                                          (form (dictionary.has key "" query)))))
+          (comment "if invalid form data, just stop parsing..."
+                   (by ?.monad pure query))))
 
 (the as_text
-  (text.Injection Query)
-  (|>> dictionary.entries
-       (list:each (function (_ [key value])
-                    (.text (uri.as_text key) "=" (uri.as_text value))))
-       (text.interposed "&")))
+     (text.Injection Query)
+     (|>> dictionary.entries
+          (list:each (function (_ [key value])
+                               (.text (uri.as_text key) "=" (uri.as_text value))))
+          (text.interposed "&")))
 
 (the of_text
-  (-> Text
-      (Try Query))
-  (?text.value (..form ..empty)))
+     (-> Text
+         (Try Query))
+     (?text.value (..form ..empty)))
 
 (the .public text
-  (Format Text Query)
-  (implementation
-   (the as ..as_text)
-   (the of ..of_text)))
+     (Format Text Query)
+     (implementation
+      (the as ..as_text)
+      (the of ..of_text)))

@@ -15,128 +15,128 @@
 
 (every (Cleaner context
                 region)
-  (-> region
-      (context (Try Any))))
+       (-> region
+           (context (Try Any))))
 
 (every .public (Region context it
                        region)
-  (-> [region (List (Cleaner context region))]
-      (context [(List (Cleaner context region))
-                (Try it)])))
+       (-> [region (List (Cleaner context region))]
+           (context [(List (Cleaner context region))
+                     (Try it)])))
 
-... https://en.wikipedia.org/wiki/Delimiter
-(the delimiter
-  Text
-  (let [line (text \n "-----------------------------------------")
-        space (text \n \n)]
-    (text line
-          line
-          line
-          space)))
+(comment "https://en.wikipedia.org/wiki/Delimiter"
+         (the delimiter
+              Text
+              (let [line (text \n "-----------------------------------------")
+                    space (text \n \n)]
+                   (text line
+                         line
+                         line
+                         space))))
 
 (exception.the .public (clean_up_error [error output])
-  (for_any (_ it)
-    (Exception [Text (Try it)]))
-  (text error
-        (when output
-          {try.:Success _}
-          ""
+               (for_any (_ it)
+                        (Exception [Text (Try it)]))
+               (text error
+                     (when output
+                           {try.:Success _}
+                           ""
 
-          {try.:Failure error|output}
-          (text ..delimiter
-                error|output))))
+                           {try.:Failure error|output}
+                           (text ..delimiter
+                                 error|output))))
 
 (the (clean clean_up output)
-  (for_any (_ it)
-    (-> (Try Any)
-        (Change (Try it))))
-  (when clean_up
-    {try.:Success _}
-    output
-
-    {try.:Failure error}
-    (exception.except ..clean_up_error [error output])))
-
-(the .public (value monad computation)
-  (for_any (_ context it)
-    (-> (Monad context) (Region context it)
-        (context (Try it))))
-  (monad.let [! monad]
-    [[cleaners output] (computation [[] (list)])]
-    (|> cleaners
-        (list.each' ! (function (_ cleaner) (cleaner [])))
-        (by ! each (function (_ it)
-                     (list.mix clean it output))))))
-
-(the .public (acquire! monad cleaner value)
-  (for_any (_ context it)
-    (-> (Monad context) (-> it (context (Try Any))) it
-        (Region context it)))
-  (function (_ [region cleaners])
-    (by monad pure [(list:composite cleaners
-                                    (list (function (_ region) (cleaner value))))
-                    {try.:Success value}])))
-
-(the .public (functor super)
-  (for_any (_ context)
-    (-> (Functor context)
-        (Functor (Region context))))
-  (implementation
-   (the (each f)
-     (function (_ fa)
-       (function (_ region+cleaners)
-         (by super each
-             (function (_ [cleaners' temp])
-               [cleaners' (when temp
-                            {try.:Success value}
-                            {try.:Success (f value)}
-
-                            {try.:Failure error}
-                            {try.:Failure error})])
-             (fa region+cleaners)))))))
-
-(the .public (monad super)
-  (for_any (_ context)
-    (-> (Monad context)
-        (Monad (Region context))))
-  (implementation
-   (the functor
-     (..functor (its monad.functor super)))
-
-   (the (pure value)
-     (function (_ [region cleaners])
-       (by super pure [cleaners {try.:Success value}])))
-
-   (the (conjoint ffa)
-     (function (_ [region cleaners])
-       (monad.let super
-         [[cleaners efa] (ffa [region cleaners])]
-         (when efa
-           {try.:Success fa}
-           (fa [region cleaners])
+     (for_any (_ it)
+              (-> (Try Any)
+                  (Change (Try it))))
+     (when clean_up
+           {try.:Success _}
+           output
 
            {try.:Failure error}
-           (pure [cleaners {try.:Failure error}])))))))
+           (exception.except ..clean_up_error [error output])))
+
+(the .public (value monad computation)
+     (for_any (_ context it)
+              (-> (Monad context) (Region context it)
+                  (context (Try it))))
+     (monad.let [! monad]
+                [[cleaners output] (computation [[] (list)])]
+                (|> cleaners
+                    (list.each' ! (function (_ cleaner) (cleaner [])))
+                    (by ! each (function (_ it)
+                                         (list.mix clean it output))))))
+
+(the .public (acquire! monad cleaner value)
+     (for_any (_ context it)
+              (-> (Monad context) (-> it (context (Try Any))) it
+                  (Region context it)))
+     (function (_ [region cleaners])
+               (by monad pure [(list:composite cleaners
+                                               (list (function (_ region) (cleaner value))))
+                               {try.:Success value}])))
+
+(the .public (functor super)
+     (for_any (_ context)
+              (-> (Functor context)
+                  (Functor (Region context))))
+     (implementation
+      (the (each f)
+           (function (_ fa)
+                     (function (_ region+cleaners)
+                               (by super each
+                                   (function (_ [cleaners' temp])
+                                             [cleaners' (when temp
+                                                              {try.:Success value}
+                                                              {try.:Success (f value)}
+
+                                                              {try.:Failure error}
+                                                              {try.:Failure error})])
+                                   (fa region+cleaners)))))))
+
+(the .public (monad super)
+     (for_any (_ context)
+              (-> (Monad context)
+                  (Monad (Region context))))
+     (implementation
+      (the functor
+           (..functor (its monad.functor super)))
+
+      (the (pure value)
+           (function (_ [region cleaners])
+                     (by super pure [cleaners {try.:Success value}])))
+
+      (the (conjoint ffa)
+           (function (_ [region cleaners])
+                     (monad.let super
+                                [[cleaners efa] (ffa [region cleaners])]
+                                (when efa
+                                      {try.:Success fa}
+                                      (fa [region cleaners])
+
+                                      {try.:Failure error}
+                                      (pure [cleaners {try.:Failure error}])))))))
 
 (the .public (failure monad error)
-  (for_any (_ context)
-    (-> (Monad context) Text
-        (Region context)))
-  (function (_ [region cleaners])
-    (by monad pure [cleaners {try.:Failure error}])))
+     (for_any (_ context)
+              (-> (Monad context) Text
+                  (Region context)))
+     (function (_ [region cleaners])
+               (by monad pure [cleaners {try.:Failure error}])))
 
 (the .public (except monad exception message)
-  (for_any (_ context e it)
-    (-> (Monad context) (Exception e) e
-        (Region context it)))
-  (failure monad (exception.error exception message)))
+     (for_any (_ context e it)
+              (-> (Monad context) (Exception e) e
+                  (Region context it)))
+     (failure monad (exception.error exception message)))
 
 (the .public (lifted monad operation)
-  (for_any (_ context it)
-    (-> (Monad context) (context it)
-        (Region context it)))
-  (function (_ [region cleaners])
-    (by monad each
-        (|>> {try.:Success}
-             [cleaners])
-        operation)))
+     (for_any (_ context it)
+              (-> (Monad context) (context it)
+                  (Region context it)))
+     (function (_ [region cleaners])
+               (by monad each
+                   (|>> {try.:Success}
+                        [cleaners])
+                   operation)))

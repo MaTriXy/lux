@@ -29,165 +29,164 @@
 (nominal.every .public Common Any)
 (nominal.every .public Special Any)
 
-(nominal.every .public (CSS brand)
-  Text
+(<| (nominal.every .public (CSS brand)
+                   Text)
+    (these (the .public css
+                (-> (CSS Any)
+                    Text)
+                (|>> nominal.as))
 
-  (the .public css
-    (-> (CSS Any)
-        Text)
-    (|>> nominal.as))
+           (the .public empty
+                (CSS Any)
+                (nominal.of ""))
 
-  (the .public empty
-    (CSS Any)
-    (nominal.of ""))
+           (every .public Style
+                  (List (for_some (_ brand)
+                                  [(Property brand)
+                                   (Value brand)])))
 
-  (every .public Style
-    (List (for_some (_ brand)
-            [(Property brand)
-             (Value brand)])))
+           (the .public (rule selector style)
+                (-> (Selector Any) Style
+                    (CSS Common))
+                (nominal.of
+                 (text (/selector.selector selector) "{" (/style.inline (/style.style style)) "}")))
 
-  (the .public (rule selector style)
-    (-> (Selector Any) Style
-        (CSS Common))
-    (nominal.of
-     (text (/selector.selector selector) "{" (/style.inline (/style.style style)) "}")))
+           (the .public char_set
+                (-> Encoding
+                    (CSS Special))
+                (|>> encoding.name
+                     %.text
+                     (text.enclosed ["@charset " ";"])
+                     nominal.of))
 
-  (the .public char_set
-    (-> Encoding
-        (CSS Special))
-    (|>> encoding.name
-         %.text
-         (text.enclosed ["@charset " ";"])
-         nominal.of))
+           (the .public (font font)
+                (-> Font
+                    (CSS Special))
+                (let [with_unicode (is (List [Text Text])
+                                       (when (its /font.:unicode_range font)
+                                             {.:Some unicode_range}
+                                             (let [unicode_range' (text "U+" (by natural.base_16 as (its /font.:start unicode_range))
+                                                                        "-" (by natural.base_16 as (its /font.:end unicode_range)))]
+                                                  (list ["unicode-range" unicode_range']))
+                                             
+                                             {.:None}
+                                             (list)))]
+                     (|> (list:composite (list ["font-family" (its /font.:family font)]
+                                               ["src" (text "url(" (its /font.:source font) ")")]
+                                               ["font-stretch" (|> font (its /font.:stretch) (maybe.else /value.normal_stretch) /value.value)]
+                                               ["font-style" (|> font (its /font.:style) (maybe.else /value.normal_style) /value.value)]
+                                               ["font-weight" (|> font (its /font.:weight) (maybe.else /value.normal_weight) /value.value)])
+                                         with_unicode)
+                         (list:each (function (_ [property value])
+                                              (text property ": " value ";")))
+                         text.together
+                         (text.enclosed ["{" "}"])
+                         (text "@font-face")
+                         nominal.of)))
 
-  (the .public (font font)
-    (-> Font
-        (CSS Special))
-    (let [with_unicode (when (its /font.:unicode_range font)
-                         {.:Some unicode_range}
-                         (let [unicode_range' (text "U+" (by natural.base_16 as (its /font.:start unicode_range))
-                                                    "-" (by natural.base_16 as (its /font.:end unicode_range)))]
-                           (list ["unicode-range" unicode_range']))
-                         
-                         {.:None}
-                         (list))]
-      (|> (list:composite (list ["font-family" (its /font.:family font)]
-                                ["src" (text "url(" (its /font.:source font) ")")]
-                                ["font-stretch" (|> font (its /font.:stretch) (maybe.else /value.normal_stretch) /value.value)]
-                                ["font-style" (|> font (its /font.:style) (maybe.else /value.normal_style) /value.value)]
-                                ["font-weight" (|> font (its /font.:weight) (maybe.else /value.normal_weight) /value.value)])
-                          with_unicode)
-          (list:each (function (_ [property value])
-                       (text property ": " value ";")))
-          text.together
-          (text.enclosed ["{" "}"])
-          (text "@font-face")
-          nominal.of)))
+           (the .public (import url query)
+                (-> URL (Maybe Query)
+                    (CSS Special))
+                (nominal.of
+                 (text (text "@import url(" (%.text url) ")")
+                       (when query
+                             {.:Some query}
+                             (text " " (/query.query query))
+                             
+                             {.:None}
+                             "")
+                       ";")))
 
-  (the .public (import url query)
-    (-> URL (Maybe Query)
-        (CSS Special))
-    (nominal.of
-     (text (text "@import url(" (%.text url) ")")
-           (when query
-             {.:Some query}
-             (text " " (/query.query query))
-             
-             {.:None}
-             "")
-           ";")))
+           ... https://en.wikipedia.org/wiki/Delimiter
+           (the delimiter
+                \n)
 
-  ... https://en.wikipedia.org/wiki/Delimiter
-  (the delimiter
-    \n)
+           (every .public Frame
+                  (Record
+                   [:when (Value Percentage)
+                    :what Style]))
 
-  (every .public Frame
-    (Record
-     [:when (Value Percentage)
-      :what Style]))
+           (the .public (key_frames animation frames)
+                (-> (Value Animation) (List Frame)
+                    (CSS Special))
+                (nominal.of
+                 (text "@keyframes " (/value.value animation) " {"
+                       (|> frames
+                           (list:each (function (_ frame)
+                                                (text (/value.value (its :when frame)) " {"
+                                                      (/style.inline (/style.style (its :what frame)))
+                                                      "}")))
+                           (text.interposed ..delimiter))
+                       "}")))
 
-  (the .public (key_frames animation frames)
-    (-> (Value Animation) (List Frame)
-        (CSS Special))
-    (nominal.of
-     (text "@keyframes " (/value.value animation) " {"
-           (|> frames
-               (list:each (function (_ frame)
-                            (text (/value.value (its :when frame)) " {"
-                                  (/style.inline (/style.style (its :what frame)))
-                                  "}")))
-               (text.interposed ..delimiter))
-           "}")))
+           (the !composite
+                (template.macro (!composite <pre> <post>)
+                                [(nominal.of
+                                  (text (nominal.as <pre>)
+                                        ..delimiter
+                                        (nominal.as <post>)))]))
+           
+           (the .public (and pre post)
+                (for_any (_ kind)
+                         (-> (CSS kind) (CSS kind)
+                             (CSS kind)))
+                (!composite pre post))
 
-  (the !composite
-    (template.macro (!composite <pre> <post>)
-      [(nominal.of
-        (text (nominal.as <pre>)
-              ..delimiter
-              (nominal.as <post>)))]))
-  
-  (the .public (and pre post)
-    (for_any (_ kind)
-      (-> (CSS kind) (CSS kind)
-          (CSS kind)))
-    (!composite pre post))
+           (the .public (in_context combinator selector css)
+                (-> Combinator (Selector Any)
+                    (Change (CSS Common)))
+                (|> css
+                    nominal.as
+                    (text.all_split_by ..delimiter)
+                    (list:each (let [prefix (|> selector
+                                                (combinator (/selector.tag ""))
+                                                /selector.selector)]
+                                    (|>> (text prefix))))
+                    (text.interposed ..delimiter)
+                    nominal.of))
 
-  (the .public (in_context combinator selector css)
-    (-> Combinator (Selector Any)
-        (Change (CSS Common)))
-    (|> css
-        nominal.as
-        (text.all_split_by ..delimiter)
-        (list:each (let [prefix (|> selector
-                                    (combinator (/selector.tag ""))
-                                    /selector.selector)]
-                     (|>> (text prefix))))
-        (text.interposed ..delimiter)
-        nominal.of))
+           (the .public (dependent combinator selector style inner)
+                (-> Combinator (Selector Any) Style
+                    (Change (CSS Common)))
+                (!composite (..rule selector style)
+                            (..in_context combinator selector inner)))
 
-  (the .public (dependent combinator selector style inner)
-    (-> Combinator (Selector Any) Style
-        (Change (CSS Common)))
-    (!composite (..rule selector style)
-                (..in_context combinator selector inner)))
+           (template.with [<name> <combinator>]
+                          [(the .public <name>
+                                (-> (Selector Any) Style
+                                    (Change (CSS Common)))
+                                (..dependent <combinator>))]
 
-  (template.with [<name> <combinator>]
-    [(the .public <name>
-       (-> (Selector Any) Style
-           (Change (CSS Common)))
-       (..dependent <combinator>))]
+                          [[with_descendants /selector.in]
+                           [with_children /selector.sub]])
 
-    [[with_descendants /selector.in]
-     [with_children /selector.sub]])
+           (the .public (in_case specializer selector css)
+                (for_any (_ kind)
+                         (-> (Specializer kind) (Selector Generic)
+                             (Change (CSS Common))))
+                (|> css
+                    nominal.as
+                    (text.all_split_by ..delimiter)
+                    (list:each (let [prefix (|> selector
+                                                (specializer (as_expected (/selector.tag "")))
+                                                /selector.selector)]
+                                    (|>> (text prefix))))
+                    (text.interposed ..delimiter)
+                    nominal.of))
 
-  (the .public (in_case specializer selector css)
-    (for_any (_ kind)
-      (-> (Specializer kind) (Selector Generic)
-          (Change (CSS Common))))
-    (|> css
-        nominal.as
-        (text.all_split_by ..delimiter)
-        (list:each (let [prefix (|> selector
-                                    (specializer (as_expected (/selector.tag "")))
-                                    /selector.selector)]
-                     (|>> (text prefix))))
-        (text.interposed ..delimiter)
-        nominal.of))
+           (the .public (specialized combinator selector style inner)
+                (for_any (_ kind)
+                         (-> (Specializer kind) (Selector Generic) Style
+                             (Change (CSS Common))))
+                (!composite (..rule selector style)
+                            (..in_case combinator selector inner)))
 
-  (the .public (specialized combinator selector style inner)
-    (for_any (_ kind)
-      (-> (Specializer kind) (Selector Generic) Style
-          (Change (CSS Common))))
-    (!composite (..rule selector style)
-                (..in_case combinator selector inner)))
+           (template.with [<name> <combinator>]
+                          [(the .public <name>
+                                (-> (Selector Generic) Style
+                                    (Change (CSS Common)))
+                                (..specialized <combinator>))]
 
-  (template.with [<name> <combinator>]
-    [(the .public <name>
-       (-> (Selector Generic) Style
-           (Change (CSS Common)))
-       (..specialized <combinator>))]
-
-    [[with_case /selector.and]
-     [with_part /selector.at]
-     [with_element /selector.for]])
-  )
+                          [[with_case /selector.and]
+                           [with_part /selector.at]
+                           [with_element /selector.for]])))

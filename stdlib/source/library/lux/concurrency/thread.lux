@@ -35,137 +35,136 @@
                   (ffi.the java/lang/Long)
 
                   (ffi.the java/lang/Runtime
-                    ("static" getRuntime [] java/lang/Runtime)
-                    (availableProcessors [] int))
+                           ("static" getRuntime [] java/lang/Runtime)
+                           (availableProcessors [] int))
 
                   (ffi.the java/lang/Runnable)
 
                   (ffi.the java/util/concurrent/TimeUnit
-                    ("enum" MILLISECONDS))
+                           ("enum" MILLISECONDS))
                   
                   (ffi.the java/util/concurrent/Executor
-                    (execute [java/lang/Runnable] "io" void))
+                           (execute [java/lang/Runnable] "io" void))
 
                   (ffi.the (java/util/concurrent/ScheduledFuture a))
 
                   (ffi.the java/util/concurrent/ScheduledThreadPoolExecutor
-                    (new [int])
-                    (schedule [java/lang/Runnable long java/util/concurrent/TimeUnit] "io" (java/util/concurrent/ScheduledFuture java/lang/Object))))
+                           (new [int])
+                           (schedule [java/lang/Runnable long java/util/concurrent/TimeUnit] "io" (java/util/concurrent/ScheduledFuture java/lang/Object))))
 
            target.js
            (these (ffi.the (setTimeout [ffi.Function ffi.Number] "io" Any)))
 
            target.python
            (these (ffi.the threading/Timer
-                    (start [] "io" "?" Any))
+                           (start [] "io" "?" Any))
                   (ffi.the threading
-                    ("static" Timer [ffi.Float ffi.Function] threading/Timer)))
+                           ("static" Timer [ffi.Float ffi.Function] threading/Timer)))
            
-           ... Default
-           (these)
-           )
+           (comment "Default"
+                    (these)))
 
 (the .public parallelism
-  Natural
-  (expansion.let [<default> 1]
-    (target.if target.jvm
-               (<| (configuration.if ["lua_compiler?" ""]
-                                     ... TODO: Remove this when Rembulan is no longer being used.
-                                     <default>)
-                   (|> [] java/lang/Runtime:getRuntime
-                       (java/lang/Runtime:availableProcessors [])
-                       ffi.of_int
-                       .natural))
-               
-               ... else
-               <default>)))
+     Natural
+     (expansion.let [<default> 1]
+                    (target.if target.jvm
+                               (<| (configuration.if ["lua_compiler?" ""]
+                                                     (comment "TODO: Remove this when Rembulan is no longer being used."
+                                                              <default>))
+                                   (|> [] java/lang/Runtime:getRuntime
+                                       (java/lang/Runtime:availableProcessors [])
+                                       ffi.of_int
+                                       .natural))
+                               
+                               (comment "else"
+                                        <default>))))
 
 (target.if target.jvm
            (the runner
-             java/util/concurrent/ScheduledThreadPoolExecutor
-             (|> ..parallelism
-                 .integer
-                 ffi.as_int
-                 [] java/util/concurrent/ScheduledThreadPoolExecutor:new))
+                java/util/concurrent/ScheduledThreadPoolExecutor
+                (|> ..parallelism
+                    .integer
+                    ffi.as_int
+                    [] java/util/concurrent/ScheduledThreadPoolExecutor:new))
            
            [target.js target.python]
            (these)
            
-           ... else
-           (the schedule!,value
-             (let [[module _] (name .._)]
-               (event.loop module))))
+           (comment "else"
+                    (the schedule!,value
+                         (let [[module _] (name .._)]
+                              (event.loop module)))))
 
 (the (execute! action)
-  (-> (IO Any) Any)
-  (when (try (io.value action))
-    {try.:Failure error}
-    (exec
-      (debug.log! (.text_composite# "ERROR DURING THREAD EXECUTION:" text.\n
-                                    error))
-      [])
-    
-    {try.:Success _}
-    []))
+     (-> (IO Any) Any)
+     (when (try (io.value action))
+           {try.:Failure error}
+           (exec
+            (debug.log! (.text_composite# "ERROR DURING THREAD EXECUTION:" text.\n
+                                          error))
+            [])
+           
+           {try.:Success _}
+           []))
 
 (every .public Delay
-  Natural)
+       Natural)
 
 (the .public milli_second
-  Delay
-  1)
+     Delay
+     1)
 
 (template.with [<name> <scale> <base>]
-  [(the .public <name>
-     Delay
-     (n.x <scale> <base>))]
+               [(the .public <name>
+                     Delay
+                     (n.x <scale> <base>))]
 
-  [[second 1,000 milli_second]
-   [minute    60 second]
-   [hour      60 minute]
-   [day       24 hour]
-   [week       7 day]])
+               [[second 1,000 milli_second]
+                [minute    60 second]
+                [hour      60 minute]
+                [day       24 hour]
+                [week       7 day]])
 
 (the .public (schedule! milli_seconds action)
-  (-> Delay (IO Any) (IO Any))
-  (target.if target.jvm
-             (let [runnable (ffi.object [] [java/lang/Runnable]
-                              []
-                              (java/lang/Runnable [] (run self []) void
-                                                  (..execute! action)))]
-               (when milli_seconds
-                 0 (java/util/concurrent/Executor:execute [runnable] runner)
-                 _ (java/util/concurrent/ScheduledThreadPoolExecutor:schedule [runnable (.integer milli_seconds) java/util/concurrent/TimeUnit:MILLISECONDS]
-                                                                              runner)))
+     (-> Delay (IO Any) (IO Any))
+     (target.if target.jvm
+                (let [runnable (ffi.object [] [java/lang/Runnable]
+                                           []
+                                           (java/lang/Runnable [] (run self []) void
+                                                               (..execute! action)))]
+                     (when milli_seconds
+                           0 (java/util/concurrent/Executor:execute [runnable] runner)
+                           _ (java/util/concurrent/ScheduledThreadPoolExecutor:schedule [runnable (.integer milli_seconds) java/util/concurrent/TimeUnit:MILLISECONDS]
+                                                                                        runner)))
 
-             target.js
-             (..setTimeout [(ffi.function (_ []) Any (..execute! action))
-                            (n.real milli_seconds)])
+                target.js
+                (..setTimeout [(ffi.function (_ []) Any (..execute! action))
+                               (n.real milli_seconds)])
 
-             target.python
-             (monad.let io.monad
-               [_ (|> (ffi.function (_ []) Any (..execute! action))
-                      [(|> milli_seconds n.real (r./ +1,000.0))]
-                      threading:Timer
-                      (threading/Timer:start []))]
-               (pure []))
-             
-             ... else
-             (let [[schedule! value] ..schedule!,value]
-               (schedule! milli_seconds action))))
+                target.python
+                (monad.let io.monad
+                           [_ (|> (ffi.function (_ []) Any (..execute! action))
+                                  [(|> milli_seconds n.real (r./ +1,000.0))]
+                                  threading:Timer
+                                  (threading/Timer:start []))]
+                           (pure []))
+                
+                (comment "else"
+                         (let [[schedule! value] ..schedule!,value]
+                              (schedule! milli_seconds action)))))
 
 (target.if [target.jvm target.js target.python]
            (these)
            
-           ... else
-           (the .public value
-             (IO Any)
-             (let [[schedule! value] ..schedule!,value]
-               (monad.let io.monad
-                 [outcome value]
-                 (pure (when outcome
-                         {try.:Success _}
-                         []
-                         
-                         {try.:Failure error}
-                         (debug.log! error)))))))
+           (comment "else"
+                    (the .public value
+                         (IO Any)
+                         (let [[schedule! value] ..schedule!,value]
+                              (monad.let io.monad
+                                         [outcome value]
+                                         (pure (when outcome
+                                                     {try.:Success _}
+                                                     []
+                                                     
+                                                     {try.:Failure error}
+                                                     (debug.log! error))))))))

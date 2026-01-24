@@ -31,7 +31,7 @@
                 [module_alias]
 
                 [type_code]
-                [expected_type]
+                [type:expectation]
 
                 [code:local]
 
@@ -48,123 +48,123 @@
                 [?:tuple]])
 
 (the .public or
-  (pattern
-   (macro (_ tokens)
-     (when (.|> (all ?:and
-                     (?:form ?:rest)
-                     ?:any
-                     ?:rest)
-                (?:value tokens))
-       {.:Some [patterns body branches]}
-       (when patterns
-         (list)
-         (meta.failure "")
+     (pattern
+      (macro (_ tokens)
+             (when (.|> (all ?:and
+                             (?:form ?:rest)
+                             ?:any
+                             ?:rest)
+                        (?:value tokens))
+                   {.:Some [patterns body branches]}
+                   (when patterns
+                         (list)
+                         (meta.failure "")
 
-         _
-         (.let [pairs (.|> patterns
-                           (list:each (function (_ pattern) (list pattern body)))
-                           list:conjoint)]
-           (meta:pure (list:composite pairs branches))))
+                         _
+                         (.let [pairs (.|> patterns
+                                           (list:each (function (_ pattern) (list pattern body)))
+                                           list:conjoint)]
+                               (meta:pure (list:composite pairs branches))))
 
-       else
-       (meta.failure "")))))
+                   else
+                   (meta.failure "")))))
 
 (every Level
-  [Code Code])
+       [Code Code])
 
 (the (level it)
-  (-> Code
-      Level)
-  (when it
-    {.:Tuple _ (list expr binding)}
-    [expr binding]
+     (-> Code
+         Level)
+     (when it
+           {.:Tuple _ (list expr binding)}
+           [expr binding]
 
-    _
-    [it (` 1b)]))
+           _
+           [it (` 1b)]))
 
 (the binding?
-  (Predicate Code)
-  (|>> (match? {.:Name _ _})))
+     (Predicate Code)
+     (|>> (match? {.:Name _ _})))
 
 (the ('multi '_ levels body)
-  (-> Code (List Code) Code
-      Code)
-  (list.mix (function (_ [calculation pattern] success)
-              (` (when (, calculation)
-                   (, pattern)
-                   (, success)
+     (-> Code (List Code) Code
+         Code)
+     (list.mix (function (_ [calculation pattern] success)
+                         (` (when (, calculation)
+                                  (, pattern)
+                                  (, success)
 
-                   (,* (if (binding? pattern)
-                           (list)
-                           (list '_ (` {.:None})))))))
-            (.|> levels
-                 list.in_reverse
-                 (list:each ..level))
-            (` {.:Some (, body)})))
+                                  (,* (if (binding? pattern)
+                                          (list)
+                                          (list '_ (` {.:None})))))))
+               (.|> levels
+                    list.in_reverse
+                    (list:each ..level))
+               (` {.:Some (, body)})))
 
 (the .public multi
-  (pattern
-   (macro (_ tokens)
-     (when (.|> (all ?:and
-                     (?:form (?:and ?:any ?:rest))
-                     ?:any
-                     ?:rest)
-                (?:value tokens))
-       {.:Some [[init levels] body next_branches]}
-       (with_names ['temp]
-                   (monad.let meta.monad
-                     [expected ..expected_type]
-                     (pure (list 'temp
-                                 (` (.when (.is# {.:Reification (, (type_code expected)) Maybe}
-                                                 (.when (, 'temp)
-                                                   (, init)
-                                                   (, ('multi 'temp levels body))
+     (pattern
+      (macro (_ tokens)
+             (when (.|> (all ?:and
+                             (?:form (?:and ?:any ?:rest))
+                             ?:any
+                             ?:rest)
+                        (?:value tokens))
+                   {.:Some [[init levels] body next_branches]}
+                   (with_names ['temp]
+                               (monad.let meta.monad
+                                          [expected ..type:expectation]
+                                          (pure (list 'temp
+                                                      (` (.when (.is# {.:Reification (, (type_code expected)) Maybe}
+                                                                      (.when (, 'temp)
+                                                                             (, init)
+                                                                             (, ('multi 'temp levels body))
 
-                                                   (,* (if (binding? init)
-                                                           (list)
-                                                           (list 'temp (` {.:None}))))))
-                                      {.:Some (, 'temp)}
-                                      (, 'temp)
+                                                                             (,* (if (binding? init)
+                                                                                     (list)
+                                                                                     (list 'temp (` {.:None}))))))
+                                                                {.:Some (, 'temp)}
+                                                                (, 'temp)
 
-                                      {.:None}
-                                      (.when (, 'temp)
-                                        (,* next_branches))))))))
-       
-       else
-       (meta.failure "")))))
+                                                                {.:None}
+                                                                (.when (, 'temp)
+                                                                       (,* next_branches))))))))
+                   
+                   else
+                   (meta.failure "")))))
 
 (the .public let
-  (pattern
-   (macro (_ tokens)
-     (when (.|> (all ?:and
-                     (?:form (?:and ?:local ?:any))
-                     ?:any
-                     ?:rest)
-                (?:value tokens))
-       {.:Some [[name pattern] body branches]}
-       (.let ['whole (code:local name)]
-         (meta:pure (list:composite (list 'whole
-                                          (` (when (, 'whole) (, pattern) (, body))))
-                                    branches)))
-       
-       else
-       (meta.failure "")))))
+     (pattern
+      (macro (_ tokens)
+             (when (.|> (all ?:and
+                             (?:form (?:and ?:local ?:any))
+                             ?:any
+                             ?:rest)
+                        (?:value tokens))
+                   {.:Some [[name pattern] body branches]}
+                   (.let ['whole (code:local name)]
+                         (meta:pure (list:composite (list 'whole
+                                                          (` (when (, 'whole) (, pattern) (, body))))
+                                                    branches)))
+                   
+                   else
+                   (meta.failure "")))))
 
 (the .public |>
-  (pattern
-   (macro (_ tokens)
-     (when (.|> (all ?:and
-                     (?:form (?:and ?:local (?:tuple ?:rest)))
-                     ?:any
-                     ?:rest)
-                (?:value tokens))
-       {.:Some [[name steps] body branches]}
-       (.let ['name (code:local name)]
-         (meta:pure (list:composite (list 'name
-                                          (` (.let [(, 'name) (.|> (, 'name)
-                                                                   (,* steps))]
-                                               (, body))))
-                                    branches)))
-       
-       else
-       (meta.failure "")))))
+     (pattern
+      (macro (_ tokens)
+             (when (.|> (all ?:and
+                             (?:form (?:and ?:local (?:tuple ?:rest)))
+                             ?:any
+                             ?:rest)
+                        (?:value tokens))
+                   {.:Some [[name steps] body branches]}
+                   (.let ['name (code:local name)]
+                         (meta:pure (list:composite (list 'name
+                                                          (` (.let [(, 'name) (.|> (, 'name)
+                                                                                   (,* steps))]
+                                                                   (, body))))
+                                                    branches)))
+                   
+                   else
+                   (meta.failure "")))))

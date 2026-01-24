@@ -1,157 +1,158 @@
-... "Techniques for embedding postfix languages in Haskell" by Chris Okasaki
-(.using
- [library
-  [lux (.except Alias Stack
-                if loop stack)
-   [abstract
-    ["<>" projection (.open monad)]
-    ["[0]" monad]]
-   [data
-    ["[0]" maybe (.open monad)]
-    ["[0]" pair]
-    ["[0]" text]
-    [collection
-     ["[0]" list (.open functor)
-      ["?[1]" \\projection]]
-     ["[0]" stack (.open functor)]]]
-   [math
-    [number
-     [/64
-      ["n" natural]
-      ["i" integer]
-      ["r" revolution]
-      ["[0]" real]]]]
-   ["[0]" type]
-   ["[0]" macro (.only with_names)
-    ["[0]" syntax]
-    ["[0]" template]]
-   ["[0]" meta (.only)
-    ["[0]" code (.only)
-     ["<[1]>" \\projection (.only Projection)]]]]])
+(.comment "Techniques for embedding postfix languages in Haskell"
+          "by Chris Okasaki"
+          (.using
+           [library
+            [lux (.except Alias Stack
+                          if loop stack)
+             [abstract
+              ["<>" projection (.open monad)]
+              ["[0]" monad]]
+             [data
+              ["[0]" maybe (.open monad)]
+              ["[0]" pair]
+              ["[0]" text]
+              [collection
+               ["[0]" list (.open functor)
+                ["?[1]" \\projection]]
+               ["[0]" stack (.open functor)]]]
+             [math
+              [number
+               [/64
+                ["n" natural]
+                ["i" integer]
+                ["r" revolution]
+                ["[0]" real]]]]
+             ["[0]" type]
+             ["[0]" macro (.only with_names)
+              ["[0]" syntax]
+              ["[0]" template]]
+             ["[0]" meta (.only)
+              ["[0]" code (.only)
+               ["<[1]>" \\projection (.only Projection)]]]]]))
 
 (every Stack
-  (Record
-   [:minimum (Maybe Code)
-    :top (List Code)]))
+       (Record
+        [:minimum (Maybe Code)
+         :top (List Code)]))
 
 (the top
-  (Projection (List Code))
-  (<code>.tuple (<>.some ?list.any)))
+     (Projection (List Code))
+     (<code>.tuple (<>.some ?list.any)))
 
 (the minimum
-  (Projection Code)
-  (<code>.not ..top))
+     (Projection Code)
+     (<code>.not ..top))
 
 (the stack
-  (Projection Stack)
-  (<>.either (<>.and (<>.maybe minimum)
-                     ..top)
-             (<>.and (<>:each (|>> {.:Some}) minimum)
-                     (<>:pure (list)))))
+     (Projection Stack)
+     (<>.either (<>.and (<>.maybe minimum)
+                        ..top)
+                (<>.and (<>:each (|>> {.:Some}) minimum)
+                        (<>:pure (list)))))
 
 (the stack_type
-  (-> (List Code)
-      (Change Code))
-  (list.mix (function (_ top minimum)
-              (` [(, minimum) (, top)]))))
+     (-> (List Code)
+         (Change Code))
+     (list.mix (function (_ top minimum)
+                         (` [(, minimum) (, top)]))))
 
 (syntax.the .public (=> [inputs ..stack
                          outputs ..stack])
-  (with_names ['_ common_minimum]
-              (let [input_minimum (maybe.else common_minimum (its :minimum inputs))
-                    output_minimum (maybe.else common_minimum (its :minimum outputs))
-                    input_stack (stack_type (its :top inputs) input_minimum)
-                    output_stack (stack_type (its :top outputs) output_minimum)]
-                (pure (list (.if (or (identical? common_minimum input_minimum)
-                                     (identical? common_minimum output_minimum))
-                                 (` (for_any ((, '_) (, common_minimum))
-                                      (-> (, input_stack)
-                                          (, output_stack))))
-                                 (` (-> (, input_stack)
-                                        (, output_stack)))))))))
+            (with_names ['_ common_minimum]
+                        (let [input_minimum (maybe.else common_minimum (its :minimum inputs))
+                              output_minimum (maybe.else common_minimum (its :minimum outputs))
+                              input_stack (stack_type (its :top inputs) input_minimum)
+                              output_stack (stack_type (its :top outputs) output_minimum)]
+                             (pure (list (.if (or (identical? common_minimum input_minimum)
+                                                  (identical? common_minimum output_minimum))
+                                              (` (for_any ((, '_) (, common_minimum))
+                                                          (-> (, input_stack)
+                                                              (, output_stack))))
+                                              (` (-> (, input_stack)
+                                                     (, output_stack)))))))))
 
 (the .public (value it)
-  (for_any (_ ,,, a)
-    (-> (=> []
-            ,,, [a])
-        a))
-  (|> [] it pair.right))
+     (for_any (_ ,,, a)
+              (-> (=> []
+                      ,,, [a])
+                  a))
+     (|> [] it pair.right))
 
 (syntax.the .public (of [arity (<>.only (n.> 0) <code>.natural)])
-  (with_names ['_ 'func 'stack 'output]
-              (monad.let [! meta.monad]
-                ['inputs (|> (macro.name "input")
-                             (list.repeated arity)
-                             (list.complete !))]
-                (pure (list (` (is (for_any ((, '_) (,* 'inputs) (, 'output))
-                                     (-> (-> (,* 'inputs) (, 'output))
-                                         (=> [(,* 'inputs)] [(, 'output)])))
-                                   (function ((, '_) (, 'func))
-                                     (function ((, '_) (, (stack_type 'inputs 'stack)))
-                                       [(, 'stack) ((, 'func) (,* 'inputs))])))))))))
+            (with_names ['_ 'func 'stack 'output]
+                        (monad.let [! meta.monad]
+                                   ['inputs (|> (macro.name "input")
+                                                (list.repeated arity)
+                                                (list.complete !))]
+                                   (pure (list (` (is (for_any ((, '_) (,* 'inputs) (, 'output))
+                                                               (-> (-> (,* 'inputs) (, 'output))
+                                                                   (=> [(,* 'inputs)] [(, 'output)])))
+                                                      (function ((, '_) (, 'func))
+                                                                (function ((, '_) (, (stack_type 'inputs 'stack)))
+                                                                          [(, 'stack) ((, 'func) (,* 'inputs))])))))))))
 
 (template.with [<arity>]
                [(`` (the .public (,, (template.name ["of_" <arity>]))
-                      (..of <arity>)))]
+                         (..of <arity>)))]
 
                [[1] [2] [3] [4]
                 [5] [6] [7] [8]])
 
 (the .public (push x)
-  (for_any (_ a) (-> a (=> [] [a])))
-  (function (_ stack)
-    [stack x]))
+     (for_any (_ a) (-> a (=> [] [a])))
+     (function (_ stack)
+               [stack x]))
 
 (the .public drop
-  (for_any (_ t) (=> [t] []))
-  (function (_ [stack top])
-    stack))
+     (for_any (_ t) (=> [t] []))
+     (function (_ [stack top])
+               stack))
 
 (the .public nip
-  (for_any (_ _ a) (=> [_ a] [a]))
-  (function (_ [[stack _] top])
-    [stack top]))
+     (for_any (_ _ a) (=> [_ a] [a]))
+     (function (_ [[stack _] top])
+               [stack top]))
 
 (the .public dup
-  (for_any (_ a) (=> [a] [a a]))
-  (function (_ [stack top])
-    [[stack top] top]))
+     (for_any (_ a) (=> [a] [a a]))
+     (function (_ [stack top])
+               [[stack top] top]))
 
 (the .public swap
-  (for_any (_ a b) (=> [a b] [b a]))
-  (function (_ [[stack l] r])
-    [[stack r] l]))
+     (for_any (_ a b) (=> [a b] [b a]))
+     (function (_ [[stack l] r])
+               [[stack r] l]))
 
 (the .public left_rotation
-  (for_any (_ a b c) (=> [a b c] [b c a]))
-  (function (_ [[[stack a] b] c])
-    [[[stack b] c] a]))
+     (for_any (_ a b c) (=> [a b c] [b c a]))
+     (function (_ [[[stack a] b] c])
+               [[[stack b] c] a]))
 
 (the .public right_rotation
-  (for_any (_ a b c) (=> [a b c] [c a b]))
-  (function (_ [[[stack a] b] c])
-    [[[stack c] a] b]))
+     (for_any (_ a b c) (=> [a b c] [c a b]))
+     (function (_ [[[stack a] b] c])
+               [[[stack c] a] b]))
 
 (the .public &&
-  (for_any (_ a b) (=> [a b] [(Tuple a b)]))
-  (function (_ [[stack l] r])
-    [stack [l r]]))
+     (for_any (_ a b) (=> [a b] [(Tuple a b)]))
+     (function (_ [[stack l] r])
+               [stack [l r]]))
 
 (the .public left
-  (for_any (_ a b) (=> [a] [(Or a b)]))
-  (function (_ [stack l])
-    [stack {0b l}]))
+     (for_any (_ a b) (=> [a] [(Or a b)]))
+     (function (_ [stack l])
+               [stack {0b l}]))
 
 (the .public right
-  (for_any (_ a b) (=> [b] [(Or a b)]))
-  (function (_ [stack r])
-    [stack {1b r}]))
+     (for_any (_ a b) (=> [b] [(Or a b)]))
+     (function (_ [stack r])
+               [stack {1b r}]))
 
 (template.with [<input> <output> <word> <func>]
                [(`` (the .public <word>
-                      (=> [<input> <input>] [<output>])
-                      (function (_ [[stack subject] param])
-                        [stack (<func> param subject)])))]
+                         (=> [<input> <input>] [<output>])
+                         (function (_ [[stack subject] param])
+                                   [stack (<func> param subject)])))]
 
                [[Natural Natural  n/+  n.+]
                 [Natural Natural  n/-  n.-]
@@ -198,89 +199,89 @@
                 [Real Bit f/>= real.>=]])
 
 (the .public if
-  (for_any (_ ,,,0 ,,,1)
-    (type.let [then (=> ,,,0 ,,,1)
-               else (=> ,,,0 ,,,1)]
-      (=> ,,,0 [Bit then else]
-          ,,,1)))
-  (function (_ [[[stack test] then] else])
-    (.if test
-         (then stack)
-         (else stack))))
+     (for_any (_ ,,,0 ,,,1)
+              (type.let [then (=> ,,,0 ,,,1)
+                         else (=> ,,,0 ,,,1)]
+                        (=> ,,,0 [Bit then else]
+                            ,,,1)))
+     (function (_ [[[stack test] then] else])
+               (.if test
+                    (then stack)
+                    (else stack))))
 
 (the .public call
-  (for_any (_ ,,,0 ,,,1)
-    (type.let [quote (=> ,,,0 ,,,1)]
-      (=> ,,,0 [quote]
-          ,,,1)))
-  (function (_ [stack quote])
-    (quote stack)))
+     (for_any (_ ,,,0 ,,,1)
+              (type.let [quote (=> ,,,0 ,,,1)]
+                        (=> ,,,0 [quote]
+                            ,,,1)))
+     (function (_ [stack quote])
+               (quote stack)))
 
 (the .public loop
-  (for_any (_ ,,,)
-    (type.let [test (=> ,,,
-                        ,,, [Bit])]
-      (=> ,,, [test]
-          ,,,)))
-  (function (loop [stack pred])
-    (let [[stack' verdict] (pred stack)]
-      (.if verdict
-           (loop [stack' pred])
-           stack'))))
+     (for_any (_ ,,,)
+              (type.let [test (=> ,,,
+                                  ,,, [Bit])]
+                        (=> ,,, [test]
+                            ,,,)))
+     (function (loop [stack pred])
+               (let [[stack' verdict] (pred stack)]
+                    (.if verdict
+                         (loop [stack' pred])
+                         stack'))))
 
 (the .public dip
-  (for_any (_ ,,, a)
-    (=> ,,, [a (=> ,,, ,,,)]
-        ,,, [a]))
-  (function (_ [[stack a] quote])
-    [(quote stack) a]))
+     (for_any (_ ,,, a)
+              (=> ,,, [a (=> ,,, ,,,)]
+                  ,,, [a]))
+     (function (_ [[stack a] quote])
+               [(quote stack) a]))
 
 (the .public dip_2
-  (for_any (_ ,,, a b)
-    (=> ,,, [a b (=> ,,, ,,,)]
-        ,,, [a b]))
-  (function (_ [[[stack a] b] quote])
-    [[(quote stack) a] b]))
+     (for_any (_ ,,, a b)
+              (=> ,,, [a b (=> ,,, ,,,)]
+                  ,,, [a b]))
+     (function (_ [[[stack a] b] quote])
+               [[(quote stack) a] b]))
 
 (the .public do
-  (for_any (_ ,,,0 ,,,1)
-    (type.let [body (=> ,,,0 ,,,1)
-               pred (=> ,,,1 ,,,0 [Bit])]
-      (=> ,,,0 [pred body]
-          ,,,1 [pred body])))
-  (function (_ [[stack pred] body])
-    [[(body stack) pred] body]))
+     (for_any (_ ,,,0 ,,,1)
+              (type.let [body (=> ,,,0 ,,,1)
+                         pred (=> ,,,1 ,,,0 [Bit])]
+                        (=> ,,,0 [pred body]
+                            ,,,1 [pred body])))
+     (function (_ [[stack pred] body])
+               [[(body stack) pred] body]))
 
 (the .public while
-  (for_any (_ ,,,0 ,,,1)
-    (type.let [body (=> ,,,1 ,,,0)
-               pred (=> ,,,0 ,,,1 [Bit])]
-      (=> ,,,0 [pred body]
-          ,,,1)))
-  (function (while [[stack pred] body])
-    (let [[stack' verdict] (pred stack)]
-      (.if verdict
-           (while [[(body stack') pred] body])
-           stack'))))
+     (for_any (_ ,,,0 ,,,1)
+              (type.let [body (=> ,,,1 ,,,0)
+                         pred (=> ,,,0 ,,,1 [Bit])]
+                        (=> ,,,0 [pred body]
+                            ,,,1)))
+     (function (while [[stack pred] body])
+               (let [[stack' verdict] (pred stack)]
+                    (.if verdict
+                         (while [[(body stack') pred] body])
+                         stack'))))
 
 (the .public compose
-  (for_any (_ ,,,0 ,,, ,,,1)
-    (=> [(=> ,,,0 ,,,) (=> ,,, ,,,1)]
-        [(=> ,,,0 ,,,1)]))
-  (function (_ [[stack f] g])
-    [stack (|>> f g)]))
+     (for_any (_ ,,,0 ,,, ,,,1)
+              (=> [(=> ,,,0 ,,,) (=> ,,, ,,,1)]
+                  [(=> ,,,0 ,,,1)]))
+     (function (_ [[stack f] g])
+               [stack (|>> f g)]))
 
 (the .public partial
-  (for_any (_ ,,,0 ,,,1 a)
-    (=> ,,,0 [a (=> ,,,0 [a] ,,,1)]
-        ,,,0 [(=> ,,,0 ,,,1)]))
-  (function (_ [[stack arg] quote])
-    [stack (|>> (push arg) quote)]))
+     (for_any (_ ,,,0 ,,,1 a)
+              (=> ,,,0 [a (=> ,,,0 [a] ,,,1)]
+                  ,,,0 [(=> ,,,0 ,,,1)]))
+     (function (_ [[stack arg] quote])
+               [stack (|>> (push arg) quote)]))
 
 (the .public ?
-  (for_any (_ a)
-    (=> [Bit a a] [a]))
-  (|>> left_rotation
-       (push ..drop)
-       (push ..nip)
-       if))
+     (for_any (_ a)
+              (=> [Bit a a] [a]))
+     (|>> left_rotation
+          (push ..drop)
+          (push ..nip)
+          if))

@@ -18,58 +18,58 @@
      ["<[1]>" \\projection]]]]])
 
 (the Computation
-  (template.macro (_ it)
-    [(-> Any
-         it)]))
+     (template.macro (_ it)
+                     [(-> Any
+                          it)]))
 
 (nominal.every .public (IO it)
-  (Computation it)
+               (Computation it)
 
-  (the .public as_io
-    (for_any (_ it)
-      (-> (Computation it)
-          (IO it)))
-    (|>> nominal.of))
+               (the .public as_io
+                    (for_any (_ it)
+                             (-> (Computation it)
+                                 (IO it)))
+                    (|>> nominal.of))
 
-  (the !io
-    (template.macro (!io computation)
-      [(nominal.of
-        (template.with_locals ['func 'arg]
-          (function ('func 'arg)
-            computation)))]))
+               (the !io
+                    (template.macro (!io computation)
+                                    [(nominal.of
+                                      (template.with_locals ['func 'arg]
+                                                            (function ('func 'arg)
+                                                                      computation)))]))
 
-  (the value'
-    (template.macro (_ io)
-      ... creatio ex nihilo
-      [((nominal.as io) [])]))
+               (the value'
+                    (template.macro (_ io)
+                                    [(comment "creatio ex nihilo"
+                                              ((nominal.as io) []))]))
 
-  (syntax.the .public (io [computation ?list.any])
-    (with_names ['_]
-      (pure (list (` (..as_io (function ((, '_) (, '_))
-                                (, computation))))))))
+               (syntax.the .public (io [computation ?list.any])
+                           (with_names ['_]
+                                       (pure (list (` (..as_io (function ((, '_) (, '_))
+                                                                         (, computation))))))))
 
-  (the .public value
-    (for_any (_ it)
-      (-> (IO it)
-          it))
-    (|>> ..value'))
+               (the .public value
+                    (for_any (_ it)
+                             (-> (IO it)
+                                 it))
+                    (|>> ..value'))
 
-  (the .public functor
-    (Functor IO)
-    (implementation
-     (the (each f)
-       (|>> ..value' f !io))))
+               (the .public functor
+                    (Functor IO)
+                    (implementation
+                     (the (each f)
+                          (|>> ..value' f !io))))
 
-  (the .public monad
-    (Monad IO)
-    (implementation
-     (the functor ..functor)
+               (the .public monad
+                    (Monad IO)
+                    (implementation
+                     (the functor ..functor)
 
-     (the pure
-       (|>> !io))
-     
-     (the conjoint
-       (|>> ..value'
-            ..value'
-            !io))))
-  )
+                     (the pure
+                          (|>> !io))
+                     
+                     (the conjoint
+                          (|>> ..value'
+                               ..value'
+                               !io))))
+               )

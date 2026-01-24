@@ -3854,7 +3854,7 @@
                 [(List [Revolution Code]) Text Code]
                 [(List [Real Code]) Text Code]
                 [(List [Text Code]) Text Code]
-                [Case (List Case)]
+                [Case (List Case) (Maybe [Text Code])]
                 [Bundle Code])))
 
 (the' .private every_tag_of_when
@@ -3913,9 +3913,11 @@
              ?:any))
 
 (the' .private ?:when/complete_if_case
-      (type (Projection [Case (List Case)]))
-      (?:and ?:any_case
-             (?:some ?:any_case)))
+      (type (Projection [Case (List Case) (Maybe [Text Code])]))
+      (all ?:and
+           ?:any_case
+           (?:some ?:any_case)
+           (?:maybe ?:when/let')))
 
 (the' .private (?:switch ?:case)
       (type (for_any (_ it)
@@ -4071,10 +4073,6 @@
                   _
                   (failure (text "Unknown tag: " (name:as [module name]))))))
 
-(the' .private \n
-      Text
-      (.int_char# +10))
-
 (the' .private (complete_if_case every_branch)
       (type (-> (Property_List [(Maybe Bundle) Code])
                 (-> Code Natural (Meta Code))))
@@ -4104,6 +4102,239 @@
 
                          {:None}
                          (failure (name:as [..prelude "complete_if_case"])))))
+
+(the' .private (partial_if_case every_case every_branch 'else 'full_value)
+      (type (-> Natural (Property_List [(Maybe Bundle) Code]) Code Code
+                (-> Code Natural (Meta Code))))
+      (function' (partial_if_case 'value case)
+                 (.when# (property:value (natural:as case) every_branch)
+                         {:Some [bundle 'body]}
+                         (if (natural:= (.i64_+# 1 case)
+                                        every_case)
+                             (.when# bundle
+                                     {:Some bundle}
+                                     (let_pair bundle 'value 'body)
+
+                                     {:None}
+                                     (meta:pure 'body))
+                             (monad:let meta:monad
+                                        ['case (generated_name "'case")
+                                         'then (.when# bundle
+                                                       {:Some bundle}
+                                                       (let_pair bundle 'case 'body)
+
+                                                       {:None}
+                                                       (pure 'body))
+                                         'else (partial_if_case 'case (.i64_+# 1 case))]
+                                        (pure (` (.if_case# (, 'value)
+                                                            (, 'case) (, 'then)
+                                                            (, 'case) (, 'else))))))
+
+                         {:None}
+                         (let' ['then (` ((, 'else) (, 'full_value)))]
+                               (if (natural:= (.i64_+# 1 case)
+                                              every_case)
+                                   (meta:pure 'then)
+                                   (monad:let meta:monad
+                                              ['case (generated_name "'case")
+                                               'else (partial_if_case 'case (.i64_+# 1 case))]
+                                              (pure (` (.if_case# (, 'value)
+                                                                  (, 'case) (, 'then)
+                                                                  (, 'case) (, 'else))))))))))
+
+(the' .private \n
+      Text
+      (.int_char# +10))
+
+(the' .private (type_of_definition name state)
+      (type (-> Name Lux
+                (Maybe Type)))
+      (let' [[expectation_for_module expectation_for_proper] name
+             [..:info info ..:source    source  ..:current_module _ ..:modules modules
+              ..:scopes scopes ..:type_context types ..:seed seed
+              ..:expected  expected ..:provenance  provenance ..:eval _eval] state]
+            (.when# (property:value expectation_for_module modules)
+                    {:None}
+                    {:None}
+
+                    {:Some [..:definitions definitions
+                            ..:module_hash _
+                            ..:module_aliases _
+                            ..:imports _
+                            ..:module_state _]}
+                    (.when# (property:value expectation_for_proper definitions)
+                            {:None}
+                            {:None}
+
+                            {:Some [exported? definition]}
+                            (.when# definition
+                                    {:Alias real_name}
+                                    (type_of_definition real_name state)
+                                    
+                                    {:Definition [def_type expression def_value]}
+                                    {:Some def_type})))))
+
+(the' .private (type_variable expected context)
+      (type (-> Natural (List (Maybe Type))
+                (Maybe Type)))
+      (let' [limit (.list_size# context)]
+            (if (.int_<# (as (-> Natural Integer) limit)
+                         (as (-> Natural Integer) expected))
+                (.list_item# expected context)
+                {:None})))
+
+(the' .private (stack:each value it)
+      (for_any (_ cause effect)
+               (type (-> (-> cause effect)
+                         (-> (Stack cause) (Stack effect)))))
+      (stack:mix (function' (_ head tail)
+                            {:Top (value head) tail})
+                 {:Empty}
+                 (stack:in_reverse it)))
+
+(the' .private (clean_type variables it)
+      (type (-> (List (Maybe Type))
+                (Change Type)))
+      (.when# it
+              {:Nominal name parameters}
+              {:Nominal name (list:each (function' (_ it)
+                                                   (let' [[parammeter it] it]
+                                                         [parammeter (clean_type variables it)]))
+                                        parameters)}
+
+              {:Reification left right}
+              {:Reification (clean_type variables left)
+                            (clean_type variables right)}
+
+              {:Quantification quantification environment unquantified}
+              {:Quantification quantification
+                               (stack:each (function' (_ it)
+                                                      (let' [[abstraction argument] it]
+                                                            [(clean_type variables abstraction)
+                                                             (clean_type variables argument)]))
+                                           environment)
+                               (clean_type variables unquantified)}
+              
+              {:Named name anonymous}
+              it
+
+              {:Parameter _}
+              it
+              
+              {:Variable 1b _}
+              it
+              
+              {:Variable 0b id}
+              (.when# (type_variable id variables)
+                      {:None}
+                      it
+
+                      {:Some {:Variable _}}
+                      it
+
+                      {:Some it}
+                      (clean_type variables it))))
+
+(the' .private (type_of_reference full_name)
+      (type (-> Name
+                (Meta Type)))
+      (monad:let meta:monad
+                 [.let' [[module name] full_name]
+                  current_module current_module_name]
+                 (function' (_ compiler)
+                            (let' [temp (is (Either Text [Lux Type])
+                                            (if (.text_=# "" module)
+                                                (.when# (in_env name compiler)
+                                                        {:Some implementation_type}
+                                                        {:Right [compiler implementation_type]}
+
+                                                        _
+                                                        (.when# (type_of_definition [current_module name] compiler)
+                                                                {:Some implementation_type}
+                                                                {:Right [compiler implementation_type]}
+
+                                                                _
+                                                                {:Left (text "Unknown var: " (name:as full_name))}))
+                                                (.when# (type_of_definition full_name compiler)
+                                                        {:Some implementation_type}
+                                                        {:Right [compiler implementation_type]}
+
+                                                        _
+                                                        {:Left (text "Unknown var: " (name:as full_name))})))]
+                                  (.when# temp
+                                          {:Right [compiler temp]}
+                                          (let' [[..:info _ ..:source _ ..:current_module _ ..:modules _
+                                                  ..:scopes _ ..:type_context type_context ..:seed _
+                                                  ..:expected _ ..:provenance _ ..:eval _eval] compiler
+                                                  [..:for_all var_bindings ..:there_exists _] type_context]
+                                                {:Right [compiler (clean_type var_bindings temp)]})
+
+                                          _
+                                          temp)))))
+
+(the' .private type:expectation
+      (type (Meta Type))
+      (<| (function' (_ state))
+          (let' [[..:info info
+                  ..:source source
+                  ..:current_module _
+                  ..:modules modules
+                  ..:scopes scopes
+                  ..:type_context types
+                  ..:seed seed
+                  ..:expected expected
+                  ..:provenance provenance
+                  ..:eval _eval] state])
+          (.when# expected
+                  {:Some type}
+                  {:Right [state type]}
+
+                  {:None}
+                  {:Left "Not expecting any type."})))
+
+(the' .private ('stack it)
+      (type (-> (Stack Code)
+                Code))
+      (|> it
+          stack:in_reverse
+          (stack:mix ':Top ':Empty)))
+
+(the' .private (type:as_code type)
+      (-> Type
+          Code)
+      (.when# type
+              {:Nominal name params}
+              (` {..:Nominal (, (code:text name)) (, ('list (list:each (function' (_ it)
+                                                                                  (let' [[polarity it] it]
+                                                                                        (` [(, (code:bit polarity))
+                                                                                            (, (type:as_code it))])))
+                                                                       params)))})
+
+              {:Reification left right}
+              (` {..:Reification (, (type:as_code left)) (, (type:as_code right))})
+
+              {:Parameter parameter id}
+              (` {..:Parameter (, (code:bit parameter))
+                               (, (code:natural id))})
+
+              {..:Variable quality id}
+              (` {..:Variable (, (code:bit quality)) (, (code:natural id))})
+
+              {:Quantification quantification env type}
+              (` {..:Quantification (, (code:bit quantification))
+                                    (, ('stack (stack:each (function' (_ it)
+                                                                      (let' [[abstraction argument] it]
+                                                                            (` [(, (type:as_code abstraction))
+                                                                                (, (type:as_code argument))])))
+                                                           env)))
+                                    (, (type:as_code type))})
+              
+              {:Named [module name] anonymous}
+              ... TODO: Generate the explicit type definition instead of using
+              ... the "code:name" shortcut below.
+              ... (` {..:Named [(, (code:text module)) (, (code:text name))]
+              ...     (, (type:as_code anonymous))})
+              (code:name [module name])))
 
 (the' .public when
       Macro
@@ -4139,7 +4370,7 @@
                                                    [it (let_pair bundle 'value 'body)]
                                                    (pure (list it)))
 
-                                        {:Some {:When/Complete_If_Case [head tail]}}
+                                        {:Some {:When/Complete_If_Case [head tail else]}}
                                         (monad:let meta:monad
                                                    [tag_of_head (|> head pair:left pair:left tag_as_label)
                                                     every_tag (is (type (Meta (List [Label (Maybe Bundle) Code])))
@@ -4177,13 +4408,41 @@
                                                             (list:every? (function' (_ tag)
                                                                                     (type:= expectation_for_type
                                                                                             (pair:right (pair:left tag))))
-                                                                         every_tag)
-                                                            (natural:= expectation_for_arity (.list_size# in_order)))
-                                                       (monad:let meta:monad
-                                                                  ['local (generated_name "'local")
-                                                                   'complete_if_case (complete_if_case in_order 'local 0)]
-                                                                  (pure (list ('let 'local 'value
-                                                                                    'complete_if_case))))
+                                                                         every_tag))
+                                                       (.when# else
+                                                               {:Some [local_of_else body_of_else]}
+                                                               (if (natural:= expectation_for_arity (.list_size# in_order))
+                                                                   (failure "")
+                                                                   (.when# 'value
+                                                                           {:Name @ name_of_'value}
+                                                                           (monad:let meta:monad
+                                                                                      [type_of_input (type_of_reference name_of_'value)
+                                                                                       .let' ['local 'value]
+                                                                                       'else (generated_name "'else")
+                                                                                       type_of_output type:expectation
+                                                                                       'partial_if_case (partial_if_case expectation_for_arity in_order 'else 'value 'local 0)]
+                                                                                      (pure (list ('let 'else (let' ['local_of_else (code:local local_of_else)]
+                                                                                                                    (` (is (-> (, (type:as_code type_of_input))
+                                                                                                                               (, (type:as_code type_of_output)))
+                                                                                                                           (, ('function 'local_of_else (stack 'local_of_else)
+                                                                                                                                         body_of_else)))))
+                                                                                                        'partial_if_case))))
+
+                                                                           else
+                                                                           (monad:let meta:monad
+                                                                                      ['local (generated_name "'local")]
+                                                                                      (pure (list ('let 'local 'value
+                                                                                                        (` (..when (, 'local)
+                                                                                                                   (,* branches)))))))))
+
+                                                               {:None}
+                                                               (if (natural:= expectation_for_arity (.list_size# in_order))
+                                                                   (monad:let meta:monad
+                                                                              ['local (generated_name "'local")
+                                                                               'complete_if_case (complete_if_case in_order 'local 0)]
+                                                                              (pure (list ('let 'local 'value
+                                                                                                'complete_if_case))))
+                                                                   (failure "")))
                                                        (failure "")))
 
                                         else
@@ -4533,26 +4792,6 @@
            _
            (meta:pure {:None})))
 
-(the type:expectation
-     (Meta Type)
-     (function (_ state)
-               (let [[..:info info
-                      ..:source source
-                      ..:current_module _
-                      ..:modules modules
-                      ..:scopes scopes
-                      ..:type_context types
-                      ..:seed seed
-                      ..:expected expected
-                      ..:provenance provenance
-                      ..:eval _eval] state]
-                    (when expected
-                          {:Some type}
-                          {:Right [state type]}
-
-                          {:None}
-                          {:Left "Not expecting any type."}))))
-
 (the .public implementation
      (macro (_ tokens)
             (monad:let meta:monad
@@ -4749,12 +4988,12 @@
                                                .let [itC (` {..:Named [(, (code:text module_name))
                                                                        (, (code:text name))]
                                                                       (, it'')})
-                                                     type_definition (` (the (, export_policy) (, type_name)
-                                                                             Type
-                                                                             (, itC)))]]
+                                                     definition_of_type (` (the (, export_policy) (, type_name)
+                                                                                Type
+                                                                                (, itC)))]]
                                               (pure (list (when labels??
                                                                 {:Some labels}
-                                                                (` (these (, type_definition)
+                                                                (` (these (, definition_of_type)
                                                                           (, (when labels
                                                                                    {:Left tags}
                                                                                    (label_definitions module_name export_policy type_name (` Tag) 'cohort tags)
@@ -4763,7 +5002,7 @@
                                                                                    (label_definitions module_name export_policy type_name (` Slot) 'cohort slots)))))
                                                                 
                                                                 _
-                                                                type_definition))))
+                                                                definition_of_type))))
 
                                    {:None}
                                    (failure "")))
@@ -5165,130 +5404,6 @@
                   {:None}
                   (failure ""))))
 
-(the (definition_type name state)
-     (-> Name Lux
-         (Maybe Type))
-     (let [[expectation_for_module expectation_for_proper] name
-           [..:info info ..:source    source  ..:current_module _ ..:modules modules
-            ..:scopes scopes ..:type_context types ..:seed seed
-            ..:expected  expected ..:provenance  provenance ..:eval _eval] state]
-          (when (property:value expectation_for_module modules)
-                {:None}
-                {:None}
-
-                {:Some [..:definitions definitions
-                        ..:module_hash _
-                        ..:module_aliases _
-                        ..:imports _
-                        ..:module_state _]}
-                (when (property:value expectation_for_proper definitions)
-                      {:None}
-                      {:None}
-
-                      {:Some [exported? definition]}
-                      (when definition
-                            {:Alias real_name}
-                            (definition_type real_name state)
-                            
-                            {:Definition [def_type expression def_value]}
-                            {:Some def_type})))))
-
-(the (type_variable expected context)
-     (-> Natural (List (Maybe Type))
-         (Maybe Type))
-     (let [limit (.list_size# context)]
-          (if (.int_<# (as (-> Natural Integer) limit)
-                       (as (-> Natural Integer) expected))
-              (.list_item# expected context)
-              {:None})))
-
-(the (stack:each value it)
-     (for_any (_ cause effect)
-              (-> (-> cause effect)
-                  (-> (Stack cause) (Stack effect))))
-     (stack:mix (function' (_ head tail)
-                           {:Top (value head) tail})
-                {:Empty}
-                (stack:in_reverse it)))
-
-(the (clean_type variables it)
-     (-> (List (Maybe Type))
-         (Change Type))
-     (when it
-           {:Nominal name parameters}
-           {:Nominal name (list:each (function (_ [parammeter it])
-                                               [parammeter (clean_type variables it)])
-                                     parameters)}
-
-           {:Reification left right}
-           {:Reification (clean_type variables left)
-                         (clean_type variables right)}
-
-           {:Quantification quantification environment unquantified}
-           {:Quantification quantification
-                            (stack:each (function (_ [abstraction argument])
-                                                  [(clean_type variables abstraction)
-                                                   (clean_type variables argument)])
-                                        environment)
-                            (clean_type variables unquantified)}
-           
-           {:Named name anonymous}
-           it
-
-           {:Parameter _}
-           it
-           
-           {:Variable .special _}
-           it
-           
-           {:Variable .general id}
-           (when (type_variable id variables)
-                 {:None}
-                 it
-
-                 {:Some {:Variable _}}
-                 it
-
-                 {:Some it}
-                 (clean_type variables it))))
-
-(the (type_definition full_name)
-     (-> Name
-         (Meta Type))
-     (monad:let meta:monad
-                [.let [[module name] full_name]
-                 current_module current_module_name]
-                (function (_ compiler)
-                          (let [temp (is (Either Text [Lux Type])
-                                         (if (.text_=# "" module)
-                                             (when (in_env name compiler)
-                                                   {:Some implementation_type}
-                                                   {:Right [compiler implementation_type]}
-
-                                                   _
-                                                   (when (definition_type [current_module name] compiler)
-                                                         {:Some implementation_type}
-                                                         {:Right [compiler implementation_type]}
-
-                                                         _
-                                                         {:Left (text "Unknown var: " (name:as full_name))}))
-                                             (when (definition_type full_name compiler)
-                                                   {:Some implementation_type}
-                                                   {:Right [compiler implementation_type]}
-
-                                                   _
-                                                   {:Left (text "Unknown var: " (name:as full_name))})))]
-                               (when temp
-                                     {:Right [compiler temp]}
-                                     (let [[..:info _ ..:source _ ..:current_module _ ..:modules _
-                                            ..:scopes _ ..:type_context type_context ..:seed _
-                                            ..:expected _ ..:provenance _ ..:eval _eval] compiler
-                                            [..:for_all var_bindings ..:there_exists _] type_context]
-                                          {:Right [compiler (clean_type var_bindings temp)]})
-
-                                     _
-                                     temp)))))
-
 (every Implementation_Interface
        [(List Name) (List Type)])
 
@@ -5349,7 +5464,7 @@
                   (when implementation
                         {:Name _ name}
                         (monad:let meta:monad
-                                   [init_type (type_definition name)
+                                   [init_type (type_of_reference name)
                                     implementation_evidence (every_slot init_type)]
                                    (when implementation_evidence
                                          {:None}
@@ -5452,7 +5567,7 @@
      (-> Text Text Name
          (Meta (List Code)))
      (monad:let meta:monad
-                [interface (type_definition implementation)
+                [interface (type_of_reference implementation)
                  output (every_slot interface)]
                 (when output
                       {:Some [slots terms]}
@@ -5800,47 +5915,6 @@
                               (list left right)))
          list:conjoint))
 
-(the 'stack
-     (-> (Stack Code)
-         Code)
-     (|>> stack:in_reverse
-          (stack:mix ':Top ':Empty)))
-
-(the (type_code type)
-     (-> Type
-         Code)
-     (when type
-           {:Nominal name params}
-           (` {..:Nominal (, (code:text name)) (, ('list (list:each (function (_ [polarity it])
-                                                                              (` [(, (code:bit polarity))
-                                                                                  (, (type_code it))]))
-                                                                    params)))})
-
-           {:Reification left right}
-           (` {..:Reification (, (type_code left)) (, (type_code right))})
-
-           {:Parameter parameter id}
-           (` {..:Parameter (, (code:bit parameter))
-                            (, (code:natural id))})
-
-           {..:Variable quality id}
-           (` {..:Variable (, (code:bit quality)) (, (code:natural id))})
-
-           {:Quantification quantification env type}
-           (` {..:Quantification (, (code:bit quantification))
-                                 (, ('stack (stack:each (function (_ [abstraction argument])
-                                                                  (` [(, (type_code abstraction))
-                                                                      (, (type_code argument))]))
-                                                        env)))
-                                 (, (type_code type))})
-           
-           {:Named [module name] anonymous}
-           ... TODO: Generate the explicit type definition instead of using
-           ... the "code:name" shortcut below.
-           ... (` {..:Named [(, (code:text module)) (, (code:text name))]
-           ...     (, (type_code anonymous))})
-           (code:name [module name])))
-
 (the .public loop
      (macro (_ tokens)
             (when (?:value tokens
@@ -5858,10 +5932,10 @@
                                                         
                                                         {:None}
                                                         (failure "")))
-                                       init_types (monad:each meta:monad type_definition inits')
+                                       init_types (monad:each meta:monad type_of_reference inits')
                                        expected type:expectation]
-                                      (meta:pure (list (` ((.is# (-> (,* (list:each type_code init_types))
-                                                                     (, (type_code expected)))
+                                      (meta:pure (list (` ((.is# (-> (,* (list:each type:as_code init_types))
+                                                                     (, (type:as_code expected)))
                                                                  (function ((, name) (,* vars))
                                                                            (, body)))
                                                            (,* inits))))))
@@ -5946,7 +6020,7 @@
                   (monad:let meta:monad
                              [type type:expectation]
                              (pure (list (` (.as# (-> Any
-                                                      (, (type_code type)))
+                                                      (, (type:as_code type)))
                                                   (, expr))))))
                   
                   _
@@ -5985,21 +6059,21 @@
             (when tokens
                   (list {:Name _ ["" local]})
                   (monad:let meta:monad
-                             [type (type_definition ["" local])]
-                             (pure (list (` (..type ((,' ,) (, (type_code type))))))))
+                             [type (type_of_reference ["" local])]
+                             (pure (list (` (..type ((,' ,) (, (type:as_code type))))))))
 
                   (list {:Name _ global})
                   (monad:let meta:monad
-                             [type (type_definition global)
+                             [type (type_of_reference global)
                               .let [code:name (is (-> Name
                                                       Code)
                                                   (function (_ [module name])
                                                             (code:tuple (list (code:text module)
                                                                               (code:text name)))))]]
                              (pure (list (` (..type ((,' ,) {..:Reification {..:Named (, (code:name global))
-                                                                                      (, (type_code type))}
+                                                                                      (, (type:as_code type))}
                                                                             {..:Named (, (code:name (name ..type_of)))
-                                                                                      (, (type_code ..Nothing))}}))))))
+                                                                                      (, (type:as_code ..Nothing))}}))))))
 
                   (list expression)
                   (monad:let meta:monad

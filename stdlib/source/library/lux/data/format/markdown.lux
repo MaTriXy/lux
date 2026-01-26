@@ -1,231 +1,229 @@
-(.using
- [library
-  [lux (.except and quote text)
-   [data
-    ["[0]" text (.only \n)
-     ["%" \\injection]]
-    [collection
-     ["[0]" list (.open functor)]]]
-   [macro
-    ["[0]" template]]
-   [type
-    ["[0]" nominal]]
-   [world
-    [net (.only URL)]]]])
-
-... https://www.markdownguide.org/basic-syntax/
+(.comment "https://www.markdownguide.org/basic-syntax/"
+          (.using
+           [library
+            [lux (.except and quote text)
+             [data
+              ["[0]" text (.only \n)
+               ["%" \\injection]]
+              [collection
+               ["[0]" list (.open functor)]]]
+             [macro
+              ["[0]" template]]
+             [type
+              ["[0]" nominal]]
+             [world
+              [net (.only URL)]]]]))
 
 (the safe
-  (-> Text
-      Text)
-  (|>> (text.replaced "\" "\\")
-       (text.replaced "`" "\`")
-       (text.replaced "*" "\*")
-       (text.replaced "_" "\_")
-       (text.replaced "{" "\{")
-       (text.replaced "}" "\}")
-       (text.replaced "[" "\[")
-       (text.replaced "]" "\]")
-       (text.replaced "(" "\(")
-       (text.replaced ")" "\)")
-       (text.replaced "#" "\#")
-       (text.replaced "+" "\+")
-       (text.replaced "-" "\-")
-       (text.replaced "." "\.")
-       (text.replaced "!" "\!")))
+     (Change Text)
+     (|>> (text.replaced "\" "\\")
+          (text.replaced "`" "\`")
+          (text.replaced "*" "\*")
+          (text.replaced "_" "\_")
+          (text.replaced "{" "\{")
+          (text.replaced "}" "\}")
+          (text.replaced "[" "\[")
+          (text.replaced "]" "\]")
+          (text.replaced "(" "\(")
+          (text.replaced ")" "\)")
+          (text.replaced "#" "\#")
+          (text.replaced "+" "\+")
+          (text.replaced "-" "\-")
+          (text.replaced "." "\.")
+          (text.replaced "!" "\!")))
 
 (nominal.every .public Span Any)
 (nominal.every .public Block Any)
 
 (nominal.every .public (Markdown brand)
-  Text
+               Text
 
-  (the .public empty
-    Markdown
-    (|> ""
-        nominal.of
-        (as (-> (Markdown Any) Markdown))))
+               (the .public empty
+                    Markdown
+                    (|> ""
+                        nominal.of
+                        (as (-> (Markdown Any) Markdown))))
 
-  (the .public text
-    (-> Text
-        (Markdown Span))
-    (|>> ..safe nominal.of))
+               (the .public text
+                    (-> Text
+                        (Markdown Span))
+                    (|>> ..safe nominal.of))
 
-  (the blank_line
-    (.text \n \n))
+               (the blank_line
+                    (.text \n \n))
 
-  (template.with [<name> <prefix>]
-    [(the .public (<name> content)
-       (-> (Markdown Span)
-           (Markdown Block))
-       (nominal.of (.text <prefix> " " (nominal.as content) ..blank_line)))]
+               (template.with [<name> <prefix>]
+                              [(the .public (<name> content)
+                                    (-> (Markdown Span)
+                                        (Markdown Block))
+                                    (nominal.of (.text <prefix> " " (nominal.as content) ..blank_line)))]
 
-    [[heading/1 "#"]
-     [heading/2 "##"]
-     [heading/3 "###"]
-     [heading/4 "####"]
-     [heading/5 "#####"]
-     [heading/6 "######"]])
+                              [[heading/1 "#"]
+                               [heading/2 "##"]
+                               [heading/3 "###"]
+                               [heading/4 "####"]
+                               [heading/5 "#####"]
+                               [heading/6 "######"]])
 
-  (the (block content)
-    (-> Text
-        (Markdown Block))
-    (nominal.of (.text content ..blank_line)))
+               (the (block content)
+                    (-> Text
+                        (Markdown Block))
+                    (nominal.of (.text content ..blank_line)))
 
-  (the .public paragraph
-    (-> (Markdown Span)
-        (Markdown Block))
-    (|>> nominal.as ..block))
+               (the .public paragraph
+                    (-> (Markdown Span)
+                        (Markdown Block))
+                    (|>> nominal.as ..block))
 
-  (the .public break
-    (Markdown Span)
-    (nominal.of (.text "  " \n)))
+               (the .public break
+                    (Markdown Span)
+                    (nominal.of (.text "  " \n)))
 
-  (template.with [<name> <wrapper>]
-    [(the .public <name>
-       (-> (Markdown Span)
-           (Markdown Span))
-       (|>> nominal.as
-            (text.enclosed [<wrapper> <wrapper>])
-            nominal.of))]
+               (template.with [<name> <wrapper>]
+                              [(the .public <name>
+                                    (-> (Markdown Span)
+                                        (Markdown Span))
+                                    (|>> nominal.as
+                                         (text.enclosed [<wrapper> <wrapper>])
+                                         nominal.of))]
 
-    [[bold "**"]
-     [italic "_"]])
+                              [[bold "**"]
+                               [italic "_"]])
 
-  (the (prefix with)
-    (-> Text
-        (-> Text
-            Text))
-    (|>> (text.all_split_by \n)
-         (list:each (function (_ line)
-                      (if (text.empty? line)
-                          line
-                          (.text with line))))
-         (text.interposed \n)))
+               (the (prefix with)
+                    (-> Text
+                        (-> Text
+                            Text))
+                    (|>> (text.all_split_by \n)
+                         (list:each (function (_ line)
+                                              (if (text.empty? line)
+                                                  line
+                                                  (.text with line))))
+                         (text.interposed \n)))
 
-  (the indent
-    (-> Text
-        Text)
-    (..prefix text.tab))
+               (the indent
+                    (-> Text
+                        Text)
+                    (..prefix text.tab))
 
-  (the .public quote
-    (-> (Markdown Block)
-        (Markdown Block))
-    (|>> nominal.as
-         (..prefix "> ")
-         nominal.of))
+               (the .public quote
+                    (-> (Markdown Block)
+                        (Markdown Block))
+                    (|>> nominal.as
+                         (..prefix "> ")
+                         nominal.of))
 
-  (the .public numbered_list
-    (-> (List [(Markdown Span) (Maybe (Markdown Block))])
-        (Markdown Block))
-    (|>> list.enumeration
-         (list:each (function (_ [idx [summary detail]])
-                      (.text "1. " (nominal.as summary)
-                             (when detail
-                               {.:Some detail}
-                               (|> detail
-                                   nominal.as
-                                   ..indent
-                                   (text.enclosed [\n \n])
-                                   (.text \n))
-                               
-                               {.:None}
-                               ""))))
-         (text.interposed \n)
-         ..block))
+               (the .public numbered_list
+                    (-> (List [(Markdown Span) (Maybe (Markdown Block))])
+                        (Markdown Block))
+                    (|>> list.enumeration
+                         (list:each (function (_ [idx [summary detail]])
+                                              (.text "1. " (nominal.as summary)
+                                                     (when detail
+                                                           {.:Some detail}
+                                                           (|> detail
+                                                               nominal.as
+                                                               ..indent
+                                                               (text.enclosed [\n \n])
+                                                               (.text \n))
+                                                           
+                                                           {.:None}
+                                                           ""))))
+                         (text.interposed \n)
+                         ..block))
 
-  (the .public bullet_list
-    (-> (List [(Markdown Span) (Maybe (Markdown Block))])
-        (Markdown Block))
-    (|>> (list:each (function (_ [summary detail])
-                      (.text "* " (nominal.as summary)
-                             (when detail
-                               {.:Some detail}
-                               (|> detail
-                                   nominal.as
-                                   ..indent
-                                   (text.enclosed [\n \n])
-                                   (.text \n))
-                               
-                               {.:None}
-                               ""))))
-         (text.interposed \n)
-         ..block))
+               (the .public bullet_list
+                    (-> (List [(Markdown Span) (Maybe (Markdown Block))])
+                        (Markdown Block))
+                    (|>> (list:each (function (_ [summary detail])
+                                              (.text "* " (nominal.as summary)
+                                                     (when detail
+                                                           {.:Some detail}
+                                                           (|> detail
+                                                               nominal.as
+                                                               ..indent
+                                                               (text.enclosed [\n \n])
+                                                               (.text \n))
+                                                           
+                                                           {.:None}
+                                                           ""))))
+                         (text.interposed \n)
+                         ..block))
 
-  ... A snippet of code.
-  (the .public snippet
-    (-> Text
-        (Markdown Span))
-    (|>> (text.enclosed ["`` " " ``"]) nominal.of))
+               (comment "A snippet of code."
+                        (the .public snippet
+                             (-> Text
+                                 (Markdown Span))
+                             (|>> (text.enclosed ["`` " " ``"]) nominal.of)))
 
-  ... A (generic) block of code.
-  (the .public generic_code
-    (-> Text
-        (Markdown Block))
-    (let [open (.text "```" \n)
-          close (.text \n "```")]
-      (|>> (text.enclosed [open close]) ..block)))
+               (comment "A (generic) block of code."
+                        (the .public generic_code
+                             (-> Text
+                                 (Markdown Block))
+                             (let [open (.text "```" \n)
+                                   close (.text \n "```")]
+                                  (|>> (text.enclosed [open close]) ..block))))
 
-  ... A block of code of a specific language.
-  (the .public (code language block)
-    (-> Text Text
-        (Markdown Block))
-    (let [open (.text "```" language \n)
-          close (.text \n "```")]
-      (|> block
-          (text.enclosed [open close])
-          ..block)))
+               (comment "A block of code of a specific language."
+                        (the .public (code language block)
+                             (-> Text Text
+                                 (Markdown Block))
+                             (let [open (.text "```" language \n)
+                                   close (.text \n "```")]
+                                  (|> block
+                                      (text.enclosed [open close])
+                                      ..block))))
 
-  (the .public raw_code
-    (-> Text
-        (Markdown Block))
-    (|>> (text.enclosed ["<code>" "</code>"])
-         (text.enclosed ["<pre>" "</pre>"])
-         ..block))
+               (the .public raw_code
+                    (-> Text
+                        (Markdown Block))
+                    (|>> (text.enclosed ["<code>" "</code>"])
+                         (text.enclosed ["<pre>" "</pre>"])
+                         ..block))
 
-  (the .public (image description url)
-    (-> Text URL
-        (Markdown Span))
-    (nominal.of (.text "![" (..safe description) "](" url ")")))
+               (the .public (image description url)
+                    (-> Text URL
+                        (Markdown Span))
+                    (nominal.of (.text "![" (..safe description) "](" url ")")))
 
-  (the .public horizontal_rule
-    (Markdown Block)
-    (..block "___"))
+               (the .public horizontal_rule
+                    (Markdown Block)
+                    (..block "___"))
 
-  (the .public (anchor name)
-    (-> Text
-        (Markdown Span))
-    (nominal.of (.text "<a name=" name "></a>")))
+               (the .public (anchor name)
+                    (-> Text
+                        (Markdown Span))
+                    (nominal.of (.text "<a name=" name "></a>")))
 
-  (the .public (link description url)
-    (-> (Markdown Span) URL
-        (Markdown Span))
-    (nominal.of (.text "[" (nominal.as description) "](" url ")")))
+               (the .public (link description url)
+                    (-> (Markdown Span) URL
+                        (Markdown Span))
+                    (nominal.of (.text "[" (nominal.as description) "](" url ")")))
 
-  (every .public Email
-    Text)
+               (every .public Email
+                      Text)
 
-  (template.with [<name> <type>]
-    [(the .public <name>
-       (-> <type>
-           (Markdown Span))
-       (|>> (text.enclosed ["<" ">"]) nominal.of))]
+               (template.with [<name> <type>]
+                              [(the .public <name>
+                                    (-> <type>
+                                        (Markdown Span))
+                                    (|>> (text.enclosed ["<" ">"]) nominal.of))]
 
-    [[url URL]
-     [email Email]])
+                              [[url URL]
+                               [email Email]])
 
-  (template.with [<name> <brand> <infix>]
-    [(the .public (<name> pre post)
-       (-> (Markdown <brand>) (Markdown <brand>)
-           (Markdown <brand>))
-       (nominal.of (.text (nominal.as pre) <infix> (nominal.as post))))]
+               (template.with [<name> <brand> <infix>]
+                              [(the .public (<name> pre post)
+                                    (-> (Markdown <brand>) (Markdown <brand>)
+                                        (Markdown <brand>))
+                                    (nominal.of (.text (nominal.as pre) <infix> (nominal.as post))))]
 
-    [[and Span " "]
-     [then Block ""]])
+                              [[and Span " "]
+                               [then Block ""]])
 
-  (the .public markdown
-    (for_any (_ a)
-      (-> (Markdown a)
-          Text))
-    (|>> nominal.as))
-  )
+               (the .public markdown
+                    (for_any (_ a)
+                             (-> (Markdown a)
+                                 Text))
+                    (|>> nominal.as))
+               )

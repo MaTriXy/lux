@@ -3855,6 +3855,7 @@
                 [(List [Real Code]) Text Code]
                 [(List [Text Code]) Text Code]
                 [Case (List Case) (Maybe [Text Code])]
+                [[[Name Code] (List [Name Code])] Code]
                 [Bundle Code])))
 
 (the' .private every_tag_of_when
@@ -3867,6 +3868,7 @@
             [..prelude ":When/If_Real"]
             [..prelude ":When/If_Text"]
             [..prelude ":When/Complete_If_Case"]
+            [..prelude ":When/Simple_Record"]
             [..prelude ":When/Let"]))
 (the' .private :When/Complete_If Tag (..tag [{:Some [0 0b ..every_tag_of_when]} When]))
 (the' .private :When/Partial_If Tag (..tag [{:Some [1 0b ..every_tag_of_when]} When]))
@@ -3876,7 +3878,8 @@
 (the' .private :When/If_Real Tag (..tag [{:Some [5 0b ..every_tag_of_when]} When]))
 (the' .private :When/If_Text Tag (..tag [{:Some [6 0b ..every_tag_of_when]} When]))
 (the' .private :When/Complete_If_Case Tag (..tag [{:Some [7 0b ..every_tag_of_when]} When]))
-(the' .private :When/Let Tag (..tag [{:Some [7 1b ..every_tag_of_when]} When]))
+(the' .private :When/Simple_Record Tag (..tag [{:Some [8 0b ..every_tag_of_when]} When]))
+(the' .private :When/Let Tag (..tag [{:Some [8 1b ..every_tag_of_when]} When]))
 
 (the' .private ?:when/complete_if
       (type (Projection [Code Code]))
@@ -3927,6 +3930,12 @@
       (?:and (?:many (?:and ?:case ?:any))
              ?:when/let'))
 
+(the' .private ?:when/simple_record
+      (type (Projection [[[Name Code] (List [Name Code])] Code]))
+      (let' [slot (?:and ?:global ?:any)]
+            (?:and (?:tuple (?:and slot (?:some slot)))
+                   ?:any)))
+
 (the' .private ?:when
       (type (Projection When))
       (all ?:or
@@ -3938,6 +3947,7 @@
            (?:switch ?:real)
            (?:switch ?:text)
            ?:when/complete_if_case
+           ?:when/simple_record
            ?:when/let))
 
 (the' .private Equality
@@ -4053,26 +4063,30 @@
                                _
                                {:Left (text "Unknown module: " name)}))))
 
-(the' .private (tag_as_label name)
-      (type (-> Name
-                (Meta [Bit Label])))
-      (<| (monad:let meta:monad
-                     [name (name:normal name)
-                      .let' [[module name] name]
-                      =module (..module module)
-                      .let' [[..:module_hash _
-                              ..:module_aliases _
-                              ..:definitions definitions
-                              ..:imports _
-                              ..:module_state _] =module]])
-          (.when# (property:value name definitions)
-                  {:Some [exported {:Definition [type expression value]}]}
-                  (if (type:= Tag type)
-                      (meta:pure [exported (as (-> Any Label) value)])
-                      (failure (text "Not a tag: " (name:as [module name]))))
+(with_template [,name ,type ,description]
+               [(the' .private (,name name)
+                      (type (-> Name
+                                (Meta [Bit Label])))
+                      (<| (monad:let meta:monad
+                                     [name (name:normal name)
+                                      .let' [[module name] name]
+                                      =module (..module module)
+                                      .let' [[..:module_hash _
+                                              ..:module_aliases _
+                                              ..:definitions definitions
+                                              ..:imports _
+                                              ..:module_state _] =module]])
+                          (.when# (property:value name definitions)
+                                  {:Some [exported {:Definition [type expression value]}]}
+                                  (if (type:= ,type type)
+                                      (meta:pure [exported (as (-> Any Label) value)])
+                                      (failure (text "Not a " ,description ": " (name:as [module name]))))
 
-                  _
-                  (failure (text "Unknown tag: " (name:as [module name]))))))
+                                  _
+                                  (failure (text "Unknown " ,description ": " (name:as [module name]))))))]
+
+               [[tag_as_label Tag "tag"]
+                [slot_as_label Slot "slot"]])
 
 (the' .private (complete_if_case every_branch)
       (type (-> (Property_List [(Maybe Bundle) Code])
@@ -4344,6 +4358,35 @@
                    (-> input output)))
       it)
 
+(the' .private (arity_of_label it)
+      (-> Label
+          Natural)
+      (.when# it
+              [{:Some [every_left right? cohort]} type]
+              (.list_size# cohort)
+
+              [{:None} type]
+              1))
+
+(the' .private (index_of_label it)
+      (-> Label
+          Text)
+      (.when# it
+              [{:Some [every_left right? cohort]} type]
+              (natural:as (if right?
+                              (.i64_+# 1 every_left)
+                              every_left))
+              
+              [{:None} type]
+              "0"))
+
+(the' .private list:enumeration
+      (type (for_any (_ it)
+                     (-> (List it)
+                         (List [Natural it]))))
+      (list:each' (function' (_ address it)
+                             [address it])))
+
 (the' .public when
       Macro
       (macro (_ tokens)
@@ -4391,25 +4434,12 @@
                                                                                                     (pure [label content body])))
                                                                               (.list_composite# (list head) tail)))
                                                     .let' [expectation_for_type (pair:right (pair:right tag_of_head))
-                                                           expectation_for_arity (.when# (pair:left (pair:right tag_of_head))
-                                                                                         {:Some [every_left right? cohort]}
-                                                                                         (.list_size# cohort)
-
-                                                                                         {:None}
-                                                                                         1)
+                                                           expectation_for_arity (arity_of_label (pair:right tag_of_head))
                                                            in_order (is (type (Property_List [(Maybe Bundle) Code]))
-                                                                        (list:mix (function' (_ it in_order)
-                                                                                             (let' [[[it type] content body] it]
-                                                                                                   (property:with (.when# it
-                                                                                                                          {:Some [every_left right? cohort]}
-                                                                                                                          (natural:as (if right?
-                                                                                                                                          (.i64_+# 1 every_left)
-                                                                                                                                          every_left))
-                                                                                                                          
-                                                                                                                          {:None}
-                                                                                                                          "0")
-                                                                                                                  [content body]
-                                                                                                                  in_order)))
+                                                                        (list:mix (function' (_ it)
+                                                                                             (let' [[label content body] it]
+                                                                                                   (property:with (index_of_label label)
+                                                                                                                  [content body])))
                                                                                   (list)
                                                                                   every_tag))]]
                                                    (if (and (not (natural:= 1 expectation_for_arity))
@@ -4451,6 +4481,45 @@
                                                                                                 'complete_if_case))))
                                                                    (failure "")))
                                                        (failure "")))
+
+                                        {:Some {:When/Simple_Record [[[slot_of_head value_of_head] tail] 'body]}}
+                                        (<| (monad:let meta:monad
+                                                       [slot_of_head (slot_as_label slot_of_head)
+                                                        .let' [[exported? slot_of_head] slot_of_head
+                                                               [_ expectation_for_type] slot_of_head
+                                                               expectation_for_arity (arity_of_label slot_of_head)]
+                                                        tail (monad:each meta:monad
+                                                                         (function' (_ slot,value)
+                                                                                    (monad:let meta:monad
+                                                                                               [.let' [[slot value] slot,value]
+                                                                                                slot (slot_as_label slot)
+                                                                                                .let' [[exported? [slot type]] slot]]
+                                                                                               (if (type:= expectation_for_type type)
+                                                                                                   (pure [[slot type] value])
+                                                                                                   (failure ""))))
+                                                                         tail)
+                                                        .let' [in_order (is (type (Property_List Code))
+                                                                            (list:mix (function' (_ slot,value)
+                                                                                                 (let' [[slot value] slot,value]
+                                                                                                       (property:with (index_of_label slot)
+                                                                                                                      value)))
+                                                                                      (list)
+                                                                                      (.list_composite# (list [slot_of_head value_of_head])
+                                                                                                        tail)))]])
+                                            (if (natural:= expectation_for_arity (.list_size# in_order))
+                                                (.when# (monad:each maybe:monad
+                                                                    (function' (_ index)
+                                                                               (let' [[index _] index]
+                                                                                     (property:value (natural:as index) in_order)))
+                                                                    (list:enumeration in_order))
+                                                        {:Some as_tuple}
+                                                        (pure (list (` (..when (, 'value)
+                                                                               [(,* as_tuple)]
+                                                                               (, 'body)))))
+
+                                                        {:None}
+                                                        (failure ""))
+                                                (failure "")))
 
                                         else
                                         (comment (.log!# (text "[when]"
@@ -4713,23 +4782,6 @@
            _
            {:Some (list type)}))
 
-(the (type_slot [module name])
-     (-> Name
-         (Meta [Bit Label]))
-     (monad:let meta:monad
-                [=module (..module module)
-                 .let [[..:module_hash _
-                        ..:module_aliases _
-                        ..:definitions definitions
-                        ..:imports _
-                        ..:module_state _] =module]]
-                (when (property:value name definitions)
-                      {:Some [exported {:Definition [type expression value]}]}
-                      (meta:pure [exported (as (-> Any Label) value)])
-
-                      _
-                      (failure (text "Unknown slot: " (name:as [module name]))))))
-
 (the (slot_family expectation_for_module expectation_for_record)
      (-> Text Type
          (Meta (Maybe (List Name))))
@@ -4937,13 +4989,6 @@
      (if (complex:right? arity label)
          (.i64_-# 1 label)
          label))
-
-(the list:enumeration
-     (for_any (_ it)
-              (-> (List it)
-                  (List [Natural it])))
-     (list:each' (function (_ address it)
-                           [address it])))
 
 (the (label_definitions module export_policy associated_type label_type family labels)
      (-> Text Code Code Code Code (List Text)
@@ -5443,7 +5488,12 @@
          (Meta [Code Code]))
      (monad:let meta:monad
                 [layer (monad:each meta:monad (open_layer alias) interfaces)
-                 .let [pattern (code:tuple (list:each pair:left layer))
+                 .let [pattern (when (list:each pair:left layer)
+                                     (list layer)
+                                     layer
+
+                                     else
+                                     (code:tuple else))
                        next (|> layer
                                 (list:each pair:right)
                                 list:conjoint)]]
@@ -5501,7 +5551,7 @@
                   (list {:Name _ slot'} record)
                   (monad:let meta:monad
                              [slot (name:normal slot')
-                              output (..type_slot slot)
+                              output (..slot_as_label slot)
                               .let [[exported? [label' type]] output]]
                              (when label'
                                    {:None}
@@ -5704,7 +5754,7 @@
                   (list {:Name _ slot'} value record)
                   (monad:let meta:monad
                              [slot (name:normal slot')
-                              output (..type_slot slot)
+                              output (..slot_as_label slot)
                               .let [[exported? [label' type]] output]]
                              (when label'
                                    {:None}
@@ -5799,7 +5849,7 @@
                   (list {:Name _ slot'} fun record)
                   (monad:let meta:monad
                              [slot (name:normal slot')
-                              output (..type_slot slot)
+                              output (..slot_as_label slot)
                               .let [[exported? [label' type]] output]]
                              (when label'
                                    {:None}

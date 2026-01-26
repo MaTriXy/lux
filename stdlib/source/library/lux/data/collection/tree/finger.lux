@@ -13,119 +13,117 @@
    [type
     ["[0]" nominal]]]])
 
-... https://en.wikipedia.org/wiki/Finger_tree
-(nominal.every .public (Tree @ tag it)
-  (Record
-   [:monoid (Monoid tag)
-    :tag tag
-    :root (Either it
-                  [(Tree @ tag it) (Tree @ tag it)])])
+(<| (comment "https://en.wikipedia.org/wiki/Finger_tree")
+    (nominal.every .public (Tree @ tag it)
+                   (Record
+                    [:monoid (Monoid tag)
+                     :tag tag
+                     :root (Either it
+                                   [(Tree @ tag it) (Tree @ tag it)])]))
+    (these (every .public (Builder @ tag)
+                  (Interface
+                   (is (for_any (_ it)
+                                (-> tag it
+                                    (Tree @ tag it)))
+                       leaf)
+                   (is (for_any (_ it)
+                                (-> (Tree @ tag it) (Tree @ tag it)
+                                    (Tree @ tag it)))
+                       branch)))
 
-  (every .public (Builder @ tag)
-    (Interface
-     (is (for_any (_ it)
-           (-> tag it
-               (Tree @ tag it)))
-         leaf)
-     (is (for_any (_ it)
-           (-> (Tree @ tag it) (Tree @ tag it)
-               (Tree @ tag it)))
-         branch)))
+           (template.with [<name> <tag> <output>]
+                          [(the .public <name>
+                                (for_any (_ @ tag it)
+                                         (-> (Tree @ tag it)
+                                             <output>))
+                                (|>> nominal.as
+                                     (its <tag>)))]
 
-  (template.with [<name> <tag> <output>]
-    [(the .public <name>
-       (for_any (_ @ tag it)
-         (-> (Tree @ tag it)
-             <output>))
-       (|>> nominal.as
-            (its <tag>)))]
+                          [[tag :tag tag]
+                           [root :root (Either it [(Tree @ tag it) (Tree @ tag it)])]])
 
-    [[tag :tag tag]
-     [root :root (Either it [(Tree @ tag it) (Tree @ tag it)])]])
+           (the .public (builder monoid)
+                (for_any (_ tag)
+                         (for_some (_ @)
+                                   (-> (Monoid tag)
+                                       (Builder @ tag))))
+                (implementation
+                 (the (leaf tag value)
+                      (nominal.of
+                       [:monoid monoid
+                        :tag tag
+                        :root {.:Left value}]))
+                 
+                 (the (branch left right)
+                      (nominal.of
+                       [:monoid monoid
+                        :tag (by monoid composite (..tag left) (..tag right))
+                        :root {.:Right [left right]}]))))
 
-  (the .public (builder monoid)
-    (for_any (_ tag)
-      (for_some (_ @)
-        (-> (Monoid tag)
-            (Builder @ tag))))
-    (implementation
-     (the (leaf tag value)
-       (nominal.of
-        [:monoid monoid
-         :tag tag
-         :root {.:Left value}]))
-     
-     (the (branch left right)
-       (nominal.of
-        [:monoid monoid
-         :tag (by monoid composite (..tag left) (..tag right))
-         :root {.:Right [left right]}]))))
+           (the .public (value tree)
+                (for_any (_ @ tag it)
+                         (-> (Tree @ tag it)
+                             it))
+                (when (its :root (nominal.as tree))
+                      {0b value}
+                      value
 
-  (the .public (value tree)
-    (for_any (_ @ tag it)
-      (-> (Tree @ tag it)
-          it))
-    (when (its :root (nominal.as tree))
-      {0b value}
-      value
+                      {1b [left right]}
+                      (value left)))
 
-      {1b [left right]}
-      (value left)))
+           (the .public (tags tree)
+                (for_any (_ @ tag it)
+                         (-> (Tree @ tag it)
+                             (List tag)))
+                (when (its :root (nominal.as tree))
+                      {0b value}
+                      (list (its :tag (nominal.as tree)))
 
-  (the .public (tags tree)
-    (for_any (_ @ tag it)
-      (-> (Tree @ tag it)
-          (List tag)))
-    (when (its :root (nominal.as tree))
-      {0b value}
-      (list (its :tag (nominal.as tree)))
+                      {1b [left right]}
+                      (all list:composite
+                           (tags left)
+                           (tags right))))
 
-      {1b [left right]}
-      (all list:composite
-           (tags left)
-           (tags right))))
+           (the .public (values tree)
+                (for_any (_ @ tag it)
+                         (-> (Tree @ tag it)
+                             (List it)))
+                (when (its :root (nominal.as tree))
+                      {0b value}
+                      (list value)
 
-  (the .public (values tree)
-    (for_any (_ @ tag it)
-      (-> (Tree @ tag it)
-          (List it)))
-    (when (its :root (nominal.as tree))
-      {0b value}
-      (list value)
+                      {1b [left right]}
+                      (all list:composite
+                           (values left)
+                           (values right))))
 
-      {1b [left right]}
-      (all list:composite
-           (values left)
-           (values right))))
+           (the .public (one predicate tree)
+                (for_any (_ @ tag it)
+                         (-> (Predicate tag) (Tree @ tag it)
+                             (Maybe it)))
+                (let [[monoid tag root] (nominal.as tree)]
+                     (if (predicate tag)
+                         (with "tag:[0]" monoid
+                               (loop (of [_tag tag:identity
+                                          _node root])
+                                     (when _node
+                                           {0b value}
+                                           {.:Some value}
 
-  (the .public (one predicate tree)
-    (for_any (_ @ tag it)
-      (-> (Predicate tag) (Tree @ tag it)
-          (Maybe it)))
-    (let [[monoid tag root] (nominal.as tree)]
-      (if (predicate tag)
-          (with "tag:[0]" monoid
-            (loop (of [_tag tag:identity
-                       _node root])
-              (when _node
-                {0b value}
-                {.:Some value}
-
-                {1b [left right]}
-                (let [shifted_tag (tag:composite _tag (..tag left))]
-                  (if (predicate shifted_tag)
-                      (of _tag (its :root (nominal.as left)))
-                      (of shifted_tag (its :root (nominal.as right))))))))
-          {.:None})))
-  )
+                                           {1b [left right]}
+                                           (let [shifted_tag (tag:composite _tag (..tag left))]
+                                                (if (predicate shifted_tag)
+                                                    (of _tag (its :root (nominal.as left)))
+                                                    (of shifted_tag (its :root (nominal.as right))))))))
+                         {.:None})))))
 
 (the .public (exists? predicate tree)
-  (for_any (_ @ tag it)
-    (-> (Predicate tag)
-        (Predicate (Tree @ tag it))))
-  (when (..one predicate tree)
-    {.:Some _}
-    true
+     (for_any (_ @ tag it)
+              (-> (Predicate tag)
+                  (Predicate (Tree @ tag it))))
+     (when (..one predicate tree)
+           {.:Some _}
+           true
 
-    {.:None}
-    false))
+           {.:None}
+           false))

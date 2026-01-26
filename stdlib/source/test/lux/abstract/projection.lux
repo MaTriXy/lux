@@ -33,368 +33,368 @@
   ["[0]" / (.only Projection)]])
 
 (the (should_fail expected input)
-  (for_any (_ a) (-> Text (Try a) Bit))
-  (when input
-    {try.:Failure actual}
-    (text.= expected actual)
-    
-    _
-    false))
+     (for_any (_ a) (-> Text (Try a) Bit))
+     (when input
+           {try.:Failure actual}
+           (text.= expected actual)
+           
+           _
+           false))
 
 (the (enforced? projection input)
-  (for_any (_ s) (-> (Projection s Any) s Bit))
-  (when (/.value input projection)
-    {try.:Success [_ []]}
-    true
+     (for_any (_ s) (-> (Projection s Any) s Bit))
+     (when (/.value input projection)
+           {try.:Success [_ []]}
+           true
 
-    _
-    false))
+           _
+           false))
 
 (the (found? projection input)
-  (for_any (_ s) (-> (Projection s Bit) s Bit))
-  (when (/.value input projection)
-    {try.:Success [_ .true]}
-    true
+     (for_any (_ s) (-> (Projection s Bit) s Bit))
+     (when (/.value input projection)
+           {try.:Success [_ .true]}
+           true
 
-    _
-    false))
+           _
+           false))
 
 (the (fails? input)
-  (for_any (_ it)
-    (Predicate (Try it)))
-  (when input
-    {try.:Failure _}
-    true
+     (for_any (_ it)
+              (Predicate (Try it)))
+     (when input
+           {try.:Failure _}
+           true
 
-    _
-    false))
+           _
+           false))
 
 (the (success? input)
-  (for_any (_ it)
-    (Predicate (Try it)))
-  (when input
-    {try.:Success _}
-    true
+     (for_any (_ it)
+              (Predicate (Try it)))
+     (when input
+           {try.:Success _}
+           true
 
-    _
-    false))
+           _
+           false))
 
 (syntax.the (match [pattern ?list.any
                     then ?list.any
                     input ?list.any])
-  (pure (list (` (when (, input)
-                   {try.:Success (, pattern)}
-                   (, then)
+            (pure (list (` (when (, input)
+                                 {try.:Success (, pattern)}
+                                 (, then)
 
-                   (,' _)
-                   false)))))
+                                 (,' _)
+                                 false)))))
 
 (the combinators_0
-  Test
-  (monad.let [! random.monad]
-    [expected0 random.natural
-     variadic (by ! each (|>> (n.major 1) (n.minor 20)) random.natural)
-     expected+ (random.list variadic random.natural)
-     even0 (random.only n.even? random.natural)
-     odd0 (random.only n.odd? random.natural)
-     not0 random.bit]
-    (all _.and
-         (_.coverage [/.maybe]
-           (and (|> (/.maybe <code>.natural)
-                    (/.value [0 (list (code.natural expected0))])
-                    (match [_ {.:Some actual}]
-                           (n.= expected0 actual)))
-                (|> (/.maybe <code>.natural)
-                    (/.value [0 (list (code.integer (.integer expected0)))])
-                    (match [_ {.:None}]
-                           true))))
-         (_.coverage [/.some]
-           (and (|> (/.some <code>.natural)
-                    (/.value [0 (list:each code.natural expected+)])
-                    (match [_ actual]
-                           (by (list.equality n.equality) = expected+ actual)))
-                (|> (/.some <code>.natural)
-                    (/.value [0 (list:each (|>> .integer code.integer) expected+)])
-                    (match [_ (list)]
-                           true))))
-         (_.coverage [/.many]
-           (and (|> (/.many <code>.natural)
-                    (?list.value (list:each code.natural expected+))
-                    (match actual
-                           (by (list.equality n.equality) = expected+ actual)))
-                (|> (/.many <code>.natural)
-                    (?list.value (list (code.natural expected0)))
-                    (match (list actual)
-                           (n.= expected0 actual)))
-                (|> (/.many <code>.natural)
-                    (?list.value (list:each (|>> .integer code.integer) expected+))
-                    fails?)))
-         (_.coverage [/.only]
-           (and (|> (/.only n.even? <code>.natural)
-                    (?list.value (list (code.natural even0)))
-                    (match actual (n.= even0 actual)))
-                (|> (/.only n.even? <code>.natural)
-                    (?list.value (list (code.natural odd0)))
-                    fails?)))
-         (_.coverage [/.and]
-           (let [even (/.only n.even? <code>.natural)
-                 odd (/.only n.odd? <code>.natural)]
-             (and (|> (/.and even odd)
-                      (?list.value (list (code.natural even0) (code.natural odd0)))
-                      (match [left right]
-                             (and (n.= even0 left)
-                                  (n.= odd0 right))))
-                  (|> (/.and even odd)
-                      (?list.value (list (code.natural odd0) (code.natural even0)))
-                      fails?))))
-         (_.coverage [/.or]
-           (let [even (/.only n.even? <code>.natural)
-                 odd (/.only n.odd? <code>.natural)]
-             (and (|> (/.or even odd)
-                      (?list.value (list (code.natural even0)))
-                      (match {.:Left actual} (n.= even0 actual)))
-                  (|> (/.or even odd)
-                      (?list.value (list (code.natural odd0)))
-                      (match {.:Right actual} (n.= odd0 actual)))
-                  (|> (/.or even odd)
-                      (?list.value (list (code.bit not0)))
-                      fails?))))
-         (_.coverage [/.either]
-           (let [even (/.only n.even? <code>.natural)
-                 odd (/.only n.odd? <code>.natural)]
-             (and (|> (/.either even odd)
-                      (?list.value (list (code.natural even0)))
-                      (match actual (n.= even0 actual)))
-                  (|> (/.either even odd)
-                      (?list.value (list (code.natural odd0)))
-                      (match actual (n.= odd0 actual)))
-                  (|> (/.either even odd)
-                      (?list.value (list (code.bit not0)))
-                      fails?))))
-         (_.coverage [/.not]
-           (|> (/.not <code>.natural)
-               (/.value [0 (list (code.bit not0))])
-               ..success?))
-         (_.coverage [/.did_not_fail]
-           (|> (/.not <code>.natural)
-               (/.value [0 (list (code.natural expected0))])
-               (match? {try.:Failure /.did_not_fail})))
-         (_.coverage [/.when]
-           (|> (/.when true (by /.monad pure []))
-               (/.value [0 (list)])
-               ..success?))
-         (_.coverage [/.does_not_meet_condition]
-           (|> (/.when false (by /.monad pure []))
-               (/.value [0 (list)])
-               (match? {try.:Failure /.does_not_meet_condition})))
-         )))
+     Test
+     (monad.let [! random.monad]
+                [expected0 random.natural
+                 variadic (by ! each (|>> (n.major 1) (n.minor 20)) random.natural)
+                 expected+ (random.list variadic random.natural)
+                 even0 (random.only n.even? random.natural)
+                 odd0 (random.only n.odd? random.natural)
+                 not0 random.bit]
+                (all _.and
+                     (_.coverage [/.maybe]
+                                 (and (|> (/.maybe <code>.natural)
+                                          (/.value [0 (list (code.natural expected0))])
+                                          (match [_ {.:Some actual}]
+                                                 (n.= expected0 actual)))
+                                      (|> (/.maybe <code>.natural)
+                                          (/.value [0 (list (code.integer (.integer expected0)))])
+                                          (match [_ {.:None}]
+                                                 true))))
+                     (_.coverage [/.some]
+                                 (and (|> (/.some <code>.natural)
+                                          (/.value [0 (list:each code.natural expected+)])
+                                          (match [_ actual]
+                                                 (by (list.equality n.equality) = expected+ actual)))
+                                      (|> (/.some <code>.natural)
+                                          (/.value [0 (list:each (|>> .integer code.integer) expected+)])
+                                          (match [_ (list)]
+                                                 true))))
+                     (_.coverage [/.many]
+                                 (and (|> (/.many <code>.natural)
+                                          (?list.value (list:each code.natural expected+))
+                                          (match actual
+                                                 (by (list.equality n.equality) = expected+ actual)))
+                                      (|> (/.many <code>.natural)
+                                          (?list.value (list (code.natural expected0)))
+                                          (match (list actual)
+                                                 (n.= expected0 actual)))
+                                      (|> (/.many <code>.natural)
+                                          (?list.value (list:each (|>> .integer code.integer) expected+))
+                                          fails?)))
+                     (_.coverage [/.only]
+                                 (and (|> (/.only n.even? <code>.natural)
+                                          (?list.value (list (code.natural even0)))
+                                          (match actual (n.= even0 actual)))
+                                      (|> (/.only n.even? <code>.natural)
+                                          (?list.value (list (code.natural odd0)))
+                                          fails?)))
+                     (_.coverage [/.and]
+                                 (let [even (/.only n.even? <code>.natural)
+                                       odd (/.only n.odd? <code>.natural)]
+                                      (and (|> (/.and even odd)
+                                               (?list.value (list (code.natural even0) (code.natural odd0)))
+                                               (match [left right]
+                                                      (and (n.= even0 left)
+                                                           (n.= odd0 right))))
+                                           (|> (/.and even odd)
+                                               (?list.value (list (code.natural odd0) (code.natural even0)))
+                                               fails?))))
+                     (_.coverage [/.or]
+                                 (let [even (/.only n.even? <code>.natural)
+                                       odd (/.only n.odd? <code>.natural)]
+                                      (and (|> (/.or even odd)
+                                               (?list.value (list (code.natural even0)))
+                                               (match {.:Left actual} (n.= even0 actual)))
+                                           (|> (/.or even odd)
+                                               (?list.value (list (code.natural odd0)))
+                                               (match {.:Right actual} (n.= odd0 actual)))
+                                           (|> (/.or even odd)
+                                               (?list.value (list (code.bit not0)))
+                                               fails?))))
+                     (_.coverage [/.either]
+                                 (let [even (/.only n.even? <code>.natural)
+                                       odd (/.only n.odd? <code>.natural)]
+                                      (and (|> (/.either even odd)
+                                               (?list.value (list (code.natural even0)))
+                                               (match actual (n.= even0 actual)))
+                                           (|> (/.either even odd)
+                                               (?list.value (list (code.natural odd0)))
+                                               (match actual (n.= odd0 actual)))
+                                           (|> (/.either even odd)
+                                               (?list.value (list (code.bit not0)))
+                                               fails?))))
+                     (_.coverage [/.not]
+                                 (|> (/.not <code>.natural)
+                                     (/.value [0 (list (code.bit not0))])
+                                     ..success?))
+                     (_.coverage [/.did_not_fail]
+                                 (|> (/.not <code>.natural)
+                                     (/.value [0 (list (code.natural expected0))])
+                                     (match? {try.:Failure /.did_not_fail})))
+                     (_.coverage [/.when]
+                                 (|> (/.when true (by /.monad pure []))
+                                     (/.value [0 (list)])
+                                     ..success?))
+                     (_.coverage [/.does_not_meet_condition]
+                                 (|> (/.when false (by /.monad pure []))
+                                     (/.value [0 (list)])
+                                     (match? {try.:Failure /.does_not_meet_condition})))
+                     )))
 
 (the combinators_1
-  Test
-  (monad.let [! random.monad]
-    [variadic (by ! each (|>> (n.major 1) (n.minor 20)) random.natural)
-     times (by ! each (n.% variadic) random.natural)
-     expected random.natural
-     wrong (|> random.natural (random.only (|>> (n.= expected) not)))
-     expected+ (random.list variadic random.natural)
-     delimiter (random.ascii 1)]
-    (all _.and
-         (_.coverage [/.exactly]
-           (and (|> (/.exactly times <code>.natural)
-                    (/.value [0 (list:each code.natural expected+)])
-                    (match [_ actual]
-                           (by (list.equality n.equality) =
-                               (list.first times expected+)
-                               actual)))
-                (|> (/.exactly (++ variadic) <code>.natural)
-                    (/.value [0 (list:each code.natural expected+)])
-                    fails?)))
-         (_.coverage [/.at_least]
-           (and (|> (/.at_least times <code>.natural)
-                    (?list.value (list:each code.natural expected+))
-                    (match actual
-                           (by (list.equality n.equality) =
-                               expected+
-                               actual)))
-                (|> (/.at_least (++ variadic) <code>.natural)
-                    (?list.value (list:each code.natural expected+))
-                    fails?)))
-         (_.coverage [/.at_most]
-           (and (|> (/.at_most times <code>.natural)
-                    (/.value [0 (list:each code.natural expected+)])
-                    (match [_ actual]
-                           (by (list.equality n.equality) =
-                               (list.first times expected+)
-                               actual)))
-                (|> (/.at_most (++ variadic) <code>.natural)
-                    (/.value [0 (list:each code.natural expected+)])
-                    (match [_ actual]
-                           (by (list.equality n.equality) =
-                               expected+
-                               actual)))))
-         (_.coverage [/.between]
-           (and (|> (/.between times (n.- times variadic) <code>.natural)
-                    (?list.value (list:each code.natural expected+))
-                    (match actual
-                           (by (list.equality n.equality) =
-                               expected+
-                               actual)))
-                (|> (/.between times (n.- times variadic) <code>.natural)
-                    (?list.value (list:each code.natural (list.first times expected+)))
-                    (match actual
-                           (by (list.equality n.equality) =
-                               (list.first times expected+)
-                               actual)))))
-         (_.coverage [/.delimited_by]
-           (|> (/.delimited_by (<code>.this (code.text delimiter)) <code>.natural)
-               (?list.value (|> (list:each code.natural expected+)
-                                (list.interposed (code.text delimiter))))
-               (match actual
-                      (by (list.equality n.equality) =
-                          expected+
-                          actual))))
-         (_.coverage [/.remaining]
-           (|> /.remaining
-               (/.value [0 (list:each code.natural expected+)])
-               (match [[so_far tape] actual]
-                      (by (list.equality code.equality) =
-                          (list:each code.natural expected+)
-                          (list.after so_far tape)))))
-         (_.coverage [/.else]
-           (and (|> (/.else wrong (by /.monad pure expected))
-                    (?list.value (list))
-                    (match actual (n.= expected actual)))
-                (|> (/.else expected (/.failure "yolo"))
-                    (?list.value (list))
-                    (match actual (n.= expected actual)))
-                ))
-         )))
+     Test
+     (monad.let [! random.monad]
+                [variadic (by ! each (|>> (n.major 1) (n.minor 20)) random.natural)
+                 times (by ! each (n.% variadic) random.natural)
+                 expected random.natural
+                 wrong (|> random.natural (random.only (|>> (n.= expected) not)))
+                 expected+ (random.list variadic random.natural)
+                 delimiter (random.ascii 1)]
+                (all _.and
+                     (_.coverage [/.exactly]
+                                 (and (|> (/.exactly times <code>.natural)
+                                          (/.value [0 (list:each code.natural expected+)])
+                                          (match [_ actual]
+                                                 (by (list.equality n.equality) =
+                                                     (list.first times expected+)
+                                                     actual)))
+                                      (|> (/.exactly (++ variadic) <code>.natural)
+                                          (/.value [0 (list:each code.natural expected+)])
+                                          fails?)))
+                     (_.coverage [/.at_least]
+                                 (and (|> (/.at_least times <code>.natural)
+                                          (?list.value (list:each code.natural expected+))
+                                          (match actual
+                                                 (by (list.equality n.equality) =
+                                                     expected+
+                                                     actual)))
+                                      (|> (/.at_least (++ variadic) <code>.natural)
+                                          (?list.value (list:each code.natural expected+))
+                                          fails?)))
+                     (_.coverage [/.at_most]
+                                 (and (|> (/.at_most times <code>.natural)
+                                          (/.value [0 (list:each code.natural expected+)])
+                                          (match [_ actual]
+                                                 (by (list.equality n.equality) =
+                                                     (list.first times expected+)
+                                                     actual)))
+                                      (|> (/.at_most (++ variadic) <code>.natural)
+                                          (/.value [0 (list:each code.natural expected+)])
+                                          (match [_ actual]
+                                                 (by (list.equality n.equality) =
+                                                     expected+
+                                                     actual)))))
+                     (_.coverage [/.between]
+                                 (and (|> (/.between times (n.- times variadic) <code>.natural)
+                                          (?list.value (list:each code.natural expected+))
+                                          (match actual
+                                                 (by (list.equality n.equality) =
+                                                     expected+
+                                                     actual)))
+                                      (|> (/.between times (n.- times variadic) <code>.natural)
+                                          (?list.value (list:each code.natural (list.first times expected+)))
+                                          (match actual
+                                                 (by (list.equality n.equality) =
+                                                     (list.first times expected+)
+                                                     actual)))))
+                     (_.coverage [/.delimited_by]
+                                 (|> (/.delimited_by (<code>.this (code.text delimiter)) <code>.natural)
+                                     (?list.value (|> (list:each code.natural expected+)
+                                                      (list.interposed (code.text delimiter))))
+                                     (match actual
+                                            (by (list.equality n.equality) =
+                                                expected+
+                                                actual))))
+                     (_.coverage [/.remaining]
+                                 (|> /.remaining
+                                     (/.value [0 (list:each code.natural expected+)])
+                                     (match [[so_far tape] actual]
+                                            (by (list.equality code.equality) =
+                                                (list:each code.natural expected+)
+                                                (list.after so_far tape)))))
+                     (_.coverage [/.else]
+                                 (and (|> (/.else wrong (by /.monad pure expected))
+                                          (?list.value (list))
+                                          (match actual (n.= expected actual)))
+                                      (|> (/.else expected (/.failure "yolo"))
+                                          (?list.value (list))
+                                          (match actual (n.= expected actual)))
+                                      ))
+                     )))
 
 (the combinators_2
-  Test
-  (monad.let random.monad
-    [expected random.natural
-     even (random.only n.even? random.natural)
-     odd (random.only n.odd? random.natural)
-     .let [natural^ <code>.natural
-           even^ (/.only n.even? <code>.natural)
-           odd^ (/.only n.odd? <code>.natural)]]
-    (all _.and
-         (_.coverage [/.rec]
-           (let [projection (/.rec (function (_ self)
-                                     (/.either <code>.natural
-                                               (<code>.tuple self))))
-                 level_0 (code.natural expected)
-                 level_up (is (-> Code Code)
-                              (|>> list code.tuple))]
-             (and (|> projection
-                      (?list.value (list level_0))
-                      (match actual (n.= expected actual)))
-                  (|> projection
-                      (?list.value (list (level_up level_0)))
-                      (match actual (n.= expected actual)))
-                  (|> projection
-                      (?list.value (list (level_up (level_up level_0))))
-                      (match actual (n.= expected actual))))))
-         (_.coverage [/.after]
-           (and (|> (/.after even^ <code>.natural)
-                    (?list.value (list (code.natural even) (code.natural expected)))
-                    (match actual (n.= expected actual)))
-                (|> (/.after even^ <code>.natural)
-                    (?list.value (list (code.natural odd) (code.natural expected)))
-                    fails?)))
-         (_.coverage [/.before]
-           (and (|> (/.before even^ <code>.natural)
-                    (?list.value (list (code.natural expected) (code.natural even)))
-                    (match actual (n.= expected actual)))
-                (|> (/.before even^ <code>.natural)
-                    (?list.value (list (code.natural expected) (code.natural odd)))
-                    fails?)))
-         (_.coverage [/.parses?]
-           (and (|> (/.parses? even^)
-                    (/.value [0 (list (code.natural even))])
-                    (match [_ verdict] verdict))
-                (|> (/.parses? even^)
-                    (/.value [0 (list (code.natural odd))])
-                    (match [_ verdict] (not verdict)))))
-         (_.coverage [/.parses]
-           (and (|> (/.parses even^)
-                    (?list.value (list (code.natural even)))
-                    ..success?)
-                (|> (/.parses even^)
-                    (?list.value (list (code.natural odd)))
-                    fails?)))
-         (_.coverage [/.speculative]
-           (let [happy_path!
-                 (|> (/.and (/.speculative even^) natural^)
-                     (?list.value (list (code.natural even)))
-                     (match [speculation actual]
-                            (and (n.= speculation actual)
-                                 (n.= even actual))))
+     Test
+     (monad.let random.monad
+                [expected random.natural
+                 even (random.only n.even? random.natural)
+                 odd (random.only n.odd? random.natural)
+                 .let [natural^ <code>.natural
+                       even^ (/.only n.even? <code>.natural)
+                       odd^ (/.only n.odd? <code>.natural)]]
+                (all _.and
+                     (_.coverage [/.rec]
+                                 (let [projection (/.rec (function (_ self)
+                                                                   (/.either <code>.natural
+                                                                             (<code>.tuple self))))
+                                       level_0 (code.natural expected)
+                                       level_up (is (-> Code Code)
+                                                    (|>> list code.tuple))]
+                                      (and (|> projection
+                                               (?list.value (list level_0))
+                                               (match actual (n.= expected actual)))
+                                           (|> projection
+                                               (?list.value (list (level_up level_0)))
+                                               (match actual (n.= expected actual)))
+                                           (|> projection
+                                               (?list.value (list (level_up (level_up level_0))))
+                                               (match actual (n.= expected actual))))))
+                     (_.coverage [/.after]
+                                 (and (|> (/.after even^ <code>.natural)
+                                          (?list.value (list (code.natural even) (code.natural expected)))
+                                          (match actual (n.= expected actual)))
+                                      (|> (/.after even^ <code>.natural)
+                                          (?list.value (list (code.natural odd) (code.natural expected)))
+                                          fails?)))
+                     (_.coverage [/.before]
+                                 (and (|> (/.before even^ <code>.natural)
+                                          (?list.value (list (code.natural expected) (code.natural even)))
+                                          (match actual (n.= expected actual)))
+                                      (|> (/.before even^ <code>.natural)
+                                          (?list.value (list (code.natural expected) (code.natural odd)))
+                                          fails?)))
+                     (_.coverage [/.parses?]
+                                 (and (|> (/.parses? even^)
+                                          (/.value [0 (list (code.natural even))])
+                                          (match [_ verdict] verdict))
+                                      (|> (/.parses? even^)
+                                          (/.value [0 (list (code.natural odd))])
+                                          (match [_ verdict] (not verdict)))))
+                     (_.coverage [/.parses]
+                                 (and (|> (/.parses even^)
+                                          (?list.value (list (code.natural even)))
+                                          ..success?)
+                                      (|> (/.parses even^)
+                                          (?list.value (list (code.natural odd)))
+                                          fails?)))
+                     (_.coverage [/.speculative]
+                                 (let [happy_path!
+                                       (|> (/.and (/.speculative even^) natural^)
+                                           (?list.value (list (code.natural even)))
+                                           (match [speculation actual]
+                                                  (and (n.= speculation actual)
+                                                       (n.= even actual))))
 
-                 sad_path!
-                 (|> (/.and (/.speculative even^) natural^)
-                     (?list.value (list (code.natural odd)))
-                     fails?)]
-             (and happy_path!
-                  sad_path!)))
-         (_.coverage [/.of]
-           (|> (/.of n.base_10 <code>.text)
-               (?list.value (list (code.text (%.natural expected))))
-               (match actual (n.= expected actual))))
-         )))
+                                       sad_path!
+                                       (|> (/.and (/.speculative even^) natural^)
+                                           (?list.value (list (code.natural odd)))
+                                           fails?)]
+                                      (and happy_path!
+                                           sad_path!)))
+                     (_.coverage [/.of]
+                                 (|> (/.of n.base_10 <code>.text)
+                                     (?list.value (list (code.text (%.natural expected))))
+                                     (match actual (n.= expected actual))))
+                     )))
 
 (the injection
-  (Injection (for_any (_ a i) (Projection i a)))
-  (by /.monad pure))
+     (Injection (for_any (_ a i) (Projection i a)))
+     (by /.monad pure))
 
 (the comparison
-  (Comparison (for_any (_ a i) (Projection i a)))
-  (function (_ == left right)
-    (when [(/.value [] left) (/.value [] right)]
-      [{try.:Success [_ left]} {try.:Success [_ right]}]
-      (== left right)
+     (Comparison (for_any (_ a i) (Projection i a)))
+     (function (_ == left right)
+               (when [(/.value [] left) (/.value [] right)]
+                     [{try.:Success [_ left]} {try.:Success [_ right]}]
+                     (== left right)
 
-      _
-      false)))
+                     _
+                     false)))
 
 (the .public test
-  Test
-  (monad.let random.monad
-    [expected random.natural
-     failure (random.ascii 1)
-     assertion (random.ascii 1)]
-    (<| (_.covering /._)
-        (_.for [/.Projection])
-        (all _.and
-             (_.for [/.functor]
-                    (functorT.spec ..injection ..comparison /.functor))
-             (_.for [/.monad]
-                    (monadT.spec ..injection ..comparison /.monad))
+     Test
+     (monad.let random.monad
+                [expected random.natural
+                 failure (random.ascii 1)
+                 assertion (random.ascii 1)]
+                (<| (_.covering /._)
+                    (_.for [/.Projection])
+                    (all _.and
+                         (_.for [/.functor]
+                                (functorT.spec ..injection ..comparison /.functor))
+                         (_.for [/.monad]
+                                (monadT.spec ..injection ..comparison /.monad))
 
-             (_.coverage [/.value]
-               (|> (by /.monad pure expected)
-                   (/.value [])
-                   (match [_ actual] (n.= expected actual))))
-             (_.coverage [/.failure]
-               (|> (/.failure failure)
-                   (/.value [])
-                   (should_fail failure)))
-             (_.coverage [/.of_try]
-               (and (|> (/.of_try {try.:Success expected})
-                        (/.value [])
-                        (match [_ actual] (n.= expected actual)))
-                    (|> (/.of_try {try.:Failure failure})
-                        (/.value [])
-                        (should_fail failure))))
-             (_.coverage [/.assertion]
-               (and (|> (/.assertion assertion true)
-                        (/.value [])
-                        ..success?)
-                    (|> (/.assertion assertion false)
-                        (/.value [])
-                        fails?)))
-             ..combinators_0
-             ..combinators_1
-             ..combinators_2
-             ))))
+                         (_.coverage [/.value]
+                                     (|> (by /.monad pure expected)
+                                         (/.value [])
+                                         (match [_ actual] (n.= expected actual))))
+                         (_.coverage [/.failure]
+                                     (|> (/.failure failure)
+                                         (/.value [])
+                                         (should_fail failure)))
+                         (_.coverage [/.of_try]
+                                     (and (|> (/.of_try {try.:Success expected})
+                                              (/.value [])
+                                              (match [_ actual] (n.= expected actual)))
+                                          (|> (/.of_try {try.:Failure failure})
+                                              (/.value [])
+                                              (should_fail failure))))
+                         (_.coverage [/.assertion]
+                                     (and (|> (/.assertion assertion true)
+                                              (/.value [])
+                                              ..success?)
+                                          (|> (/.assertion assertion false)
+                                              (/.value [])
+                                              fails?)))
+                         ..combinators_0
+                         ..combinators_1
+                         ..combinators_2
+                         ))))

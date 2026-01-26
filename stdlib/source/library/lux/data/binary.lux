@@ -24,43 +24,43 @@
   ["[1]" \\unsafe]])
 
 (every .public Binary
-  /.Binary)
+       /.Binary)
 
 (every .public Index
-  /.Index)
+       /.Index)
 
 (the .public size
-  (-> Binary
-      Natural)
-  (|>> /.size))
+     (-> Binary
+         Natural)
+     (|>> /.size))
 
 (the .public limit
-  Natural
-  array.limit)
+     Natural
+     array.limit)
 
 (the .public empty
-  (-> Natural
-      Binary)
-  (|>> /.empty))
+     (-> Natural
+         Binary)
+     (|>> /.empty))
 
 (the .public (mix $ it init)
-  (for_any (_ a)
-    (-> (-> I64 (Change a))
-        (-> Binary (Change a))))
-  (let [size (/.size it)]
-    (loop (of [index 0
-               output init])
-      (if (n.< size index)
-          (of (++ index) ($ (/.bits_08 index it) output))
-          output))))
+     (for_any (_ a)
+              (-> (-> I64 (Change a))
+                  (-> Binary (Change a))))
+     (let [size (/.size it)]
+          (loop (of [index 0
+                     output init])
+                (if (n.< size index)
+                    (of (++ index) ($ (/.bits_08 index it) output))
+                    output))))
 
 (template.with [<safe> <unsafe> <shift>]
                [(the .public (<safe> index it)
-                  (-> Index Binary
-                      (Try I64))
-                  (if (n.< (/.size it) (|> index <shift>))
-                      {try.:Success (<unsafe> index it)}
-                      {try.:Failure error.not_valid}))]
+                     (-> Index Binary
+                         (Try I64))
+                     (if (n.< (/.size it) (|> index <shift>))
+                         {try.:Success (<unsafe> index it)}
+                         {try.:Failure error.not_valid}))]
 
                [[bits_08 /.bits_08 (|>)]
                 [bits_16 /.bits_16 (n.+ 1)]
@@ -69,11 +69,11 @@
 
 (template.with [<safe> <unsafe> <shift>]
                [(the .public (<safe> index value it)
-                  (-> Index (I64 Any) Binary
-                      (Try Binary))
-                  (if (n.< (/.size it) (|> index <shift>))
-                      {try.:Success (<unsafe> index value it)}
-                      {try.:Failure error.not_valid}))]
+                     (-> Index (I64 Any) Binary
+                         (Try Binary))
+                     (if (n.< (/.size it) (|> index <shift>))
+                         {try.:Success (<unsafe> index value it)}
+                         {try.:Failure error.not_valid}))]
 
                [[has_08! /.has_08! (|>)]
                 [has_16! /.has_16! (n.+ 1)]
@@ -81,84 +81,84 @@
                 [has_64! /.has_64! (n.+ 7)]])
 
 (the .public equality
-  (Equality Binary)
-  (implementation
-   (the (= expected actual)
-     (/.= expected actual))))
+     (Equality Binary)
+     (implementation
+      (the (= expected actual)
+           (/.= expected actual))))
 
 (alias [=]
        ..equality)
 
 (the .public hash
-  (Hash Binary)
-  (implementation
-   (the equality ..equality)
-   (the (hash it)
-     (..mix (function (_ byte hash)
-              (/64.xor byte (/64.left_rotated 1 hash)))
-            it
-            0))))
+     (Hash Binary)
+     (implementation
+      (the equality ..equality)
+      (the (hash it)
+           (..mix (function (_ byte hash)
+                            (/64.xor byte (/64.left_rotated 1 hash)))
+                  it
+                  0))))
 
 (exception.the .public (cannot_copy [bytes source_input target_output])
-  (Exception [Natural Index Index])
-  (exception.report
-   (list ["Bytes" (%.natural bytes)]
-         ["Source input space" (%.natural source_input)]
-         ["Target output space" (%.natural target_output)])))
+               (Exception [Natural Index Index])
+               (exception.report
+                (list ["Bytes" (%.natural bytes)]
+                      ["Source input space" (%.natural source_input)]
+                      ["Target output space" (%.natural target_output)])))
 
 (the .public (copy! bytes source_offset source target_offset target)
-  (-> Natural Index Binary Index Binary
-      (Try Binary))
-  (let [source_input (n.- source_offset (/.size source))
-        target_output (n.- target_offset (/.size target))]
-    (if (or (n.< bytes source_input)
-            (n.< bytes target_output))
-        (exception.except ..cannot_copy [bytes source_input target_output])
-        {try.:Success (/.copy! bytes source_offset source target_offset target)})))
+     (-> Natural Index Binary Index Binary
+         (Try Binary))
+     (let [source_input (n.- source_offset (/.size source))
+           target_output (n.- target_offset (/.size target))]
+          (if (or (n.< bytes source_input)
+                  (n.< bytes target_output))
+              (exception.except ..cannot_copy [bytes source_input target_output])
+              {try.:Success (/.copy! bytes source_offset source target_offset target)})))
 
 (the .public (copy it)
-  (-> Binary
-      Binary)
-  (let [size (..size it)]
-    (/.copy! size 0 it 0 (..empty size))))
+     (-> Binary
+         Binary)
+     (let [size (..size it)]
+          (/.copy! size 0 it 0 (..empty size))))
 
 (exception.the .public (slice_out_of_bounds [size offset length])
-  (Exception [Natural Index Natural])
-  (exception.report
-   (list ["Size" (%.natural size)]
-         ["Offset" (%.natural offset)]
-         ["Length" (%.natural length)])))
+               (Exception [Natural Index Natural])
+               (exception.report
+                (list ["Size" (%.natural size)]
+                      ["Offset" (%.natural offset)]
+                      ["Length" (%.natural length)])))
 
 (the .public (slice offset length binary)
-  (-> Index Natural Binary
-      (Try Binary))
-  (let [size (/.size binary)
-        limit (n.+ length offset)]
-    (if (n.< limit size)
-        (exception.except ..slice_out_of_bounds [size offset length])
-        {try.:Success (/.slice offset length binary)})))
+     (-> Index Natural Binary
+         (Try Binary))
+     (let [size (/.size binary)
+           limit (n.+ length offset)]
+          (if (n.< limit size)
+              (exception.except ..slice_out_of_bounds [size offset length])
+              {try.:Success (/.slice offset length binary)})))
 
 (the .public (after bytes binary)
-  (-> Natural Binary
-      Binary)
-  (if (n.= 0 bytes)
-      (..copy binary)
+     (-> Natural Binary
+         Binary)
+     (if (n.= 0 bytes)
+         (..copy binary)
 
-      (n.< (/.size binary) bytes)
-      (/.slice bytes (n.- bytes (/.size binary)) binary)
+         (n.< (/.size binary) bytes)
+         (/.slice bytes (n.- bytes (/.size binary)) binary)
 
-      ... else
-      (/.empty 0)))
+         (comment "else"
+                  (/.empty 0))))
 
 (the .public monoid
-  (Monoid Binary)
-  (implementation
-   (the identity
-     (/.empty 0))
+     (Monoid Binary)
+     (implementation
+      (the identity
+           (/.empty 0))
 
-   (the (composite left right)
-     (let [sizeL (/.size left)
-           sizeR (/.size right)]
-       (|> (/.empty (n.+ sizeL sizeR))
-           (/.copy! sizeL 0 left 0)
-           (/.copy! sizeR 0 right sizeL))))))
+      (the (composite left right)
+           (let [sizeL (/.size left)
+                 sizeR (/.size right)]
+                (|> (/.empty (n.+ sizeL sizeR))
+                    (/.copy! sizeL 0 left 0)
+                    (/.copy! sizeR 0 right sizeL))))))

@@ -53,7 +53,7 @@
 
 (template.with [<name> <type>]
                [(every .public <name>
-                  <type>)]
+                       <type>)]
 
                [[Null    Any]
                 [Boolean Bit]
@@ -61,143 +61,143 @@
                 [String  Text]])
 
 (every .public (JSON _)
-  (Variant
-   {:Null    Null}
-   {:Boolean Boolean}
-   {:Number  Number}
-   {:String  String}
-   {:Array   (List (JSON _))}
-   {:Object  (Dictionary String (JSON _))}))
+       (Variant
+        {:Null    Null}
+        {:Boolean Boolean}
+        {:Number  Number}
+        {:String  String}
+        {:Array   (List (JSON _))}
+        {:Object  (Dictionary String (JSON _))}))
 
 (template.with [<name> <type>]
                [(every .public <name>
-                  <type>)]
+                       <type>)]
 
                [[Array  (List JSON)]
                 [Object (Dictionary String JSON)]])
 
 (the .public null?
-  (Predicate JSON)
-  (|>> (pipe.when
-         {:Null}
-         true
-         
-         _
-         false)))
+     (Predicate JSON)
+     (|>> (pipe.when
+           {:Null}
+           true
+           
+           _
+           false)))
 
 (the .public object
-  (-> (List [String JSON])
-      JSON)
-  (|>> (dictionary.of_list text.hash)
-       {..:Object}))
+     (-> (List [String JSON])
+         JSON)
+     (|>> (dictionary.of_list text.hash)
+          {..:Object}))
 
 (every JSON'
-  (Rec JSON'
-    (Variant
-     {:Null'    Null}
-     {:Boolean' Boolean}
-     {:Number'  Number}
-     {:String'  String}
-     {:Array'   (List JSON')}
-     {:Object'  (Dictionary String JSON')}
-     {:Code'    Code})))
+       (Rec JSON'
+            (Variant
+             {:Null'    Null}
+             {:Boolean' Boolean}
+             {:Number'  Number}
+             {:String'  String}
+             {:Array'   (List JSON')}
+             {:Object'  (Dictionary String JSON')}
+             {:Code'    Code})))
 
 (the jsonP
-  (<code>.Projection JSON')
-  (<| (with ?.monad)
-      ?.rec
-      (function (_ jsonP))
-      (all ?.or
-           (<code>.form (pure []))
-           <code>.bit
-           <code>.real
-           <code>.text
-           (<code>.tuple (?.some jsonP))
-           (each (dictionary.of_list text.hash)
-                 (<code>.variant (?.some (?.and <code>.text jsonP))))
-           ?list.any
-           )))
+     (<code>.Projection JSON')
+     (<| (with ?.monad)
+         ?.rec
+         (function (_ jsonP))
+         (all ?.or
+              (<code>.form (pure []))
+              <code>.bit
+              <code>.real
+              <code>.text
+              (<code>.tuple (?.some jsonP))
+              (each (dictionary.of_list text.hash)
+                    (<code>.variant (?.some (?.and <code>.text jsonP))))
+              ?list.any
+              )))
 
 (the (jsonF token)
-  (-> JSON'
-      Code)
-  (`` (when token
-        {:Null' _}
-        (` {..:Null})
-        
-        (,, (template.with [<ctor> <input_tag> <output_tag>]
-                           [{<input_tag> value}
-                            (` {<output_tag> (, (<ctor> value))})]
+     (-> JSON'
+         Code)
+     (`` (when token
+               {:Null' _}
+               (` {..:Null})
+               
+               (,, (template.with [<ctor> <input_tag> <output_tag>]
+                                  [{<input_tag> value}
+                                   (` {<output_tag> (, (<ctor> value))})]
 
-                           [[code.bit  ..:Boolean' ..:Boolean]
-                            [code.real ..:Number' ..:Number]
-                            [code.text ..:String' ..:String]]))
-        
-        {:Array' members}
-        (` {..:Array (.list (,* (list:each jsonF members)))})
+                                  [[code.bit  ..:Boolean' ..:Boolean]
+                                   [code.real ..:Number' ..:Number]
+                                   [code.text ..:String' ..:String]]))
+               
+               {:Array' members}
+               (` {..:Array (.list (,* (list:each jsonF members)))})
 
-        {:Object' pairs}
-        (` {..:Object (dictionary.of_list text.hash
-                                          (.list (,* (|> pairs
-                                                         dictionary.entries
-                                                         (list:each (function (_ [key_name value])
-                                                                      (` [(, (code.text key_name)) (, (jsonF value))])))))))})
+               {:Object' pairs}
+               (` {..:Object (dictionary.of_list text.hash
+                                                 (.list (,* (|> pairs
+                                                                dictionary.entries
+                                                                (list:each (function (_ [key_name value])
+                                                                                     (` [(, (code.text key_name)) (, (jsonF value))])))))))})
 
-        {:Code' code}
-        code)))
+               {:Code' code}
+               code)))
 
 (syntax.the .public (json [token ..jsonP])
-  (pure (.list (` (is JSON
-                      (, (jsonF token)))))))
+            (pure (.list (` (is JSON
+                                (, (jsonF token)))))))
 
 (the .public (fields json)
-  (-> JSON
-      (Try (List String)))
-  (when json
-    {:Object obj}
-    {try.:Success (dictionary.domain obj)}
+     (-> JSON
+         (Try (List String)))
+     (when json
+           {:Object obj}
+           {try.:Success (dictionary.domain obj)}
 
-    _
-    {try.:Failure "Cannot get the fields of a non-object."}))
+           _
+           {try.:Failure "Cannot get the fields of a non-object."}))
 
 (the .public (field key json)
-  (-> String JSON
-      (Try JSON))
-  (when json
-    {:Object obj}
-    (when (dictionary.value key obj)
-      {try.:Success value}
-      {try.:Success value}
+     (-> String JSON
+         (Try JSON))
+     (when json
+           {:Object obj}
+           (when (dictionary.value key obj)
+                 {try.:Success value}
+                 {try.:Success value}
 
-      failure
-      {try.:Failure (.text "Missing field '" key "' on object.")})
+                 failure
+                 {try.:Failure (.text "Missing field '" key "' on object.")})
 
-    _
-    {try.:Failure (.text "Cannot get field '" key "' on a non-object.")}))
+           _
+           {try.:Failure (.text "Cannot get field '" key "' on a non-object.")}))
 
 (the .public (has key value json)
-  (-> String JSON JSON
-      (Try JSON))
-  (when json
-    {:Object obj}
-    {try.:Success {:Object (dictionary.has key value obj)}}
+     (-> String JSON JSON
+         (Try JSON))
+     (when json
+           {:Object obj}
+           {try.:Success {:Object (dictionary.has key value obj)}}
 
-    _
-    {try.:Failure (.text "Cannot set field '" key "' on a non-object.")}))
+           _
+           {try.:Failure (.text "Cannot set field '" key "' on a non-object.")}))
 
 (template.with [<name> <tag> <type>]
                [(the .public (<name> key json)
-                  (-> Text JSON
-                      (Try <type>))
-                  (when (field key json)
-                    {try.:Success {<tag> value}}
-                    {try.:Success value}
+                     (-> Text JSON
+                         (Try <type>))
+                     (when (field key json)
+                           {try.:Success {<tag> value}}
+                           {try.:Success value}
 
-                    {try.:Success _}
-                    {try.:Failure (.text "Wrong value type at key: " key)}
+                           {try.:Success _}
+                           {try.:Failure (.text "Wrong value type at key: " key)}
 
-                    {try.:Failure error}
-                    {try.:Failure error}))]
+                           {try.:Failure error}
+                           {try.:Failure error}))]
 
                [[boolean_field :Boolean Boolean]
                 [number_field  :Number  Number]
@@ -206,44 +206,44 @@
                 [object_field  :Object  Object]])
 
 (the .public equality
-  (Equality JSON)
-  (implementation
-   (the (= x y)
-     (`` (when [x y]
-           [{:Null} {:Null}]
-           true
+     (Equality JSON)
+     (implementation
+      (the (= x y)
+           (`` (when [x y]
+                     [{:Null} {:Null}]
+                     true
 
-           (,, (template.with [<tag> <struct>]
-                              [[{<tag> x'} {<tag> y'}]
-                               (by <struct> = x' y')]
+                     (,, (template.with [<tag> <struct>]
+                                        [[{<tag> x'} {<tag> y'}]
+                                         (by <struct> = x' y')]
 
-                              [[:Boolean bit.equality]
-                               [:Number  real.equality]
-                               [:String  text.equality]]))
+                                        [[:Boolean bit.equality]
+                                         [:Number  real.equality]
+                                         [:String  text.equality]]))
 
-           [{:Array xs} {:Array ys}]
-           (.and (natural.= (list.size xs) (list.size ys))
-                 (list.mix (function (_ [x' y'] prev)
-                             (.and prev
-                                   (= x' y')))
-                           (list.zipped_2 xs ys)
-                           true))
-           
-           [{:Object xs} {:Object ys}]
-           (.and (natural.= (dictionary.size xs) (dictionary.size ys))
-                 (list.mix (function (_ [xk xv] prev)
-                             (.and prev
-                                   (when (dictionary.value xk ys)
-                                     {try.:Success yv}
-                                     (= xv yv)
+                     [{:Array xs} {:Array ys}]
+                     (.and (natural.= (list.size xs) (list.size ys))
+                           (list.mix (function (_ [x' y'] prev)
+                                               (.and prev
+                                                     (= x' y')))
+                                     (list.zipped_2 xs ys)
+                                     true))
+                     
+                     [{:Object xs} {:Object ys}]
+                     (.and (natural.= (dictionary.size xs) (dictionary.size ys))
+                           (list.mix (function (_ [xk xv] prev)
+                                               (.and prev
+                                                     (when (dictionary.value xk ys)
+                                                           {try.:Success yv}
+                                                           (= xv yv)
 
-                                     failure
-                                     false)))
-                           (dictionary.entries xs)
-                           true))
-           
-           _
-           false)))))
+                                                           failure
+                                                           false)))
+                                     (dictionary.entries xs)
+                                     true))
+                     
+                     _
+                     false)))))
 
 (alias [=]
        ..equality)
@@ -253,39 +253,39 @@
 ............................................................
 
 (the (null_as_text _)
-  (text.Injection Null)
-  "null")
+     (text.Injection Null)
+     "null")
 
 (the boolean_as_text
-  (text.Injection Boolean)
-  (|>> (pipe.when
-         .false
-         "false"
-         
-         .true
-         "true")))
+     (text.Injection Boolean)
+     (|>> (pipe.when
+           .false
+           "false"
+           
+           .true
+           "true")))
 
 (the number_as_text
-  (text.Injection Number)
-  (|>> (pipe.when
-         +0.0 ... OR -0.0
-         "0.0"
+     (text.Injection Number)
+     (|>> (pipe.when
+           +0.0 ... OR -0.0
+           "0.0"
 
-         value
-         (let [raw (by real.base_10 as value)]
-           (if (real.< +0.0 value)
-               raw
-               (|> raw (text.split_at 1) maybe.trusted pair.right))))))
+           value
+           (let [raw (by real.base_10 as value)]
+                (if (real.< +0.0 value)
+                    raw
+                    (|> raw (text.split_at 1) maybe.trusted pair.right))))))
 
 (the string_as_text
-  (text.Injection String)
-  (|>> escape.escaped
-       (text.enclosed [text.double_quote text.double_quote])))
+     (text.Injection String)
+     (|>> escape.escaped
+          (text.enclosed [text.double_quote text.double_quote])))
 
 (template.with [<token> <name>]
                [(the <name>
-                  Text
-                  <token>)]
+                     Text
+                     <token>)]
 
                [... https://en.wikipedia.org/wiki/Delimiter
                 ["," delimiter_of_value]
@@ -298,329 +298,329 @@
                 ["}" end_of_object]])
 
 (the (array_as_text as_text)
-  (-> (text.Injection JSON)
-      (text.Injection Array))
-  (|>> (list:each as_text)
-       (text.interposed ..delimiter_of_value)
-       (text.enclosed [..start_of_array ..end_of_array])))
+     (-> (text.Injection JSON)
+         (text.Injection Array))
+     (|>> (list:each as_text)
+          (text.interposed ..delimiter_of_value)
+          (text.enclosed [..start_of_array ..end_of_array])))
 
 (the (kv_as_text as_text [key value])
-  (-> (text.Injection JSON)
-      (text.Injection [String JSON]))
-  (.text (..string_as_text key)
-         ..delimiter_of_entry
-         (as_text value)))
+     (-> (text.Injection JSON)
+         (text.Injection [String JSON]))
+     (.text (..string_as_text key)
+            ..delimiter_of_entry
+            (as_text value)))
 
 (the (object_as_text as_text)
-  (-> (text.Injection JSON)
-      (text.Injection Object))
-  (|>> dictionary.entries
-       (list:each (..kv_as_text as_text))
-       (text.interposed ..delimiter_of_value)
-       (text.enclosed [..start_of_object ..end_of_object])))
+     (-> (text.Injection JSON)
+         (text.Injection Object))
+     (|>> dictionary.entries
+          (list:each (..kv_as_text as_text))
+          (text.interposed ..delimiter_of_value)
+          (text.enclosed [..start_of_object ..end_of_object])))
 
 (the .public (as_text json)
-  (text.Injection JSON)
-  (`` (when json
-        (,, (template.with [<tag> <as_text>]
-                           [{<tag> value}
-                            (<as_text> value)]
+     (text.Injection JSON)
+     (`` (when json
+               (,, (template.with [<tag> <as_text>]
+                                  [{<tag> value}
+                                   (<as_text> value)]
 
-                           [[:Null    ..null_as_text]
-                            [:Boolean ..boolean_as_text]
-                            [:Number  ..number_as_text]
-                            [:String  ..string_as_text]
-                            [:Array   (..array_as_text as_text)]
-                            [:Object  (..object_as_text as_text)]]))
-        )))
+                                  [[:Null    ..null_as_text]
+                                   [:Boolean ..boolean_as_text]
+                                   [:Number  ..number_as_text]
+                                   [:String  ..string_as_text]
+                                   [:Array   (..array_as_text as_text)]
+                                   [:Object  (..object_as_text as_text)]]))
+               )))
 
 ............................................................
 ............................................................
 ............................................................
 
 (template.the (?:= ,reference ,it)
-  [(.i64_=# ,reference ,it)])
+              [(.i64_=# ,reference ,it)])
 
 (template.the (?:< ,greater ,lesser)
-  [(.int_<# (.integer ,greater) (.integer ,lesser))])
+              [(.int_<# (.integer ,greater) (.integer ,lesser))])
 
 (template.the (?:size ,it)
-  [(.text_size# ,it)])
+              [(.text_size# ,it)])
 
 (template.the (?:after ,origin ,it)
-  [(is Natural (.i64_+# (is Natural ,origin) (is Natural ,it)))])
+              [(.i64_+# ,origin (is Natural ,it))])
 
 (template.the (?:next ,it)
-  [(?:after 1 ,it)])
+              [(?:after 1 ,it)])
 
 (template.the (?:character ,tape ,offset)
-  [(.text_char# ,offset ,tape)])
+              [(.text_char# ,offset ,tape)])
 
 (template.the (?:index ,tape ,offset ,reference)
-  [(.text_index# ,offset ,reference ,tape)])
+              [(.text_index# ,offset ,reference ,tape)])
 
 (<| (template.with_locals [,the_offset ,the_tape
                            ,the_limit])
     (expansion.let [,by_origin (these [,the_offset ,the_tape])
                     ,by_derivation (these ,the_limit (?:size ,the_tape))])
     (these (template.the (?:valid? ,it)
-             [(?:< ,the_limit ,it)])
+                         [(?:< ,the_limit ,it)])
 
            (the (any_space ,by_origin)
-             (?text.Projection Any)
-             (let [,by_derivation]
-               (loop (of [,the_offset ,the_offset])
-                 (if (.and (?:valid? ,the_offset)
-                           (text.space? (?:character ,the_tape ,the_offset)))
-                     (of (?:next ,the_offset))
-                     {try.:Success [,by_origin []]}))))
+                (?text.Projection Any)
+                (let [,by_derivation]
+                     (loop (of [,the_offset ,the_offset])
+                           (if (.and (?:valid? ,the_offset)
+                                     (text.space? (?:character ,the_tape ,the_offset)))
+                               (of (?:next ,the_offset))
+                               {try.:Success [,by_origin []]}))))
 
            (template.the (?:pure ,it)
-             [{try.:Success [,by_origin ,it]}])
+                         [{try.:Success [,by_origin ,it]}])
 
            (template.the (?:let ,name ,value ,body)
-             [(when (,value ,by_origin)
-                {try.:Success [,by_origin ,name]}
-                ,body
+                         [(when (,value ,by_origin)
+                                {try.:Success [,by_origin ,name]}
+                                ,body
 
-                {try.:Failure error}
-                {try.:Failure error})])
+                                {try.:Failure error}
+                                {try.:Failure error})])
 
            (template.the (let:with_space ,name ,it ,then)
-             [(<| (?:let _ ..any_space)
-                  (?:let ,name ,it)
-                  (?:let _ ..any_space)
-                  ,then)])
+                         [(<| (?:let _ ..any_space)
+                              (?:let ,name ,it)
+                              (?:let _ ..any_space)
+                              ,then)])
 
            (template.the (if:this reference ,then ,else)
-             [(when (?:index ,the_tape ,the_offset reference)
-                {.:Some where}
-                (if (?:= ,the_offset where)
-                    (let [,the_offset (?:after (?:size reference) ,the_offset)]
-                      ,then)
-                    ,else)
+                         [(when (?:index ,the_tape ,the_offset reference)
+                                {.:Some where}
+                                (if (?:= ,the_offset where)
+                                    (let [,the_offset (?:after (?:size reference) ,the_offset)]
+                                         ,then)
+                                    ,else)
 
-                else
-                ,else)])
+                                {.:None}
+                                ,else)])
 
            (template.the (when:this reference ,then)
-             [(if:this reference ,then (exception.except ?text.cannot_match [reference]))])
+                         [(if:this reference ,then (exception.except ?text.cannot_match [reference]))])
 
-           (template.the (let:parses? reference ,name ,then)
-             [(expansion.let [,failure (these (let [,name false]
-                                                ,then))]
-                (when (?:index ,the_tape ,the_offset reference)
-                  {.:Some where}
-                  (if (?:= ,the_offset where)
-                      (let [,name true
-                            ,the_offset (?:after (?:size reference) ,the_offset)]
-                        ,then)
-                      ,failure)
+           (template.the (let:parses? ,name reference ,then)
+                         [(expansion.let [,failure (these (let [,name false]
+                                                               ,then))]
+                                         (when (?:index ,the_tape ,the_offset reference)
+                                               {.:Some where}
+                                               (if (?:= ,the_offset where)
+                                                   (let [,name true
+                                                         ,the_offset (?:after (?:size reference) ,the_offset)]
+                                                        ,then)
+                                                   ,failure)
 
-                  else
-                  ,failure))])
+                                               {.:None}
+                                               ,failure))])
 
            (the <0 (-- (character "0")))
            (the >9 (++ (character "9")))
 
            (template.the (?:digit? ,it)
-             [(.and (?:< ,it ..<0)
-                    (?:< ..>9 ,it))])
+                         [(.and (?:< ,it ..<0)
+                                (?:< ..>9 ,it))])
 
            (the not_valid
-             Try
-             {try.:Failure error.not_valid})
+                Try
+                {try.:Failure error.not_valid})
 
            (template.the (let:natural ,name ,then)
-             [(let [,by_derivation]
-                (loop (of [run 0])
-                  (let [index (?:after ,the_offset run)]
-                    (if (.and (?:valid? index)
-                              (?:digit? (?:character ,the_tape index)))
-                        (of (?:next run))
-                        (if (?:= 0 run)
-                            ..not_valid
-                            (let [,name (.text_clip# ,the_offset run ,the_tape)
-                                  ,the_offset index]
-                              ,then))))))])
+                         [(let [,by_derivation]
+                               (loop (of [run 0])
+                                     (let [index (?:after ,the_offset run)]
+                                          (if (.and (?:valid? index)
+                                                    (?:digit? (?:character ,the_tape index)))
+                                              (of (?:next run))
+                                              (if (?:= 0 run)
+                                                  ..not_valid
+                                                  (let [,name (.text_clip# ,the_offset run ,the_tape)
+                                                        ,the_offset index]
+                                                       ,then))))))])
 
            (template.the (let:integer ,name ,then)
-             [(<| (let:parses? "-" signed?)
-                  (let:natural natural)
-                  (let [,name (.text (if signed? "-" "") natural)])
-                  ,then)])
+                         [(<| (let:parses? signed? "-")
+                              (let:natural natural)
+                              (let [,name (.text (if signed? "-" "") natural)])
+                              ,then)])
 
            (template.the (let:revolution ,name ,else ,then)
-             [(if:this "."
-                       (<| (let:natural ,name)
-                           ,then)
-                       (<| (let [,name ,else])
-                           ,then))])
+                         [(if:this "."
+                                   (<| (let:natural ,name)
+                                       ,then)
+                                   (<| (let [,name ,else])
+                                       ,then))])
 
            (template.the (let:delimiter_of_exponent ,name ,further ,else ,then)
-             [(if (.and (?:< (?:size ,the_tape) ,the_offset)
-                        (when (?:character ,the_tape ,the_offset)
-                          (^.or (character "e")
-                                (character "E"))
-                          true
+                         [(if (.and (?:< (?:size ,the_tape) ,the_offset)
+                                    (when (?:character ,the_tape ,the_offset)
+                                          (^.or (character "e")
+                                                (character "E"))
+                                          true
 
-                          else
-                          false))
-                  (<| (let [,the_offset (?:next ,the_offset)])
-                      (,further ,name)
-                      ,then)
-                  (<| (let [,name ,else])
-                      ,then))])
+                                          else
+                                          false))
+                              (<| (let [,the_offset (?:next ,the_offset)])
+                                  (,further ,name)
+                                  ,then)
+                              (<| (let [,name ,else])
+                                  ,then))])
 
            (the (any_number ,by_origin)
-             (?text.Projection Number)
-             (<| (let:integer digits)
-                 (let:revolution decimals "0")
-                 (let:delimiter_of_exponent exp let:integer "0")
-                 (when (real:of (.text digits "." decimals "e" exp))
-                   {try.:Success value}
-                   (?:pure value)
+                (?text.Projection Number)
+                (<| (let:integer digits)
+                    (let:revolution decimals "0")
+                    (let:delimiter_of_exponent exp let:integer "0")
+                    (when (real:of (.text digits "." decimals "e" exp))
+                          {try.:Success value}
+                          (?:pure value)
 
-                   {try.:Failure message}
-                   {try.:Failure message})))
+                          {try.:Failure message}
+                          {try.:Failure message})))
 
            (the (any_string ,by_origin)
-             (?text.Projection String)
-             (<| (let [,by_derivation
-                       start (?:next ,the_offset)])
-                 (expansion.let [,the_segment (.text_clip# start (.i64_-# start end) ,the_tape)])
-                 (if (?:valid? start)
-                     (when (?:character ,the_tape ,the_offset)
-                       character.double_quote
-                       (loop (of [prefix ""
-                                  start start
-                                  end start])
-                         (when (?:character ,the_tape end)
-                           character.double_quote
-                           {try.:Success [[(?:next end) ,the_tape] (.text prefix ,the_segment)]}
-                           
-                           (character "\")
-                           (let [escape (?:next end)
-                                 end (?:next escape)]
-                             (if (?:valid? end)
-                                 (`` (when (?:character ,the_tape escape)
-                                       (,, (template.with [<when> <then>]
-                                                          [<when>
-                                                           (of (.text prefix ,the_segment <then>)
-                                                               end end)]
+                (?text.Projection String)
+                (<| (let [,by_derivation
+                          start (?:next ,the_offset)])
+                    (expansion.let [,the_segment (.text_clip# start (.i64_-# start end) ,the_tape)])
+                    (if (?:valid? start)
+                        (when (?:character ,the_tape ,the_offset)
+                              character.double_quote
+                              (loop (of [prefix ""
+                                         start start
+                                         end start])
+                                    (when (?:character ,the_tape end)
+                                          character.double_quote
+                                          {try.:Success [[(?:next end) ,the_tape] (.text prefix ,the_segment)]}
+                                          
+                                          (character "\")
+                                          (let [escape (?:next end)
+                                                end (?:next escape)]
+                                               (if (?:valid? end)
+                                                   (`` (when (?:character ,the_tape escape)
+                                                             (,, (template.with [<when> <then>]
+                                                                                [<when>
+                                                                                 (of (.text prefix ,the_segment <then>)
+                                                                                     end end)]
 
-                                                          [[(character "t") text.tab]
-                                                           [(character "b") text.back_space]
-                                                           [(character "n") text.\n]
-                                                           [(character "r") text.carriage_return]
-                                                           [(character "f") text.form_feed]
-                                                           [character.double_quote text.double_quote]
-                                                           [(character "\") "\"]
-                                                           [(character "/") "/"]]))
-                                       
-                                       (character "u")
-                                       (let [u0 end
-                                             end (?:after 4 u0)]
-                                         (if (?:valid? end)
-                                             (when (by natural.base_16 of (.text_clip# u0 4 ,the_tape))
-                                               {try.:Success it}
-                                               (of (.text prefix (text.of_character it))
-                                                   end end)
+                                                                                [[(character "t") text.tab]
+                                                                                 [(character "b") text.back_space]
+                                                                                 [(character "n") text.\n]
+                                                                                 [(character "r") text.carriage_return]
+                                                                                 [(character "f") text.form_feed]
+                                                                                 [character.double_quote text.double_quote]
+                                                                                 [(character "\") "\"]
+                                                                                 [(character "/") "/"]]))
+                                                             
+                                                             (character "u")
+                                                             (let [u0 end
+                                                                   end (?:after 4 u0)]
+                                                                  (if (?:valid? end)
+                                                                      (when (by natural.base_16 of (.text_clip# u0 4 ,the_tape))
+                                                                            {try.:Success it}
+                                                                            (of (.text prefix (text.of_character it))
+                                                                                end end)
 
-                                               else
-                                               ..not_valid)
-                                             ..not_valid))
-                                       
-                                       else
-                                       ..not_valid))
-                                 ..not_valid))
+                                                                            else
+                                                                            ..not_valid)
+                                                                      ..not_valid))
+                                                             
+                                                             else
+                                                             ..not_valid))
+                                                   ..not_valid))
 
-                           else
-                           (let [end (?:next end)]
-                             (if (?:valid? end)
-                                 (of prefix start end)
-                                 ..not_valid))))
+                                          else
+                                          (let [end (?:next end)]
+                                               (if (?:valid? end)
+                                                   (of prefix start end)
+                                                   ..not_valid))))
 
-                       else
-                       ..not_valid)
-                     ..not_valid)))
+                              else
+                              ..not_valid)
+                        ..not_valid)))
 
            (the (any_kv any_json
                         ,by_origin)
-             (-> (?text.Projection JSON)
-                 (?text.Projection [String JSON]))
-             (<| (let:with_space key ..any_string)
-                 (when:this ..delimiter_of_entry)
-                 (?:let value any_json)
-                 (?:pure [key value])))
+                (-> (?text.Projection JSON)
+                    (?text.Projection [String JSON]))
+                (<| (let:with_space key ..any_string)
+                    (when:this ..delimiter_of_entry)
+                    (?:let value any_json)
+                    (?:pure [key value])))
 
            (the (any_delimiter_of_value ,by_origin)
-             (?text.Projection Any)
-             (<| (let:with_space _ (?text.this ..delimiter_of_value))
-                 (?:pure [])))
+                (?text.Projection Any)
+                (<| (let:with_space _ (?text.this ..delimiter_of_value))
+                    (?:pure [])))
 
            (template.with [<name> <open> <close> <any_item>]
                           [(template.the (<name> any_json <prep> ,else)
-                             [(if:this <open>
-                                       (<| (?:let it (?.delimited_by ..any_delimiter_of_value <any_item>))
-                                           (when:this <close>)
-                                           (?:pure (|> it <prep>)))
-                                       ,else)])]
+                                         [(if:this <open>
+                                                   (<| (?:let it (?.delimited_by ..any_delimiter_of_value <any_item>))
+                                                       (when:this <close>)
+                                                       (?:pure (|> it <prep>)))
+                                                   ,else)])]
 
                           [[if:array  ..start_of_array ..end_of_array any_json]
                            [if:object ..start_of_object ..end_of_object (any_kv any_json)]])
 
            (template.the (?:if ,condition ,then ,else)
-             [(when (,condition ,by_origin)
-                {try.:Success [,by_origin it]}
-                (?:pure (|> it ,then))
+                         [(when (,condition ,by_origin)
+                                {try.:Success [,by_origin it]}
+                                (?:pure (|> it ,then))
 
-                else
-                ,else)])
+                                {try.:Failure _}
+                                ,else)])
 
            (the (any_simple ,by_origin)
-             (?text.Projection JSON)
-             (<| (if:this "null" (?:pure {:Null}))
-                 (if:this "false" (?:pure {:Boolean 0b}))
-                 (if:this "true" (?:pure {:Boolean 1b}))
-                 (?:if any_number {:Number})
-                 (?:if any_string {:String})
-                 ..not_valid))
+                (?text.Projection JSON)
+                (<| (if:this "null" (?:pure {:Null}))
+                    (if:this "false" (?:pure {:Boolean 0b}))
+                    (if:this "true" (?:pure {:Boolean 1b}))
+                    (?:if any_number {:Number})
+                    (?:if any_string {:String})
+                    ..not_valid))
 
            (the (any_json ,by_origin)
-             (?text.Projection JSON)
-             (<| (let:with_space it (<| (is (?text.Projection JSON))
-                                        (function (_ ,by_origin))
-                                        (?:if ..any_simple (<|))
-                                        (if:array any_json {:Array})
-                                        (if:object any_json (<| {:Object} (dictionary.of_list text.hash)))
-                                        ..not_valid))
-                 (?:pure it)))
+                (?text.Projection JSON)
+                (<| (let:with_space it (<| (is (?text.Projection JSON))
+                                           (function (_ ,by_origin))
+                                           (?:if ..any_simple (<|))
+                                           (if:array any_json {:Array})
+                                           (if:object any_json (<| {:Object} (dictionary.of_list text.hash)))
+                                           ..not_valid))
+                    (?:pure it)))
            ))
 
 (the .public format
-  (Format Text JSON)
-  (implementation
-   (the as ..as_text)
-   (the of (?text.value any_json))))
+     (Format Text JSON)
+     (implementation
+      (the as ..as_text)
+      (the of (?text.value any_json))))
 
 (exception.the (cannot_project [it])
-  (Exception JSON)
-  (exception.report
-   (.list ["JSON" (..as_text it)])))
+               (Exception JSON)
+               (exception.report
+                (.list ["JSON" (..as_text it)])))
 
 (template.with [,name ,type ,tag]
                [(the .public ,name
-                  (Format JSON ,type)
-                  (implementation
-                   (the as (|>> {,tag}))
-                   (the (of it)
-                     (when it
-                       {,tag it}
-                       {try.:Success it}
+                     (Format JSON ,type)
+                     (implementation
+                      (the as (|>> {,tag}))
+                      (the (of it)
+                           (when it
+                                 {,tag it}
+                                 {try.:Success it}
 
-                       _
-                       (exception.except ..cannot_project [it])))))]
+                                 _
+                                 (exception.except ..cannot_project [it])))))]
 
                [[any Any :Null]
                 [bit Bit :Boolean]
@@ -631,56 +631,56 @@
 (the high_mask Natural (|> low_mask (/64.<< 32)))
 
 (the .public natural
-  (Format JSON Natural)
-  (implementation
-   (the (as input)
-     (let [high (|> input (/64.and high_mask) (/64.>> 32))
-           low (/64.and low_mask input)]
-       {:Array (.list (|> high .integer integer.real {:Number})
-                      (|> low .integer integer.real {:Number}))}))
-   (the (of it)
-     (when it
-       {:Array (.list {:Number high} {:Number low})}
-       {try.:Success (natural.+ (|> high real.integer .natural (/64.<< 32))
-                                (|> low real.integer .natural))}
+     (Format JSON Natural)
+     (implementation
+      (the (as input)
+           (let [high (|> input (/64.and high_mask) (/64.>> 32))
+                 low (/64.and low_mask input)]
+                {:Array (.list (|> high .integer integer.real {:Number})
+                               (|> low .integer integer.real {:Number}))}))
+      (the (of it)
+           (when it
+                 {:Array (.list {:Number high} {:Number low})}
+                 {try.:Success (natural.+ (|> high real.integer .natural (/64.<< 32))
+                                          (|> low real.integer .natural))}
 
-       _
-       (exception.except ..cannot_project [it])))))
+                 _
+                 (exception.except ..cannot_project [it])))))
 
 (the .public integer
-  (Format JSON Integer)
-  (implementation
-   (the as
-     (|>> .natural
-          (by ..natural as)))
-   (the of
-     (|>> (by ..natural of)
-          (by try.functor each (|>> .integer))))))
+     (Format JSON Integer)
+     (implementation
+      (the as
+           (|>> .natural
+                (by ..natural as)))
+      (the of
+           (|>> (by ..natural of)
+                (by try.functor each (|>> .integer))))))
 
 (the .public revolution
-  (Format JSON Revolution)
-  (implementation
-   (the as
-     (|>> .natural
-          (by ..natural as)))
-   (the of
-     (|>> (by ..natural of)
-          (by try.functor each (|>> .revolution))))))
+     (Format JSON Revolution)
+     (implementation
+      (the as
+           (|>> .natural
+                (by ..natural as)))
+      (the of
+           (|>> (by ..natural of)
+                (by try.functor each (|>> .revolution))))))
 
 (template.with [,name ,type ,format]
                [(the .public ,name
-                  (Format JSON ,type)
-                  (implementation
-                   (the as
-                     (|>> (by ,format as)
-                          {:String}))
-                   (the (of it)
-                     (when it
-                       {:String it}
-                       (by ,format of it)
-                       
-                       _
-                       (exception.except ..cannot_project [it])))))]
+                     (Format JSON ,type)
+                     (implementation
+                      (the as
+                           (|>> (by ,format as)
+                                {:String}))
+                      (the (of it)
+                           (when it
+                                 {:String it}
+                                 (by ,format of it)
+                                 
+                                 _
+                                 (exception.except ..cannot_project [it])))))]
 
                [[duration duration.Duration duration.text]
                 [instant instant.Instant instant.text]
@@ -689,199 +689,199 @@
                 [month month.Month month.text]])
 
 (the .public (sum left right)
-  (for_any (_ left right)
-    (-> (Format JSON left) (Format JSON right)
-        (Format JSON (Or left right))))
-  (implementation
-   (the (as it)
-     {:Array (when it
-               {0b it}
-               (.list {:Boolean 0b} (by left as it))
-               
-               {1b it}
-               (.list {:Boolean 1b} (by right as it)))})
-   (the (of it)
-     (`` (when it
-           (,, (template.with [,flag ,format]
-                              [{:Array (.list {:Boolean ,flag} it)}
-                               (try:each (|>> {,flag}) (with ,format (of it)))]
+     (for_any (_ left right)
+              (-> (Format JSON left) (Format JSON right)
+                  (Format JSON (Or left right))))
+     (implementation
+      (the (as it)
+           {:Array (when it
+                         {0b it}
+                         (.list {:Boolean 0b} (by left as it))
+                         
+                         {1b it}
+                         (.list {:Boolean 1b} (by right as it)))})
+      (the (of it)
+           (`` (when it
+                     (,, (template.with [,flag ,format]
+                                        [{:Array (.list {:Boolean ,flag} it)}
+                                         (try:each (|>> {,flag}) (with ,format (of it)))]
 
-                              [[0b left]
-                               [1b right]]))
+                                        [[0b left]
+                                         [1b right]]))
 
-           _
-           (exception.except ..cannot_project [it]))))))
+                     _
+                     (exception.except ..cannot_project [it]))))))
 
 (the .public (product left right)
-  (for_any (_ left right)
-    (-> (Format JSON left) (Format JSON right)
-        (Format JSON (And left right))))
-  (implementation
-   (the (as [itL itR])
-     {:Array (.list (with left (as itL))
-                    (with right (as itR)))})
-   (the (of it)
-     (when it
-       {:Array (.list itL itR)}
-       (monad.let try.monad
-         [itL (with left (of itL))
-          itR (with right (of itR))]
-         (pure [itL itR]))
-       
-       _
-       (exception.except ..cannot_project [it])))))
+     (for_any (_ left right)
+              (-> (Format JSON left) (Format JSON right)
+                  (Format JSON (And left right))))
+     (implementation
+      (the (as [itL itR])
+           {:Array (.list (with left (as itL))
+                          (with right (as itR)))})
+      (the (of it)
+           (when it
+                 {:Array (.list itL itR)}
+                 (monad.let try.monad
+                            [itL (with left (of itL))
+                             itR (with right (of itR))]
+                            (pure [itL itR]))
+                 
+                 _
+                 (exception.except ..cannot_project [it])))))
 
 (the .public (recursive context)
-  (for_any (_ it)
-    (-> (Change (Format JSON it))
-        (Format JSON it)))
-  (implementation
-   (the (as it)
-     (with (context [as (function (_ _) {try.:Failure ""})])
-           (as it)))
-   (the (of it)
-     (with (context [(|>> {:Null}) of])
-           (of it)))))
+     (for_any (_ it)
+              (-> (Change (Format JSON it))
+                  (Format JSON it)))
+     (implementation
+      (the (as it)
+           (with (context [as (function (_ _) {try.:Failure ""})])
+                 (as it)))
+      (the (of it)
+           (with (context [(|>> {:Null}) of])
+                 (of it)))))
 
 (the .public (list item)
-  (for_any (_ it)
-    (-> (Format JSON it)
-        (Format JSON (List it))))
-  (implementation
-   (the as
-     (|>> (list:each (with item as))
-          {:Array}))
-   (the (of it)
-     (when it
-       {:Array it}
-       (list.each' try.monad (with item of) it)
-       
-       _
-       (exception.except ..cannot_project [it])))))
+     (for_any (_ it)
+              (-> (Format JSON it)
+                  (Format JSON (List it))))
+     (implementation
+      (the as
+           (|>> (list:each (with item as))
+                {:Array}))
+      (the (of it)
+           (when it
+                 {:Array it}
+                 (list.each' try.monad (with item of) it)
+                 
+                 _
+                 (exception.except ..cannot_project [it])))))
 
 (the .public (dictionary value)
-  (for_any (_ it)
-    (-> (Format JSON it)
-        (Format JSON (Dictionary Text it))))
-  (implementation
-   (the as
-     (|>> (dictionary:each (by value as))
-          {:Object}))
-   (the (of it)
-     (when it
-       {:Object it}
-       (|> it
-           dictionary.entries
-           (list.each' try.monad (function (_ [key it])
-                                   (monad.let try.monad
-                                     [it (with value (of it))]
-                                     (pure [key it]))))
-           (try:each (dictionary.of_list text.hash)))
-       
-       _
-       (exception.except ..cannot_project [it])))))
+     (for_any (_ it)
+              (-> (Format JSON it)
+                  (Format JSON (Dictionary Text it))))
+     (implementation
+      (the as
+           (|>> (dictionary:each (by value as))
+                {:Object}))
+      (the (of it)
+           (when it
+                 {:Object it}
+                 (|> it
+                     dictionary.entries
+                     (list.each' try.monad (function (_ [key it])
+                                                     (monad.let try.monad
+                                                                [it (with value (of it))]
+                                                                (pure [key it]))))
+                     (try:each (dictionary.of_list text.hash)))
+                 
+                 _
+                 (exception.except ..cannot_project [it])))))
 
 (every .public (Case it)
-  (-> Natural
-      (Format JSON it)))
+       (-> Natural
+           (Format JSON it)))
 
 (the .public (case format)
-  (for_any (_ it)
-    (-> (Format JSON it)
-        (Case it)))
-  (function (_ expected)
-    (let [expected (natural.real expected)]
-      (implementation
-       (the (as it)
-         {:Array (.list {:Number expected}
-                        (by format as it))})
-       (the (of it)
-         (when it
-           {:Array (.list {:Number actual} case)}
-           (if (real.= expected actual)
-               (by format of case)
-               (exception.except ..cannot_project [it]))
-           
-           _
-           (exception.except ..cannot_project [it])))))))
+     (for_any (_ it)
+              (-> (Format JSON it)
+                  (Case it)))
+     (function (_ expected)
+               (let [expected (natural.real expected)]
+                    (implementation
+                     (the (as it)
+                          {:Array (.list {:Number expected}
+                                         (by format as it))})
+                     (the (of it)
+                          (when it
+                                {:Array (.list {:Number actual} case)}
+                                (if (real.= expected actual)
+                                    (by format of case)
+                                    (exception.except ..cannot_project [it]))
+                                
+                                _
+                                (exception.except ..cannot_project [it])))))))
 
 (the .public (or left right)
-  (for_any (_ left right)
-    (-> (Case left) (Case right)
-        (Case (Or left right))))
-  (function (_ expected)
-    (implementation
-     (the (as it)
-       (when it
-         {0b it} (by (left expected) as it)
-         {1b it} (by (right (++ expected)) as it)))
-     (the (of it)
-       (when (by (left expected) of it)
-         {try.:Success it}
-         {try.:Success {0b it}}
-         
-         {try.:Failure _}
-         (when (by (right (++ expected)) of it)
-           {try.:Success it}
-           {try.:Success {1b it}}
-           
-           {try.:Failure error}
-           {try.:Failure error}))))))
+     (for_any (_ left right)
+              (-> (Case left) (Case right)
+                  (Case (Or left right))))
+     (function (_ expected)
+               (implementation
+                (the (as it)
+                     (when it
+                           {0b it} (by (left expected) as it)
+                           {1b it} (by (right (++ expected)) as it)))
+                (the (of it)
+                     (when (by (left expected) of it)
+                           {try.:Success it}
+                           {try.:Success {0b it}}
+                           
+                           {try.:Failure _}
+                           (when (by (right (++ expected)) of it)
+                                 {try.:Success it}
+                                 {try.:Success {1b it}}
+                                 
+                                 {try.:Failure error}
+                                 {try.:Failure error}))))))
 
 (the .public variant
-  (for_any (_ it)
-    (-> (Case it)
-        (Format JSON it)))
-  (function.of 0))
+     (for_any (_ it)
+              (-> (Case it)
+                  (Format JSON it)))
+     (function.of 0))
 
 (every .public (Member it)
-  (-> [Natural Bit]
-      (Format (List JSON) it)))
+       (-> [Natural Bit]
+           (Format (List JSON) it)))
 
 (the .public (member format)
-  (for_any (_ it)
-    (-> (Format JSON it)
-        (Member it)))
-  (function (_ [index end?])
-    (implementation
-     (the (as it)
-       (.list (by format as it)))
-     (the (of it)
-       (if (.or (not end?)
-                (natural.= (++ index) (list.size it)))
-           (monad.let try.monad
-             [it (list.item index it)]
-             (by format of it))
-           (exception.except ..cannot_project [{:Array it}]))))))
+     (for_any (_ it)
+              (-> (Format JSON it)
+                  (Member it)))
+     (function (_ [index end?])
+               (implementation
+                (the (as it)
+                     (.list (by format as it)))
+                (the (of it)
+                     (if (.or (not end?)
+                              (natural.= (++ index) (list.size it)))
+                         (monad.let try.monad
+                                    [it (list.item index it)]
+                                    (by format of it))
+                         (exception.except ..cannot_project [{:Array it}]))))))
 
 (the .public (and left right)
-  (for_any (_ left right)
-    (-> (Member left) (Member right)
-        (Member (And left right))))
-  (function (_ [index end?])
-    (implementation
-     (the (as it)
-       (all list:composite
-            (by (left [index false]) as (pair.left it))
-            (by (right [(++ index) true]) as (pair.right it))))
-     (the (of it)
-       (monad.let try.monad
-         [left (by (left [index false]) of it)
-          right (by (right [(++ index) true]) of it)]
-         (pure [left right]))))))
+     (for_any (_ left right)
+              (-> (Member left) (Member right)
+                  (Member (And left right))))
+     (function (_ [index end?])
+               (implementation
+                (the (as it)
+                     (all list:composite
+                          (by (left [index false]) as (pair.left it))
+                          (by (right [(++ index) true]) as (pair.right it))))
+                (the (of it)
+                     (monad.let try.monad
+                                [left (by (left [index false]) of it)
+                                 right (by (right [(++ index) true]) of it)]
+                                (pure [left right]))))))
 
 (the .public (record member)
-  (for_any (_ it)
-    (-> (Member it)
-        (Format JSON it)))
-  (let [format (member [0 true])]
-    (implementation
-     (the (as it)
-       {:Array (by format as it)})
-     (the (of it)
-       (when it
-         {:Array items}
-         (by format of items)
+     (for_any (_ it)
+              (-> (Member it)
+                  (Format JSON it)))
+     (let [format (member [0 true])]
+          (implementation
+           (the (as it)
+                {:Array (by format as it)})
+           (the (of it)
+                (when it
+                      {:Array items}
+                      (by format of items)
 
-         _
-         (exception.except ..cannot_project [it]))))))
+                      _
+                      (exception.except ..cannot_project [it]))))))

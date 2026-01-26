@@ -1,6 +1,6 @@
 (.using
  [library
-  [lux (.except except with when the)
+  [lux (.except except with when the else)
    [abstract
     ["<>" projection (.open monad)]
     ["[0]" monad]]
@@ -25,169 +25,169 @@
   ["//" try (.only Try)]])
 
 (every .public (Exception it)
-  (Record
-   [:label Text
-    :constructor (-> it Text)]))
+       (Record
+        [:label Text
+         :constructor (-> it Text)]))
 
 (.the .public (is? exception error)
-  (for_any (_ it)
-    (-> (Exception it) Text
-        Bit))
-  (text.starts_with? (its :label exception) error))
+      (for_any (_ it)
+               (-> (Exception it) Text
+                   Bit))
+      (text.starts_with? (its :label exception) error))
 
 (.the .public (failure? exception it)
-  (for_any (_ exception it)
-    (-> (Exception exception) (Try it)
-        Bit))
-  (.when it
-    {//.:Failure error}
-    (is? exception error)
+      (for_any (_ exception it)
+               (-> (Exception exception) (Try it)
+                   Bit))
+      (.when it
+             {//.:Failure error}
+             (is? exception error)
 
-    success
-    false))
+             success
+             false))
 
 (.the .public (when exception then try)
-  (for_any (_ exception it)
-    (-> (Exception exception) (-> Text it) (Try it)
-        (Try it)))
-  (.when try
-    {//.:Failure error}
-    (let [reference (its :label exception)]
-      (if (text.starts_with? reference error)
-          {//.:Success (|> error
-                           (text.clip_since (text.size reference))
-                           maybe.trusted
-                           then)}
-          {//.:Failure error}))
+      (for_any (_ exception it)
+               (-> (Exception exception) (-> Text it) (Try it)
+                   (Try it)))
+      (.when try
+             {//.:Failure error}
+             (let [reference (its :label exception)]
+                  (if (text.starts_with? reference error)
+                      {//.:Success (|> error
+                                       (text.clip_since (text.size reference))
+                                       maybe.trusted
+                                       then)}
+                      {//.:Failure error}))
 
-    success
-    success))
+             success
+             success))
 
 (.the .public (else then it)
-  (for_any (_ it)
-    (-> (-> Text it) (Try it)
-        it))
-  (.when it
-    {//.:Success it}
-    it
+      (for_any (_ it)
+               (-> (-> Text it) (Try it)
+                   it))
+      (.when it
+             {//.:Success it}
+             it
 
-    {//.:Failure error}
-    (then error)))
+             {//.:Failure error}
+             (then error)))
 
 (.the .public (error exception message)
-  (for_any (_ it)
-    (-> (Exception it) it
-        Text))
-  ((its ..:constructor exception) message))
+      (for_any (_ it)
+               (-> (Exception it) it
+                   Text))
+      ((its ..:constructor exception) message))
 
 (.the .public (except exception message)
-  (for_any (_ exception it)
-    (-> (Exception exception) exception
-        (Try it)))
-  {//.:Failure (..error exception message)})
+      (for_any (_ exception it)
+               (-> (Exception exception) exception
+                   (Try it)))
+      {//.:Failure (..error exception message)})
 
 (.the .public (assertion exception message test)
-  (for_any (_ it)
-    (-> (Exception it) it Bit
-        (Try Any)))
-  (if test
-      {//.:Success []}
-      (..except exception message)))
+      (for_any (_ it)
+               (-> (Exception it) it Bit
+                   (Try Any)))
+      (if test
+          {//.:Success []}
+          (..except exception message)))
 
 (.the exceptionP
-  (Projection [export.Policy [[Text Code] Code Code]])
-  (export.with
-   (all <>.either
-        (all <>.and
-             (<code>.form (<>.and <code>.local ?list.any))
-             ?list.any
-             ?list.any)
-        (monad.let <>.monad
-          [name <code>.local]
-          (pure [[name (code.local name)]
-                 (` (Exception Any))
-                 (` "")])))))
+      (Projection [export.Policy [[Text Code] Code Code]])
+      (export.with
+       (all <>.either
+            (all <>.and
+                 (<code>.form (<>.and <code>.local ?list.any))
+                 ?list.any
+                 ?list.any)
+            (monad.let <>.monad
+                       [name <code>.local]
+                       (pure [[name (code.local name)]
+                              (` (Exception Any))
+                              (` "")])))))
 
 (syntax.the .public (the [[export_policy [[name input] type body]] ..exceptionP])
-  (macro.with_names ['descriptor]
-                    (monad.let meta.monad
-                      [[current_module _] module.current]
-                      (let [descriptor (text "{" current_module "." name "}" \n)
-                            'self (code.local name)]
-                        (pure (list (` (.the (, export_policy)
-                                         (, 'self)
-                                         (, type)
-                                         (let [(, 'descriptor) (, (code.text descriptor))]
-                                           [..:label (, 'descriptor)
-                                            ..:constructor (function ((, 'self) (, input))
-                                                             (by text.monoid (,' composite) (, 'descriptor) (, body)))])))))))))
+            (macro.with_names ['descriptor]
+                              (monad.let meta.monad
+                                         [[current_module _] module.current]
+                                         (let [descriptor (text "{" current_module "." name "}" \n)
+                                               'self (code.local name)]
+                                              (pure (list (` (.the (, export_policy)
+                                                                   (, 'self)
+                                                                   (, type)
+                                                                   (let [(, 'descriptor) (, (code.text descriptor))]
+                                                                        [..:label (, 'descriptor)
+                                                                         ..:constructor (function ((, 'self) (, input))
+                                                                                                  (by text.monoid (,' composite) (, 'descriptor) (, body)))])))))))))
 
 (.the .public (report entries)
-  (-> (List [Text Text])
-      Text)
-  (let [header_delimiter ": "
-        largest_header_size (list.mix (function (_ [header _] maximum)
-                                        (n.major (text.size header)
-                                                 maximum))
-                                      entries
-                                      0)
-        on_new_line (|> " "
-                        (list.repeated (n.+ (text.size header_delimiter)
-                                            largest_header_size))
-                        text.together
-                        (text \n))
-        on_entry (is (-> [Text Text] Text)
-                     (function (_ [header message])
-                       (let [padding (|> " "
-                                         (list.repeated (n.- (text.size header)
-                                                             largest_header_size))
-                                         text.together)]
-                         (|> message
-                             (text.replaced \n on_new_line)
-                             (text padding header header_delimiter)))))]
-    (if (list.empty? entries)
-        ""
-        (|> entries
-            (list:each on_entry)
-            (text.interposed \n)))))
+      (-> (List [Text Text])
+          Text)
+      (let [header_delimiter ": "
+            largest_header_size (list.mix (function (_ [header _] maximum)
+                                                    (n.major (text.size header)
+                                                             maximum))
+                                          entries
+                                          0)
+            on_new_line (|> " "
+                            (list.repeated (n.+ (text.size header_delimiter)
+                                                largest_header_size))
+                            text.together
+                            (text \n))
+            on_entry (is (-> [Text Text] Text)
+                         (function (_ [header message])
+                                   (let [padding (|> " "
+                                                     (list.repeated (n.- (text.size header)
+                                                                         largest_header_size))
+                                                     text.together)]
+                                        (|> message
+                                            (text.replaced \n on_new_line)
+                                            (text padding header header_delimiter)))))]
+           (if (list.empty? entries)
+               ""
+               (|> entries
+                   (list:each on_entry)
+                   (text.interposed \n)))))
 
 (.the .public (listing as entries)
-  (for_any (_ it)
-    (-> (-> it Text)
-        (-> (List it) Text)))
-  (|> entries
-      list.enumeration
-      (list:each (function (_ [index entry])
-                   [(n:as index) (as entry)]))
-      ..report))
+      (for_any (_ it)
+               (-> (-> it Text)
+                   (-> (List it) Text)))
+      (|> entries
+          list.enumeration
+          (list:each (function (_ [index entry])
+                               [(n:as index) (as entry)]))
+          ..report))
 
 (.the delimiter
-  Text
-  (let [gap (text \n \n)
-        horizontal_line (|> "-" (list.repeated 64) text.together)]
-    (text gap
-          horizontal_line
-          gap)))
+      Text
+      (let [gap (text \n \n)
+            horizontal_line (|> "-" (list.repeated 64) text.together)]
+           (text gap
+                 horizontal_line
+                 gap)))
 
 (.the (decorated prelude error)
-  (-> Text Text
-      Text)
-  (text prelude
-        ..delimiter
-        error))
+      (-> Text Text
+          Text)
+      (text prelude
+            ..delimiter
+            error))
 
 (.the .public (with exception message computation)
-  (for_any (_ exception it)
-    (-> (Exception exception) exception (Try it)
-        (Try it)))
-  (.when computation
-    {//.:Failure error}
-    {//.:Failure (.when error
-                   ""
-                   (..error exception message)
+      (for_any (_ exception it)
+               (-> (Exception exception) exception (Try it)
+                   (Try it)))
+      (.when computation
+             {//.:Failure error}
+             {//.:Failure (.when error
+                                 ""
+                                 (..error exception message)
 
-                   _
-                   (..decorated (..error exception message) error))}
+                                 _
+                                 (..decorated (..error exception message) error))}
 
-    success
-    success))
+             success
+             success))

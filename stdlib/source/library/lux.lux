@@ -3898,7 +3898,8 @@
 
 (the' .private ?:when/let
       (type (Projection [Bundle Code]))
-      (?:and ?:bundle ?:any))
+      (?:either (?:and ?:bundle ?:any)
+                (?:and (?:tuple ?:bundle) ?:any)))
 
 (the' .private ?:when/partial_if
       (type (Projection [Bit Code Text Code]))
@@ -4333,8 +4334,15 @@
               ... TODO: Generate the explicit type definition instead of using
               ... the "code:name" shortcut below.
               ... (` {..:Named [(, (code:text module)) (, (code:text name))]
-              ...     (, (type:as_code anonymous))})
+              ...              (, (type:as_code anonymous))})
               (code:name [module name])))
+
+(the' .public (else it input)
+      (for_any (_ input output)
+               (-> (-> input output)
+                   input
+                   (-> input output)))
+      it)
 
 (the' .public when
       Macro
@@ -4421,11 +4429,10 @@
                                                                                        'else (generated_name "'else")
                                                                                        type_of_output type:expectation
                                                                                        'partial_if_case (partial_if_case expectation_for_arity in_order 'else 'value 'local 0)]
-                                                                                      (pure (list ('let 'else (let' ['local_of_else (code:local local_of_else)]
-                                                                                                                    (` (is (-> (, (type:as_code type_of_input))
-                                                                                                                               (, (type:as_code type_of_output)))
-                                                                                                                           (, ('function 'local_of_else (stack 'local_of_else)
-                                                                                                                                         body_of_else)))))
+                                                                                      (pure (list ('let 'else (` (..else (, (let' ['local_of_else (code:local local_of_else)]
+                                                                                                                                  ('function 'local_of_else (stack 'local_of_else)
+                                                                                                                                             body_of_else)))
+                                                                                                                         (, 'value)))
                                                                                                         'partial_if_case))))
 
                                                                            else
@@ -4446,12 +4453,12 @@
                                                        (failure "")))
 
                                         else
-                                        (exec (.log!# (text "[when]"
-                                                            " " (code:as_text 'value)
-                                                            \n "  "
-                                                            (text:interposed (text \n "  ") (list:each code:as_text expansion))))
-                                              (pure (list (` (.when# (, 'value)
-                                                                     (,* expansion))))))))
+                                        (comment (.log!# (text "[when]"
+                                                               " " (code:as_text 'value)
+                                                               \n "  "
+                                                               (text:interposed (text \n "  ") (list:each code:as_text expansion))))
+                                                 (pure (list (` (.when# (, 'value)
+                                                                        (,* expansion))))))))
 
                      else
                      (failure ""))))

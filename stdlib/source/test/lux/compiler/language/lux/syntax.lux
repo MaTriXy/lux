@@ -36,303 +36,303 @@
   ["[0]" /]])
 
 (the name_part^
-  (Random Text)
-  (monad.let [! random.monad]
-    [size (|> random.natural (by ! each (|>> (n.% 20) (n.major 1))))]
-    (random.lower_cased size)))
+     (Random Text)
+     (monad.let [! random.monad]
+                [size (|> random.natural (by ! each (|>> (n.% 20) (n.major 1))))]
+                (random.lower_cased size)))
 
 (the name^
-  (Random Name)
-  (random.and name_part^
-              name_part^))
+     (Random Name)
+     (random.and name_part^
+                 name_part^))
 
 (the textual^
-  (Random Text)
-  (monad.let random.monad
-    [size (|> random.natural (random:each (n.% 20)))]
-    (random.upper_cased size)))
+     (Random Text)
+     (monad.let random.monad
+                [size (|> random.natural (random:each (n.% 20)))]
+                (random.upper_cased size)))
 
 (the code^
-  (Random Code)
-  (let [numeric^ (is (Random Code)
-                     (all random.either
-                          (|> random.bit (random:each code.bit))
-                          (|> random.natural (random:each code.natural))
-                          (|> random.integer (random:each code.integer))
-                          (|> random.revolution (random:each code.revolution))
-                          (|> random.unit_real (random:each code.real))
-                          ))
-        textual^ (is (Random Code)
-                     (all random.either
-                          (|> textual^ (random:each code.text))
-                          (|> name^ (random:each code.name))
-                          ))
-        simple^ (is (Random Code)
-                    (all random.either
-                         numeric^
-                         textual^
-                         ))]
-    (random.rec
-     (function (_ code^)
-       (let [multi^ (is (Random (List Code))
-                        (monad.let random.monad
-                          [size (|> random.natural (random:each (n.% 3)))]
-                          (random.list size code^)))
-             composite^ (is (Random Code)
-                            (all random.either
-                                 (|> multi^ (random:each code.form))
-                                 (|> multi^ (random:each code.tuple))
-                                 ))]
-         (all random.either
-              simple^
-              composite^
-              ))))))
+     (Random Code)
+     (let [numeric^ (is (Random Code)
+                        (all random.either
+                             (|> random.bit (random:each code.bit))
+                             (|> random.natural (random:each code.natural))
+                             (|> random.integer (random:each code.integer))
+                             (|> random.revolution (random:each code.revolution))
+                             (|> random.unit_real (random:each code.real))
+                             ))
+           textual^ (is (Random Code)
+                        (all random.either
+                             (|> textual^ (random:each code.text))
+                             (|> name^ (random:each code.name))
+                             ))
+           simple^ (is (Random Code)
+                       (all random.either
+                            numeric^
+                            textual^
+                            ))]
+          (random.rec
+           (function (_ code^)
+                     (let [multi^ (is (Random (List Code))
+                                      (monad.let random.monad
+                                                 [size (|> random.natural (random:each (n.% 3)))]
+                                                 (random.list size code^)))
+                           composite^ (is (Random Code)
+                                          (all random.either
+                                               (|> multi^ (random:each code.form))
+                                               (|> multi^ (random:each code.tuple))
+                                               ))]
+                          (all random.either
+                               simple^
+                               composite^
+                               ))))))
 
 (the code
-  Test
-  (monad.let [! random.monad]
-    [sample code^
-     expected_text textual^
-     expected_fraction fractionT.random
-     expected_rational rationalT.random
+     Test
+     (monad.let [! random.monad]
+                [sample code^
+                 expected_text textual^
+                 expected_fraction fractionT.random
+                 expected_rational rationalT.random
 
-     natural_numerator random.natural
-     integer_numerator random.integer
-     real_numerator random.safe_real
+                 natural_numerator random.natural
+                 integer_numerator random.integer
+                 real_numerator random.safe_real
 
-     .let [random_digit (by ! each (n.% 10) random.natural)]
-     digit_0 random_digit
-     digit_1 random_digit]
-    (`` (all _.and
-             (_.test "Can parse Lux code."
-               (when (let [source_code (code.as_text sample)]
-                       (/.parse source_code "" (dictionary.empty text.hash)
-                                [provenance.dummy 0 source_code]))
-                 {.:Left error}
-                 false
+                 .let [random_digit (by ! each (n.% 10) random.natural)]
+                 digit_0 random_digit
+                 digit_1 random_digit]
+                (`` (all _.and
+                         (_.test "Can parse Lux code."
+                                 (when (let [source_code (code.as_text sample)]
+                                            (/.parse source_code "" (dictionary.empty text.hash)
+                                                     [provenance.dummy 0 source_code]))
+                                       {.:Left error}
+                                       false
 
-                 {.:Right [_ parsed]}
-                 (by code.equality = parsed sample)))
-             (monad.let !
-               [other code^]
-               (_.test "Can parse multiple Lux code nodes."
-                 (let [source_code (text (code.as_text sample) " " (code.as_text other))]
-                   (when (/.parse source_code "" (dictionary.empty text.hash)
-                                  [provenance.dummy 0 source_code])
-                     {.:Left error}
-                     false
+                                       {.:Right [_ parsed]}
+                                       (by code.equality = parsed sample)))
+                         (monad.let !
+                                    [other code^]
+                                    (_.test "Can parse multiple Lux code nodes."
+                                            (let [source_code (text (code.as_text sample) " " (code.as_text other))]
+                                                 (when (/.parse source_code "" (dictionary.empty text.hash)
+                                                                [provenance.dummy 0 source_code])
+                                                       {.:Left error}
+                                                       false
 
-                     {.:Right [remaining =sample]}
-                     (when (/.parse source_code "" (dictionary.empty text.hash)
-                                    remaining)
-                       {.:Left error}
-                       false
+                                                       {.:Right [remaining =sample]}
+                                                       (when (/.parse source_code "" (dictionary.empty text.hash)
+                                                                      remaining)
+                                                             {.:Left error}
+                                                             false
 
-                       {.:Right [_ =other]}
-                       (and (by code.equality = sample =sample)
-                            (by code.equality = other =other)))))))
-             (,, (template.with [,open ,close ,code]
-                   [(_.coverage [,open ,close]
-                      (let [sample (,code (list sample))
-                            source_code (code.as_text sample)]
-                        (when (/.parse source_code "" (dictionary.empty text.hash)
-                                       [provenance.dummy 0 source_code])
-                          {.:Left error}
-                          false
+                                                             {.:Right [_ =other]}
+                                                             (and (by code.equality = sample =sample)
+                                                                  (by code.equality = other =other)))))))
+                         (,, (template.with [,open ,close ,code]
+                                            [(_.coverage [,open ,close]
+                                                         (let [sample (,code (list sample))
+                                                               source_code (code.as_text sample)]
+                                                              (when (/.parse source_code "" (dictionary.empty text.hash)
+                                                                             [provenance.dummy 0 source_code])
+                                                                    {.:Left error}
+                                                                    false
 
-                          {.:Right [_ parsed]}
-                          (and (by code.equality = parsed sample)
-                               (text.starts_with? ,open source_code)
-                               (text.ends_with? ,close source_code)))))]
+                                                                    {.:Right [_ parsed]}
+                                                                    (and (by code.equality = parsed sample)
+                                                                         (text.starts_with? ,open source_code)
+                                                                         (text.ends_with? ,close source_code)))))]
 
-                   [[/.open_variant /.close_variant code.variant]
-                    [/.open_tuple /.close_tuple code.tuple]
-                    [/.open_form /.close_form code.form]]))
-             (_.coverage [/.text_delimiter]
-               (let [source_code (code.as_text (code.text expected_text))]
-                 (when (/.parse source_code "" (dictionary.empty text.hash)
-                                [provenance.dummy 0 source_code])
-                   {.:Left error}
-                   false
+                                            [[/.open_variant /.close_variant code.variant]
+                                             [/.open_tuple /.close_tuple code.tuple]
+                                             [/.open_form /.close_form code.form]]))
+                         (_.coverage [/.text_delimiter]
+                                     (let [source_code (code.as_text (code.text expected_text))]
+                                          (when (/.parse source_code "" (dictionary.empty text.hash)
+                                                         [provenance.dummy 0 source_code])
+                                                {.:Left error}
+                                                false
 
-                   {.:Right [_ parsed]}
-                   (and (by code.equality = (code.text expected_text) parsed)
-                        (text.starts_with? /.text_delimiter source_code)
-                        (text.ends_with? /.text_delimiter source_code)))))
-             (_.coverage [/.digit_delimiter]
-               (let [expected (n.+ (n.x 10 digit_0)
-                                   digit_1)
-                     source_code (text (%.natural digit_0)
-                                       /.digit_delimiter
-                                       (%.natural digit_1))]
-                 (when (/.parse source_code "" (dictionary.empty text.hash)
-                                [provenance.dummy 0 source_code])
-                   {.:Left error}
-                   false
+                                                {.:Right [_ parsed]}
+                                                (and (by code.equality = (code.text expected_text) parsed)
+                                                     (text.starts_with? /.text_delimiter source_code)
+                                                     (text.ends_with? /.text_delimiter source_code)))))
+                         (_.coverage [/.digit_delimiter]
+                                     (let [expected (n.+ (n.x 10 digit_0)
+                                                         digit_1)
+                                           source_code (text (%.natural digit_0)
+                                                             /.digit_delimiter
+                                                             (%.natural digit_1))]
+                                          (when (/.parse source_code "" (dictionary.empty text.hash)
+                                                         [provenance.dummy 0 source_code])
+                                                {.:Left error}
+                                                false
 
-                   {.:Right [_ parsed]}
-                   (by code.equality = (code.natural expected) parsed))))
-             (_.coverage [/.text_cannot_contain_new_lines]
-               (let [source_code (code.as_text (code.text (text expected_text
-                                                                \n
-                                                                expected_text)))]
-                 (when (/.parse source_code "" (dictionary.empty text.hash)
-                                [provenance.dummy 0 source_code])
-                   {.:Left [_ error]}
-                   (exception.is? /.text_cannot_contain_new_lines error)
+                                                {.:Right [_ parsed]}
+                                                (by code.equality = (code.natural expected) parsed))))
+                         (_.coverage [/.text_cannot_contain_new_lines]
+                                     (let [source_code (code.as_text (code.text (text expected_text
+                                                                                      \n
+                                                                                      expected_text)))]
+                                          (when (/.parse source_code "" (dictionary.empty text.hash)
+                                                         [provenance.dummy 0 source_code])
+                                                {.:Left [_ error]}
+                                                (exception.is? /.text_cannot_contain_new_lines error)
 
-                   else
-                   false)))
-             (_.coverage [/.end_of_file]
-               (when (/.parse "" "" (dictionary.empty text.hash)
-                              [provenance.dummy 0 ""])
-                 {.:Left [_ error]}
-                 (exception.is? /.end_of_file error)
+                                                else
+                                                false)))
+                         (_.coverage [/.end_of_file]
+                                     (when (/.parse "" "" (dictionary.empty text.hash)
+                                                    [provenance.dummy 0 ""])
+                                           {.:Left [_ error]}
+                                           (exception.is? /.end_of_file error)
 
-                 else
-                 false))
-             (_.coverage [fraction.extension]
-               (when (let [source_code (by fraction.text as expected_fraction)]
-                       (/.parse source_code "" (dictionary.empty text.hash)
-                                [provenance.dummy 0 source_code]))
-                 {.:Left _}
-                 false
+                                           else
+                                           false))
+                         (_.coverage [fraction.extension]
+                                     (when (let [source_code (by fraction.text as expected_fraction)]
+                                                (/.parse source_code "" (dictionary.empty text.hash)
+                                                         [provenance.dummy 0 source_code]))
+                                           {.:Left _}
+                                           false
 
-                 {.:Right [_ actual]}
-                 (by code.equality =
-                     (` ((, (code.name [.prelude fraction.extension]))
-                         (, (code.natural (fraction.numerator expected_fraction)))
-                         (, (code.natural (fraction.denominator expected_fraction)))))
-                     actual)))
-             (_.coverage [rational.extension]
-               (when (let [source_code (by rational.text as expected_rational)]
-                       (/.parse source_code "" (dictionary.empty text.hash)
-                                [provenance.dummy 0 source_code]))
-                 {.:Left _}
-                 false
+                                           {.:Right [_ actual]}
+                                           (by code.equality =
+                                               (` ((, (code.name [.prelude fraction.extension]))
+                                                   (, (code.natural (fraction.numerator expected_fraction)))
+                                                   (, (code.natural (fraction.denominator expected_fraction)))))
+                                               actual)))
+                         (_.coverage [rational.extension]
+                                     (when (let [source_code (by rational.text as expected_rational)]
+                                                (/.parse source_code "" (dictionary.empty text.hash)
+                                                         [provenance.dummy 0 source_code]))
+                                           {.:Left _}
+                                           false
 
-                 {.:Right [_ actual]}
-                 (by code.equality =
-                     (` ((, (code.name [.prelude rational.extension]))
-                         (, (code.integer (rational.numerator expected_rational)))
-                         (, (code.natural (rational.denominator expected_rational)))))
-                     actual)))
-             (,, (template.with [,unit]
-                   [(_.coverage [,unit]
-                      (and (when (let [source_code (text (by n.base_10 as natural_numerator)
-                                                         (its unit.:suffix ,unit))]
-                                   (/.parse source_code "" (dictionary.empty text.hash)
-                                            [provenance.dummy 0 source_code]))
-                             {.:Left _}
-                             false
+                                           {.:Right [_ actual]}
+                                           (by code.equality =
+                                               (` ((, (code.name [.prelude rational.extension]))
+                                                   (, (code.integer (rational.numerator expected_rational)))
+                                                   (, (code.natural (rational.denominator expected_rational)))))
+                                               actual)))
+                         (,, (template.with [,unit]
+                                            [(_.coverage [,unit]
+                                                         (and (when (let [source_code (text (by n.base_10 as natural_numerator)
+                                                                                            (its unit.:suffix ,unit))]
+                                                                         (/.parse source_code "" (dictionary.empty text.hash)
+                                                                                  [provenance.dummy 0 source_code]))
+                                                                    {.:Left _}
+                                                                    false
 
-                             {.:Right [_ actual]}
-                             (by code.equality =
-                                 (` ((, (code.name [.prelude fraction.extension]))
-                                     (, (code.natural natural_numerator))
-                                     (, (code.natural (its unit.:factor ,unit)))))
-                                 actual))
-                           (when (let [source_code (text (by i.base_10 as integer_numerator)
-                                                         (its unit.:suffix ,unit))]
-                                   (/.parse source_code "" (dictionary.empty text.hash)
-                                            [provenance.dummy 0 source_code]))
-                             {.:Left _}
-                             false
+                                                                    {.:Right [_ actual]}
+                                                                    (by code.equality =
+                                                                        (` ((, (code.name [.prelude fraction.extension]))
+                                                                            (, (code.natural natural_numerator))
+                                                                            (, (code.natural (its unit.:factor ,unit)))))
+                                                                        actual))
+                                                              (when (let [source_code (text (by i.base_10 as integer_numerator)
+                                                                                            (its unit.:suffix ,unit))]
+                                                                         (/.parse source_code "" (dictionary.empty text.hash)
+                                                                                  [provenance.dummy 0 source_code]))
+                                                                    {.:Left _}
+                                                                    false
 
-                             {.:Right [_ actual]}
-                             (by code.equality =
-                                 (` ((, (code.name [.prelude rational.extension]))
-                                     (, (code.integer integer_numerator))
-                                     (, (code.natural (its unit.:factor ,unit)))))
-                                 actual))
-                           (when (let [source_code (text (by r.base_10 as real_numerator)
-                                                         (its unit.:suffix ,unit))]
-                                   (/.parse source_code "" (dictionary.empty text.hash)
-                                            [provenance.dummy 0 source_code]))
-                             {.:Left _}
-                             false
+                                                                    {.:Right [_ actual]}
+                                                                    (by code.equality =
+                                                                        (` ((, (code.name [.prelude rational.extension]))
+                                                                            (, (code.integer integer_numerator))
+                                                                            (, (code.natural (its unit.:factor ,unit)))))
+                                                                        actual))
+                                                              (when (let [source_code (text (by r.base_10 as real_numerator)
+                                                                                            (its unit.:suffix ,unit))]
+                                                                         (/.parse source_code "" (dictionary.empty text.hash)
+                                                                                  [provenance.dummy 0 source_code]))
+                                                                    {.:Left _}
+                                                                    false
 
-                             {.:Right [_ actual]}
-                             (let [expected (code.real (r./ (n.real (its unit.:factor ,unit))
-                                                            real_numerator))]
-                               (by code.equality = expected actual)))
-                           ))]
+                                                                    {.:Right [_ actual]}
+                                                                    (let [expected (code.real (r./ (n.real (its unit.:factor ,unit))
+                                                                                                   real_numerator))]
+                                                                         (by code.equality = expected actual)))
+                                                              ))]
 
-                   [[unit.degree]
-                    [unit.gradian]
-                    [unit.per_cent]
-                    [unit.per_mille]
-                    [unit.per_myriad]]))
-             (,, (template.with [,unit]
-                   [(_.coverage [,unit]
-                      (let [source_code (text (by r.base_10 as real_numerator)
-                                              (its unit.:suffix ,unit))]
-                        (when (/.parse source_code "" (dictionary.empty text.hash)
-                                       [provenance.dummy 0 source_code])
-                          {.:Left _}
-                          false
+                                            [[unit.degree]
+                                             [unit.gradian]
+                                             [unit.per_cent]
+                                             [unit.per_mille]
+                                             [unit.per_myriad]]))
+                         (,, (template.with [,unit]
+                                            [(_.coverage [,unit]
+                                                         (let [source_code (text (by r.base_10 as real_numerator)
+                                                                                 (its unit.:suffix ,unit))]
+                                                              (when (/.parse source_code "" (dictionary.empty text.hash)
+                                                                             [provenance.dummy 0 source_code])
+                                                                    {.:Left _}
+                                                                    false
 
-                          {.:Right [_ actual]}
-                          (let [
-                                expected (code.real (r.x (its unit.:factor ,unit)
-                                                         real_numerator))]
-                            (by code.equality = expected actual)))))]
+                                                                    {.:Right [_ actual]}
+                                                                    (let [
+                                                                          expected (code.real (r.x (its unit.:factor ,unit)
+                                                                                                   real_numerator))]
+                                                                         (by code.equality = expected actual)))))]
 
-                   [[unit.radian]
-                    [unit.turn]]))
-             (,, (template.with [,base ,format]
-                   [(_.coverage [,base]
-                      (when (let [source_code (text "0"
-                                                    (by ,format as natural_numerator)
-                                                    (its base.:suffix ,base))]
-                              (/.parse source_code "" (dictionary.empty text.hash)
-                                       [provenance.dummy 0 source_code]))
-                        {.:Right [_ actual]}
-                        (by code.equality =
-                            (code.natural natural_numerator)
-                            actual)
+                                            [[unit.radian]
+                                             [unit.turn]]))
+                         (,, (template.with [,base ,format]
+                                            [(_.coverage [,base]
+                                                         (when (let [source_code (text "0"
+                                                                                       (by ,format as natural_numerator)
+                                                                                       (its base.:suffix ,base))]
+                                                                    (/.parse source_code "" (dictionary.empty text.hash)
+                                                                             [provenance.dummy 0 source_code]))
+                                                               {.:Right [_ actual]}
+                                                               (by code.equality =
+                                                                   (code.natural natural_numerator)
+                                                                   actual)
 
-                        else
-                        false))]
+                                                               else
+                                                               false))]
 
-                   [[base.binary n.base_02]
-                    [base.octal n.base_08]
-                    [base.decimal n.base_10]
-                    [base.hexadecimal n.base_16]]))
-             ))))
+                                            [[base.binary n.base_02]
+                                             [base.octal n.base_08]
+                                             [base.decimal n.base_10]
+                                             [base.hexadecimal n.base_16]]))
+                         ))))
 
 (the comment^
-  (Random Text)
-  (monad.let random.monad
-    [size (random:each (n.% 20) random.natural)
-     it (random.alpha_numeric size)]
-    (pure (text "... " it \n))))
+     (Random Text)
+     (monad.let random.monad
+                [size (random:each (n.% 20) random.natural)
+                 it (random.alpha_numeric size)]
+                (pure (text "... " it \n))))
 
 (the comments
-  Test
-  (monad.let random.monad
-    [sample code^
-     comment comment^]
-    (all _.and
-         (_.test "Can handle comments."
-           (when (let [source_code (text comment (code.as_text sample))]
-                   (/.parse source_code "" (dictionary.empty text.hash)
-                            [provenance.dummy 0 source_code]))
-             {.:Left error}
-             false
+     Test
+     (monad.let random.monad
+                [sample code^
+                 comment comment^]
+                (all _.and
+                     (_.test "Can handle comments."
+                             (when (let [source_code (text comment (code.as_text sample))]
+                                        (/.parse source_code "" (dictionary.empty text.hash)
+                                                 [provenance.dummy 0 source_code]))
+                                   {.:Left error}
+                                   false
 
-             {.:Right [_ parsed]}
-             (by code.equality = parsed sample)))
-         )))
+                                   {.:Right [_ parsed]}
+                                   (by code.equality = parsed sample)))
+                     )))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (_.for [/.Source_Code /.parse])
-      (all _.and
-           ..code
-           ..comments
-           (_.for [/.Alias /.Aliases]
-                  (_.coverage [/.no_aliases]
-                    (dictionary.empty? /.no_aliases)))
-           )))
+     Test
+     (<| (_.covering /._)
+         (_.for [/.Source_Code /.parse])
+         (all _.and
+              ..code
+              ..comments
+              (_.for [/.Alias /.Aliases]
+                     (_.coverage [/.no_aliases]
+                                 (dictionary.empty? /.no_aliases)))
+              )))

@@ -1,206 +1,206 @@
-... https://en.wikipedia.org/wiki/Multiset
-(.using
- [library
-  [lux (.except has)
-   [abstract
-    [equality (.only Equality)]
-    [hash (.only Hash)]]
-   [error
-    ["[0]" try]]
-   ["[0]" function]
-   [math
-    [number
-     [/64
-      ["n" natural]]]]
-   [macro
-    ["^" pattern]
-    ["[0]" template]]
-   [type
-    ["[0]" nominal]]]]
- ["[0]" // (.only)
-  [//
-   ["[0]" list (.open monoid)]
-   ["[0]" dictionary (.only Dictionary)]]])
+(.comment "https://en.wikipedia.org/wiki/Multiset"
+          (.using
+           [library
+            [lux (.except has)
+             [abstract
+              [equality (.only Equality)]
+              [hash (.only Hash)]]
+             [error
+              ["[0]" try]]
+             ["[0]" function]
+             [math
+              [number
+               [/64
+                ["n" natural]]]]
+             [macro
+              ["^" pattern]
+              ["[0]" template]]
+             [type
+              ["[0]" nominal]]]]
+           ["[0]" // (.only)
+            [//
+             ["[0]" list (.open monoid)]
+             ["[0]" dictionary (.only Dictionary)]]]))
 
 (nominal.every .public (Set it)
-  (Dictionary it Natural)
+               (Dictionary it Natural)
 
-  (the .public empty
-    (for_any (_ it)
-      (-> (Hash it)
-          (Set it)))
-    (|>> dictionary.empty
-         nominal.of))
-
-  (the .public (size it)
-    (for_any (_ it)
-      (-> (Set it)
-          Natural))
-    (list.mix n.+
-              (dictionary.values (nominal.as it))
-              0))
-
-  (the .public (has multiplicity elem set)
-    (for_any (_ it)
-      (-> Natural it (Set it)
-          (Set it)))
-    (when multiplicity
-      0 set
-      _ (|> set
-            nominal.as
-            (dictionary.revised' elem 0 (n.+ multiplicity))
-            nominal.of)))
-
-  (the .public (lacks multiplicity elem set)
-    (for_any (_ it)
-      (-> Natural it (Set it)
-          (Set it)))
-    (when multiplicity
-      0 set
-      _ (when (dictionary.value elem (nominal.as set))
-          {try.:Success current}
-          (nominal.of
-           (if (n.> multiplicity current)
-               (dictionary.revised elem (n.- multiplicity) (nominal.as set))
-               (dictionary.lacks elem (nominal.as set))))
-          
-          failure
-          set)))
-
-  (the .public (multiplicity set elem)
-    (for_any (_ it)
-      (-> (Set it) it
-          Natural))
-    (|> set
-        nominal.as
-        (dictionary.value elem)
-        (try.else 0)))
-
-  (the .public (as_list it)
-    (for_any (_ it)
-      (-> (Set it)
-          (List it)))
-    (list.mix (function (_ [elem multiplicity] output)
-                (list:composite (list.repeated multiplicity elem)
-                                output))
-              (dictionary.entries (nominal.as it))
-              list.empty))
-
-  (template.with [<name> <composite>]
-                 [(the .public (<name> parameter subject)
+               (the .public empty
                     (for_any (_ it)
-                      (-> (Set it) (Set it)
-                          (Set it)))
-                    (nominal.of
-                     (dictionary.composite_with <composite>
-                                                (nominal.as parameter)
-                                                (nominal.as subject))))]
+                             (-> (Hash it)
+                                 (Set it)))
+                    (|>> dictionary.empty
+                         nominal.of))
 
-                 [[union n.major]
-                  [sum n.+]])
+               (the .public (size it)
+                    (for_any (_ it)
+                             (-> (Set it)
+                                 Natural))
+                    (list.mix n.+
+                              (dictionary.values (nominal.as it))
+                              0))
 
-  (the .public (intersection parameter subject)
-    (for_any (_ it)
-      (-> (Set it) (Set it)
-          (Set it)))
-    (let [subject (nominal.as subject)]
-      (list.mix (function (_ [elem multiplicity] output)
-                  (..has (n.minor (..multiplicity parameter elem)
-                                  multiplicity)
-                         elem
-                         output))
-                (dictionary.entries subject)
-                (..empty (dictionary.hash subject)))))
+               (the .public (has multiplicity elem set)
+                    (for_any (_ it)
+                             (-> Natural it (Set it)
+                                 (Set it)))
+                    (when multiplicity
+                          0 set
+                          _ (|> set
+                                nominal.as
+                                (dictionary.revised' elem 0 (n.+ multiplicity))
+                                nominal.of)))
 
-  (the .public (difference parameter subject)
-    (for_any (_ it)
-      (-> (Set it) (Set it)
-          (Set it)))
-    (list.mix (function (_ [elem multiplicity] output)
-                (..lacks multiplicity elem output))
-              (dictionary.entries (nominal.as parameter))
-              subject))
+               (the .public (lacks multiplicity elem set)
+                    (for_any (_ it)
+                             (-> Natural it (Set it)
+                                 (Set it)))
+                    (when multiplicity
+                          0 set
+                          _ (when (dictionary.value elem (nominal.as set))
+                                  {try.:Success current}
+                                  (nominal.of
+                                   (if (n.> multiplicity current)
+                                       (dictionary.revised elem (n.- multiplicity) (nominal.as set))
+                                       (dictionary.lacks elem (nominal.as set))))
+                                  
+                                  failure
+                                  set)))
 
-  (the .public (sub? reference subject)
-    (for_any (_ it)
-      (-> (Set it) (Set it)
-          Bit))
-    (|> subject
-        nominal.as
-        dictionary.entries
-        (list.every? (function (_ [elem multiplicity])
-                       (|> elem
-                           (..multiplicity reference)
-                           (n.>= multiplicity))))))
+               (the .public (multiplicity set elem)
+                    (for_any (_ it)
+                             (-> (Set it) it
+                                 Natural))
+                    (|> set
+                        nominal.as
+                        (dictionary.value elem)
+                        (try.else 0)))
 
-  (the .public (support set)
-    (for_any (_ it)
-      (-> (Set it)
-          (//.Set it)))
-    (let [(^.let set [hash _]) (nominal.as set)]
-      (|> set
-          dictionary.domain
-          (//.of_list hash))))
+               (the .public (as_list it)
+                    (for_any (_ it)
+                             (-> (Set it)
+                                 (List it)))
+                    (list.mix (function (_ [elem multiplicity] output)
+                                        (list:composite (list.repeated multiplicity elem)
+                                                        output))
+                              (dictionary.entries (nominal.as it))
+                              list.empty))
 
-  (the .public equality
-    (for_any (_ it)
-      (Equality (Set it)))
-    (implementation
-     (the (= expected actual)
-       (let [expected (nominal.as expected)]
-         (and (n.= (dictionary.size expected)
-                   (dictionary.size (nominal.as actual)))
-              (|> expected
-                  dictionary.entries
-                  (list.every? (function (_ [elem multiplicity])
-                                 (|> elem
-                                     (..multiplicity actual)
-                                     (n.= multiplicity))))))))))
+               (template.with [<name> <composite>]
+                              [(the .public (<name> parameter subject)
+                                    (for_any (_ it)
+                                             (-> (Set it) (Set it)
+                                                 (Set it)))
+                                    (nominal.of
+                                     (dictionary.composite_with <composite>
+                                                                (nominal.as parameter)
+                                                                (nominal.as subject))))]
 
-  (the .public hash
-    (for_any (_ it)
-      (Hash (Set it)))
-    (implementation
-     (the equality ..equality)
-     
-     (the (hash set)
-       (let [set (nominal.as set)
-             [hash _] set]
-         (list.mix (function (_ [elem multiplicity] acc)
-                     (|> elem (by hash hash) (n.x multiplicity) (n.+ acc)))
-                   (dictionary.entries set)
-                   0)))))
-  )
+                              [[union n.major]
+                               [sum n.+]])
+
+               (the .public (intersection parameter subject)
+                    (for_any (_ it)
+                             (-> (Set it) (Set it)
+                                 (Set it)))
+                    (let [subject (nominal.as subject)]
+                         (list.mix (function (_ [elem multiplicity] output)
+                                             (..has (n.minor (..multiplicity parameter elem)
+                                                             multiplicity)
+                                                    elem
+                                                    output))
+                                   (dictionary.entries subject)
+                                   (..empty (dictionary.hash subject)))))
+
+               (the .public (difference parameter subject)
+                    (for_any (_ it)
+                             (-> (Set it) (Set it)
+                                 (Set it)))
+                    (list.mix (function (_ [elem multiplicity] output)
+                                        (..lacks multiplicity elem output))
+                              (dictionary.entries (nominal.as parameter))
+                              subject))
+
+               (the .public (sub? reference subject)
+                    (for_any (_ it)
+                             (-> (Set it) (Set it)
+                                 Bit))
+                    (|> subject
+                        nominal.as
+                        dictionary.entries
+                        (list.every? (function (_ [elem multiplicity])
+                                               (|> elem
+                                                   (..multiplicity reference)
+                                                   (n.>= multiplicity))))))
+
+               (the .public (support set)
+                    (for_any (_ it)
+                             (-> (Set it)
+                                 (//.Set it)))
+                    (let [(^.let set [hash _]) (nominal.as set)]
+                         (|> set
+                             dictionary.domain
+                             (//.of_list hash))))
+
+               (the .public equality
+                    (for_any (_ it)
+                             (Equality (Set it)))
+                    (implementation
+                     (the (= expected actual)
+                          (let [expected (nominal.as expected)]
+                               (and (n.= (dictionary.size expected)
+                                         (dictionary.size (nominal.as actual)))
+                                    (|> expected
+                                        dictionary.entries
+                                        (list.every? (function (_ [elem multiplicity])
+                                                               (|> elem
+                                                                   (..multiplicity actual)
+                                                                   (n.= multiplicity))))))))))
+
+               (the .public hash
+                    (for_any (_ it)
+                             (Hash (Set it)))
+                    (implementation
+                     (the equality ..equality)
+                     
+                     (the (hash set)
+                          (let [set (nominal.as set)
+                                [hash _] set]
+                               (list.mix (function (_ [elem multiplicity] acc)
+                                                   (|> elem (by hash hash) (n.x multiplicity) (n.+ acc)))
+                                         (dictionary.entries set)
+                                         0)))))
+               )
 
 (the .public (member? set elem)
-  (for_any (_ it)
-    (-> (Set it) it
-        Bit))
-  (|> elem (..multiplicity set) (n.> 0)))
+     (for_any (_ it)
+              (-> (Set it) it
+                  Bit))
+     (|> elem (..multiplicity set) (n.> 0)))
 
 (the .public empty?
-  (for_any (_ it)
-    (-> (Set it)
-        Bit))
-  (|>> ..size (n.= 0)))
+     (for_any (_ it)
+              (-> (Set it)
+                  Bit))
+     (|>> ..size (n.= 0)))
 
 (the .public (of_list hash subject)
-  (for_any (_ it)
-    (-> (Hash it) (List it)
-        (Set it)))
-  (list.mix (..has 1)
-            subject
-            (..empty hash)))
+     (for_any (_ it)
+              (-> (Hash it) (List it)
+                  (Set it)))
+     (list.mix (..has 1)
+               subject
+               (..empty hash)))
 
 (the .public (of_set subject)
-  (for_any (_ it)
-    (-> (//.Set it)
-        (Set it)))
-  (..of_list (//.hash_of_member subject)
-             (//.as_list subject)))
+     (for_any (_ it)
+              (-> (//.Set it)
+                  (Set it)))
+     (..of_list (//.hash_of_member subject)
+                (//.as_list subject)))
 
 (the .public super?
-  (for_any (_ it)
-    (-> (Set it) (Set it)
-        Bit))
-  (function.in_reverse sub?))
+     (for_any (_ it)
+              (-> (Set it) (Set it)
+                  Bit))
+     (function.in_reverse sub?))

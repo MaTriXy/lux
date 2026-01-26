@@ -42,388 +42,388 @@
    ["[1]/[0]" import]]])
 
 (the !expect
-  (template.macro (_ <pattern> <value>)
-    [(when <value>
-       <pattern> true
-       _ false)]))
+     (template.macro (_ <pattern> <value>)
+                     [(when <value>
+                            <pattern> true
+                            _ false)]))
 
 (the compiler_related
-  Test
-  (monad.let random.monad
-    [target (random.upper_cased 1)
-     version (random.upper_cased 1)
-     source_code (random.upper_cased 1)
-     expected_current_module (random.upper_cased 1)
-     nominal_type (random.upper_cased 1)
-     expected_seed random.natural
-     expected random.natural
-     dummy (random.only (|>> (n.= expected) not) random.natural)
-     configuration_feature (random.upper_cased 1)
-     configuration_value (random.upper_cased 1)
-     .let [configuration (list [configuration_feature configuration_value])
-           expected_lux (is Lux
-                            [.:info [.:target target
-                                     .:version version
-                                     .:mode {.:Build}
-                                     .:configuration configuration]
-                             .:source [provenance.dummy 0 source_code]
-                             .:provenance provenance.dummy
-                             .:current_module {.:Some expected_current_module}
-                             .:modules (list)
-                             .:scopes (stack)
-                             .:type_context [.:there_exists 0
-                                             .:for_all (list)]
-                             .:expected {.:Some {.:Nominal nominal_type (list)}}
-                             .:seed expected_seed
-                             .:eval (as_expected [])])]]
-    (all _.and
-         (_.coverage [/.value]
-           (|> (by /.monad pure expected)
-               (/.value expected_lux)
-               (!expect (^.multi {try.:Success actual}
-                                 (n.= expected actual)))))
-         (_.coverage [/.value']
-           (|> (by /.monad pure expected)
-               (/.value' expected_lux)
-               (!expect (^.multi {try.:Success [actual_lux actual]}
-                                 (and (identical? expected_lux actual_lux)
-                                      (n.= expected actual))))))
-         (_.coverage [/.compiler_state]
-           (|> /.compiler_state
-               (/.value expected_lux)
-               (!expect (^.multi {try.:Success actual_lux}
-                                 (identical? expected_lux actual_lux)))))
-         (_.coverage [/.version]
-           (|> /.version
-               (/.value expected_lux)
-               (!expect (^.multi {try.:Success it}
-                                 (identical? version it)))))
-         (_.coverage [/.configuration]
-           (|> /.configuration
-               (/.value expected_lux)
-               (!expect (^.multi {try.:Success it}
-                                 (identical? configuration it)))))
-         )))
+     Test
+     (monad.let random.monad
+                [target (random.upper_cased 1)
+                 version (random.upper_cased 1)
+                 source_code (random.upper_cased 1)
+                 expected_current_module (random.upper_cased 1)
+                 nominal_type (random.upper_cased 1)
+                 expected_seed random.natural
+                 expected random.natural
+                 dummy (random.only (|>> (n.= expected) not) random.natural)
+                 configuration_feature (random.upper_cased 1)
+                 configuration_value (random.upper_cased 1)
+                 .let [configuration (list [configuration_feature configuration_value])
+                       expected_lux (is Lux
+                                        [.:info [.:target target
+                                                 .:version version
+                                                 .:mode {.:Build}
+                                                 .:configuration configuration]
+                                         .:source [provenance.dummy 0 source_code]
+                                         .:provenance provenance.dummy
+                                         .:current_module {.:Some expected_current_module}
+                                         .:modules (list)
+                                         .:scopes (stack)
+                                         .:type_context [.:there_exists 0
+                                                         .:for_all (list)]
+                                         .:expected {.:Some {.:Nominal nominal_type (list)}}
+                                         .:seed expected_seed
+                                         .:eval (as_expected [])])]]
+                (all _.and
+                     (_.coverage [/.value]
+                                 (|> (by /.monad pure expected)
+                                     (/.value expected_lux)
+                                     (!expect (^.multi {try.:Success actual}
+                                                       (n.= expected actual)))))
+                     (_.coverage [/.value']
+                                 (|> (by /.monad pure expected)
+                                     (/.value' expected_lux)
+                                     (!expect (^.multi {try.:Success [actual_lux actual]}
+                                                       (and (identical? expected_lux actual_lux)
+                                                            (n.= expected actual))))))
+                     (_.coverage [/.compiler_state]
+                                 (|> /.compiler_state
+                                     (/.value expected_lux)
+                                     (!expect (^.multi {try.:Success actual_lux}
+                                                       (identical? expected_lux actual_lux)))))
+                     (_.coverage [/.version]
+                                 (|> /.version
+                                     (/.value expected_lux)
+                                     (!expect (^.multi {try.:Success it}
+                                                       (identical? version it)))))
+                     (_.coverage [/.configuration]
+                                 (|> /.configuration
+                                     (/.value expected_lux)
+                                     (!expect (^.multi {try.:Success it}
+                                                       (identical? configuration it)))))
+                     )))
 
 (the error_handling
-  Test
-  (monad.let random.monad
-    [target (random.upper_cased 1)
-     version (random.upper_cased 1)
-     source_code (random.upper_cased 1)
-     expected_current_module (random.upper_cased 1)
-     nominal_type (random.upper_cased 1)
-     expected_seed random.natural
-     expected random.natural
-     dummy (random.only (|>> (n.= expected) not) random.natural)
-     expected_error (random.upper_cased 1)
-     .let [expected_lux (is Lux
-                            [.:info [.:target target
-                                     .:version version
-                                     .:mode {.:Build}
-                                     .:configuration (list)]
-                             .:source [provenance.dummy 0 source_code]
-                             .:provenance provenance.dummy
-                             .:current_module {.:Some expected_current_module}
-                             .:modules (list)
-                             .:scopes (stack)
-                             .:type_context [.:there_exists 0
-                                             .:for_all (list)]
-                             .:expected {.:Some {.:Nominal nominal_type (list)}}
-                             .:seed expected_seed
-                             .:eval (as_expected [])])]]
-    (all _.and
-         (_.coverage [/.failure]
-           (|> (/.failure expected_error)
-               (is (Meta Any))
-               (/.value expected_lux)
-               (!expect (^.multi {try.:Failure actual_error}
-                                 (text.= (provenance.with provenance.dummy expected_error)
-                                         actual_error)))))
-         (_.coverage [/.assertion]
-           (and (|> (/.assertion expected_error true)
-                    (is (Meta Any))
-                    (/.value expected_lux)
-                    (!expect {try.:Success []}))
-                (|> (/.assertion expected_error false)
-                    (/.value expected_lux)
-                    (!expect (^.multi {try.:Failure actual_error}
-                                      (text.= expected_error actual_error))))))
-         (_.coverage [/.either]
-           (and (|> (/.either (by /.monad pure expected)
-                              (is (Meta Natural)
-                                  (/.failure expected_error)))
-                    (/.value expected_lux)
-                    (!expect (^.multi {try.:Success actual}
-                                      (n.= expected actual))))
-                (|> (/.either (is (Meta Natural)
-                                  (/.failure expected_error))
-                              (by /.monad pure expected))
-                    (/.value expected_lux)
-                    (!expect (^.multi {try.:Success actual}
-                                      (n.= expected actual))))
-                (|> (/.either (is (Meta Natural)
-                                  (/.failure expected_error))
-                              (is (Meta Natural)
-                                  (/.failure expected_error)))
-                    (/.value expected_lux)
-                    (!expect (^.multi {try.:Failure actual_error}
-                                      (text.= (provenance.with provenance.dummy expected_error)
-                                              actual_error))))
-                (|> (/.either (by /.monad pure expected)
-                              (by /.monad pure dummy))
-                    (/.value expected_lux)
-                    (!expect (^.multi {try.:Success actual}
-                                      (n.= expected actual))))
-                ))
-         (_.coverage [/.or]
-           (and (|> (/.or (by /.monad pure expected)
-                          (is (Meta Natural)
-                              (/.failure expected_error)))
-                    (/.value expected_lux)
-                    (!expect (^.multi {try.:Success {.:Left actual}}
-                                      (n.= expected actual))))
-                (|> (/.or (is (Meta Natural)
-                              (/.failure expected_error))
-                          (by /.monad pure expected))
-                    (/.value expected_lux)
-                    (!expect (^.multi {try.:Success {.:Right actual}}
-                                      (n.= expected actual))))
-                (|> (/.or (is (Meta Natural)
-                              (/.failure expected_error))
-                          (is (Meta Natural)
-                              (/.failure expected_error)))
-                    (/.value expected_lux)
-                    (!expect (^.multi {try.:Failure actual_error}
-                                      (text.= (provenance.with provenance.dummy expected_error)
-                                              actual_error))))
-                (|> (/.or (by /.monad pure expected)
-                          (by /.monad pure dummy))
-                    (/.value expected_lux)
-                    (!expect (^.multi {try.:Success {.:Left actual}}
-                                      (n.= expected actual))))
-                ))
-         (_.coverage [/.and]
-           (and (|> (/.and (by /.monad pure expected)
-                           (is (Meta Natural)
-                               (/.failure expected_error)))
-                    (/.value expected_lux)
-                    (!expect {try.:Failure _}))
-                (|> (/.and (is (Meta Natural)
-                               (/.failure expected_error))
-                           (by /.monad pure expected))
-                    (/.value expected_lux)
-                    (!expect {try.:Failure _}))
-                (|> (/.and (is (Meta Natural)
-                               (/.failure expected_error))
-                           (is (Meta Natural)
-                               (/.failure expected_error)))
-                    (/.value expected_lux)
-                    (!expect {try.:Failure _}))
-                (|> (/.and (by /.monad pure expected)
-                           (by /.monad pure dummy))
-                    (/.value expected_lux)
-                    (!expect (^.multi {try.:Success [actual actual_dummy]}
-                                      (and (identical? expected actual)
-                                           (identical? dummy actual_dummy)))))
-                ))
-         (_.coverage [/.try]
-           (and (|> (/.try (/.failure expected_error))
-                    (/.value expected_lux)
-                    (!expect (^.multi {try.:Success {try.:Failure actual_error}}
-                                      (text.= (provenance.with provenance.dummy expected_error)
-                                              actual_error))))
-                (|> (/.try (by /.monad pure expected))
-                    (/.value expected_lux)
-                    (!expect (^.multi {try.:Success {try.:Success actual}}
-                                      (identical? expected actual))))))
-         )))
+     Test
+     (monad.let random.monad
+                [target (random.upper_cased 1)
+                 version (random.upper_cased 1)
+                 source_code (random.upper_cased 1)
+                 expected_current_module (random.upper_cased 1)
+                 nominal_type (random.upper_cased 1)
+                 expected_seed random.natural
+                 expected random.natural
+                 dummy (random.only (|>> (n.= expected) not) random.natural)
+                 expected_error (random.upper_cased 1)
+                 .let [expected_lux (is Lux
+                                        [.:info [.:target target
+                                                 .:version version
+                                                 .:mode {.:Build}
+                                                 .:configuration (list)]
+                                         .:source [provenance.dummy 0 source_code]
+                                         .:provenance provenance.dummy
+                                         .:current_module {.:Some expected_current_module}
+                                         .:modules (list)
+                                         .:scopes (stack)
+                                         .:type_context [.:there_exists 0
+                                                         .:for_all (list)]
+                                         .:expected {.:Some {.:Nominal nominal_type (list)}}
+                                         .:seed expected_seed
+                                         .:eval (as_expected [])])]]
+                (all _.and
+                     (_.coverage [/.failure]
+                                 (|> (/.failure expected_error)
+                                     (is (Meta Any))
+                                     (/.value expected_lux)
+                                     (!expect (^.multi {try.:Failure actual_error}
+                                                       (text.= (provenance.with provenance.dummy expected_error)
+                                                               actual_error)))))
+                     (_.coverage [/.assertion]
+                                 (and (|> (/.assertion expected_error true)
+                                          (is (Meta Any))
+                                          (/.value expected_lux)
+                                          (!expect {try.:Success []}))
+                                      (|> (/.assertion expected_error false)
+                                          (/.value expected_lux)
+                                          (!expect (^.multi {try.:Failure actual_error}
+                                                            (text.= expected_error actual_error))))))
+                     (_.coverage [/.either]
+                                 (and (|> (/.either (by /.monad pure expected)
+                                                    (is (Meta Natural)
+                                                        (/.failure expected_error)))
+                                          (/.value expected_lux)
+                                          (!expect (^.multi {try.:Success actual}
+                                                            (n.= expected actual))))
+                                      (|> (/.either (is (Meta Natural)
+                                                        (/.failure expected_error))
+                                                    (by /.monad pure expected))
+                                          (/.value expected_lux)
+                                          (!expect (^.multi {try.:Success actual}
+                                                            (n.= expected actual))))
+                                      (|> (/.either (is (Meta Natural)
+                                                        (/.failure expected_error))
+                                                    (is (Meta Natural)
+                                                        (/.failure expected_error)))
+                                          (/.value expected_lux)
+                                          (!expect (^.multi {try.:Failure actual_error}
+                                                            (text.= (provenance.with provenance.dummy expected_error)
+                                                                    actual_error))))
+                                      (|> (/.either (by /.monad pure expected)
+                                                    (by /.monad pure dummy))
+                                          (/.value expected_lux)
+                                          (!expect (^.multi {try.:Success actual}
+                                                            (n.= expected actual))))
+                                      ))
+                     (_.coverage [/.or]
+                                 (and (|> (/.or (by /.monad pure expected)
+                                                (is (Meta Natural)
+                                                    (/.failure expected_error)))
+                                          (/.value expected_lux)
+                                          (!expect (^.multi {try.:Success {.:Left actual}}
+                                                            (n.= expected actual))))
+                                      (|> (/.or (is (Meta Natural)
+                                                    (/.failure expected_error))
+                                                (by /.monad pure expected))
+                                          (/.value expected_lux)
+                                          (!expect (^.multi {try.:Success {.:Right actual}}
+                                                            (n.= expected actual))))
+                                      (|> (/.or (is (Meta Natural)
+                                                    (/.failure expected_error))
+                                                (is (Meta Natural)
+                                                    (/.failure expected_error)))
+                                          (/.value expected_lux)
+                                          (!expect (^.multi {try.:Failure actual_error}
+                                                            (text.= (provenance.with provenance.dummy expected_error)
+                                                                    actual_error))))
+                                      (|> (/.or (by /.monad pure expected)
+                                                (by /.monad pure dummy))
+                                          (/.value expected_lux)
+                                          (!expect (^.multi {try.:Success {.:Left actual}}
+                                                            (n.= expected actual))))
+                                      ))
+                     (_.coverage [/.and]
+                                 (and (|> (/.and (by /.monad pure expected)
+                                                 (is (Meta Natural)
+                                                     (/.failure expected_error)))
+                                          (/.value expected_lux)
+                                          (!expect {try.:Failure _}))
+                                      (|> (/.and (is (Meta Natural)
+                                                     (/.failure expected_error))
+                                                 (by /.monad pure expected))
+                                          (/.value expected_lux)
+                                          (!expect {try.:Failure _}))
+                                      (|> (/.and (is (Meta Natural)
+                                                     (/.failure expected_error))
+                                                 (is (Meta Natural)
+                                                     (/.failure expected_error)))
+                                          (/.value expected_lux)
+                                          (!expect {try.:Failure _}))
+                                      (|> (/.and (by /.monad pure expected)
+                                                 (by /.monad pure dummy))
+                                          (/.value expected_lux)
+                                          (!expect (^.multi {try.:Success [actual actual_dummy]}
+                                                            (and (identical? expected actual)
+                                                                 (identical? dummy actual_dummy)))))
+                                      ))
+                     (_.coverage [/.try]
+                                 (and (|> (/.try (/.failure expected_error))
+                                          (/.value expected_lux)
+                                          (!expect (^.multi {try.:Success {try.:Failure actual_error}}
+                                                            (text.= (provenance.with provenance.dummy expected_error)
+                                                                    actual_error))))
+                                      (|> (/.try (by /.monad pure expected))
+                                          (/.value expected_lux)
+                                          (!expect (^.multi {try.:Success {try.:Success actual}}
+                                                            (identical? expected actual))))))
+                     )))
 
 (the random_provenance
-  (Random Provenance)
-  (all random.and
-       (random.upper_cased 1)
-       random.natural
-       random.natural))
+     (Random Provenance)
+     (all random.and
+          (random.upper_cased 1)
+          random.natural
+          random.natural))
 
 (the context_related
-  (monad.let [! random.monad]
-    [target (random.upper_cased 1)
-     version (random.upper_cased 2)
-     source_code (random.upper_cased 3)
-     expected_current_module (random.upper_cased 4)
-     expected_name (random.upper_cased 5)
-     expected_type (by ! each (function (_ name)
-                                {.:Nominal name (list)})
-                       (random.upper_cased 1))
-     expected_seed random.natural
-     expected random.natural
-     dummy (random.only (|>> (n.= expected) not) random.natural)
-     expected_provenance ..random_provenance
-     .let [type_context [.:there_exists 0
-                         .:for_all (list)]
-           expected_lux (is (-> (Maybe Type)
-                                Lux)
-                            (function (_ expected)
-                              (is Lux
-                                  [.:info [.:target target
-                                           .:version version
-                                           .:mode {.:Build}
-                                           .:configuration (list)]
-                                   .:source [provenance.dummy 0 source_code]
-                                   .:provenance expected_provenance
-                                   .:current_module {.:Some expected_current_module}
-                                   .:modules (list)
-                                   .:scopes (stack)
-                                   .:type_context type_context
-                                   .:expected expected
-                                   .:seed expected_seed
-                                   .:eval (as_expected [])])))]]
-    (all _.and
-         (_.coverage [/.target]
-           (|> /.target
-               (/.value (expected_lux {.:Some expected_type}))
-               (try:each (identical? target))
-               (try.else false)))
-         (_.coverage [/.seed]
-           (|> (monad.let /.monad
-                 [pre /.seed
-                  post /.seed]
-                 (pure [pre post]))
-               (/.value (expected_lux {.:Some expected_type}))
-               (!expect (^.multi {try.:Success [actual_pre actual_post]}
-                                 (and (n.= expected_seed actual_pre)
-                                      (n.= (++ expected_seed) actual_post))))))
-         (_.coverage [/.provenance]
-           (|> /.provenance
-               (/.value (expected_lux {.:Some expected_type}))
-               (!expect (^.multi {try.:Success actual_provenance}
-                                 (identical? expected_provenance actual_provenance)))))
-         (_.coverage [/.expected_type]
-           (|> /.expected_type
-               (/.value (expected_lux {.:Some expected_type}))
-               (!expect (^.multi {try.:Success actual_type}
-                                 (identical? expected_type actual_type)))))
-         (_.coverage [/.not_expecting_any_type]
-           (|> /.expected_type
-               (/.value (expected_lux {.:None}))
-               (!expect (^.multi {try.:Failure error}
-                                 (identical? /.not_expecting_any_type error)))))
-         (_.coverage [.Type_Context
-                      .:there_exists .:for_all
+     (monad.let [! random.monad]
+                [target (random.upper_cased 1)
+                 version (random.upper_cased 2)
+                 source_code (random.upper_cased 3)
+                 expected_current_module (random.upper_cased 4)
+                 expected_name (random.upper_cased 5)
+                 expected_type (by ! each (function (_ name)
+                                                    {.:Nominal name (list)})
+                                   (random.upper_cased 1))
+                 expected_seed random.natural
+                 expected random.natural
+                 dummy (random.only (|>> (n.= expected) not) random.natural)
+                 expected_provenance ..random_provenance
+                 .let [type_context [.:there_exists 0
+                                     .:for_all (list)]
+                       expected_lux (is (-> (Maybe Type)
+                                            Lux)
+                                        (function (_ expected)
+                                                  (is Lux
+                                                      [.:info [.:target target
+                                                               .:version version
+                                                               .:mode {.:Build}
+                                                               .:configuration (list)]
+                                                       .:source [provenance.dummy 0 source_code]
+                                                       .:provenance expected_provenance
+                                                       .:current_module {.:Some expected_current_module}
+                                                       .:modules (list)
+                                                       .:scopes (stack)
+                                                       .:type_context type_context
+                                                       .:expected expected
+                                                       .:seed expected_seed
+                                                       .:eval (as_expected [])])))]]
+                (all _.and
+                     (_.coverage [/.target]
+                                 (|> /.target
+                                     (/.value (expected_lux {.:Some expected_type}))
+                                     (try:each (identical? target))
+                                     (try.else false)))
+                     (_.coverage [/.seed]
+                                 (|> (monad.let /.monad
+                                                [pre /.seed
+                                                 post /.seed]
+                                                (pure [pre post]))
+                                     (/.value (expected_lux {.:Some expected_type}))
+                                     (!expect (^.multi {try.:Success [actual_pre actual_post]}
+                                                       (and (n.= expected_seed actual_pre)
+                                                            (n.= (++ expected_seed) actual_post))))))
+                     (_.coverage [/.provenance]
+                                 (|> /.provenance
+                                     (/.value (expected_lux {.:Some expected_type}))
+                                     (!expect (^.multi {try.:Success actual_provenance}
+                                                       (identical? expected_provenance actual_provenance)))))
+                     (_.coverage [/.expected_type]
+                                 (|> /.expected_type
+                                     (/.value (expected_lux {.:Some expected_type}))
+                                     (!expect (^.multi {try.:Success actual_type}
+                                                       (identical? expected_type actual_type)))))
+                     (_.coverage [/.not_expecting_any_type]
+                                 (|> /.expected_type
+                                     (/.value (expected_lux {.:None}))
+                                     (!expect (^.multi {try.:Failure error}
+                                                       (identical? /.not_expecting_any_type error)))))
+                     (_.coverage [.Type_Context
+                                  .:there_exists .:for_all
 
-                      @type.Type_Context
-                      @type.:there_exists @type.:for_all
+                                  @type.Type_Context
+                                  @type.:there_exists @type.:for_all
 
-                      /.type_context]
-           (|> /.type_context
-               (/.value (expected_lux {.:Some expected_type}))
-               (try:each (identical? type_context))
-               (try.else false)))
-         (_.coverage [name.new]
-           (|> (name.new expected_name)
-               (/.value (expected_lux {.:None}))
-               (!expect (^.multi {try.:Success actual_name}
-                                 (text.contains? expected_name (code.as_text actual_name))))))
-         )))
+                                  /.type_context]
+                                 (|> /.type_context
+                                     (/.value (expected_lux {.:Some expected_type}))
+                                     (try:each (identical? type_context))
+                                     (try.else false)))
+                     (_.coverage [name.new]
+                                 (|> (name.new expected_name)
+                                     (/.value (expected_lux {.:None}))
+                                     (!expect (^.multi {try.:Success actual_name}
+                                                       (text.contains? expected_name (code.as_text actual_name))))))
+                     )))
 
 (the injection
-  (Injection Meta)
-  (by /.monad pure))
+     (Injection Meta)
+     (by /.monad pure))
 
 (the (comparison init)
-  (-> Lux (Comparison Meta))
-  (function (_ == left right)
-    (when [(/.value init left)
-           (/.value init right)]
-      [{try.:Success left} {try.:Success right}]
-      (== left right)
+     (-> Lux (Comparison Meta))
+     (function (_ == left right)
+               (when [(/.value init left)
+                      (/.value init right)]
+                     [{try.:Success left} {try.:Success right}]
+                     (== left right)
 
-      _
-      false)))
+                     _
+                     false)))
 
 (`` (`` (the .public test
-          Test
-          (<| (_.covering /._)
-              (_.for [.Meta
+             Test
+             (<| (_.covering /._)
+                 (_.for [.Meta
 
-                      .Lux
-                      .:info .:source .:provenance .:current_module
-                      .:modules .:scopes .:type_context .:expected
-                      .:seed .:eval
+                         .Lux
+                         .:info .:source .:provenance .:current_module
+                         .:modules .:scopes .:type_context .:expected
+                         .:seed .:eval
 
-                      @type.Lux
-                      @type.:info @type.:source @type.:provenance @type.:current_module
-                      @type.:modules @type.:scopes @type.:type_context @type.:expected
-                      @type.:seed @type.:eval])
-              (all _.and
-                   (monad.let [! random.monad]
-                     [target (random.upper_cased 1)
-                      version (random.upper_cased 1)
-                      source_code (random.upper_cased 1)
-                      expected_current_module (random.upper_cased 1)
-                      expected_type (by ! each (function (_ name)
-                                                 {.:Nominal name (list)})
-                                        (random.upper_cased 1))
-                      expected_seed random.natural
-                      expected random.natural
-                      dummy (random.only (|>> (n.= expected) not) random.natural)
-                      expected_provenance ..random_provenance
-                      .let [expected_lux (is Lux
-                                             [.:info [.:target target
-                                                      .:version version
-                                                      .:mode {.:Build}
-                                                      .:configuration (list)]
-                                              .:source [expected_provenance 0 source_code]
-                                              .:provenance expected_provenance
-                                              .:current_module {.:Some expected_current_module}
-                                              .:modules (list)
-                                              .:scopes (stack)
-                                              .:type_context [.:there_exists 0
-                                                              .:for_all (list)]
-                                              .:expected {.:Some expected_type}
-                                              .:seed expected_seed
-                                              .:eval (as_expected [])])]]
-                     (all _.and
-                          (_.for [/.functor]
-                                 (functorT.spec ..injection (..comparison expected_lux) /.functor))
-                          (_.for [/.monad]
-                                 (monadT.spec ..injection (..comparison expected_lux) /.monad))
+                         @type.Lux
+                         @type.:info @type.:source @type.:provenance @type.:current_module
+                         @type.:modules @type.:scopes @type.:type_context @type.:expected
+                         @type.:seed @type.:eval])
+                 (all _.and
+                      (monad.let [! random.monad]
+                                 [target (random.upper_cased 1)
+                                  version (random.upper_cased 1)
+                                  source_code (random.upper_cased 1)
+                                  expected_current_module (random.upper_cased 1)
+                                  expected_type (by ! each (function (_ name)
+                                                                     {.:Nominal name (list)})
+                                                    (random.upper_cased 1))
+                                  expected_seed random.natural
+                                  expected random.natural
+                                  dummy (random.only (|>> (n.= expected) not) random.natural)
+                                  expected_provenance ..random_provenance
+                                  .let [expected_lux (is Lux
+                                                         [.:info [.:target target
+                                                                  .:version version
+                                                                  .:mode {.:Build}
+                                                                  .:configuration (list)]
+                                                          .:source [expected_provenance 0 source_code]
+                                                          .:provenance expected_provenance
+                                                          .:current_module {.:Some expected_current_module}
+                                                          .:modules (list)
+                                                          .:scopes (stack)
+                                                          .:type_context [.:there_exists 0
+                                                                          .:for_all (list)]
+                                                          .:expected {.:Some expected_type}
+                                                          .:seed expected_seed
+                                                          .:eval (as_expected [])])]]
+                                 (all _.and
+                                      (_.for [/.functor]
+                                             (functorT.spec ..injection (..comparison expected_lux) /.functor))
+                                      (_.for [/.monad]
+                                             (monadT.spec ..injection (..comparison expected_lux) /.monad))
 
-                          (monad.let random.monad
-                            [expected_value random.natural
-                             expected_error (random.upper_cased 1)]
-                            (_.coverage [/.of_try]
-                              (and (|> expected_error
-                                       {try.:Failure}
-                                       (is (Try Natural))
-                                       /.of_try
-                                       (/.value expected_lux)
-                                       (!expect (^.multi {try.:Failure actual}
-                                                         (text.= (provenance.with expected_provenance expected_error)
-                                                                 actual))))
-                                   (|> expected_value
-                                       {try.:Success}
-                                       (is (Try Natural))
-                                       /.of_try
-                                       (/.value expected_lux)
-                                       (!expect (^.multi {try.:Success actual}
-                                                         (identical? expected_value actual)))))))
-                          
-                          ..compiler_related
-                          ..error_handling
-                          ..context_related
-                          ))
-                   
-                   /code.test
-                   /provenance.test
-                   /name.test
-                   /configuration.test
-                   /version.test
-                   /static.test
-                   /extension.test
-                   /label.test
-                   /binding.test
-                   /module.test
-                   /module/import.test
-                   )))))
+                                      (monad.let random.monad
+                                                 [expected_value random.natural
+                                                  expected_error (random.upper_cased 1)]
+                                                 (_.coverage [/.of_try]
+                                                             (and (|> expected_error
+                                                                      {try.:Failure}
+                                                                      (is (Try Natural))
+                                                                      /.of_try
+                                                                      (/.value expected_lux)
+                                                                      (!expect (^.multi {try.:Failure actual}
+                                                                                        (text.= (provenance.with expected_provenance expected_error)
+                                                                                                actual))))
+                                                                  (|> expected_value
+                                                                      {try.:Success}
+                                                                      (is (Try Natural))
+                                                                      /.of_try
+                                                                      (/.value expected_lux)
+                                                                      (!expect (^.multi {try.:Success actual}
+                                                                                        (identical? expected_value actual)))))))
+                                      
+                                      ..compiler_related
+                                      ..error_handling
+                                      ..context_related
+                                      ))
+                      
+                      /code.test
+                      /provenance.test
+                      /name.test
+                      /configuration.test
+                      /version.test
+                      /static.test
+                      /extension.test
+                      /label.test
+                      /binding.test
+                      /module.test
+                      /module/import.test
+                      )))))

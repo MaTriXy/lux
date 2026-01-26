@@ -18,111 +18,111 @@
     ["[0]" view (.only View)]]]])
 
 (every .public (Queue it)
-  (Record
-   [:front (Stack it)
-    :rear (Stack it)]))
+       (Record
+        [:front (Stack it)
+         :rear (Stack it)]))
 
 (the .public empty
-  Queue
-  [:front (stack)
-   :rear (stack)])
+     Queue
+     [:front (stack)
+      :rear (stack)])
 
 (the (of_list it)
-  (for_any (_ it)
-    (-> (List it)
-        (Queue it)))
-  [:front (view.as list.stack it)
-   :rear (stack)])
+     (for_any (_ it)
+              (-> (List it)
+                  (Queue it)))
+     [:front (view.as list.stack it)
+      :rear (stack)])
 
 (the (as_list queue)
-  (for_any (_ it)
-    (-> (Queue it)
-        (List it)))
-  (with "/[0]" queue
-    (list:composite (view.of list.stack /:front)
-                    (list.in_reverse (view.of list.stack /:rear)))))
+     (for_any (_ it)
+              (-> (Queue it)
+                  (List it)))
+     (with "/[0]" queue
+           (list:composite (view.of list.stack /:front)
+                           (list.in_reverse (view.of list.stack /:rear)))))
 
 (the .public list
-  (for_any (_ it)
-    (View (Queue it)
-          (List it)))
-  (view.new ..of_list ..as_list))
+     (for_any (_ it)
+              (View (Queue it)
+                    (List it)))
+     (view.new ..of_list ..as_list))
 
 (the .public front
-  (for_any (_ it)
-    (-> (Queue it)
-        (Try it)))
-  (|>> (its :front)
-       stack.top
-       (try.as error.empty)))
+     (for_any (_ it)
+              (-> (Queue it)
+                  (Try it)))
+     (|>> (its :front)
+          stack.top
+          (try.as error.empty)))
 
 (the .public (size queue)
-  (for_any (_ it)
-    (-> (Queue it)
-        Natural))
-  (with "/[0]" queue
-    (n.+ (stack.size /:front)
-         (stack.size /:rear))))
+     (for_any (_ it)
+              (-> (Queue it)
+                  Natural))
+     (with "/[0]" queue
+           (n.+ (stack.size /:front)
+                (stack.size /:rear))))
 
 (the .public empty?
-  (for_any (_ it)
-    (-> (Queue it)
-        Bit))
-  (|>> (its :front)
-       stack.empty?))
+     (for_any (_ it)
+              (-> (Queue it)
+                  Bit))
+     (|>> (its :front)
+          stack.empty?))
 
 (the .public (member? equality queue member)
-  (for_any (_ it)
-    (-> (Equality it) (Queue it) it
-        Bit))
-  (with "/[0]" queue
-    (or (stack.member? equality /:front member)
-        (stack.member? equality /:rear member))))
+     (for_any (_ it)
+              (-> (Equality it) (Queue it) it
+                  Bit))
+     (with "/[0]" queue
+           (or (stack.member? equality /:front member)
+               (stack.member? equality /:rear member))))
 
 (the .public (next queue)
-  (for_any (_ it)
-    (-> (Queue it)
-        (Queue it)))
-  (when (its :front queue)
-    ... Empty...
-    (stack)
-    queue
+     (for_any (_ it)
+              (-> (Queue it)
+                  (Queue it)))
+     (when (its :front queue)
+           (stack)
+           (comment "Empty..."
+                    queue)
 
-    ... Front has dried up...
-    (stack _)
-    (|> queue
-        (has :front (stack.in_reverse (its :rear queue)))
-        (has :rear (stack)))
+           (stack _)
+           (comment "Front has dried up..."
+                    (|> queue
+                        (has :front (stack.in_reverse (its :rear queue)))
+                        (has :rear (stack))))
 
-    ... Consume front!
-    (stack.partial _ front')
-    (|> queue
-        (has :front front'))))
+           (stack.partial _ front')
+           (comment "Consume front!"
+                    (|> queue
+                        (has :front front')))))
 
 (the .public (end val queue)
-  (for_any (_ it)
-    (-> it (Queue it)
-        (Queue it)))
-  (when (its :front queue)
-    {.:Empty}
-    (has :front (stack val) queue)
+     (for_any (_ it)
+              (-> it (Queue it)
+                  (Queue it)))
+     (when (its :front queue)
+           {.:Empty}
+           (has :front (stack val) queue)
 
-    _
-    (revised :rear (|>> {.:Top val}) queue)))
+           _
+           (revised :rear (|>> {.:Top val}) queue)))
 
 (the .public (equality super)
-  (for_any (_ it)
-    (-> (Equality it)
-        (Equality (Queue it))))
-  (implementation
-   (the (= expected actual)
-     (by (list.equality super) =
-         (as_list expected)
-         (as_list actual)))))
+     (for_any (_ it)
+              (-> (Equality it)
+                  (Equality (Queue it))))
+     (implementation
+      (the (= expected actual)
+           (by (list.equality super) =
+               (as_list expected)
+               (as_list actual)))))
 
 (the .public functor
-  (Functor Queue)
-  (implementation
-   (the (each f fa)
-     [:front (|> fa (its :front) (stack:each f))
-      :rear (|> fa (its :rear) (stack:each f))])))
+     (Functor Queue)
+     (implementation
+      (the (each f fa)
+           [:front (|> fa (its :front) (stack:each f))
+            :rear (|> fa (its :rear) (stack:each f))])))

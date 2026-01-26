@@ -23,586 +23,585 @@
 (error.the violation_of_invariant)
 
 (every Color
-  (Variant
-   {:Red}
-   {:Black}))
+       (Variant
+        {:Red}
+        {:Black}))
 
 (every (Node key value)
-  (Record
-   [:color Color
-    :key key
-    :value value
-    :left (Maybe (Node key value))
-    :right (Maybe (Node key value))]))
+       (Record
+        [:color Color
+         :key key
+         :value value
+         :left (Maybe (Node key value))
+         :right (Maybe (Node key value))]))
 
 (template.with [<create> <color>]
                [(the (<create> key value left right)
-                  (for_any (_ key value)
-                    (-> key value (Maybe (Node key value)) (Maybe (Node key value))
-                        (Node key value)))
-                  [:color {<color>}
-                   :key key
-                   :value value
-                   :left left
-                   :right right])]
+                     (for_any (_ key value)
+                              (-> key value (Maybe (Node key value)) (Maybe (Node key value))
+                                  (Node key value)))
+                     [:color {<color>}
+                      :key key
+                      :value value
+                      :left left
+                      :right right])]
 
                [[red   :Red]
                 [black :Black]])
 
 (every .public (Dictionary key value)
-  (Record
-   [:order (Order key)
-    :root (Maybe (Node key value))]))
+       (Record
+        [:order (Order key)
+         :root (Maybe (Node key value))]))
 
 (the .public (empty order)
-  (for_any (_ key value)
-    (-> (Order key)
-        (Dictionary key value)))
-  [:order order
-   :root {.:None}])
+     (for_any (_ key value)
+              (-> (Order key)
+                  (Dictionary key value)))
+     [:order order
+      :root {.:None}])
 
-... TODO: Doing inneficient access of Order functions due to compiler bug.
-... TODO: Must improve it as soon as bug is fixed.
-(the .public (value key dict)
-  (for_any (_ key value)
-    (-> key (Dictionary key value)
-        (Try value)))
-  (loop (of [node (its :root dict)])
-    (when node
-      {.:None}
-      {try.:Failure error.not_known}
+(comment "TODO: Doing inneficient access of Order functions due to compiler bug."
+         "TODO: Must improve it as soon as bug is fixed."
+         (the .public (value key dict)
+              (for_any (_ key value)
+                       (-> key (Dictionary key value)
+                           (Try value)))
+              (loop (of [node (its :root dict)])
+                    (when node
+                          {.:None}
+                          {try.:Failure error.not_known}
 
-      {.:Some node}
-      (let [node_key (its :key node)]
-        (if (by dict = node_key key)
-            ... (_:= node_key key)
-            {try.:Success (its :value node)}
+                          {.:Some node}
+                          (let [node_key (its :key node)]
+                               (if (comment (_:= node_key key)
+                                            (by dict = node_key key))
+                                   {try.:Success (its :value node)}
 
-            (by dict < node_key key)
-            ... (_:< node_key key)
-            (of (its :left node))
+                                   (comment (_:< node_key key)
+                                            (by dict < node_key key))
+                                   (of (its :left node))
 
-            ... (_:> (its :key node) key)
-            (of (its :right node))))
-      )))
+                                   (comment (_:> (its :key node) key)
+                                            (of (its :right node)))))
+                          ))))
 
-... TODO: Doing inneficient access of Order functions due to compiler bug.
-... TODO: Must improve it as soon as bug is fixed.
-(the .public (in_domain? dict key)
-  (for_any (_ key value)
-    (-> (Dictionary key value) key
-        Bit))
-  (loop (of [node (its :root dict)])
-    (when node
-      {.:None}
-      false
+(comment "TODO: Doing inneficient access of Order functions due to compiler bug."
+         "TODO: Must improve it as soon as bug is fixed."
+         (the .public (in_domain? dict key)
+              (for_any (_ key value)
+                       (-> (Dictionary key value) key
+                           Bit))
+              (loop (of [node (its :root dict)])
+                    (when node
+                          {.:None}
+                          false
 
-      {.:Some node}
-      (let [node_key (its :key node)]
-        (or (by dict = node_key key)
-            ... (_:= node_key key)
-            (if (by dict < node_key key)
-                ... (_:< node_key key)
-                (of (its :left node))
-                (of (its :right node))))))))
+                          {.:Some node}
+                          (let [node_key (its :key node)]
+                               (or (comment (_:= node_key key)
+                                            (by dict = node_key key))
+                                   (if (comment (_:< node_key key)
+                                                (by dict < node_key key))
+                                       (of (its :left node))
+                                       (of (its :right node)))))))))
 
 (template.with [<name> <side>]
                [(the .public (<name> dict)
-                  (for_any (_ key value)
-                    (-> (Dictionary key value)
-                        (Try value)))
-                  (when (its :root dict)
-                    {.:Some node}
-                    (loop (of [node node])
-                      (when (its <side> node)
-                        {.:None}
-                        {try.:Success (its :value node)}
+                     (for_any (_ key value)
+                              (-> (Dictionary key value)
+                                  (Try value)))
+                     (when (its :root dict)
+                           {.:Some node}
+                           (loop (of [node node])
+                                 (when (its <side> node)
+                                       {.:None}
+                                       {try.:Success (its :value node)}
 
-                        {.:Some side}
-                        (of side)))
+                                       {.:Some side}
+                                       (of side)))
 
-                    {.:None}
-                    {try.:Failure error.empty}))]
+                           {.:None}
+                           {try.:Failure error.empty}))]
 
                [[minor :left]
                 [major :right]])
 
 (the .public (size dict)
-  (for_any (_ key value)
-    (-> (Dictionary key value)
-        Natural))
-  (loop (of [node (its :root dict)])
-    (when node
-      {.:Some node}
-      (++ (n.+ (of (its :left node))
-               (of (its :right node))))
+     (for_any (_ key value)
+              (-> (Dictionary key value)
+                  Natural))
+     (loop (of [node (its :root dict)])
+           (when node
+                 {.:Some node}
+                 (++ (n.+ (of (its :left node))
+                          (of (its :right node))))
 
-      {.:None}
-      0)))
+                 {.:None}
+                 0)))
 
 (the .public empty?
-  (for_any (_ key value)
-    (-> (Dictionary key value)
-        Bit))
-  (|>> ..size
-       (n.= 0)))
+     (for_any (_ key value)
+              (-> (Dictionary key value)
+                  Bit))
+     (|>> ..size
+          (n.= 0)))
 
 (template.with [<name> <other_color> <self_color> <no_change>]
                [(the (<name> self)
-                  (for_any (_ key value)
-                    (-> (Node key value)
-                        (Node key value)))
-                  (when (its :color self)
-                    {<other_color>}
-                    (.has :color {<self_color>} self)
+                     (for_any (_ key value)
+                              (-> (Node key value)
+                                  (Node key value)))
+                     (when (its :color self)
+                           {<other_color>}
+                           (.has :color {<self_color>} self)
 
-                    {<self_color>}
-                    <no_change>
-                    ))]
+                           {<self_color>}
+                           <no_change>
+                           ))]
 
                [[blackened :Red   :Black self]
                 [reddened  :Black :Red   (halt! ..violation_of_invariant)]])
 
 (the (with_left addition center)
-  (for_any (_ key value)
-    (-> (Node key value) (Node key value)
-        (Node key value)))
-  (when (its :color center)
-    {:Red}
-    (red (its :key center)
-         (its :value center)
-         {.:Some addition}
-         (its :right center))
-    
-    {:Black}
-    (expansion.let [<default_behavior> (these (black (its :key center)
-                                                     (its :value center)
-                                                     {.:Some addition}
-                                                     (its :right center)))]
-      (when (its :color addition)
-        {:Red}
-        (when (its :left addition)
-          (^.multi {.:Some left}
-                   [(its :color left) {:Red}])
-          (red (its :key addition)
-               (its :value addition)
-               {.:Some (blackened left)}
-               {.:Some (black (its :key center)
-                              (its :value center)
-                              (its :right addition)
-                              (its :right center))})
+     (for_any (_ key value)
+              (-> (Node key value) (Node key value)
+                  (Node key value)))
+     (when (its :color center)
+           {:Red}
+           (red (its :key center)
+                (its :value center)
+                {.:Some addition}
+                (its :right center))
+           
+           {:Black}
+           (expansion.let [<default_behavior> (these (black (its :key center)
+                                                            (its :value center)
+                                                            {.:Some addition}
+                                                            (its :right center)))]
+                          (when (its :color addition)
+                                {:Red}
+                                (when (its :left addition)
+                                      (^.multi {.:Some left}
+                                               [(its :color left) {:Red}])
+                                      (red (its :key addition)
+                                           (its :value addition)
+                                           {.:Some (blackened left)}
+                                           {.:Some (black (its :key center)
+                                                          (its :value center)
+                                                          (its :right addition)
+                                                          (its :right center))})
 
-          _
-          (when (its :right addition)
-            (^.multi {.:Some right}
-                     [(its :color right) {:Red}])
-            (red (its :key right)
-                 (its :value right)
-                 {.:Some (black (its :key addition)
-                                (its :value addition)
-                                (its :left addition)
-                                (its :left right))}
-                 {.:Some (black (its :key center)
-                                (its :value center)
-                                (its :right right)
-                                (its :right center))})
+                                      _
+                                      (when (its :right addition)
+                                            (^.multi {.:Some right}
+                                                     [(its :color right) {:Red}])
+                                            (red (its :key right)
+                                                 (its :value right)
+                                                 {.:Some (black (its :key addition)
+                                                                (its :value addition)
+                                                                (its :left addition)
+                                                                (its :left right))}
+                                                 {.:Some (black (its :key center)
+                                                                (its :value center)
+                                                                (its :right right)
+                                                                (its :right center))})
 
-            _
-            <default_behavior>))
-        
-        {:Black}
-        <default_behavior>))))
+                                            _
+                                            <default_behavior>))
+                                
+                                {:Black}
+                                <default_behavior>))))
 
 (the (with_right addition center)
-  (for_any (_ key value)
-    (-> (Node key value) (Node key value)
-        (Node key value)))
-  (when (its :color center)
-    {:Red}
-    (red (its :key center)
-         (its :value center)
-         (its :left center)
-         {.:Some addition})
-    
-    {:Black}
-    (expansion.let [<default_behavior> (these (black (its :key center)
-                                                     (its :value center)
-                                                     (its :left center)
-                                                     {.:Some addition}))]
-      (when (its :color addition)
-        {:Red}
-        (when (its :right addition)
-          (^.multi {.:Some right}
-                   [(its :color right) {:Red}])
-          (red (its :key addition)
-               (its :value addition)
-               {.:Some (black (its :key center)
-                              (its :value center)
-                              (its :left center)
-                              (its :left addition))}
-               {.:Some (blackened right)})
+     (for_any (_ key value)
+              (-> (Node key value) (Node key value)
+                  (Node key value)))
+     (when (its :color center)
+           {:Red}
+           (red (its :key center)
+                (its :value center)
+                (its :left center)
+                {.:Some addition})
+           
+           {:Black}
+           (expansion.let [<default_behavior> (these (black (its :key center)
+                                                            (its :value center)
+                                                            (its :left center)
+                                                            {.:Some addition}))]
+                          (when (its :color addition)
+                                {:Red}
+                                (when (its :right addition)
+                                      (^.multi {.:Some right}
+                                               [(its :color right) {:Red}])
+                                      (red (its :key addition)
+                                           (its :value addition)
+                                           {.:Some (black (its :key center)
+                                                          (its :value center)
+                                                          (its :left center)
+                                                          (its :left addition))}
+                                           {.:Some (blackened right)})
 
-          _
-          (when (its :left addition)
-            (^.multi {.:Some left}
-                     [(its :color left) {:Red}])
-            (red (its :key left)
-                 (its :value left)
-                 {.:Some (black (its :key center)
-                                (its :value center)
-                                (its :left center)
-                                (its :left left))}
-                 {.:Some (black (its :key addition)
-                                (its :value addition)
-                                (its :right left)
-                                (its :right addition))})
+                                      _
+                                      (when (its :left addition)
+                                            (^.multi {.:Some left}
+                                                     [(its :color left) {:Red}])
+                                            (red (its :key left)
+                                                 (its :value left)
+                                                 {.:Some (black (its :key center)
+                                                                (its :value center)
+                                                                (its :left center)
+                                                                (its :left left))}
+                                                 {.:Some (black (its :key addition)
+                                                                (its :value addition)
+                                                                (its :right left)
+                                                                (its :right addition))})
 
-            _
-            <default_behavior>))
-        
-        {:Black}
-        <default_behavior>))))
+                                            _
+                                            <default_behavior>))
+                                
+                                {:Black}
+                                <default_behavior>))))
 
 (the .public (has key value dict)
-  (for_any (_ key value)
-    (-> key value (Dictionary key value)
-        (Dictionary key value)))
-  (with "_:[0]" (its :order dict)
-        (let [root' (loop (of [?root (its :root dict)])
-                      (when ?root
-                        {.:None}
-                        {.:Some (red key value {.:None} {.:None})}
+     (for_any (_ key value)
+              (-> key value (Dictionary key value)
+                  (Dictionary key value)))
+     (with "_:[0]" (its :order dict)
+           (let [root' (loop (of [?root (its :root dict)])
+                             (when ?root
+                                   {.:None}
+                                   {.:Some (red key value {.:None} {.:None})}
 
-                        {.:Some root}
-                        (let [reference (its :key root)]
-                          (`` (if (,, (template.with [<comp> <tag> <add>]
-                                                     [(<comp> reference key)
-                                                      (let [side_root (its <tag> root)
-                                                            outcome (of side_root)]
-                                                        (if (identical? side_root outcome)
-                                                            ?root
-                                                            {.:Some (<add> (maybe.trusted outcome)
-                                                                           root)}))]
+                                   {.:Some root}
+                                   (let [reference (its :key root)]
+                                        (`` (if (,, (template.with [<comp> <tag> <add>]
+                                                                   [(<comp> reference key)
+                                                                    (let [side_root (its <tag> root)
+                                                                          outcome (of side_root)]
+                                                                         (if (identical? side_root outcome)
+                                                                             ?root
+                                                                             {.:Some (<add> (maybe.trusted outcome)
+                                                                                            root)}))]
 
-                                                     [[_:<                         :left  ..with_left]
-                                                      [(order.> (its :order dict)) :right ..with_right]]))
+                                                                   [[_:<                         :left  ..with_left]
+                                                                    [(order.> (its :order dict)) :right ..with_right]]))
 
-                                  ... (_:= reference key)
-                                  {.:Some (.has :value value root)}
-                                  )))
-                        ))]
-          (.has :root root' dict))))
+                                                (comment (_:= reference key)
+                                                         {.:Some (.has :value value root)}))))
+                                   ))]
+                (.has :root root' dict))))
 
 (the (left_balanced key value ?left ?right)
-  (for_any (_ key value)
-    (-> key value (Maybe (Node key value)) (Maybe (Node key value))
-        (Node key value)))
-  (when ?left
-    (^.multi {.:Some left}
-             [(its :color left) {:Red}]
-             [(its :left left) {.:Some left>>left}]
-             [(its :color left>>left) {:Red}])
-    (red (its :key left)
-         (its :value left)
-         {.:Some (blackened left>>left)}
-         {.:Some (black key value (its :right left) ?right)})
+     (for_any (_ key value)
+              (-> key value (Maybe (Node key value)) (Maybe (Node key value))
+                  (Node key value)))
+     (when ?left
+           (^.multi {.:Some left}
+                    [(its :color left) {:Red}]
+                    [(its :left left) {.:Some left>>left}]
+                    [(its :color left>>left) {:Red}])
+           (red (its :key left)
+                (its :value left)
+                {.:Some (blackened left>>left)}
+                {.:Some (black key value (its :right left) ?right)})
 
-    (^.multi {.:Some left}
-             [(its :color left) {:Red}]
-             [(its :right left) {.:Some left>>right}]
-             [(its :color left>>right) {:Red}])
-    (red (its :key left>>right)
-         (its :value left>>right)
-         {.:Some (black (its :key left)
-                        (its :value left)
-                        (its :left left)
-                        (its :left left>>right))}
-         {.:Some (black key value
-                        (its :right left>>right)
-                        ?right)})
+           (^.multi {.:Some left}
+                    [(its :color left) {:Red}]
+                    [(its :right left) {.:Some left>>right}]
+                    [(its :color left>>right) {:Red}])
+           (red (its :key left>>right)
+                (its :value left>>right)
+                {.:Some (black (its :key left)
+                               (its :value left)
+                               (its :left left)
+                               (its :left left>>right))}
+                {.:Some (black key value
+                               (its :right left>>right)
+                               ?right)})
 
-    _
-    (black key value ?left ?right)))
+           _
+           (black key value ?left ?right)))
 
 (the (right_balanced key value ?left ?right)
-  (for_any (_ key value)
-    (-> key value (Maybe (Node key value)) (Maybe (Node key value))
-        (Node key value)))
-  (when ?right
-    (^.multi {.:Some right}
-             [(its :color right) {:Red}]
-             [(its :right right) {.:Some right>>right}]
-             [(its :color right>>right) {:Red}])
-    (red (its :key right)
-         (its :value right)
-         {.:Some (black key value ?left (its :left right))}
-         {.:Some (blackened right>>right)})
+     (for_any (_ key value)
+              (-> key value (Maybe (Node key value)) (Maybe (Node key value))
+                  (Node key value)))
+     (when ?right
+           (^.multi {.:Some right}
+                    [(its :color right) {:Red}]
+                    [(its :right right) {.:Some right>>right}]
+                    [(its :color right>>right) {:Red}])
+           (red (its :key right)
+                (its :value right)
+                {.:Some (black key value ?left (its :left right))}
+                {.:Some (blackened right>>right)})
 
-    (^.multi {.:Some right}
-             [(its :color right) {:Red}]
-             [(its :left right) {.:Some right>>left}]
-             [(its :color right>>left) {:Red}])
-    (red (its :key right>>left)
-         (its :value right>>left)
-         {.:Some (black key value ?left (its :left right>>left))}
-         {.:Some (black (its :key right)
-                        (its :value right)
-                        (its :right right>>left)
-                        (its :right right))})
+           (^.multi {.:Some right}
+                    [(its :color right) {:Red}]
+                    [(its :left right) {.:Some right>>left}]
+                    [(its :color right>>left) {:Red}])
+           (red (its :key right>>left)
+                (its :value right>>left)
+                {.:Some (black key value ?left (its :left right>>left))}
+                {.:Some (black (its :key right)
+                               (its :value right)
+                               (its :right right>>left)
+                               (its :right right))})
 
-    _
-    (black key value ?left ?right)))
+           _
+           (black key value ?left ?right)))
 
 (the (without_left key value ?left ?right)
-  (for_any (_ key value)
-    (-> key value (Maybe (Node key value)) (Maybe (Node key value))
-        (Node key value)))
-  (when ?left
-    (^.multi {.:Some left}
-             [(its :color left) {:Red}])
-    (red key value {.:Some (blackened left)} ?right)
+     (for_any (_ key value)
+              (-> key value (Maybe (Node key value)) (Maybe (Node key value))
+                  (Node key value)))
+     (when ?left
+           (^.multi {.:Some left}
+                    [(its :color left) {:Red}])
+           (red key value {.:Some (blackened left)} ?right)
 
-    _
-    (when ?right
-      (^.multi {.:Some right}
-               [(its :color right) {:Black}])
-      (right_balanced key value ?left {.:Some (reddened right)})
+           _
+           (when ?right
+                 (^.multi {.:Some right}
+                          [(its :color right) {:Black}])
+                 (right_balanced key value ?left {.:Some (reddened right)})
 
-      (^.multi {.:Some right}
-               [(its :color right) {:Red}]
-               [(its :left right) {.:Some right>>left}]
-               [(its :color right>>left) {:Black}])
-      (red (its :key right>>left)
-           (its :value right>>left)
-           {.:Some (black key value ?left (its :left right>>left))}
-           {.:Some (right_balanced (its :key right)
-                                   (its :value right)
-                                   (its :right right>>left)
-                                   (by maybe.functor each reddened (its :right right)))})
+                 (^.multi {.:Some right}
+                          [(its :color right) {:Red}]
+                          [(its :left right) {.:Some right>>left}]
+                          [(its :color right>>left) {:Black}])
+                 (red (its :key right>>left)
+                      (its :value right>>left)
+                      {.:Some (black key value ?left (its :left right>>left))}
+                      {.:Some (right_balanced (its :key right)
+                                              (its :value right)
+                                              (its :right right>>left)
+                                              (by maybe.functor each reddened (its :right right)))})
 
-      _
-      (halt! ..violation_of_invariant))))
+                 _
+                 (halt! ..violation_of_invariant))))
 
 (the (without_right key value ?left ?right)
-  (for_any (_ key value)
-    (-> key value (Maybe (Node key value)) (Maybe (Node key value))
-        (Node key value)))
-  (when ?right
-    (^.multi {.:Some right}
-             [(its :color right) {:Red}])
-    (red key value ?left {.:Some (blackened right)})
+     (for_any (_ key value)
+              (-> key value (Maybe (Node key value)) (Maybe (Node key value))
+                  (Node key value)))
+     (when ?right
+           (^.multi {.:Some right}
+                    [(its :color right) {:Red}])
+           (red key value ?left {.:Some (blackened right)})
 
-    _
-    (when ?left
-      (^.multi {.:Some left}
-               [(its :color left) {:Black}])
-      (left_balanced key value {.:Some (reddened left)} ?right)
+           _
+           (when ?left
+                 (^.multi {.:Some left}
+                          [(its :color left) {:Black}])
+                 (left_balanced key value {.:Some (reddened left)} ?right)
 
-      (^.multi {.:Some left}
-               [(its :color left) {:Red}]
-               [(its :right left) {.:Some left>>right}]
-               [(its :color left>>right) {:Black}])
-      (red (its :key left>>right)
-           (its :value left>>right)
-           {.:Some (left_balanced (its :key left)
-                                  (its :value left)
-                                  (by maybe.functor each reddened (its :left left))
-                                  (its :left left>>right))}
-           {.:Some (black key value (its :right left>>right) ?right)})
+                 (^.multi {.:Some left}
+                          [(its :color left) {:Red}]
+                          [(its :right left) {.:Some left>>right}]
+                          [(its :color left>>right) {:Black}])
+                 (red (its :key left>>right)
+                      (its :value left>>right)
+                      {.:Some (left_balanced (its :key left)
+                                             (its :value left)
+                                             (by maybe.functor each reddened (its :left left))
+                                             (its :left left>>right))}
+                      {.:Some (black key value (its :right left>>right) ?right)})
 
-      _
-      (halt! ..violation_of_invariant))))
+                 _
+                 (halt! ..violation_of_invariant))))
 
 (the (prepended ?left ?right)
-  (for_any (_ key value)
-    (-> (Maybe (Node key value)) (Maybe (Node key value))
-        (Maybe (Node key value))))
-  (when [?left ?right]
-    [{.:None} _]
-    ?right
+     (for_any (_ key value)
+              (-> (Maybe (Node key value)) (Maybe (Node key value))
+                  (Maybe (Node key value))))
+     (when [?left ?right]
+           [{.:None} _]
+           ?right
 
-    [_ {.:None}]
-    ?left
+           [_ {.:None}]
+           ?left
 
-    [{.:Some left} {.:Some right}]
-    (when [(its :color left) (its :color right)]
-      [{:Red} {:Red}]
-      (monad.let maybe.monad
-        [fused (prepended (its :right left) (its :right right))]
-        (when (its :color fused)
-          {:Red}
-          (pure (red (its :key fused)
-                     (its :value fused)
-                     {.:Some (red (its :key left)
-                                  (its :value left)
-                                  (its :left left)
-                                  (its :left fused))}
-                     {.:Some (red (its :key right)
-                                  (its :value right)
-                                  (its :right fused)
-                                  (its :right right))}))
+           [{.:Some left} {.:Some right}]
+           (when [(its :color left) (its :color right)]
+                 [{:Red} {:Red}]
+                 (monad.let maybe.monad
+                            [fused (prepended (its :right left) (its :right right))]
+                            (when (its :color fused)
+                                  {:Red}
+                                  (pure (red (its :key fused)
+                                             (its :value fused)
+                                             {.:Some (red (its :key left)
+                                                          (its :value left)
+                                                          (its :left left)
+                                                          (its :left fused))}
+                                             {.:Some (red (its :key right)
+                                                          (its :value right)
+                                                          (its :right fused)
+                                                          (its :right right))}))
 
-          {:Black}
-          (pure (red (its :key left)
-                     (its :value left)
-                     (its :left left)
-                     {.:Some (red (its :key right)
-                                  (its :value right)
-                                  {.:Some fused}
-                                  (its :right right))}))))
+                                  {:Black}
+                                  (pure (red (its :key left)
+                                             (its :value left)
+                                             (its :left left)
+                                             {.:Some (red (its :key right)
+                                                          (its :value right)
+                                                          {.:Some fused}
+                                                          (its :right right))}))))
 
-      [{:Red} {:Black}]
-      {.:Some (red (its :key left)
-                   (its :value left)
-                   (its :left left)
-                   (prepended (its :right left)
-                              ?right))}
-      
-      [{:Black} {:Red}]
-      {.:Some (red (its :key right)
-                   (its :value right)
-                   (prepended ?left
-                              (its :left right))
-                   (its :right right))}
-
-      [{:Black} {:Black}]
-      (monad.let maybe.monad
-        [fused (prepended (its :right left) (its :left right))]
-        (when (its :color fused)
-          {:Red}
-          (pure (red (its :key fused)
-                     (its :value fused)
-                     {.:Some (black (its :key left)
-                                    (its :value left)
-                                    (its :left left)
-                                    (its :left fused))}
-                     {.:Some (black (its :key right)
-                                    (its :value right)
-                                    (its :right fused)
-                                    (its :right right))}))
-          
-          {:Black}
-          (pure (without_left (its :key left)
+                 [{:Red} {:Black}]
+                 {.:Some (red (its :key left)
                               (its :value left)
                               (its :left left)
-                              {.:Some (black (its :key right)
-                                             (its :value right)
-                                             {.:Some fused}
-                                             (its :right right))}))
-          ))
-      )
+                              (prepended (its :right left)
+                                         ?right))}
+                 
+                 [{:Black} {:Red}]
+                 {.:Some (red (its :key right)
+                              (its :value right)
+                              (prepended ?left
+                                         (its :left right))
+                              (its :right right))}
 
-    _
-    (undefined)))
+                 [{:Black} {:Black}]
+                 (monad.let maybe.monad
+                            [fused (prepended (its :right left) (its :left right))]
+                            (when (its :color fused)
+                                  {:Red}
+                                  (pure (red (its :key fused)
+                                             (its :value fused)
+                                             {.:Some (black (its :key left)
+                                                            (its :value left)
+                                                            (its :left left)
+                                                            (its :left fused))}
+                                             {.:Some (black (its :key right)
+                                                            (its :value right)
+                                                            (its :right fused)
+                                                            (its :right right))}))
+                                  
+                                  {:Black}
+                                  (pure (without_left (its :key left)
+                                                      (its :value left)
+                                                      (its :left left)
+                                                      {.:Some (black (its :key right)
+                                                                     (its :value right)
+                                                                     {.:Some fused}
+                                                                     (its :right right))}))
+                                  ))
+                 )
+
+           _
+           (undefined)))
 
 (the .public (lacks key dict)
-  (for_any (_ key value)
-    (-> key (Dictionary key value)
-        (Dictionary key value)))
-  (with "_:[0]" (its :order dict)
-        (let [[?root found?] (loop (of [?root (its :root dict)])
-                               (when ?root
-                                 {.:Some root}
-                                 (let [root_key (its :key root)
-                                       root_val (its :value root)]
-                                   (if (_:= root_key key)
-                                       [(prepended (its :left root)
-                                                   (its :right root))
-                                        true]
-                                       (let [go_left? (_:< root_key key)]
-                                         (when (of (if go_left?
-                                                       (its :left root)
-                                                       (its :right root)))
-                                           [{.:None} .false]
-                                           [{.:None} false]
+     (for_any (_ key value)
+              (-> key (Dictionary key value)
+                  (Dictionary key value)))
+     (with "_:[0]" (its :order dict)
+           (let [[?root found?] (loop (of [?root (its :root dict)])
+                                      (when ?root
+                                            {.:Some root}
+                                            (let [root_key (its :key root)
+                                                  root_val (its :value root)]
+                                                 (if (_:= root_key key)
+                                                     [(prepended (its :left root)
+                                                                 (its :right root))
+                                                      true]
+                                                     (let [go_left? (_:< root_key key)]
+                                                          (when (of (if go_left?
+                                                                        (its :left root)
+                                                                        (its :right root)))
+                                                                [{.:None} .false]
+                                                                [{.:None} false]
 
-                                           [side_outcome _]
-                                           (if go_left?
-                                               (when (its :left root)
-                                                 (^.multi {.:Some left}
-                                                          [(its :color left) {:Black}])
-                                                 [{.:Some (without_left root_key root_val side_outcome (its :right root))}
-                                                  false]
+                                                                [side_outcome _]
+                                                                (if go_left?
+                                                                    (when (its :left root)
+                                                                          (^.multi {.:Some left}
+                                                                                   [(its :color left) {:Black}])
+                                                                          [{.:Some (without_left root_key root_val side_outcome (its :right root))}
+                                                                           false]
 
-                                                 _
-                                                 [{.:Some (red root_key root_val side_outcome (its :right root))}
-                                                  false])
-                                               (when (its :right root)
-                                                 (^.multi {.:Some right}
-                                                          [(its :color right) {:Black}])
-                                                 [{.:Some (without_right root_key root_val (its :left root) side_outcome)}
-                                                  false]
+                                                                          _
+                                                                          [{.:Some (red root_key root_val side_outcome (its :right root))}
+                                                                           false])
+                                                                    (when (its :right root)
+                                                                          (^.multi {.:Some right}
+                                                                                   [(its :color right) {:Black}])
+                                                                          [{.:Some (without_right root_key root_val (its :left root) side_outcome)}
+                                                                           false]
 
-                                                 _
-                                                 [{.:Some (red root_key root_val (its :left root) side_outcome)}
-                                                  false])
-                                               )))
-                                       ))
+                                                                          _
+                                                                          [{.:Some (red root_key root_val (its :left root) side_outcome)}
+                                                                           false])
+                                                                    )))
+                                                     ))
 
-                                 {.:None}
-                                 [{.:None} false]
-                                 ))]
-          (when ?root
-            {.:None}
-            (if found?
-                (.has :root ?root dict)
-                dict)
+                                            {.:None}
+                                            [{.:None} false]
+                                            ))]
+                (when ?root
+                      {.:None}
+                      (if found?
+                          (.has :root ?root dict)
+                          dict)
 
-            {.:Some root}
-            (.has :root {.:Some (blackened root)} dict)))))
+                      {.:Some root}
+                      (.has :root {.:Some (blackened root)} dict)))))
 
 (the .public (revised key transform dict)
-  (for_any (_ key value)
-    (-> key (-> value value) (Dictionary key value)
-        (Dictionary key value)))
-  (when (..value key dict)
-    {try.:Success old}
-    (..has key (transform old) dict)
+     (for_any (_ key value)
+              (-> key (-> value value) (Dictionary key value)
+                  (Dictionary key value)))
+     (when (..value key dict)
+           {try.:Success old}
+           (..has key (transform old) dict)
 
-    failure
-    dict))
+           failure
+           dict))
 
 (the .public (of_list order list)
-  (for_any (_ key value)
-    (-> (Order key) (List [key value])
-        (Dictionary key value)))
-  (list.mix (function (_ [key value] dict)
-              (..has key value dict))
-            list
-            (empty order)))
+     (for_any (_ key value)
+              (-> (Order key) (List [key value])
+                  (Dictionary key value)))
+     (list.mix (function (_ [key value] dict)
+                         (..has key value dict))
+               list
+               (empty order)))
 
 (template.with [<name> <type> <output>]
                [(the .public (<name> dict)
-                  (for_any (_ key value)
-                    (-> (Dictionary key value)
-                        (List <type>)))
-                  (loop (of [node (its :root dict)])
-                    (when node
-                      {.:None}
-                      (list)
+                     (for_any (_ key value)
+                              (-> (Dictionary key value)
+                                  (List <type>)))
+                     (loop (of [node (its :root dict)])
+                           (when node
+                                 {.:None}
+                                 (list)
 
-                      {.:Some node'}
-                      (all list:composite
-                           (of (its :left node'))
-                           (list <output>)
-                           (of (its :right node'))))))]
+                                 {.:Some node'}
+                                 (all list:composite
+                                      (of (its :left node'))
+                                      (list <output>)
+                                      (of (its :right node'))))))]
 
                [[entries [key value] [(its :key node') (its :value node')]]
                 [domain  key         (its :key node')]
                 [values  value       (its :value node')]])
 
 (the .public (equality value_equality)
-  (for_any (_ key value)
-    (-> (Equality value)
-        (Equality (Dictionary key value))))
-  (implementation
-   (the (= expected actual)
-     (and (n.= (size expected)
-               (size actual))
-          (<| (with "key:[0]" (its :order expected))
-              (with "value:[0]" value_equality)
-              (list.every? (function (_ [[keyR valueR] [keyS valueS]])
-                             (and (key:= keyR keyS)
-                                  (value:= valueR valueS)))
-                           (list.zipped_2 (entries expected)
-                                          (entries actual))))))))
+     (for_any (_ key value)
+              (-> (Equality value)
+                  (Equality (Dictionary key value))))
+     (implementation
+      (the (= expected actual)
+           (and (n.= (size expected)
+                     (size actual))
+                (<| (with "key:[0]" (its :order expected))
+                    (with "value:[0]" value_equality)
+                    (list.every? (function (_ [[keyR valueR] [keyS valueS]])
+                                           (and (key:= keyR keyS)
+                                                (value:= valueR valueS)))
+                                 (list.zipped_2 (entries expected)
+                                                (entries actual))))))))

@@ -20,137 +20,137 @@
 
 (the with_template (.in_module# .prelude .with_template))
 
-... https://en.wikipedia.org/wiki/Property_list
-(every .public (List it)
-  (.List [Text it]))
+(comment "https://en.wikipedia.org/wiki/Property_list"
+         (every .public (List it)
+                (.List [Text it])))
 
 (the .public empty
-  List
-  (list))
+     List
+     (list))
 
 (the .public size
-  (for_any (_ it)
-    (-> (List it)
-        Natural))
-  //.size)
+     (for_any (_ it)
+              (-> (List it)
+                  Natural))
+     //.size)
 
 (the .public empty?
-  (for_any (_ it)
-    (Predicate (List it)))
-  (|>> ..size
-       (n.= 0)))
+     (for_any (_ it)
+              (Predicate (List it)))
+     (|>> ..size
+          (n.= 0)))
 
 (the .public (value key it)
-  (for_any (_ it)
-    (-> Text (List it)
-        (Try it)))
-  (//.one (function (_ [actual_key value])
-            (if (text.= key actual_key)
-                {.:Some value}
-                {.:None}))
-          it))
+     (for_any (_ it)
+              (-> Text (List it)
+                  (Try it)))
+     (//.one (function (_ [actual_key value])
+                       (if (text.= key actual_key)
+                           {.:Some value}
+                           {.:None}))
+             it))
 
 (with_template [<name> <type> <access>]
-  [(the .public <name>
-     (for_any (_ it)
-       (-> (List it)
-           (.List <type>)))
-     (//:each <access>))]
+               [(the .public <name>
+                     (for_any (_ it)
+                              (-> (List it)
+                                  (.List <type>)))
+                     (//:each <access>))]
 
-  [[domain Text pair.left]
-   [values it   pair.right]])
+               [[domain Text pair.left]
+                [values it   pair.right]])
 
 (the .public (contains? key it)
-  (for_any (_ it)
-    (-> Text
-        (Predicate (List it))))
-  (when (..value key it)
-    {try.:Success _}
-    true
+     (for_any (_ it)
+              (-> Text
+                  (Predicate (List it))))
+     (when (..value key it)
+           {try.:Success _}
+           true
 
-    failure
-    false))
+           failure
+           false))
 
 (the (index key it)
-  (for_any (_ it)
-    (-> Text (List it)
-        (Maybe [Natural it])))
-  (let [limit (..size it)]
-    (loop (index [current 0])
-      (if (n.< limit current)
-          (let [[actual_key value] (.list_item# current it)]
-            (if (text.= key actual_key)
-                {.:Some [current value]}
-                (index (++ current))))
-          {.:None}))))
+     (for_any (_ it)
+              (-> Text (List it)
+                  (Maybe [Natural it])))
+     (let [limit (..size it)]
+          (loop (index [current 0])
+                (if (n.< limit current)
+                    (let [[actual_key value] (.list_item# current it)]
+                         (if (text.= key actual_key)
+                             {.:Some [current value]}
+                             (index (++ current))))
+                    {.:None}))))
 
 (the .public (has key value it)
-  (for_any (_ it)
-    (-> Text it
-        (Change (List it))))
-  (when (index key it)
-    {.:Some [index _]}
-    (//.has index [key value] it)
-    
-    {.:None}
-    (//:composite it (list [key value]))))
+     (for_any (_ it)
+              (-> Text it
+                  (Change (List it))))
+     (when (index key it)
+           {.:Some [index _]}
+           (//.has index [key value] it)
+           
+           {.:None}
+           (//:composite it (list [key value]))))
 
 (the .public (revised key change it)
-  (for_any (_ it)
-    (-> Text (Change it)
-        (Change (List it))))
-  (when (index key it)
-    {.:Some [index value]}
-    (//.has index [key (change value)] it)
-    
-    {.:None}
-    it))
+     (for_any (_ it)
+              (-> Text (Change it)
+                  (Change (List it))))
+     (when (index key it)
+           {.:Some [index value]}
+           (//.has index [key (change value)] it)
+           
+           {.:None}
+           it))
 
 (the .public (lacks key it)
-  (for_any (_ it)
-    (-> Text
-        (Change (List it))))
-  (when (index key it)
-    {.:Some [index value]}
-    (//.lacks index it)
-    
-    {.:None}
-    it))
+     (for_any (_ it)
+              (-> Text
+                  (Change (List it))))
+     (when (index key it)
+           {.:Some [index value]}
+           (//.lacks index it)
+           
+           {.:None}
+           it))
 
 (the .public (equality /:=)
-  (for_any (_ it)
-    (-> (Equality it)
-        (Equality (List it))))
-  (implementation
-   (the (= expected actual)
-     (and (n.= (//.size expected)
-               (//.size actual))
-          (//.every? (function (_ [key expected_value])
-                       (when (..value key expected)
-                         {try.:Success actual_value}
-                         (/:= expected_value actual_value)
+     (for_any (_ it)
+              (-> (Equality it)
+                  (Equality (List it))))
+     (implementation
+      (the (= expected actual)
+           (and (n.= (//.size expected)
+                     (//.size actual))
+                (//.every? (function (_ [key expected_value])
+                                     (when (..value key expected)
+                                           {try.:Success actual_value}
+                                           (/:= expected_value actual_value)
 
-                         failure
-                         false))
-                     actual)))))
+                                           failure
+                                           false))
+                           actual)))))
 
 (the .public monoid
-  (for_any (_ it)
-    (Monoid (List it)))
-  (implementation
-   (the identity
-     ..empty)
+     (for_any (_ it)
+              (Monoid (List it)))
+     (implementation
+      (the identity
+           ..empty)
 
-   (the (composite left right)
-     (//.mix (function (_ [key val] it)
-               (..has key val it))
-             right
-             left))))
+      (the (composite left right)
+           (//.mix (function (_ [key val] it)
+                             (..has key val it))
+                   right
+                   left))))
 
 (the .public functor
-  (Functor List)
-  (implementation
-   (the (each value it)
-     (//:each (function (_ [name entry])
-                [name (value entry)])
-              it))))
+     (Functor List)
+     (implementation
+      (the (each value it)
+           (//:each (function (_ [name entry])
+                              [name (value entry)])
+                    it))))

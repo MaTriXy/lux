@@ -63,12 +63,12 @@
       ["n" natural]]]]]])
 
 (the prefix
-  name.delimiter)
+     name.delimiter)
 
 (every .public Identity
-  (Record
-   [:alias .Text
-    :real_name .Text]))
+       (Record
+        [:alias .Text
+         :real_name .Text]))
 
 (the expansion:let (.in_module# .prelude expansion:let))
 (the with_template (.in_module# .prelude with_template))
@@ -76,13 +76,13 @@
 
 (with_template [,name ,pre_processing]
                [(the ,name
-                  (.macro (_ it state)
-                    (when it
-                      (.list {.:Name @ ["" it]})
-                      {.:Right [state (.list {.:Text @ (|> it ,pre_processing)})]}
+                     (.macro (_ it state)
+                             (when it
+                                   (.list {.:Name @ ["" it]})
+                                   {.:Right [state (.list {.:Text @ (|> it ,pre_processing)})]}
 
-                      _
-                      {.:Left ""})))]
+                                   _
+                                   {.:Left ""})))]
 
                [[alias_of_type |>]
                 [name_of_type (.text ..prefix)]])
@@ -115,246 +115,250 @@
                                           [,each])]
                (these (with_template [,name ,type ,left_polarity ,right_polarity]
                                      [(the .public ,name
-                                        Identity
-                                        [:alias (..alias_of_type ,name)
-                                         :real_name (..name_of_type ,name)])]
+                                           Identity
+                                           [:alias (..alias_of_type ,name)
+                                            :real_name (..name_of_type ,name)])]
 
                                      [,each])
                       (with_template [,name ,type ,left_polarity ,right_polarity]
                                      [(the .public ,type
-                                        .Type
-                                        {.:Nominal (its :real_name ,name) (.list)})]
+                                           .Type
+                                           {.:Nominal (its :real_name ,name) (.list)})]
 
                                      [,each_simple])
                       (with_template [,name ,type ,left_polarity ,right_polarity]
                                      [(the .public ,type
-                                        .Type
-                                        (for_any (_ it)
-                                          {.:Nominal (its :real_name ,name) (.list [.co_variant it])}))]
+                                           .Type
+                                           (for_any (_ it)
+                                                    {.:Nominal (its :real_name ,name) (.list [.co_variant it])}))]
 
                                      [,each_complex])
                       (with_template [,name ,type ,left_polarity ,right_polarity]
                                      [(the .public ,type
-                                        .Type
-                                        {.:Nominal (its :real_name ..i64)
-                                                   (.list [.co_variant {.:Nominal (its :real_name ,name) (.list)}])})]
+                                           .Type
+                                           {.:Nominal (its :real_name ..i64)
+                                                      (.list [.co_variant {.:Nominal (its :real_name ,name) (.list)}])})]
 
                                      [,each_integer])
                       (with_template [,name ,type ,left_polarity ,right_polarity]
                                      [(`` (the .public ,type
-                                            (<| (template:macro (_ ,it))
-                                                [{.:Nominal (,, (name_of_type ,name))
-                                                            (.list [(,, (static ,left_polarity)) ,it])}])))]
+                                               (<| (template:macro (_ ,it))
+                                                   [{.:Nominal (,, (name_of_type ,name))
+                                                               (.list [(,, (static ,left_polarity)) ,it])}])))]
 
                                      [,each_1])
                       (with_template [,name ,type ,left_polarity ,right_polarity]
                                      [(`` (the .public ,type
-                                            (<| (template:macro (_ ,left ,right))
-                                                [{.:Nominal (,, (name_of_type ,name))
-                                                            (.list [(,, (static ,left_polarity)) ,left]
-                                                                   [(,, (static ,right_polarity)) ,right])}])))]
+                                               (<| (template:macro (_ ,left ,right))
+                                                   [{.:Nominal (,, (name_of_type ,name))
+                                                               (.list [(,, (static ,left_polarity)) ,left]
+                                                                      [(,, (static ,right_polarity)) ,right])}])))]
 
                                      [,each_2])
                       (the .public each_name
-                        (property.List .Text)
-                        (.list ,each_name))
+                           (property.List .Text)
+                           (.list ,each_name))
                       ))
 
 (the .public Name_Of_Module
-  ..Text)
+     ..Text)
 
 (the .public Name
-  (And ..Name_Of_Module ..Text))
+     (And ..Name_Of_Module ..Text))
+
+(the name_of_list
+     (its :real_name ..list))
 
 (`` (the List'
-      (<| (template:macro (_ ,it))
-          [{.:Nominal (its :real_name ..list) (.list [(,, (static .co_variant)) ,it])}])))
+         (<| (template:macro (_ ,it))
+             [{.:Nominal (,, (static ..name_of_list))
+                         (.list [(,, (static .co_variant)) ,it])}])))
 
 (every .public (Type _)
-  (.Variant {:Nominal ..Text (..List' [.Polarity (Type _)])}
-            {:Parameter .Parameter ..Natural}
-            {:Variable .Quality ..Natural}
-            {:Quantification .Quantification (.Stack [(Type _) (Type _)]) (Type _)}
-            {:Reification (Type _) (Type _)}
-            {:Named ..Name (Type _)}))
+       (.Variant {:Nominal ..Text (..List' [.Polarity (Type _)])}
+                 {:Parameter .Parameter ..Natural}
+                 {:Variable .Quality ..Natural}
+                 {:Quantification .Quantification (.Stack [(Type _) (Type _)]) (Type _)}
+                 {:Reification (Type _) (Type _)}
+                 {:Named ..Name (Type _)}))
 
 (the .public Character
-  .Type
-  ..Natural)
+     .Type
+     ..Natural)
 
 (the .public Provenance
-  .Type
-  (And ..Name_Of_Module ..Natural ..Natural))
+     .Type
+     (And ..Name_Of_Module ..Natural ..Natural))
 
 (the Code'
-  (<| (template:macro (_ ,it))
-      [(And ..Provenance ,it)]))
+     (<| (template:macro (_ ,it))
+         [(And ..Provenance ,it)]))
 
 (every .public (Code _)
-  (.Variant {:Bit (Code' ..Bit)}
-            {:Natural (Code' ..Natural)}
-            {:Integer (Code' ..Integer)}
-            {:Revolution (Code' ..Revolution)}
-            {:Real (Code' ..Real)}
-            {:Text (Code' ..Text)}
-            {:Name (Code' ..Name)}
-            {:Form (Code' (List' (Code _)))}
-            {:Variant (Code' (List' (Code _)))}
-            {:Tuple (Code' (List' (Code _)))}))
+       (.Variant {:Bit (Code' ..Bit)}
+                 {:Natural (Code' ..Natural)}
+                 {:Integer (Code' ..Integer)}
+                 {:Revolution (Code' ..Revolution)}
+                 {:Real (Code' ..Real)}
+                 {:Text (Code' ..Text)}
+                 {:Name (Code' ..Name)}
+                 {:Form (Code' (List' (Code _)))}
+                 {:Variant (Code' (List' (Code _)))}
+                 {:Tuple (Code' (List' (Code _)))}))
 
 (every .public Simple
-  (.Variant {:Simple_Unit}
-            {:Simple_Bit ..Bit}
-            {:Simple_Natural ..Natural}
-            {:Simple_Integer ..Integer}
-            {:Simple_Revolution ..Revolution}
-            {:Simple_Real ..Real}
-            {:Simple_Text ..Text}))
+       (.Variant {:Simple_Unit}
+                 {:Simple_Bit ..Bit}
+                 {:Simple_Natural ..Natural}
+                 {:Simple_Integer ..Integer}
+                 {:Simple_Revolution ..Revolution}
+                 {:Simple_Real ..Real}
+                 {:Simple_Text ..Text}))
 
 (every .public (Variant it)
-  (Record
-   [:lefts Natural
-    :right? Bit
-    :choice it]))
+       (Record
+        [:lefts Natural
+         :right? Bit
+         :choice it]))
 
 (every .public (Tuple it)
-  (List' it))
+       (List' it))
 
 (every .public (Complex it)
-  (.Variant {:Complex_Variant (Variant it)}
-            {:Complex_Tuple (Tuple it)}))
+       (.Variant {:Complex_Variant (Variant it)}
+                 {:Complex_Tuple (Tuple it)}))
 
 (every .public Register
-  Natural)
+       Natural)
 
 (every .public Variable
-  (.Variant {:Local Register}
-            {:Foreign Register}))
+       (.Variant {:Local Register}
+                 {:Foreign Register}))
 
 (every .public Constant
-  ..Name)
+       ..Name)
 
 (every .public Reference
-  (.Variant {:Variable_Reference ..Variable}
-            {:Constant_Reference ..Constant}))
+       (.Variant {:Variable_Reference ..Variable}
+                 {:Constant_Reference ..Constant}))
 
 (every .public (Pattern _)
-  (.Variant {:Simple_Pattern Simple}
-            {:Complex_Pattern (Complex Pattern)}
-            {:List_Pattern (List' Pattern)}
-            {:Bind_Pattern Register}))
+       (.Variant {:Simple_Pattern Simple}
+                 {:Complex_Pattern (Complex Pattern)}
+                 {:List_Pattern (List' Pattern)}
+                 {:Bind_Pattern Register}))
 
 (every .public (Branch it)
-  (Record
-   [:when Pattern
-    :then it]))
+       (Record
+        [:when Pattern
+         :then it]))
 
 (every .public (Match it)
-  [(Branch it)
-   (List' (Branch it))])
+       [(Branch it)
+        (List' (Branch it))])
 
 (every .public (Environment it)
-  (List' it))
+       (List' it))
 
 (every .public (Extension it)
-  (Record
-   [:name Name
-    :parameters (List' it)]))
+       (Record
+        [:name Name
+         :parameters (List' it)]))
 
 (comment "https://en.wikipedia.org/wiki/Expression_(mathematics)"
          (the Expression'
-           (<| (template:macro (_ ,it))
-               [(And ..Provenance ,it)])))
+              (<| (template:macro (_ ,it))
+                  [(And ..Provenance ,it)])))
 
 (every .public (Expression _)
-  (.Variant {:Simple (Expression' ..Simple)}
-            {:Complex (Expression' (..Complex Expression))}
-            {:Reference (Expression' Reference)}
-            {:When (Expression' [Expression (..Match Expression)])}
-            {:Abstraction (Expression' [(..Environment Expression) Expression])}
-            {:Application (Expression' [Expression Expression])}
-            {:Extension (Expression' (Extension Expression))}))
+       (.Variant {:Simple (Expression' ..Simple)}
+                 {:Complex (Expression' (..Complex Expression))}
+                 {:Reference (Expression' Reference)}
+                 {:When (Expression' [Expression (..Match Expression)])}
+                 {:Abstraction (Expression' [(..Environment Expression) Expression])}
+                 {:Application (Expression' [Expression Expression])}
+                 {:Extension (Expression' (Extension Expression))}))
 
 (the Maybe
-  (<| (template:macro (_ ,it))
-      [(.Or .Any ,it)]))
+     (<| (template:macro (_ ,it))
+         [(.Or .Any ,it)]))
 
 (every .public Label
-  [(..Maybe [..Natural ..Bit (..List' ..Name)])
-   ..Type])
+       [(..Maybe [..Natural ..Bit (..List' ..Name)])
+        ..Type])
 
 (the Try
-  (<| (template:macro (_ ,it))
-      [(.Or ..Text ,it)]))
+     (<| (template:macro (_ ,it))
+         [(.Or ..Text ,it)]))
 
 (the Property_List
-  (<| (template:macro (_ ,it))
-      [(..List' (And ..Text ,it))]))
+     (<| (template:macro (_ ,it))
+         [(..List' (And ..Text ,it))]))
 
 (every .public Info
-  (Record
-   [:target ..Text
-    :version ..Text
-    :mode .Mode
-    :configuration (..Property_List ..Text)]))
+       (Record
+        [:target ..Text
+         :version ..Text
+         :mode .Mode
+         :configuration (..Property_List ..Text)]))
 
 (every .public Definition
-  (Record
-   [:type ..Type
-    :expression (Maybe [Expression (Maybe Expression)])
-    :value .Any]))
+       (Record
+        [:type ..Type
+         :expression (Maybe [Expression (Maybe Expression)])
+         :value .Any]))
 
 (the .public Alias
-  ..Name)
+     ..Name)
 
 (every .public Global
-  (.Variant {:Alias Alias}
-            {:Definition Definition}))
+       (.Variant {:Alias Alias}
+                 {:Definition Definition}))
 
 (every .public Module
-  (Record
-   [:module_hash ..Natural
-    :module_aliases (..Property_List ..Text)
-    :definitions (..Property_List [..Bit ..Global])
-    :imports (..List' ..Text)
-    :module_state .Module_State]))
+       (Record
+        [:module_hash ..Natural
+         :module_aliases (..Property_List ..Text)
+         :definitions (..Property_List [..Bit ..Global])
+         :imports (..List' ..Text)
+         :module_state .Module_State]))
 
 (every .public (Bindings it)
-  (Record
-   [:counter ..Natural
-    :mappings (..Property_List it)]))
+       (Record
+        [:counter ..Natural
+         :mappings (..Property_List it)]))
 
 (every .public Scope
-  (Record
-   [:locals (..Bindings [..Type ..Natural])
-    :captured (..Bindings [..Type .Ref])]))
+       (Record
+        [:locals (..Bindings [..Type ..Natural])
+         :captured (..Bindings [..Type .Ref])]))
 
 (every .public Type_Context
-  (Record
-   [:for_all (..List' (..Maybe ..Type))
-    :there_exists ..Natural]))
+       (Record
+        [:for_all (..List' (..Maybe ..Type))
+         :there_exists ..Natural]))
 
 (every .public Lux
-  (Record
-   [:info ..Info
-    :source .Source
-    :provenance ..Provenance
-    :current_module (Maybe ..Name_Of_Module)
-    :modules (..Property_List ..Module)
-    :scopes (.Stack ..Scope)
-    :type_context ..Type_Context
-    :expected (Maybe ..Type)
-    :seed ..Natural
-    :eval ..Eval]))
+       (Record
+        [:info ..Info
+         :source .Source
+         :provenance ..Provenance
+         :current_module (Maybe ..Name_Of_Module)
+         :modules (..Property_List ..Module)
+         :scopes (.Stack ..Scope)
+         :type_context ..Type_Context
+         :expected (Maybe ..Type)
+         :seed ..Natural
+         :eval ..Eval]))
 
 (the Meta
-  (<| (template:macro (_ ,it))
-      [(-> ..Lux
-           (Try (.And ..Lux ,it)))]))
+     (<| (template:macro (_ ,it))
+         [(-> ..Lux
+              (Try (.And ..Lux ,it)))]))
 
 (the .public Eval'
-  (-> ..Type ..Code
-      (Meta Any)))
+     (-> ..Type ..Code
+         (Meta Any)))
 
 (the code:bit (.in_module# .prelude code:bit))
 (the code:natural (.in_module# .prelude code:natural))
@@ -363,151 +367,151 @@
 (the code:variant (.in_module# .prelude code:variant))
 
 (the empty
-  ..Code
-  (code:variant (.list (code:bit 0b))))
+     ..Code
+     (code:variant (.list (code:bit 0b))))
 
 (the (top head tail)
-  (-> ..Code ..Code
-      ..Code)
-  (code:variant (.list (code:bit 1b)
-                       head
-                       tail)))
+     (-> ..Code ..Code
+         ..Code)
+     (code:variant (.list (code:bit 1b)
+                          head
+                          tail)))
 
 (every (Injection it)
-  (-> it
-      ..Code))
+       (-> it
+           ..Code))
 
 (the (code:stack code it)
-  (for_any (_ it)
-    (-> (Injection it)
-        (Injection (Stack it))))
-  (when it
-    {.:Empty}
-    empty
+     (for_any (_ it)
+              (-> (Injection it)
+                  (Injection (Stack it))))
+     (when it
+           {.:Empty}
+           empty
 
-    {.:Top head tail}
-    (top (code head) (code:stack code tail))))
+           {.:Top head tail}
+           (top (code head) (code:stack code tail))))
 
 (the (code:argument code [polarity it])
-  (for_any (_ it)
-    (-> (Injection it)
-        (Injection [Bit it])))
-  (code:tuple (.list (code:bit polarity)
-                     (code it))))
+     (for_any (_ it)
+              (-> (Injection it)
+                  (Injection [Bit it])))
+     (code:tuple (.list (code:bit polarity)
+                        (code it))))
 
 (the ('list code it)
-  (for_any (_ it)
-    (-> (Injection it)
-        (Injection (List' it))))
-  (` (.list# (,* (list:each code it)))))
+     (for_any (_ it)
+              (-> (Injection it)
+                  (Injection (List' it))))
+     (` (.list# (,* (list:each code it)))))
 
 (the (nominal code [name parameters])
-  (-> (Injection .Type)
-      (Injection [Text (List' [.Polarity .Type])]))
-  (code:variant (.list (code:natural 0)
-                       (code:bit 0b)
-                       (code:tuple (.list (code:text name)
-                                          ('list (code:argument code) parameters))))))
+     (-> (Injection .Type)
+         (Injection [Text (List' [.Polarity .Type])]))
+     (code:variant (.list (code:natural 0)
+                          (code:bit 0b)
+                          (code:tuple (.list (code:text name)
+                                             ('list (code:argument code) parameters))))))
 
 (the (code it)
-  (Injection .Type)
-  (`` (when it
-        {.:Nominal it}
-        (nominal code it)
+     (Injection .Type)
+     (`` (when it
+               {.:Nominal it}
+               (nominal code it)
 
-        {.:Parameter parameter it}
-        (code:variant (.list (code:natural 1)
-                             (code:bit 0b)
-                             (code:bit parameter)
-                             (code:natural it)))
+               {.:Parameter parameter it}
+               (code:variant (.list (code:natural 1)
+                                    (code:bit 0b)
+                                    (code:bit parameter)
+                                    (code:natural it)))
 
-        {.:Variable quality it}
-        (code:variant (.list (code:natural 2)
-                             (code:bit 0b)
-                             (code:bit quality)
-                             (code:natural it)))
+               {.:Variable quality it}
+               (code:variant (.list (code:natural 2)
+                                    (code:bit 0b)
+                                    (code:bit quality)
+                                    (code:natural it)))
 
-        {.:Quantification quantification closure body}
-        (code:variant (.list (code:natural 3)
-                             (code:bit 0b)
-                             (code:tuple (.list (code:bit quantification)
-                                                (code:stack (.function (_ [abstraction argument])
-                                                              (` [(, (code abstraction))
-                                                                  (, (code argument))]))
-                                                            closure)
-                                                (code body)))))
-        
-        {.:Reification left right}
-        (code:variant (.list (code:natural 4)
-                             (code:bit 0b)
-                             (code:tuple (.list (code left)
-                                                (code right)))))
+               {.:Quantification quantification closure body}
+               (code:variant (.list (code:natural 3)
+                                    (code:bit 0b)
+                                    (code:tuple (.list (code:bit quantification)
+                                                       (code:stack (.function (_ [abstraction argument])
+                                                                              (` [(, (code abstraction))
+                                                                                  (, (code argument))]))
+                                                                   closure)
+                                                       (code body)))))
+               
+               {.:Reification left right}
+               (code:variant (.list (code:natural 4)
+                                    (code:bit 0b)
+                                    (code:tuple (.list (code left)
+                                                       (code right)))))
 
-        {.:Named [module proper] anonymous}
-        (code:variant (.list (code:natural 4)
-                             (code:bit 1b)
-                             (code:tuple (.list (code:tuple (.list (code:text module)
-                                                                   (code:text proper)))
-                                                (code anonymous)))))
-        )))
+               {.:Named [module proper] anonymous}
+               (code:variant (.list (code:natural 4)
+                                    (code:bit 1b)
+                                    (code:tuple (.list (code:tuple (.list (code:text module)
+                                                                          (code:text proper)))
+                                                       (code anonymous)))))
+               )))
 
 (the .public each_type
-  (property.List ..Code)
-  (|> (.list ["label" ..Label]
-             ["name_of_module" ..Name_Of_Module]
-             ["name" ..Name]
-             ["provenance" ..Provenance]
-             ["code" ..Code]
-             ["type" ..Type]
-             ["info" ..Info]
-             ["definition" ..Definition]
-             ["alias" ..Alias]
-             ["global" ..Global]
-             ["module" ..Module]
-             ["bindings" ..Bindings]
-             ["scope" ..Scope]
-             ["type_context" ..Type_Context]
-             ["lux" ..Lux]
-             ["eval" ..Eval]
-             ["eval'" ..Eval'])
-      (is (property.List .Type))
-      (list:each (.function (_ [name type])
-                   [name (..code type)]))))
+     (property.List ..Code)
+     (|> (.list ["label" ..Label]
+                ["name_of_module" ..Name_Of_Module]
+                ["name" ..Name]
+                ["provenance" ..Provenance]
+                ["code" ..Code]
+                ["type" ..Type]
+                ["info" ..Info]
+                ["definition" ..Definition]
+                ["alias" ..Alias]
+                ["global" ..Global]
+                ["module" ..Module]
+                ["bindings" ..Bindings]
+                ["scope" ..Scope]
+                ["type_context" ..Type_Context]
+                ["lux" ..Lux]
+                ["eval" ..Eval]
+                ["eval'" ..Eval'])
+         (is (property.List .Type))
+         (list:each (.function (_ [name type])
+                               [name (..code type)]))))
 
 (these (comment
         (these (the .public (old it)
-                 (-> ..Type
-                     .Type)
-                 it)
+                    (-> ..Type
+                        .Type)
+                    it)
 
                (the .public (new it)
-                 (-> .Type
-                     ..Type)
-                 it)
+                    (-> .Type
+                        ..Type)
+                    it)
 
                (the .public (old_context it)
-                 (-> ..Type_Context
-                     .Type_Context)
-                 it)
+                    (-> ..Type_Context
+                        .Type_Context)
+                    it)
 
                (the .public (new_context it)
-                 (-> .Type_Context
-                     ..Type_Context)
-                 it)
+                    (-> .Type_Context
+                        ..Type_Context)
+                    it)
                )
         (these))
 
        (these (the .public old
-                (<| (template:macro (_ ,it))
-                    [,it]))
+                   (<| (template:macro (_ ,it))
+                       [,it]))
 
               (the .public new
-                ..old)
+                   ..old)
 
               (the .public old_context
-                ..old)
+                   ..old)
 
               (the .public new_context
-                ..old)
+                   ..old)
               )
        )

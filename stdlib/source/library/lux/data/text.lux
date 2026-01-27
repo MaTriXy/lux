@@ -22,17 +22,17 @@
   ["[0]" character (.only Character)]])
 
 (every .public Index
-  Natural)
+       Natural)
 
 (the with_template (.in_module# .prelude .with_template))
 
-... TODO: Instead of integers, characters should be produced fron naturals.
-... (The JVM specifies characters as 16-bit unsigned integers)
-(the .public of_character
-  (-> Character
-      Text)
-  (|>> .integer
-       .int_char#))
+(comment "TODO: Instead of integers, characters should be produced fron naturals."
+         "(The JVM specifies characters as 16-bit unsigned integers)"
+         (the .public of_character
+              (-> Character
+                  Text)
+              (|>> .integer
+                   .int_char#)))
 
 (with_template [<code> <short> <long>]
                [(the .public <long> (..of_character <code>))
@@ -49,404 +49,404 @@
                 [character.\'' \'' double_quote]])
 
 (the .public line_feed
-  Text
-  ..new_line)
+     Text
+     ..new_line)
 
 (the .public empty
-  Text
-  "")
+     Text
+     "")
 
 (the .public size
-  (-> Text
-      Natural)
-  (|>> .text_size#))
+     (-> Text
+         Natural)
+     (|>> .text_size#))
 
 (the .public (character index input)
-  (-> Index Text
-      (Maybe Character))
-  (if (n.< (.text_size# input) index)
-      {.:Some (.text_char# index input)}
-      {.:None}))
+     (-> Index Text
+         (Maybe Character))
+     (if (n.< (.text_size# input) index)
+         {.:Some (.text_char# index input)}
+         {.:None}))
 
 (the .public (index_since offset pattern input)
-  (-> Index Text Text
-      (Maybe Index))
-  (.text_index# offset pattern input))
+     (-> Index Text Text
+         (Maybe Index))
+     (.text_index# offset pattern input))
 
 (the .public (index pattern input)
-  (-> Text Text
-      (Maybe Index))
-  (index_since 0 pattern input))
+     (-> Text Text
+         (Maybe Index))
+     (index_since 0 pattern input))
 
 (the .public (last_index part text)
-  (-> Text Text
-      (Maybe Index))
-  (loop (of [offset 0
-             output (is (Maybe Index)
-                        {.:None})])
-    (let [output' (.text_index# offset part text)]
-      (when output'
-        {.:None}
-        output
+     (-> Text Text
+         (Maybe Index))
+     (loop (of [offset 0
+                output (is (Maybe Index)
+                           {.:None})])
+           (let [output' (.text_index# offset part text)]
+                (when output'
+                      {.:None}
+                      output
 
-        {.:Some offset'}
-        (of (++ offset') output')))))
+                      {.:Some offset'}
+                      (of (++ offset') output')))))
 
 (the .public (starts_with? prefix x)
-  (-> Text Text
-      Bit)
-  (when (index prefix x)
-    {.:Some 0}
-    true
+     (-> Text Text
+         Bit)
+     (when (index prefix x)
+           {.:Some 0}
+           true
 
-    _
-    false))
+           _
+           false))
 
 (the .public (ends_with? postfix x)
-  (-> Text Text
-      Bit)
-  (when (last_index postfix x)
-    {.:Some n}
-    (n.= (size x)
-         (n.+ (size postfix) n))
+     (-> Text Text
+         Bit)
+     (when (last_index postfix x)
+           {.:Some n}
+           (n.= (size x)
+                (n.+ (size postfix) n))
 
-    _
-    false))
+           _
+           false))
 
 (the .public (enclosed_by? boundary value)
-  (-> Text Text
-      Bit)
-  (and (starts_with? boundary value)
-       (ends_with? boundary value)))
+     (-> Text Text
+         Bit)
+     (and (starts_with? boundary value)
+          (ends_with? boundary value)))
 
 (the .public (contains? sub text)
-  (-> Text Text
-      Bit)
-  (when (.text_index# 0 sub text)
-    {.:Some _}
-    true
+     (-> Text Text
+         Bit)
+     (when (.text_index# 0 sub text)
+           {.:Some _}
+           true
 
-    _
-    false))
+           _
+           false))
 
 (the .public (prefix param)
-  (-> Text
-      (Change Text))
-  (|>> (.text_composite# param)))
+     (-> Text
+         (Change Text))
+     (|>> (.text_composite# param)))
 
 (the .public (suffix param subject)
-  (-> Text
-      (Change Text))
-  (.text_composite# subject param))
+     (-> Text
+         (Change Text))
+     (.text_composite# subject param))
 
 (the .public (enclosed [left right] content)
-  (-> [Text Text]
-      (Change Text))
-  (.text_composite# left content right))
+     (-> [Text Text]
+         (Change Text))
+     (.text_composite# left content right))
 
 (the .public (enclosed' boundary content)
-  (-> Text
-      (Change Text))
-  (enclosed [boundary boundary] content))
+     (-> Text
+         (Change Text))
+     (enclosed [boundary boundary] content))
 
 (the .public (enclosed? [left right] it)
-  (-> [Text Text] Text
-      Bit)
-  (and (starts_with? left it)
-       (ends_with? right it)))
+     (-> [Text Text] Text
+         Bit)
+     (and (starts_with? left it)
+          (ends_with? right it)))
 
 (every .public (Injection it)
-  (-> it
-      Text))
+       (-> it
+           Text))
 
 (the .public functor
-  (contravariant.Functor Injection)
-  (implementation
-   (the (each f fb)
-     (|>> f fb))))
+     (contravariant.Functor Injection)
+     (implementation
+      (the (each f fb)
+           (|>> f fb))))
 
 (the .public as_text
-  (Injection Text)
-  (..enclosed' ..double_quote))
+     (Injection Text)
+     (..enclosed' ..double_quote))
 
 (the .public (clip offset size input)
-  (-> Index Natural Text
-      (Maybe Text))
-  (if (|> size (n.+ offset) (n.> (.text_size# input)))
-      {.:None}
-      {.:Some (.text_clip# offset size input)}))
+     (-> Index Natural Text
+         (Maybe Text))
+     (if (|> size (n.+ offset) (n.> (.text_size# input)))
+         {.:None}
+         {.:Some (.text_clip# offset size input)}))
 
 (the .public (clip_since offset input)
-  (-> Index Text
-      (Maybe Text))
-  (let [size (.text_size# input)]
-    (if (n.> size offset)
-        {.:None}
-        {.:Some (.text_clip# offset (n.- offset size) input)})))
+     (-> Index Text
+         (Maybe Text))
+     (let [size (.text_size# input)]
+          (if (n.> size offset)
+              {.:None}
+              {.:Some (.text_clip# offset (n.- offset size) input)})))
 
 (the .public (split_at at x)
-  (-> Index Text
-      (Maybe [Text Text]))
-  (when [(..clip 0 at x) (..clip_since at x)]
-    [{.:Some pre} {.:Some post}]
-    {.:Some [pre post]}
+     (-> Index Text
+         (Maybe [Text Text]))
+     (when [(..clip 0 at x) (..clip_since at x)]
+           [{.:Some pre} {.:Some post}]
+           {.:Some [pre post]}
 
-    _
-    {.:None}))
+           _
+           {.:None}))
 
 (the .public (split_by token it)
-  (-> Text Text
-      (Maybe [Text Text]))
-  (monad.let maybe.monad
-    [index (index token it)
-     [pre post'] (split_at index it)
-     [_ post] (split_at (size token) post')]
-    (pure [pre post])))
+     (-> Text Text
+         (Maybe [Text Text]))
+     (monad.let maybe.monad
+                [index (index token it)
+                 [pre post'] (split_at index it)
+                 [_ post] (split_at (size token) post')]
+                (pure [pre post])))
 
 (the .public (all_split_by token it)
-  (-> Text Text
-      (List Text))
-  (let [[_ it] (list.dynamic (function (_ input)
-                               (if (identical? ..empty input)
-                                   {.:None}
-                                   (when (..split_by token input)
-                                     {.:Some [pre post]}
-                                     {.:Some [post pre]}
+     (-> Text Text
+         (List Text))
+     (let [[_ it] (list.dynamic (function (_ input)
+                                          (if (identical? ..empty input)
+                                              {.:None}
+                                              (when (..split_by token input)
+                                                    {.:Some [pre post]}
+                                                    {.:Some [post pre]}
 
-                                     none
-                                     {.:Some [..empty input]})))
-                             it)]
-    it))
+                                                    none
+                                                    {.:Some [..empty input]})))
+                                it)]
+          it))
 
 (the .public (replaced_once pattern replacement template)
-  (-> Text Text
-      (Change Text))
-  (<| (maybe.else template)
-      (monad.let maybe.monad
-        [[pre post] (..split_by pattern template)]
-        (pure (.text_composite# pre replacement post)))))
+     (-> Text Text
+         (Change Text))
+     (<| (maybe.else template)
+         (monad.let maybe.monad
+                    [[pre post] (..split_by pattern template)]
+                    (pure (.text_composite# pre replacement post)))))
 
 (target.if target.js (these (the defined?
-                              (macro (_ tokens lux)
-                                (when tokens
-                                  (list it)
-                                  {.:Right [lux (list (` (.when (.js_type_of# (.js_constant# (, it)))
-                                                           "undefined"
-                                                           .false
+                                 (macro (_ tokens lux)
+                                        (when tokens
+                                              (list it)
+                                              {.:Right [lux (list (` (.when (.js_type_of# (.js_constant# (, it)))
+                                                                            "undefined"
+                                                                            .false
 
-                                                           (,' _)
-                                                           .true)))]}
+                                                                            (,' _)
+                                                                            .true)))]}
 
-                                  _
-                                  {.:Left ""})))
+                                              _
+                                              {.:Left ""})))
                             (the if_nashorn
-                              (macro (_ tokens lux)
-                                (when tokens
-                                  (list then else)
-                                  {.:Right [lux (list (if (and (..defined? "java")
-                                                               (..defined? "java.lang")
-                                                               (..defined? "java.lang.Object"))
-                                                          then
-                                                          else))]}
+                                 (macro (_ tokens lux)
+                                        (when tokens
+                                              (list then else)
+                                              {.:Right [lux (list (if (and (..defined? "java")
+                                                                           (..defined? "java.lang")
+                                                                           (..defined? "java.lang.Object"))
+                                                                      then
+                                                                      else))]}
 
-                                  _
-                                  {.:Left ""}))))
+                                              _
+                                              {.:Left ""}))))
 
-           ... else
-           (these))
+           (comment "else"
+                    (these)))
 
 (the _expansion:let (.in_module# .prelude .expansion:let))
 
 (the .public (replaced pattern replacement template)
-  (-> Text Text
-      (Change Text))
-  (<| (_expansion:let [ ... Inefficient default
-                       <default> (loop (of [left ""
-                                            right template])
-                                   (when (..split_by pattern right)
-                                     {.:Some [pre post]}
-                                     (of (.text_composite# left pre replacement) post)
+     (-> Text Text
+         (Change Text))
+     (<| (_expansion:let [<default> (comment "Inefficient default"
+                                             (loop (of [left ""
+                                                        right template])
+                                                   (when (..split_by pattern right)
+                                                         {.:Some [pre post]}
+                                                         (of (.text_composite# left pre replacement) post)
 
-                                     {.:None}
-                                     (.text_composite# left right)))])
-      (target.if target.jvm
-                 (as (-> (Nominal "java.lang.String") Text)
-                     (.jvm_member_invoke_virtual# [] "java.lang.String" "replace" []
-                                                  (as (-> Text (Nominal "java.lang.String")) template)
-                                                  ["Ljava/lang/CharSequence;" (as (-> Text (Nominal "java.lang.CharSequence")) pattern)]
-                                                  ["Ljava/lang/CharSequence;" (as (-> Text (Nominal "java.lang.CharSequence")) replacement)]))
-                 target.js
-                 ... TODO: Remove this when Nashorn is no longer being used.
-                 (..if_nashorn
-                  <default>
-                  (as (-> Any Text)
-                      (.js_object_do# "replaceAll" template [pattern replacement])))
+                                                         {.:None}
+                                                         (.text_composite# left right))))])
+         (target.if target.jvm
+                    (as (-> (Nominal "java.lang.String") Text)
+                        (.jvm_member_invoke_virtual# [] "java.lang.String" "replace" []
+                                                     (as (-> Text (Nominal "java.lang.String")) template)
+                                                     ["Ljava/lang/CharSequence;" (as (-> Text (Nominal "java.lang.CharSequence")) pattern)]
+                                                     ["Ljava/lang/CharSequence;" (as (-> Text (Nominal "java.lang.CharSequence")) replacement)]))
+                    target.js
+                    (comment "TODO: Remove this when Nashorn is no longer being used."
+                             (..if_nashorn
+                              <default>
+                              (as (-> Any Text)
+                                  (.js_object_do# "replaceAll" template [pattern replacement]))))
 
-                 target.python
-                 (as (-> Any Text)
-                     (.python_object_do# "replace" template [pattern replacement]))
+                    target.python
+                    (as (-> Any Text)
+                        (.python_object_do# "replace" template [pattern replacement]))
 
-                 ... TODO .lua
+                    target.ruby
+                    (as (-> Any Text)
+                        (.ruby_object_do# "gsub" template [pattern replacement]))
 
-                 target.ruby
-                 (as (-> Any Text)
-                     (.ruby_object_do# "gsub" template [pattern replacement]))
+                    target.php
+                    (as (-> Any Text)
+                        ("php of" (as_expected ("php constant" "str_replace"))
+                         pattern replacement template))
 
-                 target.php
-                 (as (-> Any Text)
-                     ("php of" (as_expected ("php constant" "str_replace"))
-                      pattern replacement template))
-
-                 ... TODO .common_lisp
-                 ... TODO .r
-                 
-                 ... Inefficient default
-                 <default>)))
+                    (comment "TODO .lua"
+                             "TODO .common_lisp"
+                             "TODO .r"
+                             
+                             "Inefficient default"
+                             <default>))))
 
 (the .public equality
-  (Equality Text)
-  (implementation
-   (the (= expected actual)
-     (.text_=# expected actual))))
+     (Equality Text)
+     (implementation
+      (the (= expected actual)
+           (.text_=# expected actual))))
 
 (alias [=]
        ..equality)
 
 (the .public order
-  (Order Text)
-  (implementation
-   (the equality ..equality)
+     (Order Text)
+     (implementation
+      (the equality ..equality)
 
-   (the (< reference it)
-     (.text_<# reference it))))
+      (the (< reference it)
+           (.text_<# reference it))))
 
 (order.for [] ..Text ..order)
 
 (the .public monoid
-  (Monoid Text)
-  (implementation
-   (the identity ..empty)
-   
-   (the (composite left right)
-     (.text_composite# left right))))
+     (Monoid Text)
+     (implementation
+      (the identity ..empty)
+      
+      (the (composite left right)
+           (.text_composite# left right))))
 
 (the .public hash
-  (Hash Text)
-  (implementation
-   (the equality ..equality)
+     (Hash Text)
+     (implementation
+      (the equality ..equality)
 
-   (the (hash input)
-     (target.if target.jvm
-                (|> input
-                    (as (-> Any (Nominal "java.lang.Object")))
-                    (.jvm_member_invoke_virtual# [] "java.lang.Object" "hashCode" [])
-                    .jvm_conversion_int_to_long#
-                    .jvm_object_cast#
-                    (as (-> (Nominal "java.lang.Long") Natural)))
-                ... Platform-independent default.
-                (let [length (.text_size# input)]
-                  (loop (of [index 0
-                             hash 0])
-                    (if (n.< length index)
-                        (of (++ index)
-                            (|> hash
-                                (/64.<< 5)
-                                (n.- hash)
-                                (n.+ (.text_char# index input))))
-                        hash)))))))
+      (the (hash input)
+           (target.if target.jvm
+                      (|> input
+                          (as (-> Any (Nominal "java.lang.Object")))
+                          (.jvm_member_invoke_virtual# [] "java.lang.Object" "hashCode" [])
+                          .jvm_conversion_int_to_long#
+                          .jvm_object_cast#
+                          (as (-> (Nominal "java.lang.Long") Natural)))
+                      
+                      (comment "Platform-independent default."
+                               (let [length (.text_size# input)]
+                                    (loop (of [index 0
+                                               hash 0])
+                                          (if (n.< length index)
+                                              (of (++ index)
+                                                  (|> hash
+                                                      (/64.<< 5)
+                                                      (n.- hash)
+                                                      (n.+ (.text_char# index input))))
+                                              hash))))))))
 
 (the .public (together it)
-  (-> (List Text)
-      Text)
-  (<| (with ..monoid)
-      (list.mix composite (list.in_reverse it) identity)))
+     (-> (List Text)
+         Text)
+     (<| (with ..monoid)
+         (list.mix composite (list.in_reverse it) identity)))
 
 (the .public (interposed delimiter texts)
-  (-> Text (List Text)
-      Text)
-  (when delimiter
-    ..empty (..together texts)
-    _ (list.mix (function (_ right left)
-                  (if (identical? ..empty left)
-                      right
-                      (text left delimiter right)))
-                texts
-                ..empty)))
+     (-> Text (List Text)
+         Text)
+     (when delimiter
+           ..empty (..together texts)
+           _ (list.mix (function (_ right left)
+                                 (if (identical? ..empty left)
+                                     right
+                                     (text left delimiter right)))
+                       texts
+                       ..empty)))
 
 (the .public (empty? text)
-  (-> Text
-      Bit)
-  (when text
-    ..empty true
-    _  false))
+     (-> Text
+         Bit)
+     (when text
+           ..empty true
+           _  false))
 
 (the .public space
-  Text
-  " ")
+     Text
+     " ")
 
 (the .public (space? character)
-  (-> Character
-      Bit)
-  (<| (_expansion:let [<options> (with_template [<character>]
-                                                [(.character (,, (static <character>)))
-                                                 true]
+     (-> Character
+         Bit)
+     (<| (_expansion:let [<options> (with_template [<character>]
+                                                   [(.character (,, (static <character>)))
+                                                    true]
 
-                                                [[..tab]
-                                                 [..vertical_tab]
-                                                 [..space]
-                                                 [..new_line]
-                                                 [..carriage_return]
-                                                 [..form_feed]])])
-      (`` (when character
-            <options>
+                                                   [[..tab]
+                                                    [..vertical_tab]
+                                                    [..space]
+                                                    [..new_line]
+                                                    [..carriage_return]
+                                                    [..form_feed]])])
+         (`` (when character
+                   <options>
 
-            _
-            false))))
+                   _
+                   false))))
 
 (the .public (lower_cased value)
-  (Change Text)
-  (target.if target.jvm
-             (|> value
-                 (as (-> Text (Nominal "java.lang.String")))
-                 (.jvm_member_invoke_virtual# [] "java.lang.String" "toLowerCase" [])
-                 (as (-> (Nominal "java.lang.String") Text)))
+     (Change Text)
+     (target.if target.jvm
+                (|> value
+                    (as (-> Text (Nominal "java.lang.String")))
+                    (.jvm_member_invoke_virtual# [] "java.lang.String" "toLowerCase" [])
+                    (as (-> (Nominal "java.lang.String") Text)))
 
-             target.js
-             (as (-> Any Text)
-                 (.js_object_do# "toLowerCase" value []))
+                target.js
+                (as (-> Any Text)
+                    (.js_object_do# "toLowerCase" value []))
 
-             target.python
-             (as (-> Any Text)
-                 (.python_object_do# "lower" value []))
+                target.python
+                (as (-> Any Text)
+                    (.python_object_do# "lower" value []))
 
-             target.lua
-             (as (-> Any Text)
-                 (.lua_of# (.lua_constant# "string.lower") [value]))
+                target.lua
+                (as (-> Any Text)
+                    (.lua_of# (.lua_constant# "string.lower") [value]))
 
-             target.ruby
-             (as (-> Any Text)
-                 (.ruby_object_do# "downcase" value []))))
+                target.ruby
+                (as (-> Any Text)
+                    (.ruby_object_do# "downcase" value []))))
 
 (the .public (upper_cased value)
-  (Change Text)
-  (target.if target.jvm
-             (|> value
-                 (as (-> Text (Nominal "java.lang.String")))
-                 (.jvm_member_invoke_virtual# [] "java.lang.String" "toUpperCase" [])
-                 (as (-> (Nominal "java.lang.String") Text)))
+     (Change Text)
+     (target.if target.jvm
+                (|> value
+                    (as (-> Text (Nominal "java.lang.String")))
+                    (.jvm_member_invoke_virtual# [] "java.lang.String" "toUpperCase" [])
+                    (as (-> (Nominal "java.lang.String") Text)))
 
-             target.js
-             (as (-> Any Text)
-                 (.js_object_do# "toUpperCase" value []))
+                target.js
+                (as (-> Any Text)
+                    (.js_object_do# "toUpperCase" value []))
 
-             target.python
-             (as (-> Any Text)
-                 (.python_object_do# "upper" value []))
+                target.python
+                (as (-> Any Text)
+                    (.python_object_do# "upper" value []))
 
-             target.lua
-             (as (-> Any Text)
-                 (.lua_of# (.lua_constant# "string.upper") [value]))
+                target.lua
+                (as (-> Any Text)
+                    (.lua_of# (.lua_constant# "string.upper") [value]))
 
-             target.ruby
-             (as (-> Any Text)
-                 (.ruby_object_do# "upcase" value []))))
+                target.ruby
+                (as (-> Any Text)
+                    (.ruby_object_do# "upcase" value []))))

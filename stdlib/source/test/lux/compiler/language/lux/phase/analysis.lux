@@ -51,914 +51,913 @@
   ["[1][0]" when]])
 
 (the (eval archive type term)
-  Eval
-  (phase:pure []))
+     Eval
+     (phase:pure []))
 
 (the (expander macro inputs state)
-  //macro.Expander
-  {try.:Success ((macro.function macro) inputs state)})
+     //macro.Expander
+     {try.:Success ((macro.function macro) inputs state)})
 
 (the (can_analyse_unit! lux module/0)
-  (-> Lux Text Bit)
-  (let [state [extension.:bundle (extension/analysis.bundle ..eval)
-               extension.:state lux]]
-    (|> (monad.let phase.monad
-          [[:it: it] (|> (' [])
-                         (/.phase ..expander archive.empty)
-                         //type.inferring)]
-          (pure (and (type.= .Any :it:)
-                     (when it
-                       (//.unit)
-                       true
+     (-> Lux Text Bit)
+     (let [state [extension.:bundle (extension/analysis.bundle ..eval)
+                  extension.:state lux]]
+          (|> (monad.let phase.monad
+                         [[:it: it] (|> (' [])
+                                        (/.phase ..expander archive.empty)
+                                        //type.inferring)]
+                         (pure (and (type.= .Any :it:)
+                                    (when it
+                                          (//.unit)
+                                          true
 
-                       _
-                       false))))
-        //scope.with
-        (//module.with 0 module/0)
-        (phase:each (|>> pair.right pair.right))
-        (phase.value state)
-        (try.else false))))
+                                          _
+                                          false))))
+              //scope.with
+              (//module.with 0 module/0)
+              (phase:each (|>> pair.right pair.right))
+              (phase.value state)
+              (try.else false))))
 
 (the (can_analyse_simple_literal_or_singleton_tuple! lux module/0 [bit/0 natural/0 integer/0 revolution/0 real/0 text/0])
-  (-> Lux Text [.Bit .Natural .Integer .Revolution .Real .Text] Bit)
-  (let [state [extension.:bundle (extension/analysis.bundle ..eval)
-               extension.:state lux]]
-    (`` (and (,, (template.with [<expected> <code> <type> <analysis>]
-                   [(|> (monad.let phase.monad
-                          [[:it: it] (|> <expected>
-                                         <code>
-                                         (/.phase ..expander archive.empty)
-                                         //type.inferring)]
-                          (pure (and (type.= <type> :it:)
-                                     (when it
-                                       (<analysis> it)
-                                       (identical? <expected> it)
+     (-> Lux Text [.Bit .Natural .Integer .Revolution .Real .Text] Bit)
+     (let [state [extension.:bundle (extension/analysis.bundle ..eval)
+                  extension.:state lux]]
+          (`` (and (,, (template.with [<expected> <code> <type> <analysis>]
+                                      [(|> (monad.let phase.monad
+                                                      [[:it: it] (|> <expected>
+                                                                     <code>
+                                                                     (/.phase ..expander archive.empty)
+                                                                     //type.inferring)]
+                                                      (pure (and (type.= <type> :it:)
+                                                                 (when it
+                                                                       (<analysis> it)
+                                                                       (identical? <expected> it)
 
-                                       _
-                                       false))))
+                                                                       _
+                                                                       false))))
+                                           //scope.with
+                                           (//module.with 0 module/0)
+                                           (phase:each (|>> pair.right pair.right))
+                                           (phase.value state)
+                                           (try.else false))]
+                                      
+                                      [[bit/0 code.bit .Bit //.bit]
+                                       [natural/0 code.natural .Natural //.natural]
+                                       [integer/0 code.integer .Integer //.integer]
+                                       [revolution/0 code.revolution .Revolution //.revolution]
+                                       [real/0 code.real .Real //.real]
+                                       [text/0 code.text .Text //.text]
+
+                                       [bit/0 (<| code.tuple stack code.bit) .Bit //.bit]
+                                       [natural/0 (<| code.tuple stack code.natural) .Natural //.natural]
+                                       [integer/0 (<| code.tuple stack code.integer) .Integer //.integer]
+                                       [revolution/0 (<| code.tuple stack code.revolution) .Revolution //.revolution]
+                                       [real/0 (<| code.tuple stack code.real) .Real //.real]
+                                       [text/0 (<| code.tuple stack code.text) .Text //.text]]))
+                   ))))
+
+(the (can_analyse_sum! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0] [@left @right])
+     (-> Lux Text [.Text .Text .Text .Text .Text .Text .Text] [.Bit .Natural .Integer .Revolution .Real .Text] [.Text .Text] Bit)
+     (let [state [extension.:bundle (extension/analysis.bundle ..eval)
+                  extension.:state lux]
+           :record: (And .Any .Bit .Natural .Integer .Revolution .Real .Text)
+           :variant: (Or .Any .Bit .Natural .Integer .Revolution .Real .Text)
+
+           can_analyse_unary!
+           (`` (and (|> (monad.let phase.monad
+                                   [it (|> (code.variant (stack (code.natural 0) (code.bit false) (` [])))
+                                           (/.phase ..expander archive.empty)
+                                           (//type.with :variant:))]
+                                   (pure (when it
+                                               (//.variant [0 .false (//.unit)])
+                                               true
+
+                                               _
+                                               false)))
                         //scope.with
                         (//module.with 0 module/0)
                         (phase:each (|>> pair.right pair.right))
                         (phase.value state)
-                        (try.else false))]
-                   
-                   [[bit/0 code.bit .Bit //.bit]
-                    [natural/0 code.natural .Natural //.natural]
-                    [integer/0 code.integer .Integer //.integer]
-                    [revolution/0 code.revolution .Revolution //.revolution]
-                    [real/0 code.real .Real //.real]
-                    [text/0 code.text .Text //.text]
+                        (try.else false))
+                    (,, (template.with [<lefts> <right> <expected> <tag> <code> <analysis>]
+                                       [(|> (monad.let phase.monad
+                                                       [it (|> (code.variant (stack (code.natural <lefts>) (code.bit <right>) (<code> <expected>)))
+                                                               (/.phase ..expander archive.empty)
+                                                               (//type.with :variant:))]
+                                                       (pure (when it
+                                                                   (//.variant [<lefts> <right> (<analysis> actual)])
+                                                                   (identical? <expected> actual)
 
-                    ... Singleton tuple
-                    [bit/0 (<| code.tuple stack code.bit) .Bit //.bit]
-                    [natural/0 (<| code.tuple stack code.natural) .Natural //.natural]
-                    [integer/0 (<| code.tuple stack code.integer) .Integer //.integer]
-                    [revolution/0 (<| code.tuple stack code.revolution) .Revolution //.revolution]
-                    [real/0 (<| code.tuple stack code.real) .Real //.real]
-                    [text/0 (<| code.tuple stack code.text) .Text //.text]]))
-             ))))
+                                                                   _
+                                                                   false)))
+                                            //scope.with
+                                            (//module.with 0 module/0)
+                                            (phase:each (|>> pair.right pair.right))
+                                            (phase.value state)
+                                            (try.else false))]
 
-(the (can_analyse_sum! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0] [@left @right])
-  (-> Lux Text [.Text .Text .Text .Text .Text .Text .Text] [.Bit .Natural .Integer .Revolution .Real .Text] [.Text .Text] Bit)
-  (let [state [extension.:bundle (extension/analysis.bundle ..eval)
-               extension.:state lux]
-        :record: (And .Any .Bit .Natural .Integer .Revolution .Real .Text)
-        :variant: (Or .Any .Bit .Natural .Integer .Revolution .Real .Text)
+                                       [[1 0b bit/0 @bit code.bit //.bit]
+                                        [2 0b natural/0 @natural code.natural //.natural]
+                                        [3 0b integer/0 @integer code.integer //.integer]
+                                        [4 0b revolution/0 @revolution code.revolution //.revolution]
+                                        [5 0b real/0 @real code.real //.real]
+                                        [5 1b text/0 @text code.text //.text]]))))
 
-        can_analyse_unary!
-        (`` (and (|> (monad.let phase.monad
-                       [it (|> (code.variant (stack (code.natural 0) (code.bit false) (` [])))
-                               (/.phase ..expander archive.empty)
-                               (//type.with :variant:))]
-                       (pure (when it
-                               (//.variant [0 .false (//.unit)])
-                               true
-
-                               _
-                               false)))
-                     //scope.with
-                     (//module.with 0 module/0)
-                     (phase:each (|>> pair.right pair.right))
-                     (phase.value state)
-                     (try.else false))
-                 (,, (template.with [<lefts> <right> <expected> <tag> <code> <analysis>]
-                       [(|> (monad.let phase.monad
-                              [it (|> (code.variant (stack (code.natural <lefts>) (code.bit <right>) (<code> <expected>)))
-                                      (/.phase ..expander archive.empty)
-                                      (//type.with :variant:))]
-                              (pure (when it
-                                      (//.variant [<lefts> <right> (<analysis> actual)])
-                                      (identical? <expected> actual)
+           can_analyse_nullary!
+           (|> (monad.let phase.monad
+                          [.let [:either: (Or .Any :record:)]
+                           it (|> (code.variant (stack (code.natural 0) (code.bit false)))
+                                  (/.phase ..expander archive.empty)
+                                  (//type.with :either:))]
+                          (pure (when it
+                                      (//.variant [0 .false (//.unit)])
+                                      true
 
                                       _
                                       false)))
-                            //scope.with
-                            (//module.with 0 module/0)
-                            (phase:each (|>> pair.right pair.right))
-                            (phase.value state)
-                            (try.else false))]
+               //scope.with
+               (//module.with 0 module/0)
+               (phase:each (|>> pair.right pair.right))
+               (phase.value state)
+               (try.else false))
 
-                       [[1 0b bit/0 @bit code.bit //.bit]
-                        [2 0b natural/0 @natural code.natural //.natural]
-                        [3 0b integer/0 @integer code.integer //.integer]
-                        [4 0b revolution/0 @revolution code.revolution //.revolution]
-                        [5 0b real/0 @real code.real //.real]
-                        [5 1b text/0 @text code.text //.text]]))))
+           can_analyse_multiary!
+           (|> (monad.let phase.monad
+                          [.let [:either: (Or .Any :record:)]
+                           it (|> (code.variant (stack (code.natural 0)
+                                                       (code.bit 1b)
+                                                       (` [])
+                                                       (code.bit bit/0)
+                                                       (code.natural natural/0)
+                                                       (code.integer integer/0)
+                                                       (code.revolution revolution/0)
+                                                       (code.real real/0)
+                                                       (code.text text/0)))
+                                  (/.phase ..expander archive.empty)
+                                  (//type.with :either:))]
+                          (pure (when it
+                                      (//.variant [0 1b (//.tuple (stack (//.unit)
+                                                                         (//.bit bit/?)
+                                                                         (//.natural natural/?)
+                                                                         (//.integer integer/?)
+                                                                         (//.revolution revolution/?)
+                                                                         (//.real real/?)
+                                                                         (//.text text/?)))])
+                                      (and (identical? bit/0 bit/?)
+                                           (identical? natural/0 natural/?)
+                                           (identical? integer/0 integer/?)
+                                           (identical? revolution/0 revolution/?)
+                                           (identical? real/0 real/?)
+                                           (identical? text/0 text/?))
 
-        can_analyse_nullary!
-        (|> (monad.let phase.monad
-              [.let [:either: (Or .Any :record:)]
-               it (|> (code.variant (stack (code.natural 0) (code.bit false)))
-                      (/.phase ..expander archive.empty)
-                      (//type.with :either:))]
-              (pure (when it
-                      (//.variant [0 .false (//.unit)])
-                      true
-
-                      _
-                      false)))
-            //scope.with
-            (//module.with 0 module/0)
-            (phase:each (|>> pair.right pair.right))
-            (phase.value state)
-            (try.else false))
-
-        can_analyse_multiary!
-        (|> (monad.let phase.monad
-              [.let [:either: (Or .Any :record:)]
-               it (|> (code.variant (stack (code.natural 0)
-                                           (code.bit 1b)
-                                           (` [])
-                                           (code.bit bit/0)
-                                           (code.natural natural/0)
-                                           (code.integer integer/0)
-                                           (code.revolution revolution/0)
-                                           (code.real real/0)
-                                           (code.text text/0)))
-                      (/.phase ..expander archive.empty)
-                      (//type.with :either:))]
-              (pure (when it
-                      (//.variant [0 1b (//.tuple (stack (//.unit)
-                                                         (//.bit bit/?)
-                                                         (//.natural natural/?)
-                                                         (//.integer integer/?)
-                                                         (//.revolution revolution/?)
-                                                         (//.real real/?)
-                                                         (//.text text/?)))])
-                      (and (identical? bit/0 bit/?)
-                           (identical? natural/0 natural/?)
-                           (identical? integer/0 integer/?)
-                           (identical? revolution/0 revolution/?)
-                           (identical? real/0 real/?)
-                           (identical? text/0 text/?))
-
-                      _
-                      false)))
-            //scope.with
-            (//module.with 0 module/0)
-            (phase:each (|>> pair.right pair.right))
-            (phase.value state)
-            (try.else false))]
-    (and can_analyse_unary!
-         can_analyse_nullary!
-         can_analyse_multiary!
-         )))
+                                      _
+                                      false)))
+               //scope.with
+               (//module.with 0 module/0)
+               (phase:each (|>> pair.right pair.right))
+               (phase.value state)
+               (try.else false))]
+          (and can_analyse_unary!
+               can_analyse_nullary!
+               can_analyse_multiary!
+               )))
 
 (the (can_analyse_variant! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0] [@left @right])
-  (-> Lux Text [.Text .Text .Text .Text .Text .Text .Text] [.Bit .Natural .Integer .Revolution .Real .Text] [.Text .Text] Bit)
-  (let [state [extension.:bundle (extension/analysis.bundle ..eval)
-               extension.:state lux]
-        :record: {.:Named [module/0 @text]
-                          (type [.Any .Bit .Natural .Integer .Revolution .Real .Text])}
-        slots/* (stack @any @bit @natural @integer @revolution @real @text)
-        :variant: {.:Named [module/0 @text]
-                           (type (Or .Any .Bit .Natural .Integer .Revolution .Real .Text))}
-        tags/* (stack @any @bit @natural @integer @revolution @real @text)
+     (-> Lux Text [.Text .Text .Text .Text .Text .Text .Text] [.Bit .Natural .Integer .Revolution .Real .Text] [.Text .Text] Bit)
+     (let [state [extension.:bundle (extension/analysis.bundle ..eval)
+                  extension.:state lux]
+           :record: {.:Named [module/0 @text]
+                             (type [.Any .Bit .Natural .Integer .Revolution .Real .Text])}
+           slots/* (stack @any @bit @natural @integer @revolution @real @text)
+           :variant: {.:Named [module/0 @text]
+                              (type (Or .Any .Bit .Natural .Integer .Revolution .Real .Text))}
+           tags/* (stack @any @bit @natural @integer @revolution @real @text)
 
-        can_analyse_unary!
-        (`` (and (|> (monad.let phase.monad
-                       [_ (//module.reallare_labels false tags/* false :variant:)
-                        [:it: it] (|> (code.variant (stack (code.local @any) (` [])))
-                                      (/.phase ..expander archive.empty)
-                                      //type.inferring)]
-                       (pure (and (type.= :variant:
-                                          :it:)
-                                  (when it
-                                    (//.variant [0 .false (//.unit)])
-                                    true
+           can_analyse_unary!
+           (`` (and (|> (monad.let phase.monad
+                                   [_ (//module.reallare_labels false tags/* false :variant:)
+                                    [:it: it] (|> (code.variant (stack (code.local @any) (` [])))
+                                                  (/.phase ..expander archive.empty)
+                                                  //type.inferring)]
+                                   (pure (and (type.= :variant:
+                                                      :it:)
+                                              (when it
+                                                    (//.variant [0 .false (//.unit)])
+                                                    true
 
-                                    _
-                                    false))))
-                     //scope.with
-                     (//module.with 0 module/0)
-                     (phase:each (|>> pair.right pair.right))
-                     (phase.value state)
-                     (try.else false))
-                 (,, (template.with [<lefts> <right> <expected> <tag> <code> <analysis>]
-                       [(|> (monad.let phase.monad
-                              [_ (//module.declare_labels false tags/* false :variant:)
-                               [:it: it] (|> (code.variant (stack (code.local <tag>) (<code> <expected>)))
-                                             (/.phase ..expander archive.empty)
-                                             //type.inferring)]
-                              (pure (and (type.= :variant:
-                                                 :it:)
-                                         (when it
-                                           (//.variant [<lefts> <right> (<analysis> actual)])
-                                           (identical? <expected> actual)
+                                                    _
+                                                    false))))
+                        //scope.with
+                        (//module.with 0 module/0)
+                        (phase:each (|>> pair.right pair.right))
+                        (phase.value state)
+                        (try.else false))
+                    (,, (template.with [<lefts> <right> <expected> <tag> <code> <analysis>]
+                                       [(|> (monad.let phase.monad
+                                                       [_ (//module.declare_labels false tags/* false :variant:)
+                                                        [:it: it] (|> (code.variant (stack (code.local <tag>) (<code> <expected>)))
+                                                                      (/.phase ..expander archive.empty)
+                                                                      //type.inferring)]
+                                                       (pure (and (type.= :variant:
+                                                                          :it:)
+                                                                  (when it
+                                                                        (//.variant [<lefts> <right> (<analysis> actual)])
+                                                                        (identical? <expected> actual)
+
+                                                                        _
+                                                                        false))))
+                                            //scope.with
+                                            (//module.with 0 module/0)
+                                            (phase:each (|>> pair.right pair.right))
+                                            (phase.value state)
+                                            (try.else false))]
+
+                                       [[1 0b bit/0 @bit code.bit //.bit]
+                                        [2 0b natural/0 @natural code.natural //.natural]
+                                        [3 0b integer/0 @integer code.integer //.integer]
+                                        [4 0b revolution/0 @revolution code.revolution //.revolution]
+                                        [5 0b real/0 @real code.real //.real]
+                                        [5 1b text/0 @text code.text //.text]]))))
+
+           can_analyse_nullary!
+           (|> (monad.let phase.monad
+                          [_ (//module.declare_labels true slots/* false :record:)
+                           .let [:either: {.:Named [module/0 module/0]
+                                                   (type (Or .Any :record:))}]
+                           _ (//module.declare_labels false (stack @left @right) false :either:)
+                           [:it: it] (|> (code.variant (stack (code.local @left)))
+                                         (/.phase ..expander archive.empty)
+                                         //type.inferring)]
+                          (pure (and (type.= :either:
+                                             :it:)
+                                     (when it
+                                           (//.variant [0 .false (//.unit)])
+                                           true
 
                                            _
                                            false))))
-                            //scope.with
-                            (//module.with 0 module/0)
-                            (phase:each (|>> pair.right pair.right))
-                            (phase.value state)
-                            (try.else false))]
+               //scope.with
+               (//module.with 0 module/0)
+               (phase:each (|>> pair.right pair.right))
+               (phase.value state)
+               (try.else false))
 
-                       [[1 0b bit/0 @bit code.bit //.bit]
-                        [2 0b natural/0 @natural code.natural //.natural]
-                        [3 0b integer/0 @integer code.integer //.integer]
-                        [4 0b revolution/0 @revolution code.revolution //.revolution]
-                        [5 0b real/0 @real code.real //.real]
-                        [5 1b text/0 @text code.text //.text]]))))
+           can_analyse_multiary!
+           (|> (monad.let phase.monad
+                          [_ (//module.declare_labels true slots/* false :record:)
+                           .let [:either: {.:Named [module/0 module/0]
+                                                   (type (Or .Any :record:))}]
+                           _ (//module.declare_labels false (stack @left @right) false :either:)
+                           [:it: it] (|> (code.variant (stack (code.local @right)
+                                                              (` [])
+                                                              (code.bit bit/0)
+                                                              (code.natural natural/0)
+                                                              (code.integer integer/0)
+                                                              (code.revolution revolution/0)
+                                                              (code.real real/0)
+                                                              (code.text text/0)))
+                                         (/.phase ..expander archive.empty)
+                                         //type.inferring)]
+                          (pure (and (type.= :either:
+                                             :it:)
+                                     (when it
+                                           (//.variant [0 1b (//.tuple (stack (//.unit)
+                                                                              (//.bit bit/?)
+                                                                              (//.natural natural/?)
+                                                                              (//.integer integer/?)
+                                                                              (//.revolution revolution/?)
+                                                                              (//.real real/?)
+                                                                              (//.text text/?)))])
+                                           (and (identical? bit/0 bit/?)
+                                                (identical? natural/0 natural/?)
+                                                (identical? integer/0 integer/?)
+                                                (identical? revolution/0 revolution/?)
+                                                (identical? real/0 real/?)
+                                                (identical? text/0 text/?))
 
-        can_analyse_nullary!
-        (|> (monad.let phase.monad
-              [_ (//module.declare_labels true slots/* false :record:)
-               .let [:either: {.:Named [module/0 module/0]
-                                       (type (Or .Any :record:))}]
-               _ (//module.declare_labels false (stack @left @right) false :either:)
-               [:it: it] (|> (code.variant (stack (code.local @left)))
-                             (/.phase ..expander archive.empty)
-                             //type.inferring)]
-              (pure (and (type.= :either:
-                                 :it:)
-                         (when it
-                           (//.variant [0 .false (//.unit)])
-                           true
-
-                           _
-                           false))))
-            //scope.with
-            (//module.with 0 module/0)
-            (phase:each (|>> pair.right pair.right))
-            (phase.value state)
-            (try.else false))
-
-        can_analyse_multiary!
-        (|> (monad.let phase.monad
-              [_ (//module.declare_labels true slots/* false :record:)
-               .let [:either: {.:Named [module/0 module/0]
-                                       (type (Or .Any :record:))}]
-               _ (//module.declare_labels false (stack @left @right) false :either:)
-               [:it: it] (|> (code.variant (stack (code.local @right)
-                                                  (` [])
-                                                  (code.bit bit/0)
-                                                  (code.natural natural/0)
-                                                  (code.integer integer/0)
-                                                  (code.revolution revolution/0)
-                                                  (code.real real/0)
-                                                  (code.text text/0)))
-                             (/.phase ..expander archive.empty)
-                             //type.inferring)]
-              (pure (and (type.= :either:
-                                 :it:)
-                         (when it
-                           (//.variant [0 1b (//.tuple (stack (//.unit)
-                                                              (//.bit bit/?)
-                                                              (//.natural natural/?)
-                                                              (//.integer integer/?)
-                                                              (//.revolution revolution/?)
-                                                              (//.real real/?)
-                                                              (//.text text/?)))])
-                           (and (identical? bit/0 bit/?)
-                                (identical? natural/0 natural/?)
-                                (identical? integer/0 integer/?)
-                                (identical? revolution/0 revolution/?)
-                                (identical? real/0 real/?)
-                                (identical? text/0 text/?))
-
-                           _
-                           false))))
-            //scope.with
-            (//module.with 0 module/0)
-            (phase:each (|>> pair.right pair.right))
-            (phase.value state)
-            (try.else false))]
-    (and can_analyse_unary!
-         can_analyse_nullary!
-         can_analyse_multiary!)))
+                                           _
+                                           false))))
+               //scope.with
+               (//module.with 0 module/0)
+               (phase:each (|>> pair.right pair.right))
+               (phase.value state)
+               (try.else false))]
+          (and can_analyse_unary!
+               can_analyse_nullary!
+               can_analyse_multiary!)))
 
 (the (can_analyse_tuple! lux module/0 [bit/0 natural/0 integer/0 revolution/0 real/0 text/0])
-  (-> Lux Text [.Bit .Natural .Integer .Revolution .Real .Text] Bit)
-  (let [state [extension.:bundle (extension/analysis.bundle ..eval)
-               extension.:state lux]]
-    (|> (monad.let phase.monad
-          [[:it: it] (|> (code.tuple (stack (` [])
-                                            (code.bit bit/0)
-                                            (code.natural natural/0)
-                                            (code.integer integer/0)
-                                            (code.revolution revolution/0)
-                                            (code.real real/0)
-                                            (code.text text/0)))
-                         (/.phase ..expander archive.empty)
-                         //type.inferring)]
-          (pure (and (type.= (type [.Any .Bit .Natural .Integer .Revolution .Real .Text])
-                             :it:)
-                     (when it
-                       (//.tuple (stack (//.unit)
-                                        (//.bit bit/?)
-                                        (//.natural natural/?)
-                                        (//.integer integer/?)
-                                        (//.revolution revolution/?)
-                                        (//.real real/?)
-                                        (//.text text/?)))
-                       (and (identical? bit/0 bit/?)
-                            (identical? natural/0 natural/?)
-                            (identical? integer/0 integer/?)
-                            (identical? revolution/0 revolution/?)
-                            (identical? real/0 real/?)
-                            (identical? text/0 text/?))
+     (-> Lux Text [.Bit .Natural .Integer .Revolution .Real .Text] Bit)
+     (let [state [extension.:bundle (extension/analysis.bundle ..eval)
+                  extension.:state lux]]
+          (|> (monad.let phase.monad
+                         [[:it: it] (|> (code.tuple (stack (` [])
+                                                           (code.bit bit/0)
+                                                           (code.natural natural/0)
+                                                           (code.integer integer/0)
+                                                           (code.revolution revolution/0)
+                                                           (code.real real/0)
+                                                           (code.text text/0)))
+                                        (/.phase ..expander archive.empty)
+                                        //type.inferring)]
+                         (pure (and (type.= (type [.Any .Bit .Natural .Integer .Revolution .Real .Text])
+                                            :it:)
+                                    (when it
+                                          (//.tuple (stack (//.unit)
+                                                           (//.bit bit/?)
+                                                           (//.natural natural/?)
+                                                           (//.integer integer/?)
+                                                           (//.revolution revolution/?)
+                                                           (//.real real/?)
+                                                           (//.text text/?)))
+                                          (and (identical? bit/0 bit/?)
+                                               (identical? natural/0 natural/?)
+                                               (identical? integer/0 integer/?)
+                                               (identical? revolution/0 revolution/?)
+                                               (identical? real/0 real/?)
+                                               (identical? text/0 text/?))
 
-                       _
-                       false))))
-        //scope.with
-        (//module.with 0 module/0)
-        (phase:each (|>> pair.right pair.right))
-        (phase.value state)
-        (try.else false))))
+                                          _
+                                          false))))
+              //scope.with
+              (//module.with 0 module/0)
+              (phase:each (|>> pair.right pair.right))
+              (phase.value state)
+              (try.else false))))
 
 (the (can_analyse_record! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0])
-  (-> Lux Text [.Text .Text .Text .Text .Text .Text .Text] [.Bit .Natural .Integer .Revolution .Real .Text] Bit)
-  (let [state [extension.:bundle (extension/analysis.bundle ..eval)
-               extension.:state lux]
-        :record: {.:Named [module/0 @text]
-                          (type [.Any .Bit .Natural .Integer .Revolution .Real .Text])}
-        slots/* (stack @any @bit @natural @integer @revolution @real @text)]
-    (|> (monad.let phase.monad
-          [_ (//module.declare_labels true slots/* false :record:)
-           [:it: it] (|> (code.tuple (stack (code.local @text) (code.text text/0)
-                                            (code.local @bit) (code.bit bit/0)
-                                            (code.local @revolution) (code.revolution revolution/0)
-                                            (code.local @integer) (code.integer integer/0)
-                                            (code.local @natural) (code.natural natural/0)
-                                            (code.local @real) (code.real real/0)
-                                            (code.local @any) (` [])))
-                         (/.phase ..expander archive.empty)
-                         //type.inferring)]
-          (pure (and (type.= :record:
-                             :it:)
-                     (when it
-                       (//.tuple (stack (//.unit)
-                                        (//.bit bit/?)
-                                        (//.natural natural/?)
-                                        (//.integer integer/?)
-                                        (//.revolution revolution/?)
-                                        (//.real real/?)
-                                        (//.text text/?)))
-                       (and (identical? bit/0 bit/?)
-                            (identical? natural/0 natural/?)
-                            (identical? integer/0 integer/?)
-                            (identical? revolution/0 revolution/?)
-                            (identical? real/0 real/?)
-                            (identical? text/0 text/?))
+     (-> Lux Text [.Text .Text .Text .Text .Text .Text .Text] [.Bit .Natural .Integer .Revolution .Real .Text] Bit)
+     (let [state [extension.:bundle (extension/analysis.bundle ..eval)
+                  extension.:state lux]
+           :record: {.:Named [module/0 @text]
+                             (type [.Any .Bit .Natural .Integer .Revolution .Real .Text])}
+           slots/* (stack @any @bit @natural @integer @revolution @real @text)]
+          (|> (monad.let phase.monad
+                         [_ (//module.declare_labels true slots/* false :record:)
+                          [:it: it] (|> (code.tuple (stack (code.local @text) (code.text text/0)
+                                                           (code.local @bit) (code.bit bit/0)
+                                                           (code.local @revolution) (code.revolution revolution/0)
+                                                           (code.local @integer) (code.integer integer/0)
+                                                           (code.local @natural) (code.natural natural/0)
+                                                           (code.local @real) (code.real real/0)
+                                                           (code.local @any) (` [])))
+                                        (/.phase ..expander archive.empty)
+                                        //type.inferring)]
+                         (pure (and (type.= :record:
+                                            :it:)
+                                    (when it
+                                          (//.tuple (stack (//.unit)
+                                                           (//.bit bit/?)
+                                                           (//.natural natural/?)
+                                                           (//.integer integer/?)
+                                                           (//.revolution revolution/?)
+                                                           (//.real real/?)
+                                                           (//.text text/?)))
+                                          (and (identical? bit/0 bit/?)
+                                               (identical? natural/0 natural/?)
+                                               (identical? integer/0 integer/?)
+                                               (identical? revolution/0 revolution/?)
+                                               (identical? real/0 real/?)
+                                               (identical? text/0 text/?))
 
-                       _
-                       false))))
-        //scope.with
-        (//module.with 0 module/0)
-        (phase:each (|>> pair.right pair.right))
-        (phase.value state)
-        (try.else false))))
+                                          _
+                                          false))))
+              //scope.with
+              (//module.with 0 module/0)
+              (phase:each (|>> pair.right pair.right))
+              (phase.value state)
+              (try.else false))))
 
 (the (can_analyse_function! lux module/0 natural/0 [$abstraction/0 $parameter/0 $abstraction/1 $parameter/1])
-  (-> Lux Text Natural [Code Code Code Code] Bit)
-  (let [state [extension.:bundle (extension/analysis.bundle ..eval)
-               extension.:state lux]
+     (-> Lux Text Natural [Code Code Code Code] Bit)
+     (let [state [extension.:bundle (extension/analysis.bundle ..eval)
+                  extension.:state lux]
 
-        can_make_abstraction!
-        (|> (monad.let phase.monad
-              [[:it: it] (|> (` ([(, $abstraction/0) (, $parameter/0)] (, (code.natural natural/0))))
-                             (/.phase ..expander archive.empty)
-                             //type.inferring)]
-              (pure (and (type.= (for_any (_ a) (-> a .Natural))
-                                 :it:)
-                         (when it
-                           {//.:Function (stack) (//.natural natural/?)}
-                           (identical? natural/0 natural/?)
+           can_make_abstraction!
+           (|> (monad.let phase.monad
+                          [[:it: it] (|> (` ([(, $abstraction/0) (, $parameter/0)] (, (code.natural natural/0))))
+                                         (/.phase ..expander archive.empty)
+                                         //type.inferring)]
+                          (pure (and (type.= (for_any (_ a) (-> a .Natural))
+                                             :it:)
+                                     (when it
+                                           {//.:Function (stack) (//.natural natural/?)}
+                                           (identical? natural/0 natural/?)
 
-                           _
-                           false))))
-            //scope.with
-            (//module.with 0 module/0)
-            (phase:each (|>> pair.right pair.right))
-            (phase.value state)
-            (try.else false))
+                                           _
+                                           false))))
+               //scope.with
+               (//module.with 0 module/0)
+               (phase:each (|>> pair.right pair.right))
+               (phase.value state)
+               (try.else false))
 
-        can_nest_abstraction!
-        (|> (monad.let phase.monad
-              [[:it: it] (|> (` ([(, $abstraction/0) (, $parameter/0)]
-                                 ([(, $abstraction/1) (, $parameter/1)]
-                                  (, (code.natural natural/0)))))
-                             (/.phase ..expander archive.empty)
-                             //type.inferring)]
-              (pure (and (type.= (for_any (_ a) (-> a (for_any (_ b) (-> b .Natural))))
-                                 :it:)
-                         (when it
-                           {//.:Function (stack) {//.:Function (stack) (//.natural natural/?)}}
-                           (identical? natural/0 natural/?)
+           can_nest_abstraction!
+           (|> (monad.let phase.monad
+                          [[:it: it] (|> (` ([(, $abstraction/0) (, $parameter/0)]
+                                             ([(, $abstraction/1) (, $parameter/1)]
+                                              (, (code.natural natural/0)))))
+                                         (/.phase ..expander archive.empty)
+                                         //type.inferring)]
+                          (pure (and (type.= (for_any (_ a) (-> a (for_any (_ b) (-> b .Natural))))
+                                             :it:)
+                                     (when it
+                                           {//.:Function (stack) {//.:Function (stack) (//.natural natural/?)}}
+                                           (identical? natural/0 natural/?)
 
-                           _
-                           false))))
-            //scope.with
-            (//module.with 0 module/0)
-            (phase:each (|>> pair.right pair.right))
-            (phase.value state)
-            (try.else false))
+                                           _
+                                           false))))
+               //scope.with
+               (//module.with 0 module/0)
+               (phase:each (|>> pair.right pair.right))
+               (phase.value state)
+               (try.else false))
 
-        can_refer_to_parameter!
-        (|> (monad.let phase.monad
-              [[:it: it] (|> (` ([(, $abstraction/0) (, $parameter/0)]
-                                 ([(, $abstraction/1) (, $parameter/1)]
-                                  (, $parameter/1))))
-                             (/.phase ..expander archive.empty)
-                             //type.inferring)]
-              (pure (and (type.= (for_any (_ a) (-> a (for_any (_ b) (-> b b))))
-                                 :it:)
-                         (when it
-                           {//.:Function (stack) {//.:Function (stack) (//.local 1)}}
-                           true
+           can_refer_to_parameter!
+           (|> (monad.let phase.monad
+                          [[:it: it] (|> (` ([(, $abstraction/0) (, $parameter/0)]
+                                             ([(, $abstraction/1) (, $parameter/1)]
+                                              (, $parameter/1))))
+                                         (/.phase ..expander archive.empty)
+                                         //type.inferring)]
+                          (pure (and (type.= (for_any (_ a) (-> a (for_any (_ b) (-> b b))))
+                                             :it:)
+                                     (when it
+                                           {//.:Function (stack) {//.:Function (stack) (//.local 1)}}
+                                           true
 
-                           _
-                           false))))
-            //scope.with
-            (//module.with 0 module/0)
-            (phase:each (|>> pair.right pair.right))
-            (phase.value state)
-            (try.else false))
+                                           _
+                                           false))))
+               //scope.with
+               (//module.with 0 module/0)
+               (phase:each (|>> pair.right pair.right))
+               (phase.value state)
+               (try.else false))
 
-        can_refer_to_closure!
-        (|> (monad.let phase.monad
-              [[:it: it] (|> (` ([(, $abstraction/0) (, $parameter/0)]
-                                 ([(, $abstraction/1) (, $parameter/1)]
-                                  (, $parameter/0))))
-                             (/.phase ..expander archive.empty)
-                             //type.inferring)]
-              (pure (and (when it
-                           {//.:Function (stack) {//.:Function (stack (//.local 1)) (//.foreign 0)}}
-                           true
+           can_refer_to_closure!
+           (|> (monad.let phase.monad
+                          [[:it: it] (|> (` ([(, $abstraction/0) (, $parameter/0)]
+                                             ([(, $abstraction/1) (, $parameter/1)]
+                                              (, $parameter/0))))
+                                         (/.phase ..expander archive.empty)
+                                         //type.inferring)]
+                          (pure (comment "TODO: Un-comment"
+                                         (type.= (for_any (_ a) (-> a (for_any (_ b) (-> b a))))
+                                                 :it:)
+                                         
+                                         (and (when it
+                                                    {//.:Function (stack) {//.:Function (stack (//.local 1)) (//.foreign 0)}}
+                                                    true
 
-                           _
-                           false)
-                         ... TODO: Un-comment
-                         ... (type.= (for_any (_ a) (-> a (for_any (_ b) (-> b a))))
-                         ...         :it:)
-                         )))
-            //scope.with
-            (//module.with 0 module/0)
-            (phase:each (|>> pair.right pair.right))
-            (phase.value state)
-            (try.else false))]
-    (and can_make_abstraction!
-         can_nest_abstraction!
-         can_refer_to_parameter!
-         can_refer_to_closure!
-         ... TODO: Un-comment
-         ... (|> (monad.let phase.monad
-         ...       [[:it: it] (|> (` ([(, $abstraction/0) (, $parameter/0)]
-         ...                          ([(, $abstraction/1) (, $parameter/1)]
-         ...                           (, $abstraction/1))))
-         ...                      (/.phase ..expander archive.empty)
-         ...                      //type.inferring)]
-         ...       (pure (when it
-         ...             {//.:Function (stack) {//.:Function (stack) (//.local 0)}}
-         ...             true
+                                                    _
+                                                    false)))))
+               //scope.with
+               (//module.with 0 module/0)
+               (phase:each (|>> pair.right pair.right))
+               (phase.value state)
+               (try.else false))]
+          (and can_make_abstraction!
+               can_nest_abstraction!
+               can_refer_to_parameter!
+               can_refer_to_closure!
+               (comment "TODO: Un-comment"
+                        (|> (monad.let phase.monad
+                                       [[:it: it] (|> (` ([(, $abstraction/0) (, $parameter/0)]
+                                                          ([(, $abstraction/1) (, $parameter/1)]
+                                                           (, $abstraction/1))))
+                                                      (/.phase ..expander archive.empty)
+                                                      //type.inferring)]
+                                       (pure (when it
+                                                   {//.:Function (stack) {//.:Function (stack) (//.local 0)}}
+                                                   true
 
-         ...             _
-         ...             false)))
-         ...     //scope.with
-         ...     (//module.with 0 module/0)
-         ...     (phase:each (|>> pair.right pair.right))
-         ...     (phase.value state)
-         ...     (try.else false))
-         ... TODO: Un-comment
-         ... (|> (monad.let phase.monad
-         ...       [[:it: it] (|> (` ([(, $abstraction/0) (, $parameter/0)]
-         ...                          ([(, $abstraction/1) (, $parameter/1)]
-         ...                           (, $abstraction/0))))
-         ...                      (/.phase ..expander archive.empty)
-         ...                      //type.inferring)]
-         ...       (pure (when it
-         ...             {//.:Function (stack) {//.:Function (stack (//.local 0)) (//.foreign 0)}}
-         ...             true
+                                                   _
+                                                   false)))
+                            //scope.with
+                            (//module.with 0 module/0)
+                            (phase:each (|>> pair.right pair.right))
+                            (phase.value state)
+                            (try.else false)))
+               (comment "TODO: Un-comment"
+                        (|> (monad.let phase.monad
+                                       [[:it: it] (|> (` ([(, $abstraction/0) (, $parameter/0)]
+                                                          ([(, $abstraction/1) (, $parameter/1)]
+                                                           (, $abstraction/0))))
+                                                      (/.phase ..expander archive.empty)
+                                                      //type.inferring)]
+                                       (pure (when it
+                                                   {//.:Function (stack) {//.:Function (stack (//.local 0)) (//.foreign 0)}}
+                                                   true
 
-         ...             _
-         ...             false)))
-         ...     //scope.with
-         ...     (//module.with 0 module/0)
-         ...     (phase:each (|>> pair.right pair.right))
-         ...     (phase.value state)
-         ...     (try.else false))
-         )))
+                                                   _
+                                                   false)))
+                            //scope.with
+                            (//module.with 0 module/0)
+                            (phase:each (|>> pair.right pair.right))
+                            (phase.value state)
+                            (try.else false)))
+               )))
 
 (the (can_analyse_reification! lux module/0 bit/0 natural/0 [$abstraction/0 $parameter/0 $abstraction/1 $parameter/1])
-  (-> Lux Text Bit Natural [Code Code Code Code] Bit)
-  (let [state [extension.:bundle (extension/analysis.bundle ..eval)
-               extension.:state lux]
+     (-> Lux Text Bit Natural [Code Code Code Code] Bit)
+     (let [state [extension.:bundle (extension/analysis.bundle ..eval)
+                  extension.:state lux]
 
-        constant!
-        (|> (monad.let phase.monad
-              [[:it: it] (|> (` (([(, $abstraction/0) (, $parameter/0)] (, (code.bit bit/0)))
-                                 (, (code.natural natural/0))))
-                             (/.phase ..expander archive.empty)
-                             //type.inferring)]
-              (pure (and (type.= .Bit :it:)
-                         (when it
-                           {//.:Reification (//.natural natural/?)
-                                            {//.:Function (stack) (//.bit bit/?)}}
-                           (and (identical? bit/0 bit/?)
-                                (identical? natural/0 natural/?))
+           constant!
+           (|> (monad.let phase.monad
+                          [[:it: it] (|> (` (([(, $abstraction/0) (, $parameter/0)] (, (code.bit bit/0)))
+                                             (, (code.natural natural/0))))
+                                         (/.phase ..expander archive.empty)
+                                         //type.inferring)]
+                          (pure (and (type.= .Bit :it:)
+                                     (when it
+                                           {//.:Reification (//.natural natural/?)
+                                                            {//.:Function (stack) (//.bit bit/?)}}
+                                           (and (identical? bit/0 bit/?)
+                                                (identical? natural/0 natural/?))
 
-                           _
-                           false))))
-            //scope.with
-            (//module.with 0 module/0)
-            (phase:each (|>> pair.right pair.right))
-            (phase.value state)
-            (try.else false))
+                                           _
+                                           false))))
+               //scope.with
+               (//module.with 0 module/0)
+               (phase:each (|>> pair.right pair.right))
+               (phase.value state)
+               (try.else false))
 
-        variable!
-        (|> (monad.let phase.monad
-              [[:it: it] (|> (` (([(, $abstraction/0) (, $parameter/0)] (, $parameter/0))
-                                 (, (code.natural natural/0))))
-                             (/.phase ..expander archive.empty)
-                             //type.inferring)]
-              (pure (and (type.= .Natural :it:)
-                         (when it
-                           {//.:Reification (//.natural natural/?)
-                                            {//.:Function (stack) (//.local 1)}}
-                           (identical? natural/0 natural/?)
+           variable!
+           (|> (monad.let phase.monad
+                          [[:it: it] (|> (` (([(, $abstraction/0) (, $parameter/0)] (, $parameter/0))
+                                             (, (code.natural natural/0))))
+                                         (/.phase ..expander archive.empty)
+                                         //type.inferring)]
+                          (pure (and (type.= .Natural :it:)
+                                     (when it
+                                           {//.:Reification (//.natural natural/?)
+                                                            {//.:Function (stack) (//.local 1)}}
+                                           (identical? natural/0 natural/?)
 
-                           _
-                           false))))
-            //scope.with
-            (//module.with 0 module/0)
-            (phase:each (|>> pair.right pair.right))
-            (phase.value state)
-            (try.else false))
+                                           _
+                                           false))))
+               //scope.with
+               (//module.with 0 module/0)
+               (phase:each (|>> pair.right pair.right))
+               (phase.value state)
+               (try.else false))
 
-        partial!
-        (|> (monad.let phase.monad
-              [[:it: it] (|> (` (([(, $abstraction/0) (, $parameter/0)]
-                                  ([(, $abstraction/1) (, $parameter/1)]
-                                   (, (code.bit bit/0))))
-                                 (, (code.natural natural/0))))
-                             (/.phase ..expander archive.empty)
-                             //type.inferring)]
-              (pure (and (check.< (for_any (_ a) (-> a Bit)) :it:)
-                         (when it
-                           {//.:Reification (//.natural natural/?)
-                                            {//.:Function (stack)
-                                                          {//.:Function (stack) (//.bit bit/?)}}}
-                           (and (identical? bit/0 bit/?)
-                                (identical? natural/0 natural/?))
+           partial!
+           (|> (monad.let phase.monad
+                          [[:it: it] (|> (` (([(, $abstraction/0) (, $parameter/0)]
+                                              ([(, $abstraction/1) (, $parameter/1)]
+                                               (, (code.bit bit/0))))
+                                             (, (code.natural natural/0))))
+                                         (/.phase ..expander archive.empty)
+                                         //type.inferring)]
+                          (pure (and (check.< (for_any (_ a) (-> a Bit)) :it:)
+                                     (when it
+                                           {//.:Reification (//.natural natural/?)
+                                                            {//.:Function (stack)
+                                                                          {//.:Function (stack) (//.bit bit/?)}}}
+                                           (and (identical? bit/0 bit/?)
+                                                (identical? natural/0 natural/?))
 
-                           _
-                           false))))
-            //scope.with
-            (//module.with 0 module/0)
-            (phase:each (|>> pair.right pair.right))
-            (phase.value state)
-            (try.else false))]
-    (and constant!
-         variable!
-         partial!)))
+                                           _
+                                           false))))
+               //scope.with
+               (//module.with 0 module/0)
+               (phase:each (|>> pair.right pair.right))
+               (phase.value state)
+               (try.else false))]
+          (and constant!
+               variable!
+               partial!)))
 
 (the (can_analyse_extension! lux module/0 text/0)
-  (-> Lux Text Text Bit)
-  (let [state [extension.:bundle (extension/analysis.bundle ..eval)
-               extension.:state lux]]
-    (|> (monad.let phase.monad
-          [[:it: it] (|> (` (.text_composite# (, (code.text text/0)) (, (code.text text/0))))
-                         (/.phase ..expander archive.empty)
-                         //type.inferring)]
-          (pure (and (type.= .Text :it:)
-                     (when it
-                       {//.:Extension (name .text_composite#) (stack (//.text left) (//.text right))}
-                       (and (identical? text/0 left)
-                            (identical? text/0 right))
+     (-> Lux Text Text Bit)
+     (let [state [extension.:bundle (extension/analysis.bundle ..eval)
+                  extension.:state lux]]
+          (|> (monad.let phase.monad
+                         [[:it: it] (|> (` (.text_composite# (, (code.text text/0)) (, (code.text text/0))))
+                                        (/.phase ..expander archive.empty)
+                                        //type.inferring)]
+                         (pure (and (type.= .Text :it:)
+                                    (when it
+                                          {//.:Extension (name .text_composite#) (stack (//.text left) (//.text right))}
+                                          (and (identical? text/0 left)
+                                               (identical? text/0 right))
 
-                       _
-                       false))))
-        //scope.with
-        (//module.with 0 module/0)
-        (phase:each (|>> pair.right pair.right))
-        (phase.value state)
-        (try.else false))))
+                                          _
+                                          false))))
+              //scope.with
+              (//module.with 0 module/0)
+              (phase:each (|>> pair.right pair.right))
+              (phase.value state)
+              (try.else false))))
 
 (the (can_analyse_pattern_matching! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0] $parameter/0)
-  (-> Lux Text [.Text .Text .Text .Text .Text .Text .Text] [.Bit .Natural .Integer .Revolution .Real .Text] Code Bit)
-  (let [state [extension.:bundle (extension/analysis.bundle ..eval)
-               extension.:state lux]
-        
-        :variant: {.:Named [module/0 module/0]
-                           (type (Or .Any .Bit .Natural .Integer .Revolution .Real .Text))}
-        tags/* (stack @any @bit @natural @integer @revolution @real @text)
+     (-> Lux Text [.Text .Text .Text .Text .Text .Text .Text] [.Bit .Natural .Integer .Revolution .Real .Text] Code Bit)
+     (let [state [extension.:bundle (extension/analysis.bundle ..eval)
+                  extension.:state lux]
+           
+           :variant: {.:Named [module/0 module/0]
+                              (type (Or .Any .Bit .Natural .Integer .Revolution .Real .Text))}
+           tags/* (stack @any @bit @natural @integer @revolution @real @text)
 
-        :record: {.:Named [module/0 module/0]
-                          (type (And .Any .Bit .Natural .Integer .Revolution .Real .Text))}
-        slots/* (stack @any @bit @natural @integer @revolution @real @text)
+           :record: {.:Named [module/0 module/0]
+                             (type (And .Any .Bit .Natural .Integer .Revolution .Real .Text))}
+           slots/* (stack @any @bit @natural @integer @revolution @real @text)
 
-        simple!
-        (`` (and (,, (template.with [<input> <code> <analysis> <pattern>]
-                       [(|> (monad.let phase.monad
-                              [[:it: it] (|> (` ({(, $parameter/0) (, (code.real real/0))} (, (<code> <input>))))
-                                             (/.phase ..expander archive.empty)
-                                             //type.inferring)]
-                              (pure (and (type.= .Real :it:)
-                                         (when it
-                                           {//.:When (<analysis> input/?)
-                                                     [[//.:when (//pattern.bind 0)
-                                                       //.:then (//.real real/?)]
-                                                      (stack)]}
-                                           (and (identical? <input> input/?)
-                                                (identical? real/0 real/?))
+           simple!
+           (`` (and (,, (template.with [<input> <code> <analysis> <pattern>]
+                                       [(|> (monad.let phase.monad
+                                                       [[:it: it] (|> (` ({(, $parameter/0) (, (code.real real/0))} (, (<code> <input>))))
+                                                                      (/.phase ..expander archive.empty)
+                                                                      //type.inferring)]
+                                                       (pure (and (type.= .Real :it:)
+                                                                  (when it
+                                                                        {//.:When (<analysis> input/?)
+                                                                                  [[//.:when (//pattern.bind 0)
+                                                                                    //.:then (//.real real/?)]
+                                                                                   (stack)]}
+                                                                        (and (identical? <input> input/?)
+                                                                             (identical? real/0 real/?))
+
+                                                                        _
+                                                                        false))))
+                                            //scope.with
+                                            (//module.with 0 module/0)
+                                            (phase:each (|>> pair.right pair.right))
+                                            (phase.value state)
+                                            (try.else false))
+                                        (|> (monad.let phase.monad
+                                                       [[:it: it] (|> (` ({(, (<code> <input>))
+                                                                           (, (code.real real/0))
+
+                                                                           (, $parameter/0)
+                                                                           (, (code.real real/0))}
+                                                                          (, (<code> <input>))))
+                                                                      (/.phase ..expander archive.empty)
+                                                                      //type.inferring)]
+                                                       (pure (and (type.= .Real :it:)
+                                                                  (when it
+                                                                        {//.:When (<analysis> input/?)
+                                                                                  [[//.:when (<pattern> pattern/?)
+                                                                                    //.:then (//.real real/?)]
+                                                                                   (stack [//.:when (//pattern.bind 0)
+                                                                                           //.:then (//.real real/?)])]}
+                                                                        (and (identical? <input> input/?)
+                                                                             (identical? <input> pattern/?)
+                                                                             (identical? real/0 real/?))
+
+                                                                        _
+                                                                        false))))
+                                            //scope.with
+                                            (//module.with 0 module/0)
+                                            (phase:each (|>> pair.right pair.right))
+                                            (phase.value state)
+                                            (try.else false))]
+
+                                       [[bit/0 code.bit //.bit //pattern.bit]
+                                        [natural/0 code.natural //.natural //pattern.natural]
+                                        [integer/0 code.integer //.integer //pattern.integer]
+                                        [revolution/0 code.revolution //.revolution //pattern.revolution]
+                                        [real/0 code.real //.real //pattern.real]
+                                        [text/0 code.text //.text //pattern.text]]))))
+
+           bit!
+           (|> (monad.let phase.monad
+                          [[:it: it] (|> (` ({0b
+                                              (, (code.real real/0))
+
+                                              1b
+                                              (, (code.real real/0))}
+                                             (, (code.bit bit/0))))
+                                         (/.phase ..expander archive.empty)
+                                         //type.inferring)]
+                          (pure (and (type.= .Real :it:)
+                                     (when it
+                                           {//.:When (//.bit bit/?)
+                                                     [[//.:when (//pattern.bit .false)
+                                                       //.:then (//.real false/?)]
+                                                      (stack [//.:when (//pattern.bit .true)
+                                                              //.:then (//.real true/?)])]}
+                                           (and (identical? bit/0 bit/?)
+                                                (identical? real/0 false/?)
+                                                (identical? real/0 true/?))
 
                                            _
                                            false))))
-                            //scope.with
-                            (//module.with 0 module/0)
-                            (phase:each (|>> pair.right pair.right))
-                            (phase.value state)
-                            (try.else false))
-                        (|> (monad.let phase.monad
-                              [[:it: it] (|> (` ({(, (<code> <input>))
-                                                  (, (code.real real/0))
+               //scope.with
+               (//module.with 0 module/0)
+               (phase:each (|>> pair.right pair.right))
+               (phase.value state)
+               (try.else false))
 
-                                                  (, $parameter/0)
-                                                  (, (code.real real/0))}
-                                                 (, (<code> <input>))))
-                                             (/.phase ..expander archive.empty)
-                                             //type.inferring)]
-                              (pure (and (type.= .Real :it:)
-                                         (when it
-                                           {//.:When (<analysis> input/?)
-                                                     [[//.:when (<pattern> pattern/?)
-                                                       //.:then (//.real real/?)]
-                                                      (stack [//.:when (//pattern.bind 0)
-                                                              //.:then (//.real real/?)])]}
-                                           (and (identical? <input> input/?)
-                                                (identical? <input> pattern/?)
-                                                (identical? real/0 real/?))
+           variant!
+           (`` (and (,, (template.with [<lefts> <right?> <expected> <tag> <code> <analysis> <pattern>]
+                                       [(|> (monad.let phase.monad
+                                                       [_ (//module.declare_labels false tags/* false :variant:)
+                                                        [:it: it] (|> (` ({{(, (code.local <tag>)) (, (<code> <expected>))}
+                                                                           (, (code.real real/0))
+
+                                                                           (, $parameter/0)
+                                                                           (, (code.real real/0))}
+                                                                          {(, (code.local <tag>)) (, (<code> <expected>))}))
+                                                                      (/.phase ..expander archive.empty)
+                                                                      //type.inferring)]
+                                                       (pure (and (type.= .Real :it:)
+                                                                  (when it
+                                                                        {//.:When (//.variant [<lefts> <right?> (<analysis> analysis/?)])
+                                                                                  [[//.:when (//pattern.variant [<lefts> <right?> (<pattern> pattern/?)])
+                                                                                    //.:then (//.real match/?)]
+                                                                                   (stack [//.:when (//pattern.bind 0)
+                                                                                           //.:then (//.real mismatch/?)])]}
+                                                                        (and (identical? <expected> analysis/?)
+                                                                             (identical? <expected> pattern/?)
+                                                                             (identical? real/0 match/?)
+                                                                             (identical? real/0 mismatch/?))
+
+                                                                        _
+                                                                        false))))
+                                            //scope.with
+                                            (//module.with 0 module/0)
+                                            (phase:each (|>> pair.right pair.right))
+                                            (phase.value state)
+                                            (try.else false))]
+
+                                       [[1 0b bit/0 @bit code.bit //.bit //pattern.bit]
+                                        [2 0b natural/0 @natural code.natural //.natural //pattern.natural]
+                                        [3 0b integer/0 @integer code.integer //.integer //pattern.integer]
+                                        [4 0b revolution/0 @revolution code.revolution //.revolution //pattern.revolution]
+                                        [5 0b real/0 @real code.real //.real //pattern.real]
+                                        [5 1b text/0 @text code.text //.text //pattern.text]]))))
+
+           tuple!
+           (|> (monad.let phase.monad
+                          [[:it: it] (|> (` ({[0b (, $parameter/0)]
+                                              (, (code.real real/0))
+
+                                              [1b (, $parameter/0)]
+                                              (, (code.real real/0))}
+                                             [(, (code.bit bit/0))
+                                              (, (code.natural natural/0))]))
+                                         (/.phase ..expander archive.empty)
+                                         //type.inferring)]
+                          (pure (and (type.= .Real :it:)
+                                     (when it
+                                           {//.:When (//.tuple (stack (//.bit bit/?) (//.natural natural/?)))
+                                                     [[//.:when (//pattern.tuple (stack (//pattern.bit .false) (//pattern.bind 0)))
+                                                       //.:then (//.real false/?)]
+                                                      (stack [//.:when (//pattern.tuple (stack (//pattern.bit .true) (//pattern.bind 0)))
+                                                              //.:then (//.real true/?)])]}
+                                           (and (identical? bit/0 bit/?)
+                                                (identical? natural/0 natural/?)
+                                                (identical? real/0 false/?)
+                                                (identical? real/0 true/?))
 
                                            _
                                            false))))
-                            //scope.with
-                            (//module.with 0 module/0)
-                            (phase:each (|>> pair.right pair.right))
-                            (phase.value state)
-                            (try.else false))]
+               //scope.with
+               (//module.with 0 module/0)
+               (phase:each (|>> pair.right pair.right))
+               (phase.value state)
+               (try.else false))
 
-                       [[bit/0 code.bit //.bit //pattern.bit]
-                        [natural/0 code.natural //.natural //pattern.natural]
-                        [integer/0 code.integer //.integer //pattern.integer]
-                        [revolution/0 code.revolution //.revolution //pattern.revolution]
-                        [real/0 code.real //.real //pattern.real]
-                        [text/0 code.text //.text //pattern.text]]))))
+           record!
+           (|> (monad.let phase.monad
+                          [_ (//module.declare_labels true slots/* false :record:)
+                           [:it: it] (|> (` ({[(, (code.name [module/0 @any])) []
+                                               (, (code.name [module/0 @bit])) (, (code.bit bit/0))
+                                               (, (code.name [module/0 @natural])) (, (code.natural natural/0))
+                                               (, (code.name [module/0 @integer])) (, (code.integer integer/0))
+                                               (, (code.name [module/0 @revolution])) (, (code.revolution revolution/0))
+                                               (, (code.name [module/0 @real])) (, (code.real real/0))
+                                               (, (code.name [module/0 @text])) (, (code.text text/0))]
+                                              (, (code.real real/0))
 
-        bit!
-        (|> (monad.let phase.monad
-              [[:it: it] (|> (` ({0b
-                                  (, (code.real real/0))
-
-                                  1b
-                                  (, (code.real real/0))}
-                                 (, (code.bit bit/0))))
-                             (/.phase ..expander archive.empty)
-                             //type.inferring)]
-              (pure (and (type.= .Real :it:)
-                         (when it
-                           {//.:When (//.bit bit/?)
-                                     [[//.:when (//pattern.bit .false)
-                                       //.:then (//.real false/?)]
-                                      (stack [//.:when (//pattern.bit .true)
-                                              //.:then (//.real true/?)])]}
-                           (and (identical? bit/0 bit/?)
-                                (identical? real/0 false/?)
-                                (identical? real/0 true/?))
-
-                           _
-                           false))))
-            //scope.with
-            (//module.with 0 module/0)
-            (phase:each (|>> pair.right pair.right))
-            (phase.value state)
-            (try.else false))
-
-        variant!
-        (`` (and (,, (template.with [<lefts> <right?> <expected> <tag> <code> <analysis> <pattern>]
-                       [(|> (monad.let phase.monad
-                              [_ (//module.declare_labels false tags/* false :variant:)
-                               [:it: it] (|> (` ({{(, (code.local <tag>)) (, (<code> <expected>))}
-                                                  (, (code.real real/0))
-
-                                                  (, $parameter/0)
-                                                  (, (code.real real/0))}
-                                                 {(, (code.local <tag>)) (, (<code> <expected>))}))
-                                             (/.phase ..expander archive.empty)
-                                             //type.inferring)]
-                              (pure (and (type.= .Real :it:)
-                                         (when it
-                                           {//.:When (//.variant [<lefts> <right?> (<analysis> analysis/?)])
-                                                     [[//.:when (//pattern.variant [<lefts> <right?> (<pattern> pattern/?)])
+                                              (, $parameter/0)
+                                              (, (code.real real/0))}
+                                             [(, (code.local @any)) []
+                                              (, (code.local @bit)) (, (code.bit bit/0))
+                                              (, (code.local @natural)) (, (code.natural natural/0))
+                                              (, (code.local @integer)) (, (code.integer integer/0))
+                                              (, (code.local @revolution)) (, (code.revolution revolution/0))
+                                              (, (code.local @real)) (, (code.real real/0))
+                                              (, (code.local @text)) (, (code.text text/0))]))
+                                         (/.phase ..expander archive.empty)
+                                         //type.inferring)]
+                          (pure (and (type.= .Real :it:)
+                                     (when it
+                                           {//.:When (//.tuple (stack (//.unit)
+                                                                      (//.bit bit/?)
+                                                                      (//.natural natural/?)
+                                                                      (//.integer integer/?)
+                                                                      (//.revolution revolution/?)
+                                                                      (//.real real/?)
+                                                                      (//.text text/?)))
+                                                     [[//.:when (//pattern.tuple (stack (//pattern.unit)
+                                                                                        (//pattern.bit bit/?')
+                                                                                        (//pattern.natural natural/?')
+                                                                                        (//pattern.integer integer/?')
+                                                                                        (//pattern.revolution revolution/?')
+                                                                                        (//pattern.real real/?')
+                                                                                        (//pattern.text text/?')))
                                                        //.:then (//.real match/?)]
                                                       (stack [//.:when (//pattern.bind 0)
                                                               //.:then (//.real mismatch/?)])]}
-                                           (and (identical? <expected> analysis/?)
-                                                (identical? <expected> pattern/?)
+                                           (and (identical? bit/0 bit/?) (identical? bit/0 bit/?')
+                                                (identical? natural/0 natural/?) (identical? natural/0 natural/?')
+                                                (identical? integer/0 integer/?) (identical? integer/0 integer/?')
+                                                (identical? revolution/0 revolution/?) (identical? revolution/0 revolution/?')
+                                                (identical? real/0 real/?) (identical? real/0 real/?')
+                                                (identical? text/0 text/?) (identical? text/0 text/?')
                                                 (identical? real/0 match/?)
                                                 (identical? real/0 mismatch/?))
 
                                            _
                                            false))))
-                            //scope.with
-                            (//module.with 0 module/0)
-                            (phase:each (|>> pair.right pair.right))
-                            (phase.value state)
-                            (try.else false))]
-
-                       [[1 0b bit/0 @bit code.bit //.bit //pattern.bit]
-                        [2 0b natural/0 @natural code.natural //.natural //pattern.natural]
-                        [3 0b integer/0 @integer code.integer //.integer //pattern.integer]
-                        [4 0b revolution/0 @revolution code.revolution //.revolution //pattern.revolution]
-                        [5 0b real/0 @real code.real //.real //pattern.real]
-                        [5 1b text/0 @text code.text //.text //pattern.text]]))))
-
-        tuple!
-        (|> (monad.let phase.monad
-              [[:it: it] (|> (` ({[0b (, $parameter/0)]
-                                  (, (code.real real/0))
-
-                                  [1b (, $parameter/0)]
-                                  (, (code.real real/0))}
-                                 [(, (code.bit bit/0))
-                                  (, (code.natural natural/0))]))
-                             (/.phase ..expander archive.empty)
-                             //type.inferring)]
-              (pure (and (type.= .Real :it:)
-                         (when it
-                           {//.:When (//.tuple (stack (//.bit bit/?) (//.natural natural/?)))
-                                     [[//.:when (//pattern.tuple (stack (//pattern.bit .false) (//pattern.bind 0)))
-                                       //.:then (//.real false/?)]
-                                      (stack [//.:when (//pattern.tuple (stack (//pattern.bit .true) (//pattern.bind 0)))
-                                              //.:then (//.real true/?)])]}
-                           (and (identical? bit/0 bit/?)
-                                (identical? natural/0 natural/?)
-                                (identical? real/0 false/?)
-                                (identical? real/0 true/?))
-
-                           _
-                           false))))
-            //scope.with
-            (//module.with 0 module/0)
-            (phase:each (|>> pair.right pair.right))
-            (phase.value state)
-            (try.else false))
-
-        record!
-        (|> (monad.let phase.monad
-              [_ (//module.declare_labels true slots/* false :record:)
-               [:it: it] (|> (` ({[(, (code.name [module/0 @any])) []
-                                   (, (code.name [module/0 @bit])) (, (code.bit bit/0))
-                                   (, (code.name [module/0 @natural])) (, (code.natural natural/0))
-                                   (, (code.name [module/0 @integer])) (, (code.integer integer/0))
-                                   (, (code.name [module/0 @revolution])) (, (code.revolution revolution/0))
-                                   (, (code.name [module/0 @real])) (, (code.real real/0))
-                                   (, (code.name [module/0 @text])) (, (code.text text/0))]
-                                  (, (code.real real/0))
-
-                                  (, $parameter/0)
-                                  (, (code.real real/0))}
-                                 [(, (code.local @any)) []
-                                  (, (code.local @bit)) (, (code.bit bit/0))
-                                  (, (code.local @natural)) (, (code.natural natural/0))
-                                  (, (code.local @integer)) (, (code.integer integer/0))
-                                  (, (code.local @revolution)) (, (code.revolution revolution/0))
-                                  (, (code.local @real)) (, (code.real real/0))
-                                  (, (code.local @text)) (, (code.text text/0))]))
-                             (/.phase ..expander archive.empty)
-                             //type.inferring)]
-              (pure (and (type.= .Real :it:)
-                         (when it
-                           {//.:When (//.tuple (stack (//.unit)
-                                                      (//.bit bit/?)
-                                                      (//.natural natural/?)
-                                                      (//.integer integer/?)
-                                                      (//.revolution revolution/?)
-                                                      (//.real real/?)
-                                                      (//.text text/?)))
-                                     [[//.:when (//pattern.tuple (stack (//pattern.unit)
-                                                                        (//pattern.bit bit/?')
-                                                                        (//pattern.natural natural/?')
-                                                                        (//pattern.integer integer/?')
-                                                                        (//pattern.revolution revolution/?')
-                                                                        (//pattern.real real/?')
-                                                                        (//pattern.text text/?')))
-                                       //.:then (//.real match/?)]
-                                      (stack [//.:when (//pattern.bind 0)
-                                              //.:then (//.real mismatch/?)])]}
-                           (and (identical? bit/0 bit/?) (identical? bit/0 bit/?')
-                                (identical? natural/0 natural/?) (identical? natural/0 natural/?')
-                                (identical? integer/0 integer/?) (identical? integer/0 integer/?')
-                                (identical? revolution/0 revolution/?) (identical? revolution/0 revolution/?')
-                                (identical? real/0 real/?) (identical? real/0 real/?')
-                                (identical? text/0 text/?) (identical? text/0 text/?')
-                                (identical? real/0 match/?)
-                                (identical? real/0 mismatch/?))
-
-                           _
-                           false))))
-            //scope.with
-            (//module.with 0 module/0)
-            (phase:each (|>> pair.right pair.right))
-            (phase.value state)
-            (try.else false))]
-    (and simple!
-         bit!
-         variant!
-         tuple!
-         record!)))
+               //scope.with
+               (//module.with 0 module/0)
+               (phase:each (|>> pair.right pair.right))
+               (phase.value state)
+               (try.else false))]
+          (and simple!
+               bit!
+               variant!
+               tuple!
+               record!)))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (monad.let [! random.monad]
-        [lux $//type.random_state
-         .let [state [extension.:bundle (extension/analysis.bundle ..eval)
-                      extension.:state lux]]
+     Test
+     (<| (_.covering /._)
+         (monad.let [! random.monad]
+                    [lux $//type.random_state
+                     .let [state [extension.:bundle (extension/analysis.bundle ..eval)
+                                  extension.:state lux]]
 
-         .let [[module/0 _] (name ._)]
-         
-         bit/0 random.bit
-         natural/0 random.natural
-         integer/0 random.integer
-         revolution/0 random.revolution
-         real/0 random.real
-         text/0 (random.lower_cased 1)
+                     .let [[module/0 _] (name ._)]
+                     
+                     bit/0 random.bit
+                     natural/0 random.natural
+                     integer/0 random.integer
+                     revolution/0 random.revolution
+                     real/0 random.real
+                     text/0 (random.lower_cased 1)
 
-         @any (random.lower_cased 2)
-         @bit (random.lower_cased 3)
-         @natural (random.lower_cased 4)
-         @integer (random.lower_cased 5)
-         @revolution (random.lower_cased 6)
-         @real (random.lower_cased 7)
-         @text (random.lower_cased 8)
+                     @any (random.lower_cased 2)
+                     @bit (random.lower_cased 3)
+                     @natural (random.lower_cased 4)
+                     @integer (random.lower_cased 5)
+                     @revolution (random.lower_cased 6)
+                     @real (random.lower_cased 7)
+                     @text (random.lower_cased 8)
 
-         @left (random.lower_cased 9)
-         @right (random.lower_cased 10)
+                     @left (random.lower_cased 9)
+                     @right (random.lower_cased 10)
 
-         $abstraction/0 (by ! each code.local (random.lower_cased 11))
-         $parameter/0 (by ! each code.local (random.lower_cased 12))
-         $abstraction/1 (by ! each code.local (random.lower_cased 13))
-         $parameter/1 (by ! each code.local (random.lower_cased 14))])
-      (all _.and
-           (_.coverage [/.phase]
-             (and (..can_analyse_unit! lux module/0)
-                  (..can_analyse_simple_literal_or_singleton_tuple! lux module/0 [bit/0 natural/0 integer/0 revolution/0 real/0 text/0])
-                  (..can_analyse_sum! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0] [@left @right])
-                  (..can_analyse_variant! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0] [@left @right])
-                  (..can_analyse_tuple! lux module/0 [bit/0 natural/0 integer/0 revolution/0 real/0 text/0])
-                  (..can_analyse_record! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0])
-                  (..can_analyse_function! lux module/0 natural/0 [$abstraction/0 $parameter/0 $abstraction/1 $parameter/1])
-                  (..can_analyse_reification! lux module/0 bit/0 natural/0 [$abstraction/0 $parameter/0 $abstraction/1 $parameter/1])
-                  (..can_analyse_extension! lux module/0 text/0)
-                  (..can_analyse_pattern_matching! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0] $parameter/0)
-                  ))
-           (_.coverage [/.invalid]
-             (`` (and (,, (template.with [<syntax>]
-                            [(|> (monad.let phase.monad
-                                   [_ (|> <syntax>
-                                          (/.phase ..expander archive.empty)
-                                          (//type.with .Any))]
-                                   (pure false))
-                                 //scope.with
-                                 (//module.with 0 module/0)
-                                 (phase:each (|>> pair.right pair.right))
-                                 (phase.value state)
-                                 (exception.else (text.contains? (its exception.:label /.invalid))))]
+                     $abstraction/0 (by ! each code.local (random.lower_cased 11))
+                     $parameter/0 (by ! each code.local (random.lower_cased 12))
+                     $abstraction/1 (by ! each code.local (random.lower_cased 13))
+                     $parameter/1 (by ! each code.local (random.lower_cased 14))])
+         (all _.and
+              (_.coverage [/.phase]
+                          (and (..can_analyse_unit! lux module/0)
+                               (..can_analyse_simple_literal_or_singleton_tuple! lux module/0 [bit/0 natural/0 integer/0 revolution/0 real/0 text/0])
+                               (..can_analyse_sum! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0] [@left @right])
+                               (..can_analyse_variant! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0] [@left @right])
+                               (..can_analyse_tuple! lux module/0 [bit/0 natural/0 integer/0 revolution/0 real/0 text/0])
+                               (..can_analyse_record! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0])
+                               (..can_analyse_function! lux module/0 natural/0 [$abstraction/0 $parameter/0 $abstraction/1 $parameter/1])
+                               (..can_analyse_reification! lux module/0 bit/0 natural/0 [$abstraction/0 $parameter/0 $abstraction/1 $parameter/1])
+                               (..can_analyse_extension! lux module/0 text/0)
+                               (..can_analyse_pattern_matching! lux module/0 [@any @bit @natural @integer @revolution @real @text] [bit/0 natural/0 integer/0 revolution/0 real/0 text/0] $parameter/0)
+                               ))
+              (_.coverage [/.invalid]
+                          (`` (and (,, (template.with [<syntax>]
+                                                      [(|> (monad.let phase.monad
+                                                                      [_ (|> <syntax>
+                                                                             (/.phase ..expander archive.empty)
+                                                                             (//type.with .Any))]
+                                                                      (pure false))
+                                                           //scope.with
+                                                           (//module.with 0 module/0)
+                                                           (phase:each (|>> pair.right pair.right))
+                                                           (phase.value state)
+                                                           (exception.else (text.contains? (its exception.:label /.invalid))))]
 
-                            [[(` ({0b} (, (code.bit bit/0))))]
-                             [(` ({0b [] 1b} (, (code.bit bit/0))))]
-                             [(` {(, (code.bit bit/0)) (, (code.natural natural/0)) (, (code.integer integer/0)) (, (code.revolution revolution/0)) (, (code.real real/0)) (, (code.text text/0))})]
-                             [(` {(, (code.natural natural/0)) (, (code.integer integer/0)) (, (code.revolution revolution/0)) (, (code.real real/0)) (, (code.text text/0)) (, (code.bit bit/0))})]
-                             [(` {(, (code.integer integer/0)) (, (code.revolution revolution/0)) (, (code.real real/0)) (, (code.text text/0)) (, (code.bit bit/0)) (, (code.natural natural/0))})]
-                             [(` {(, (code.revolution revolution/0)) (, (code.real real/0)) (, (code.text text/0)) (, (code.bit bit/0)) (, (code.natural natural/0)) (, (code.integer integer/0))})]
-                             [(` {(, (code.real real/0)) (, (code.text text/0)) (, (code.bit bit/0)) (, (code.natural natural/0)) (, (code.integer integer/0)) (, (code.revolution revolution/0))})]
-                             [(` {(, (code.text text/0)) (, (code.bit bit/0)) (, (code.natural natural/0)) (, (code.integer integer/0)) (, (code.revolution revolution/0)) (, (code.real real/0))})]]))
-                      )))
-           
-           /simple.test
-           /complex.test
-           /reference.test
-           /function.test
-           /when.test
-           )))
+                                                      [[(` ({0b} (, (code.bit bit/0))))]
+                                                       [(` ({0b [] 1b} (, (code.bit bit/0))))]
+                                                       [(` {(, (code.bit bit/0)) (, (code.natural natural/0)) (, (code.integer integer/0)) (, (code.revolution revolution/0)) (, (code.real real/0)) (, (code.text text/0))})]
+                                                       [(` {(, (code.natural natural/0)) (, (code.integer integer/0)) (, (code.revolution revolution/0)) (, (code.real real/0)) (, (code.text text/0)) (, (code.bit bit/0))})]
+                                                       [(` {(, (code.integer integer/0)) (, (code.revolution revolution/0)) (, (code.real real/0)) (, (code.text text/0)) (, (code.bit bit/0)) (, (code.natural natural/0))})]
+                                                       [(` {(, (code.revolution revolution/0)) (, (code.real real/0)) (, (code.text text/0)) (, (code.bit bit/0)) (, (code.natural natural/0)) (, (code.integer integer/0))})]
+                                                       [(` {(, (code.real real/0)) (, (code.text text/0)) (, (code.bit bit/0)) (, (code.natural natural/0)) (, (code.integer integer/0)) (, (code.revolution revolution/0))})]
+                                                       [(` {(, (code.text text/0)) (, (code.bit bit/0)) (, (code.natural natural/0)) (, (code.integer integer/0)) (, (code.revolution revolution/0)) (, (code.real real/0))})]]))
+                                   )))
+              
+              /simple.test
+              /complex.test
+              /reference.test
+              /function.test
+              /when.test
+              )))

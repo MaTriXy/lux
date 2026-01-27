@@ -11,6 +11,7 @@
     ["[0]" maybe (.open functor)]
     [collection
      ["[0]" dictionary]
+     ["[0]" stack]
      ["[0]" list (.open monad monoid)
       ["?[1]" \\projection]]]]
    [function
@@ -45,282 +46,282 @@
      ["[1]/[0]" lux]]]]])
 
 (every Handler
-  (-> extension.Name
-      synthesis.Handler))
+       (-> extension.Name
+           synthesis.Handler))
 
 (the .public (with name anonymous)
-  (-> extension.Name Handler
-      (Change Bundle))
-  (dictionary.has (extension.analysis name) (anonymous name)))
+     (-> extension.Name Handler
+         (Change Bundle))
+     (dictionary.has (extension.analysis name) (anonymous name)))
 
 (the .public (custom [syntax handler]
                      extension_name)
-  (for_any (_ it)
-    (-> [(?analysis.Projection it)
-         (-> extension.Name Phase Archive it (Operation synthesis.Term))]
-        Handler))
-  (function (_ synthesis archive args)
-    (when (?list.value args syntax)
-      {try.:Success inputs}
-      (handler extension_name synthesis archive inputs)
+     (for_any (_ it)
+              (-> [(?analysis.Projection it)
+                   (-> extension.Name Phase Archive it (Operation synthesis.Term))]
+                  Handler))
+     (function (_ synthesis archive args)
+               (when (?list.value args syntax)
+                     {try.:Success inputs}
+                     (handler extension_name synthesis archive inputs)
 
-      {try.:Failure error}
-      (phase.failure error))))
+                     {try.:Failure error}
+                     (phase.failure error))))
 
 (the (as_exec'' as_exec' it)
-  (-> (-> (path.Path synthesis.Term)
-          (Maybe (path.Path synthesis.Term)))
-      (for_any (_ value)
-        (-> (path.Road value (path.Path synthesis.Term))
-            (Maybe (path.Road value (path.Path synthesis.Term))))))
-  (maybe:each (|>> [path.:when (its path.:when it)
-                    path.:then])
-              (as_exec' (its path.:then it))))
+     (-> (-> (path.Path synthesis.Term)
+             (Maybe (path.Path synthesis.Term)))
+         (for_any (_ value)
+                  (-> (path.Road value (path.Path synthesis.Term))
+                      (Maybe (path.Road value (path.Path synthesis.Term))))))
+     (maybe:each (|>> [path.:when (its path.:when it)
+                       path.:then])
+                 (as_exec' (its path.:then it))))
 
 (the (as_exec' expectation as_exec)
-  (-> @type.Register
-      (-> (-> synthesis.Term
-              (Maybe synthesis.Term))
-          (-> (path.Path synthesis.Term)
-              (Maybe (path.Path synthesis.Term)))))
-  (function (as_exec' it)
-    (`` (when it
-          (^.or {path.:Pop}
-                {path.:Access _}
-                {path.:List _})
-          {.:Some it}
-          
-          {path.:Bind reality}
-          {.:Some {path.:Bind (-- reality)}}
-          
-          {path.:Bit_Fork when then {.:None}}
-          (monad.let maybe.monad
-            [then (as_exec' then)]
-            (pure {path.:Bit_Fork when then {.:None}}))
+     (-> @type.Register
+         (-> (-> synthesis.Term
+                 (Maybe synthesis.Term))
+             (-> (path.Path synthesis.Term)
+                 (Maybe (path.Path synthesis.Term)))))
+     (function (as_exec' it)
+               (`` (when it
+                         (^.or {path.:Pop}
+                               {path.:Access _}
+                               {path.:List _})
+                         {.:Some it}
+                         
+                         {path.:Bind reality}
+                         {.:Some {path.:Bind (-- reality)}}
+                         
+                         {path.:Bit_Fork when then {.:None}}
+                         (monad.let maybe.monad
+                                    [then (as_exec' then)]
+                                    (pure {path.:Bit_Fork when then {.:None}}))
 
-          {path.:Bit_Fork when then {.:Some else}}
-          (monad.let maybe.monad
-            [then (as_exec' then)
-             else (as_exec' else)]
-            (pure {path.:Bit_Fork when then {.:Some else}}))
-          
-          (,, (template.with [,tag]
-                             [{,tag [head tail]}
-                              (monad.let [! maybe.monad]
-                                [head (as_exec'' as_exec' head)
-                                 tail (list.each' ! (as_exec'' as_exec') tail)]
-                                (pure {,tag [head tail]}))]
+                         {path.:Bit_Fork when then {.:Some else}}
+                         (monad.let maybe.monad
+                                    [then (as_exec' then)
+                                     else (as_exec' else)]
+                                    (pure {path.:Bit_Fork when then {.:Some else}}))
+                         
+                         (,, (template.with [,tag]
+                                            [{,tag [head tail]}
+                                             (monad.let [! maybe.monad]
+                                                        [head (as_exec'' as_exec' head)
+                                                         tail (list.each' ! (as_exec'' as_exec') tail)]
+                                                        (pure {,tag [head tail]}))]
 
-                             [[path.:I64_Fork]
-                              [path.:F64_Fork]
-                              [path.:Text_Fork]]))
+                                            [[path.:I64_Fork]
+                                             [path.:F64_Fork]
+                                             [path.:Text_Fork]]))
 
-          (,, (template.with [,tag]
-                             [{,tag this that}
-                              (monad.let maybe.monad
-                                [this (as_exec' this)
-                                 that (as_exec' that)]
-                                (pure {,tag this that}))]
+                         (,, (template.with [,tag]
+                                            [{,tag this that}
+                                             (monad.let maybe.monad
+                                                        [this (as_exec' this)
+                                                         that (as_exec' that)]
+                                                        (pure {,tag this that}))]
 
-                             [[path.:Or]
-                              [path.:And]]))
+                                            [[path.:Or]
+                                             [path.:And]]))
 
-          {path.:Then it'}
-          (maybe:each (|>> {path.:Then}) (as_exec it'))))))
+                         {path.:Then it'}
+                         (maybe:each (|>> {path.:Then}) (as_exec it'))))))
 
 (the (as_exec expectation)
-  (-> @type.Register
-      (-> synthesis.Term
-          (Maybe synthesis.Term)))
-  (function (as_exec it)
-    (when it
-      {synthesis.:Simple @ _}
-      {.:Some it}
-      
-      {synthesis.:Reference @ it'}
-      (when it'
-        {@type.:Variable_Reference {@type.:Local reality}}
-        (.if (n.= expectation reality)
-             {.:None}
+     (-> @type.Register
+         (-> synthesis.Term
+             (Maybe synthesis.Term)))
+     (function (as_exec it)
+               (when it
+                     {synthesis.:Simple @ _}
+                     {.:Some it}
+                     
+                     {synthesis.:Reference @ it'}
+                     (when it'
+                           {@type.:Variable_Reference {@type.:Local reality}}
+                           (.if (n.= expectation reality)
+                                {.:None}
 
-             (n.> expectation reality)
-             {.:Some {synthesis.:Reference @ {@type.:Variable_Reference {@type.:Local (-- reality)}}}}
+                                (n.> expectation reality)
+                                {.:Some {synthesis.:Reference @ {@type.:Variable_Reference {@type.:Local (-- reality)}}}}
 
-             (comment (n.< expectation reality)
-                      {.:Some it}))
-        
-        else
-        {.:Some it})
-      
-      {synthesis.:Control @ it'}
-      (when it'
-        {synthesis.:When [input path]}
-        (monad.let maybe.monad
-          [input (as_exec input)
-           path (as_exec' expectation as_exec path)]
-          (pure {synthesis.:Control @ {synthesis.:When [input path]}}))
-        
-        {synthesis.:Loop it'}
-        (when it'
-          {synthesis.:Tail_Recursion [start inits iteration]}
-          (monad.let [! maybe.monad]
-            [inits (list.each' ! as_exec inits)
-             iteration (as_exec iteration)]
-            (pure {synthesis.:Control @ {synthesis.:Loop {synthesis.:Tail_Recursion [(-- start) inits iteration]}}}))
+                                (comment (n.< expectation reality)
+                                         {.:Some it}))
+                           
+                           else
+                           {.:Some it})
+                     
+                     {synthesis.:Control @ it'}
+                     (when it'
+                           {synthesis.:When [input path]}
+                           (monad.let maybe.monad
+                                      [input (as_exec input)
+                                       path (as_exec' expectation as_exec path)]
+                                      (pure {synthesis.:Control @ {synthesis.:When [input path]}}))
+                           
+                           {synthesis.:Loop it'}
+                           (when it'
+                                 {synthesis.:Tail_Recursion [start inits iteration]}
+                                 (monad.let [! maybe.monad]
+                                            [inits (list.each' ! as_exec inits)
+                                             iteration (as_exec iteration)]
+                                            (pure {synthesis.:Control @ {synthesis.:Loop {synthesis.:Tail_Recursion [(-- start) inits iteration]}}}))
 
-          {synthesis.:Tail_Iteration it'}
-          (monad.let [! maybe.monad]
-            [it' (list.each' ! as_exec it')]
-            (pure {synthesis.:Control @ {synthesis.:Loop {synthesis.:Tail_Iteration it'}}})))
-        
-        {synthesis.:Function it'}
-        (when it'
-          {synthesis.:Abstraction [environment arity body]}
-          (monad.let [! maybe.monad]
-            [environment (list.each' ! as_exec environment)]
-            (pure {synthesis.:Control @ {synthesis.:Function {synthesis.:Abstraction [environment arity body]}}}))
+                                 {synthesis.:Tail_Iteration it'}
+                                 (monad.let [! maybe.monad]
+                                            [it' (list.each' ! as_exec it')]
+                                            (pure {synthesis.:Control @ {synthesis.:Loop {synthesis.:Tail_Iteration it'}}})))
+                           
+                           {synthesis.:Function it'}
+                           (when it'
+                                 {synthesis.:Abstraction [environment arity body]}
+                                 (monad.let [! maybe.monad]
+                                            [environment (list.each' ! as_exec environment)]
+                                            (pure {synthesis.:Control @ {synthesis.:Function {synthesis.:Abstraction [environment arity body]}}}))
 
-          {synthesis.:Reification [function every_argument]}
-          (monad.let [! maybe.monad]
-            [function (as_exec function)
-             every_argument (list.each' ! as_exec every_argument)]
-            (pure {synthesis.:Control @ {synthesis.:Function {synthesis.:Reification [function every_argument]}}}))))
-      
-      {synthesis.:Extension @ name every_argument}
-      (monad.let [! maybe.monad]
-        [every_argument (list.each' ! as_exec every_argument)]
-        (pure {synthesis.:Extension @ name every_argument})))))
+                                 {synthesis.:Reification [function every_argument]}
+                                 (monad.let [! maybe.monad]
+                                            [function (as_exec function)
+                                             every_argument (list.each' ! as_exec every_argument)]
+                                            (pure {synthesis.:Control @ {synthesis.:Function {synthesis.:Reification [function every_argument]}}}))))
+                     
+                     {synthesis.:Extension @ name every_argument}
+                     (monad.let [! maybe.monad]
+                                [every_argument (list.each' ! as_exec every_argument)]
+                                (pure {synthesis.:Extension @ name every_argument})))))
 
 (the (pure?' pure?
              it)
-  (-> (Predicate synthesis.Term)
-      (Predicate (path.Path synthesis.Term)))
-  (`` (when it
-        (^.or {path.:Pop}
-              {path.:Access _}
-              {path.:List _}
-              {path.:Bind _})
-        true
-        
-        {path.:Bit_Fork when then else}
-        (and (pure?' pure? then)
-             (maybe.else true (maybe:each (pure?' pure?) else)))
-        
-        (,, (template.with [,tag]
-                           [{,tag [head tail]}
-                            (and (pure?' pure? (its path.:then head))
-                                 (list.every? (|>> (its path.:then) (pure?' pure?)) tail))]
+     (-> (Predicate synthesis.Term)
+         (Predicate (path.Path synthesis.Term)))
+     (`` (when it
+               (^.or {path.:Pop}
+                     {path.:Access _}
+                     {path.:List _}
+                     {path.:Bind _})
+               true
+               
+               {path.:Bit_Fork when then else}
+               (and (pure?' pure? then)
+                    (maybe.else true (maybe:each (pure?' pure?) else)))
+               
+               (,, (template.with [,tag]
+                                  [{,tag [head tail]}
+                                   (and (pure?' pure? (its path.:then head))
+                                        (list.every? (|>> (its path.:then) (pure?' pure?)) tail))]
 
-                           [[path.:I64_Fork]
-                            [path.:F64_Fork]
-                            [path.:Text_Fork]]))
+                                  [[path.:I64_Fork]
+                                   [path.:F64_Fork]
+                                   [path.:Text_Fork]]))
 
-        (,, (template.with [,tag]
-                           [{,tag this that}
-                            (and (pure?' pure? this)
-                                 (pure?' pure? that))]
+               (,, (template.with [,tag]
+                                  [{,tag this that}
+                                   (and (pure?' pure? this)
+                                        (pure?' pure? that))]
 
-                           [[path.:Or]
-                            [path.:And]]))
+                                  [[path.:Or]
+                                   [path.:And]]))
 
-        {path.:Then it}
-        (pure? it))))
+               {path.:Then it}
+               (pure? it))))
 
 (the (pure? it)
-  (Predicate synthesis.Term)
-  (`` (when it
-        (^.or {synthesis.:Simple @ _}
-              {synthesis.:Reference @ _}
-              {synthesis.:Control @ {synthesis.:Function {synthesis.:Abstraction _}}})
-        true
+     (Predicate synthesis.Term)
+     (`` (when it
+               (^.or {synthesis.:Simple @ _}
+                     {synthesis.:Reference @ _}
+                     {synthesis.:Control @ {synthesis.:Function {synthesis.:Abstraction _}}})
+               true
 
-        {synthesis.:Control @ {synthesis.:When [input path]}}
-        (and (pure? input)
-             (pure?' pure? path))
+               {synthesis.:Control @ {synthesis.:When [input path]}}
+               (and (pure? input)
+                    (pure?' pure? path))
 
-        {synthesis.:Control @ {synthesis.:Loop {synthesis.:Tail_Recursion [start inits iteration]}}}
-        (and (list.every? pure? inits)
-             (pure? iteration))
+               {synthesis.:Control @ {synthesis.:Loop {synthesis.:Tail_Recursion [start inits iteration]}}}
+               (and (list.every? pure? inits)
+                    (pure? iteration))
 
-        (,, (template.with [,extension]
-                           [{synthesis.:Extension @ [.prelude (static.text (extension.synthesis ,extension))]
-                                                  it}
-                            (list.every? pure? it)]
+               (,, (template.with [,extension]
+                                  [{synthesis.:Extension @ [.prelude (static.text (extension.synthesis ,extension))]
+                                                         it}
+                                   (list.every? pure? it)]
 
-                           [[extension/lux.text_composite]
-                            [extension/lux.pair]
-                            [extension/lux.list]
+                                  [[extension/lux.text_composite]
+                                   [extension/lux.pair]
+                                   [extension/lux.list]
 
-                            [extension/lux.i64_+]
-                            [extension/lux.list_composite]]))
+                                   [extension/lux.i64_+]
+                                   [extension/lux.list_composite]]))
 
-        (,, (template.with [,extension]
-                           [{synthesis.:Extension @ [.prelude (static.text (extension.synthesis ,extension))]
-                                                  (list lefts right? it)}
-                            (pure? it)]
+               (,, (template.with [,extension]
+                                  [{synthesis.:Extension @ [.prelude (static.text (extension.synthesis ,extension))]
+                                                         (list lefts right? it)}
+                                   (pure? it)]
 
-                           [[extension/lux.case]]))
+                                  [[extension/lux.case]]))
 
-        else
-        false)))
+               else
+               false)))
 
 (the (road path it)
-  (-> (Change (path.Path synthesis.Term))
-      (for_any (_ value)
-        (Change (path.Road value (path.Path synthesis.Term)))))
-  [path.:when (its path.:when it)
-   path.:then (path (its path.:then it))])
+     (-> (Change (path.Path synthesis.Term))
+         (for_any (_ value)
+                  (Change (path.Road value (path.Path synthesis.Term)))))
+     [path.:when (its path.:when it)
+      path.:then (path (its path.:then it))])
 
 (template.with [,name ,special]
                [(the (,name expectation term)
-                  (-> @type.Register
-                      (-> (Change synthesis.Term)
-                          (Change (path.Path synthesis.Term))))
-                  (function (path it)
-                    (`` (when it
-                          {path.:Bit_Fork when then else}
-                          {path.:Bit_Fork when (path then) (maybe:each path else)}
-                          
-                          (,, (template.with [,tag]
-                                             [{,tag [head tail]}
-                                              {,tag [(..road path head)
-                                                     (list:each (..road path) tail)]}]
+                     (-> @type.Register
+                         (-> (Change synthesis.Term)
+                             (Change (path.Path synthesis.Term))))
+                     (function (path it)
+                               (`` (when it
+                                         {path.:Bit_Fork when then else}
+                                         {path.:Bit_Fork when (path then) (maybe:each path else)}
+                                         
+                                         (,, (template.with [,tag]
+                                                            [{,tag [head tail]}
+                                                             {,tag [(..road path head)
+                                                                    (list:each (..road path) tail)]}]
 
-                                             [[path.:I64_Fork]
-                                              [path.:F64_Fork]
-                                              [path.:Text_Fork]]))
+                                                            [[path.:I64_Fork]
+                                                             [path.:F64_Fork]
+                                                             [path.:Text_Fork]]))
 
-                          (,, (template.with [,tag]
-                                             [{,tag this that}
-                                              {,tag (path this)
-                                                    (path that)}]
+                                         (,, (template.with [,tag]
+                                                            [{,tag this that}
+                                                             {,tag (path this)
+                                                                   (path that)}]
 
-                                             [[path.:Or]
-                                              [path.:And]]))
+                                                            [[path.:Or]
+                                                             [path.:And]]))
 
-                          {path.:Then it'}
-                          {path.:Then (term it')}
+                                         {path.:Then it'}
+                                         {path.:Then (term it')}
 
-                          (,, (template.spliced ,special))
-                          
-                          else
-                          it))))]
+                                         (,, (template.spliced ,special))
+                                         
+                                         else
+                                         it))))]
 
                [[no_alias' [{path.:Bind reality}
                             {path.:Bind (-- reality)}]]
                 [no_duplication' []]])
 
 (the (duplication environment alias variable)
-  (-> (@type.Environment synthesis.Term) synthesis.Term synthesis.Term
-      (Maybe [@type.Register @type.Register]))
-  (.if (and (list.any? (synthesis.= alias) environment)
-            (list.any? (synthesis.= variable) environment))
-       (.let [environment (list.enumeration environment)]
-         (monad.let maybe.monad
-           [[the_alias _] (list.example (|>> pair.right (synthesis.= alias)) environment)
-            [the_variable _] (list.example (|>> pair.right (synthesis.= variable)) environment)]
-           (pure [the_alias the_variable])))
-       {.:None}))
+     (-> (@type.Environment synthesis.Term) synthesis.Term synthesis.Term
+         (Maybe [@type.Register @type.Register]))
+     (.if (and (list.any? (synthesis.= alias) environment)
+               (list.any? (synthesis.= variable) environment))
+          (.let [environment (list.enumeration environment)]
+                (monad.let maybe.monad
+                           [[the_alias _] (list.example (|>> pair.right (synthesis.= alias)) environment)
+                            [the_variable _] (list.example (|>> pair.right (synthesis.= variable)) environment)]
+                           (pure [the_alias the_variable])))
+          {.:None}))
 
 (template.with [,name ,name'
                 ,expectation ,variable
@@ -328,63 +329,63 @@
                 ,type
                 ,substitution]
                [(the (,name expectation variable)
-                  (-> @type.Register ,type
-                      (Change synthesis.Term))
-                  (function (term it)
-                    (when it
-                      (,expectation @ reality)
-                      (.if (n.= expectation reality)
-                           ,substitution
+                     (-> @type.Register ,type
+                         (Change synthesis.Term))
+                     (function (term it)
+                               (when it
+                                     (,expectation @ reality)
+                                     (.if (n.= expectation reality)
+                                          ,substitution
 
-                           (n.> expectation reality)
-                           (,expectation @ (-- reality))
+                                          (n.> expectation reality)
+                                          (,expectation @ (-- reality))
 
-                           (comment (n.< expectation reality)
-                                    it))
-                      
-                      {synthesis.:Control @ it'}
-                      {synthesis.:Control @ (when it'
-                                              {synthesis.:When [input path]}
-                                              {synthesis.:When [(term input)
-                                                                (,name' expectation term path)]}
-                                              
-                                              {synthesis.:Loop it'}
-                                              {synthesis.:Loop (when it'
-                                                                 {synthesis.:Tail_Recursion [start inits iteration]}
-                                                                 {synthesis.:Tail_Recursion [(,start_of_loop start)
-                                                                                             (list:each term inits)
-                                                                                             (term iteration)]}
+                                          (comment (n.< expectation reality)
+                                                   it))
+                                     
+                                     {synthesis.:Control @ it'}
+                                     {synthesis.:Control @ (when it'
+                                                                 {synthesis.:When [input path]}
+                                                                 {synthesis.:When [(term input)
+                                                                                   (,name' expectation term path)]}
+                                                                 
+                                                                 {synthesis.:Loop it'}
+                                                                 {synthesis.:Loop (when it'
+                                                                                        {synthesis.:Tail_Recursion [start inits iteration]}
+                                                                                        {synthesis.:Tail_Recursion [(,start_of_loop start)
+                                                                                                                    (list:each term inits)
+                                                                                                                    (term iteration)]}
 
-                                                                 {synthesis.:Tail_Iteration it'}
-                                                                 {synthesis.:Tail_Iteration (list:each term it')})}
-                                              
-                                              {synthesis.:Function it'}
-                                              {synthesis.:Function (when it'
-                                                                     {synthesis.:Abstraction [environment arity body]}
-                                                                     (when (duplication environment
-                                                                                        (,expectation @ expectation)
-                                                                                        ,variable)
-                                                                       {.:Some [the_alias the_variable]}
-                                                                       {synthesis.:Abstraction [(|> (list:composite (list.first the_alias environment)
-                                                                                                                    (list.after (++ the_alias) environment))
-                                                                                                    (list:each term))
-                                                                                                arity
-                                                                                                (no_duplication the_alias the_variable body)]}
+                                                                                        {synthesis.:Tail_Iteration it'}
+                                                                                        {synthesis.:Tail_Iteration (list:each term it')})}
+                                                                 
+                                                                 {synthesis.:Function it'}
+                                                                 {synthesis.:Function (when it'
+                                                                                            {synthesis.:Abstraction [environment arity body]}
+                                                                                            (when (duplication environment
+                                                                                                               (,expectation @ expectation)
+                                                                                                               ,variable)
+                                                                                                  {.:Some [the_alias the_variable]}
+                                                                                                  {synthesis.:Abstraction [(|> (list:composite (list.first the_alias environment)
+                                                                                                                                               (list.after (++ the_alias) environment))
+                                                                                                                               (list:each term))
+                                                                                                                           arity
+                                                                                                                           (no_duplication the_alias the_variable body)]}
 
-                                                                       else
-                                                                       {synthesis.:Abstraction [(list:each term environment)
-                                                                                                arity
-                                                                                                body]})
+                                                                                                  else
+                                                                                                  {synthesis.:Abstraction [(list:each term environment)
+                                                                                                                           arity
+                                                                                                                           body]})
 
-                                                                     {synthesis.:Reification [function every_argument]}
-                                                                     {synthesis.:Reification [(term function)
-                                                                                              (list:each term every_argument)]})})}
-                      
-                      {synthesis.:Extension @ name every_argument}
-                      {synthesis.:Extension @ name (list:each term every_argument)}
+                                                                                            {synthesis.:Reification [function every_argument]}
+                                                                                            {synthesis.:Reification [(term function)
+                                                                                                                     (list:each term every_argument)]})})}
+                                     
+                                     {synthesis.:Extension @ name every_argument}
+                                     {synthesis.:Extension @ name (list:each term every_argument)}
 
-                      else
-                      it)))]
+                                     else
+                                     it)))]
 
                [[no_duplication no_duplication'
                  synthesis.foreign (synthesis.foreign @ variable)
@@ -400,40 +401,40 @@
                  variable]])
 
 (the let
-  Handler
-  (..custom
-   [(all ?.and ?list.any ?list.any)
-    (function (_ name synthesis archive [value body])
-      (monad.let phase.monad
-        [value (synthesis archive value)
-         body (synthesis.with_new_local
-               (synthesis archive body))
-         register synthesis.locals
-         .let [@ (synthesis.provenance value)]]
-        (pure (when (as_exec register body)
-                {.:Some body}
-                (.if (pure? value)
-                     body
-                     (comment (.log!# (text "[!] exec"
-                                            " " (synthesis.as_text value)))
-                              (synthesis.exec @
-                                value
-                                body)))
+     Handler
+     (..custom
+      [(all ?.and ?list.any ?list.any)
+       (function (_ name synthesis archive [value body])
+                 (monad.let phase.monad
+                            [value (synthesis archive value)
+                             body (synthesis.with_new_local
+                                   (synthesis archive body))
+                             register synthesis.locals
+                             .let [@ (synthesis.provenance value)]]
+                            (pure (when (as_exec register body)
+                                        {.:Some body}
+                                        (.if (pure? value)
+                                             body
+                                             (comment (.log!# (text "[!] exec"
+                                                                    " " (synthesis.as_text value)))
+                                                      (synthesis.exec @
+                                                                      value
+                                                                      body)))
 
-                else
-                (when value
-                  (^.or (synthesis.local _ _)
-                        (synthesis.foreign _ _))
-                  (no_alias register value body)
+                                        else
+                                        (when value
+                                              (^.or (synthesis.local _ _)
+                                                    (synthesis.foreign _ _))
+                                              (no_alias register value body)
 
-                  else
-                  (synthesis.let @ register value body))))))]))
+                                              else
+                                              (synthesis.let @ register value body))))))]))
 
 (template.with [,name ,extension ,type]
                [(template.the (,name ,@ ,reference ,it)
-                  [{synthesis.:Extension ,@ [.prelude (static.text (extension.synthesis ,extension))]
-                                         (list (,type @ ,reference)
-                                               ,it)}])]
+                              [{synthesis.:Extension ,@ [.prelude (static.text (extension.synthesis ,extension))]
+                                                     (list (,type @ ,reference)
+                                                           ,it)}])]
 
                [[i64_= extension/lux.i64_= synthesis.i64]
                 [f64_= extension/lux.f64_= synthesis.f64]
@@ -441,284 +442,400 @@
 
 (template.with [,name ,type ,tag]
                [(the (,name @ [input every_case else])
-                  (-> Provenance [synthesis.Term (List [,type synthesis.Term]) synthesis.Term]
-                      synthesis.Term)
-                  (<| {synthesis.:Control @}
-                      {synthesis.:When}
-                      [synthesis.:input input
-                       synthesis.:output]
-                      (when (list.split 1 every_case)
-                        [(list [head/when head/then])
-                         tail]
-                        {path.:Or {,tag [path.:when head/when
-                                         path.:then {path.:Then head/then}]
-                                        (list:each (function (_ [tail/when tail/then])
-                                                     [path.:when tail/when
-                                                      path.:then {path.:Then tail/then}])
-                                                   tail)}
-                                  {path.:Then else}}
+                     (-> Provenance [synthesis.Term (List [,type synthesis.Term]) synthesis.Term]
+                         synthesis.Term)
+                     (<| {synthesis.:Control @}
+                         {synthesis.:When}
+                         [synthesis.:input input
+                          synthesis.:output]
+                         (when (list.split 1 every_case)
+                               [(list [head/when head/then])
+                                tail]
+                               {path.:Or {,tag [path.:when head/when
+                                                path.:then {path.:Then head/then}]
+                                               (list:each (function (_ [tail/when tail/then])
+                                                                    [path.:when tail/when
+                                                                     path.:then {path.:Then tail/then}])
+                                                          tail)}
+                                         {path.:Then else}}
 
-                        _
-                        {path.:Then else})))]
+                               _
+                               {path.:Then else})))]
 
                [[switch_i64 I64 path.:I64_Fork]
                 [switch_f64 Real path.:F64_Fork]
                 [switch_text Text path.:Text_Fork]])
 
 (the if
-  Handler
-  (..custom
-   [(all ?.and ?list.any ?list.any ?list.any)
-    (function (_ name synthesis archive [this then else])
-      (monad.let phase.monad
-        [this (synthesis archive this)
-         then (synthesis archive then)
-         else (synthesis archive else)]
-        (pure (`` (when (is synthesis.Term this)
-                    (,, (template.with [,= ,synthesis ,switch]
-                                       [(,= @ reference this)
-                                        (,switch @ (when else
-                                                     {synthesis.:Control @ {synthesis.:When else'}}
-                                                     (when (,synthesis else')
-                                                       {.:Some [input every_case else']}
-                                                       (.if (synthesis.= this input)
-                                                            [input (list:composite (list [reference then]) every_case) else']
-                                                            [this (list [reference then]) else])
+     Handler
+     (..custom
+      [(all ?.and ?list.any ?list.any ?list.any)
+       (function (_ name synthesis archive [this then else])
+                 (monad.let phase.monad
+                            [this (synthesis archive this)
+                             then (synthesis archive then)
+                             else (synthesis archive else)]
+                            (pure (`` (when (is synthesis.Term this)
+                                            (,, (template.with [,= ,synthesis ,switch]
+                                                               [(,= @ reference this)
+                                                                (,switch @ (when else
+                                                                                 {synthesis.:Control @ {synthesis.:When else'}}
+                                                                                 (when (,synthesis else')
+                                                                                       {.:Some [input every_case else']}
+                                                                                       (.if (synthesis.= this input)
+                                                                                            [input (list:composite (list [reference then]) every_case) else']
+                                                                                            [this (list [reference then]) else])
 
-                                                       _
-                                                       [this (list [reference then]) else])
-                                                     
-                                                     _
-                                                     [this (list [reference then]) else]))]
+                                                                                       _
+                                                                                       [this (list [reference then]) else])
+                                                                                 
+                                                                                 _
+                                                                                 [this (list [reference then]) else]))]
 
-                                       [[i64_= synthesis.when_i64 switch_i64]
-                                        [f64_= synthesis.when_f64 switch_f64]
-                                        [text_= synthesis.when_text switch_text]]))
+                                                               [[i64_= synthesis.when_i64 switch_i64]
+                                                                [f64_= synthesis.when_f64 switch_f64]
+                                                                [text_= synthesis.when_text switch_text]]))
 
-                    _
-                    (<| {synthesis.:Control (synthesis.provenance this)}
-                        {synthesis.:When}
-                        [synthesis.:input this
-                         synthesis.:output {path.:Bit_Fork .true {path.:Then then} {.:Some {path.:Then else}}}]))))))]))
+                                            _
+                                            (<| {synthesis.:Control (synthesis.provenance this)}
+                                                {synthesis.:When}
+                                                [synthesis.:input this
+                                                 synthesis.:output {path.:Bit_Fork .true {path.:Then then} {.:Some {path.:Then else}}}]))))))]))
 
 (the case
-  Handler
-  (..custom
-   [(all ?.and ?analysis.bit ?list.any)
-    (function (_ name synthesis archive [right? choice])
-      (expansion.let [,extension (static.text (extension.synthesis extension/lux.case))
-                      ,by_default (.let [@ (synthesis.provenance choice)]
-                                    {synthesis.:Extension @ [.prelude ,extension] (list (synthesis.i64 @ (.i64 0))
-                                                                                        (synthesis.bit @ right?)
-                                                                                        choice)})]
-        (monad.let phase.monad
-          [choice (synthesis archive choice)]
-          (pure (.if right?
-                     (when choice
-                       {synthesis.:Extension @ [.prelude ,extension] (list (synthesis.i64 @ every_left)
-                                                                           (synthesis.bit @ right?)
-                                                                           choice)}
-                       {synthesis.:Extension @ [.prelude ,extension] (list (synthesis.i64 @ (++ every_left))
-                                                                           (synthesis.bit @ right?)
-                                                                           choice)}
+     Handler
+     (..custom
+      [(all ?.and ?analysis.bit ?list.any)
+       (function (_ name synthesis archive [right? choice])
+                 (expansion.let [,extension (static.text (extension.synthesis extension/lux.case))
+                                 ,by_default (.let [@ (synthesis.provenance choice)]
+                                                   {synthesis.:Extension @ [.prelude ,extension] (list (synthesis.i64 @ (.i64 0))
+                                                                                                       (synthesis.bit @ right?)
+                                                                                                       choice)})]
+                                (monad.let phase.monad
+                                           [choice (synthesis archive choice)]
+                                           (pure (.if right?
+                                                      (when choice
+                                                            {synthesis.:Extension @ [.prelude ,extension] (list (synthesis.i64 @ every_left)
+                                                                                                                (synthesis.bit @ right?)
+                                                                                                                choice)}
+                                                            {synthesis.:Extension @ [.prelude ,extension] (list (synthesis.i64 @ (++ every_left))
+                                                                                                                (synthesis.bit @ right?)
+                                                                                                                choice)}
 
-                       else
-                       ,by_default)
-                     ,by_default)))))]))
+                                                            else
+                                                            ,by_default)
+                                                      ,by_default)))))]))
+
+(every Case
+       [(Maybe @type.Register) synthesis.Term])
+
+(the (any_case it)
+     (-> (path.Path synthesis.Term)
+         (Maybe Case))
+     (when it
+           {path.:And {path.:Bind register}
+                      {path.:Then body}}
+           {.:Some [{.:Some register} body]}
+
+           {path.:Then body}
+           {.:Some [{.:None} body]}
+
+           else
+           {.:None}))
+
+(the (without_temporary_register temporary_register
+                                 [register body])
+     (-> @type.Register Case
+         (Maybe Case))
+     (maybe:each (|>> [(maybe:each -- register)])
+                 (as_exec temporary_register body)))
+
+(the (every_case it)
+     (-> (path.Path synthesis.Term)
+         (Maybe [Case (Stack Case)]))
+     (when it
+           {path.:Or {path.:And {path.:Access {access.:Side left_side}}
+                                the_left}
+                     (all {path.:And}
+                          {path.:Access {access.:Side right_side}}
+                          {path.:Bind expectation_of_temporary_register}
+                          {path.:Then (<| {synthesis.:Control @}
+                                          {synthesis.:When {synthesis.:Reference @ {@type.:Variable_Reference {@type.:Local reality_of_temporary_register}}}}
+                                          sub_path)})}
+           (monad.let [! maybe.monad]
+                      [the_left (any_case the_left)
+                       maybe.whether (n.= expectation_of_temporary_register reality_of_temporary_register)
+                       [the_right every_left] (every_case sub_path)
+                       every_left (stack.each' ! (without_temporary_register expectation_of_temporary_register) every_left)]
+                      (pure [the_right {.:Top the_left every_left}]))
+
+           {path.:Or {path.:And {path.:Access {access.:Side left_side}}
+                                the_left}
+                     {path.:And {path.:Access {access.:Side right_side}}
+                                the_right}}
+           (monad.let maybe.monad
+                      [the_left (any_case the_left)
+                       the_right (any_case the_right)
+                       the_right (when the_right
+                                       [{.:Some right_register} right_body]
+                                       (when (as_exec right_register right_body)
+                                             {.:Some right_body}
+                                             (pure [{.:None} right_body])
+
+                                             {.:None}
+                                             (pure the_right))
+                                       
+                                       [{.:None} right_body]
+                                       (pure the_right))]
+                      (pure [the_right (stack the_left)]))
+
+           {path.:Or {path.:And {path.:Access {access.:Side left_side}}
+                                the_left}
+                     the_right}
+           (monad.let maybe.monad
+                      [the_left (any_case the_left)
+                       [last previous] (every_case the_right)]
+                      (pure [last {.:Top the_left previous}]))
+
+           else
+           {.:None}))
+
+(the (of_flat_if_case it)
+     (-> synthesis.Term
+         (Maybe [synthesis.Term Case (Stack Case)]))
+     (when it
+           (<| {synthesis.:Control @}
+               {synthesis.:When case}
+               path)
+           (monad.let maybe.monad
+                      [[last_right every_left] (every_case path)]
+                      (pure [case last_right (stack.in_reverse every_left)]))
+
+           else
+           {.:None}))
+
+(the (flat_access every_left right? [register body])
+     (-> Natural Bit Case
+         (path.Path synthesis.Term))
+     {path.:And {path.:Access {access.:Side [every_left right?]}}
+                (when register
+                      {.:Some register}
+                      {path.:And {path.:Bind register}
+                                 {path.:Then body}}
+
+                      {.:None}
+                      {path.:Then body})})
+
+(the (as_flat_if_case [case right every_left])
+     (-> [synthesis.Term Case (Stack Case)]
+         synthesis.Term)
+     (.let [maximum_left (-- (stack.size every_left))
+            [_ path] (stack.mix (function (_ left [every_left right])
+                                          [(-- every_left) {path.:Or (flat_access every_left false left)
+                                                                     right}])
+                                every_left
+                                [maximum_left (flat_access maximum_left true right)])]
+           (<| {synthesis.:Control (synthesis.provenance case)}
+               {synthesis.:When case}
+               path)))
 
 (the if_case
-  Handler
-  (..custom
-   [(all ?.and ?list.any ?list.any ?list.any)
-    (function (_ name synthesis archive [case left_body right_body])
-      (monad.let phase.monad
-        [case (synthesis archive case)
-         left_body (synthesis.with_new_local
-                    (synthesis archive left_body))
-         right_body (synthesis.with_new_local
-                     (synthesis archive right_body))
-         register synthesis.locals]
-        (pure (<| {synthesis.:Control (synthesis.provenance case)}
-                  {synthesis.:When case}
-                  {path.:Or {path.:And {path.:Access {access.:Side [0 0b]}}
-                                       (when (as_exec register left_body)
-                                         {.:Some left_body}
-                                         {path.:Then left_body}
+     Handler
+     (..custom
+      [(all ?.and ?list.any ?list.any ?list.any)
+       (function (_ name synthesis archive [case left_body right_body])
+                 (monad.let phase.monad
+                            [case (synthesis archive case)
+                             left_body (synthesis.with_new_local
+                                        (synthesis archive left_body))
+                             right_body (synthesis.with_new_local
+                                         (synthesis archive right_body))
+                             register synthesis.locals
+                             .let [naive (<| {synthesis.:Control (synthesis.provenance case)}
+                                             {synthesis.:When case}
+                                             {path.:Or {path.:And {path.:Access {access.:Side [0 0b]}}
+                                                                  (when (as_exec register left_body)
+                                                                        {.:Some left_body}
+                                                                        {path.:Then left_body}
 
-                                         else
-                                         {path.:And {path.:Bind register}
-                                                    {path.:Then left_body}})}
-                            {path.:And {path.:Access {access.:Side [0 1b]}}
-                                       (when (as_exec register right_body)
-                                         {.:Some right_body}
-                                         {path.:Then right_body}
+                                                                        else
+                                                                        {path.:And {path.:Bind register}
+                                                                                   {path.:Then left_body}})}
+                                                       {path.:And {path.:Access {access.:Side [0 1b]}}
+                                                                  (when (as_exec register right_body)
+                                                                        {.:Some right_body}
+                                                                        {path.:Then right_body}
 
-                                         else
-                                         {path.:And {path.:Bind register}
-                                                    {path.:Then right_body}})}}))))]))
+                                                                        else
+                                                                        {path.:And {path.:Bind register}
+                                                                                   {path.:Then right_body}})}})]]
+                            (pure (|> (of_flat_if_case naive)
+                                      (maybe:each as_flat_if_case)
+                                      (maybe.else naive)))))]))
 
 (the pair
-  Handler
-  (..custom
-   [(all ?.and ?list.any ?list.any)
-    (function (_ name synthesis archive [left right])
-      (expansion.let [,extension (static.text (extension.synthesis extension/lux.pair))]
-        (template.let [(flat_pair ,left ,right)
-                       [(when ,right
-                          {synthesis.:Extension @ [.prelude ,extension] tail}
-                          {synthesis.:Extension @ [.prelude ,extension] (list:composite (list ,left) tail)}
+     Handler
+     (..custom
+      [(all ?.and ?list.any ?list.any)
+       (function (_ name synthesis archive [left right])
+                 (expansion.let [,extension (static.text (extension.synthesis extension/lux.pair))]
+                                (template.let [(flat_pair ,left ,right)
+                                               [(when ,right
+                                                      {synthesis.:Extension @ [.prelude ,extension] tail}
+                                                      {synthesis.:Extension @ [.prelude ,extension] (list:composite (list ,left) tail)}
 
-                          else
-                          {synthesis.:Extension (synthesis.provenance ,left) [.prelude ,extension] (list ,left ,right)})]]
-          (monad.let phase.monad
-            [left (synthesis archive left)
-             right (synthesis archive right)]
-            (pure (flat_pair left right))))))]))
+                                                      else
+                                                      {synthesis.:Extension (synthesis.provenance ,left) [.prelude ,extension] (list ,left ,right)})]]
+                                              (monad.let phase.monad
+                                                         [left (synthesis archive left)
+                                                          right (synthesis archive right)]
+                                                         (pure (flat_pair left right))))))]))
 
 (every Side
-  [Natural Bit @type.Register])
+       [Natural Bit @type.Register])
 
 (the (as_side @ [every_left right? register])
-  (-> Provenance Side
-      (List synthesis.Term))
-  (list (synthesis.i64 @ (.i64 every_left))
-        (synthesis.bit @ right?)
-        (synthesis.local @ register)))
+     (-> Provenance Side
+         (List synthesis.Term))
+     (list (synthesis.i64 @ (.i64 every_left))
+           (synthesis.bit @ right?)
+           (synthesis.local @ register)))
 
 (the ?side
-  (?synthesis.Projection Side)
-  (all ?.and
-       (?:each (|>> .natural) ?synthesis.i64)
-       ?synthesis.bit
-       ?synthesis.local))
+     (?synthesis.Projection Side)
+     (all ?.and
+          (?:each (|>> .natural) ?synthesis.i64)
+          ?synthesis.bit
+          ?synthesis.local))
 
 (every Of_Pair
-  (Record [:pair synthesis.Term
-           :every_side (List Side)
-           :body synthesis.Term]))
+       (Record [:pair synthesis.Term
+                :every_side (List Side)
+                :body synthesis.Term]))
 
 (the ?of_pair
-  (?synthesis.Projection Of_Pair)
-  (all ?.and
-       ?list.any
-       (?.many ?side)
-       ?list.any))
+     (?synthesis.Projection Of_Pair)
+     (all ?.and
+          ?list.any
+          (?.many ?side)
+          ?list.any))
 
 (the (in_right [every_left right? register])
-  (Change [Natural Bit @type.Register])
-  [(++ every_left) right? register])
+     (Change [Natural Bit @type.Register])
+     [(++ every_left) right? register])
 
 (the (skip [every_left right? register])
-  (Change [Natural Bit @type.Register])
-  [every_left right? (-- register)])
+     (Change [Natural Bit @type.Register])
+     [every_left right? (-- register)])
 
 (the (of_pair_as_extension it)
-  (-> Of_Pair
-      synthesis.Term)
-  (when (its :every_side it)
-    (list)
-    (.if (pure? (its :pair it))
-         (its :body it)
-         (.let [@ (synthesis.provenance (its :pair it))]
-           (synthesis.exec @
-             (its :pair it)
-             (its :body it))))
+     (-> Of_Pair
+         synthesis.Term)
+     (when (its :every_side it)
+           (list)
+           (.if (pure? (its :pair it))
+                (its :body it)
+                (.let [@ (synthesis.provenance (its :pair it))]
+                      (synthesis.exec @
+                                      (its :pair it)
+                                      (its :body it))))
 
-    every_side
-    (.let [@ (synthesis.provenance (its :pair it))]
-      {synthesis.:Extension @ [.prelude (extension.synthesis extension/lux.of_pair)]
-                            (list:conjoint (list (list (its :pair it))
-                                                 (list:conjoint (list:each (as_side @) every_side))
-                                                 (list (its :body it))))})))
+           every_side
+           (.let [@ (synthesis.provenance (its :pair it))]
+                 {synthesis.:Extension @ [.prelude (extension.synthesis extension/lux.of_pair)]
+                                       (list:conjoint (list (list (its :pair it))
+                                                            (list:conjoint (list:each (as_side @) every_side))
+                                                            (list (its :body it))))})))
 
 (the (with_side side it)
-  (-> Side
-      (Change Of_Pair))
-  (.let [[every_left right? register] side]
-    (when (as_exec register (its :body it))
-      {.:Some body}
-      [:pair (its :pair it)
-       :every_side (list:each ..skip (its :every_side it))
-       :body body]
+     (-> Side
+         (Change Of_Pair))
+     (.let [[every_left right? register] side]
+           (when (as_exec register (its :body it))
+                 {.:Some body}
+                 [:pair (its :pair it)
+                  :every_side (list:each ..skip (its :every_side it))
+                  :body body]
 
-      else
-      (revised :every_side (list:composite (list side)) it))))
+                 else
+                 (revised :every_side (list:composite (list side)) it))))
 
 (the of_pair
-  Handler
-  (..custom
-   [(all ?.and ?list.any ?list.any)
-    (function (_ name synthesis archive [pair body])
-      (monad.let phase.monad
-        [pair (synthesis archive pair)
-         body (<| synthesis.with_new_local
-                  synthesis.with_new_local
-                  (synthesis archive body))
-         left synthesis.locals
-         .let [right (++ left)
-               it (expansion.let [,extension (static.text (extension.synthesis extension/lux.of_pair))
-                                  ,default (these (|> [:pair pair
-                                                       :every_side (list)
-                                                       :body body]
-                                                      (with_side [0 1b right])
-                                                      (with_side [0 0b left])))]
-                    (when body
-                      {synthesis.:Extension @ [.prelude ,extension] tape}
-                      (when (?list.value tape ?of_pair)
-                        {try.:Success [pair' every_side' body']}
-                        (.if (synthesis.= (synthesis.local @ right) pair')
-                             (when (as_exec right body')
-                               {.:Some body'}
-                               (|> [:pair pair
-                                    :every_side (list:each (|>> ..in_right ..skip) every_side')
-                                    :body body']
-                                   (with_side [0 0b left]))
-                               
-                               else
-                               ,default)
-                             ,default)
+     Handler
+     (..custom
+      [(all ?.and ?list.any ?list.any)
+       (function (_ name synthesis archive [pair body])
+                 (monad.let phase.monad
+                            [pair (synthesis archive pair)
+                             body (<| synthesis.with_new_local
+                                      synthesis.with_new_local
+                                      (synthesis archive body))
+                             left synthesis.locals
+                             .let [right (++ left)
+                                   it (expansion.let [,extension (static.text (extension.synthesis extension/lux.of_pair))
+                                                      ,default (these (|> [:pair pair
+                                                                           :every_side (list)
+                                                                           :body body]
+                                                                          (with_side [0 1b right])
+                                                                          (with_side [0 0b left])))]
+                                                     (when body
+                                                           {synthesis.:Extension @ [.prelude ,extension] tape}
+                                                           (when (?list.value tape ?of_pair)
+                                                                 {try.:Success [pair' every_side' body']}
+                                                                 (.if (synthesis.= (synthesis.local @ right) pair')
+                                                                      (when (as_exec right body')
+                                                                            {.:Some body'}
+                                                                            (|> [:pair pair
+                                                                                 :every_side (list:each (|>> ..in_right ..skip) every_side')
+                                                                                 :body body']
+                                                                                (with_side [0 0b left]))
+                                                                            
+                                                                            else
+                                                                            ,default)
+                                                                      ,default)
 
-                        {try.:Failure error}
-                        ,default)
+                                                                 {try.:Failure error}
+                                                                 ,default)
 
-                      else
-                      ,default))]]
-        (pure (of_pair_as_extension it))))]))
+                                                           else
+                                                           ,default))]]
+                            (pure (of_pair_as_extension it))))]))
 
 (the (flat_text_composite expected)
-  (-> Name
-      (Change (List synthesis.Term)))
-  (|>> (list:each (function (_ it)
-                    (when it
-                      {synthesis.:Extension @ actual parameters}
-                      (.if (name.= expected actual)
-                           parameters
-                           (list it))
+     (-> Name
+         (Change (List synthesis.Term)))
+     (|>> (list:each (function (_ it)
+                               (when it
+                                     {synthesis.:Extension @ actual parameters}
+                                     (.if (name.= expected actual)
+                                          parameters
+                                          (list it))
 
-                      _
-                      (list it))))
-       list:conjoint))
+                                     _
+                                     (list it))))
+          list:conjoint))
 
 (the (text_composite name)
-  Handler
-  (.let [name [.prelude (extension.synthesis name)]]
-    (function (_ synthesis archive parts)
-      (monad.let [! phase.monad]
-        [parts (list.each' ! (synthesis archive) parts)]
-        (pure {synthesis.:Extension provenance.dummy name (flat_text_composite name parts)})))))
+     Handler
+     (.let [name [.prelude (extension.synthesis name)]]
+           (function (_ synthesis archive parts)
+                     (monad.let [! phase.monad]
+                                [parts (list.each' ! (synthesis archive) parts)]
+                                (pure {synthesis.:Extension provenance.dummy name (flat_text_composite name parts)})))))
 
 (the .public bundle
-  Bundle
-  (`` (|> ///.empty
-          (,, (template.with [,name]
-                             [(..with (template.name [extension/lux._] [,name])
-                                      (template.name [.._] [,name]))]
+     Bundle
+     (`` (|> ///.empty
+             (,, (template.with [,name]
+                                [(..with (template.name [extension/lux._] [,name])
+                                         (template.name [.._] [,name]))]
 
-                             [[..let]
-                              [..if]
-                              [..case]
-                              [..if_case]
-                              [..pair]
-                              [..of_pair]
-                              [..text_composite]]
-                             )))))
+                                [[..let]
+                                 [..if]
+                                 [..case]
+                                 [..if_case]
+                                 [..pair]
+                                 [..of_pair]
+                                 [..text_composite]]
+                                )))))

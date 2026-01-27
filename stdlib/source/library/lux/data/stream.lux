@@ -13,84 +13,84 @@
      ["[0]" list]
      ["[0]" sequence (.only Sequence)]]]]])
 
-... https://en.wikipedia.org/wiki/Iterator
-... https://en.wikipedia.org/wiki/Generator_(computer_programming)
-... https://en.wikipedia.org/wiki/Stream_(computing)
-(every .public (Effect it)
-  (//.Effect [it] []))
+(comment "https://en.wikipedia.org/wiki/Iterator"
+         "https://en.wikipedia.org/wiki/Generator_(computer_programming)"
+         "https://en.wikipedia.org/wiki/Stream_(computing)"
+         (every .public (Effect it)
+                (//.Effect [it] [])))
 
 (every .public (Stream yield)
-  (/.Free (..Effect yield)))
+       (/.Free (..Effect yield)))
 
 (the .public monad
-  (for_any (_ yield)
-    (Monad (Stream yield)))
-  (/.monad //.functor))
+     (for_any (_ yield)
+              (Monad (Stream yield)))
+     (/.monad //.functor))
 
 (the .public (next it)
-  (for_any (_ yield it)
-    (-> (Stream yield it)
-        (Either it
-                [yield (Stream yield it)])))
-  (when it
-    {/.:Impure [item after]}
-    {.:Right [item (after [])]}
+     (for_any (_ yield it)
+              (-> (Stream yield it)
+                  (Either it
+                          [yield (Stream yield it)])))
+     (when it
+           {/.:Impure [item after]}
+           {.:Right [item (after [])]}
 
-    {/.:Pure it}
-    {.:Left it}))
+           {/.:Pure it}
+           {.:Left it}))
 
 (the .public (each on it)
-  (for_any (_ _0 _1)
-    (-> (-> _0 _1)
-        (for_any (_ it)
-          (-> (Stream _0 it) (Stream _1 it)))))
-  (when it
-    {/.:Impure [item after]}
-    {/.:Impure [(on item) (|>> after (each on))]}
+     (for_any (_ _0 _1)
+              (-> (-> _0 _1)
+                  (for_any (_ it)
+                           (-> (Stream _0 it) (Stream _1 it)))))
+     (when it
+           {/.:Impure [item after]}
+           {/.:Impure [(on item) (|>> after (each on))]}
 
-    {/.:Pure it}
-    {/.:Pure it}))
+           {/.:Pure it}
+           {/.:Pure it}))
 
 (the .public (only ? it)
-  (for_any (_ yield it)
-    (-> (Predicate yield)
-        (Change (Stream yield it))))
-  (when it
-    {/.:Impure [item after]}
-    (if (? item)
-        {/.:Impure [item (|>> after (only ?))]}
-        (only ? (after [])))
+     (for_any (_ yield it)
+              (-> (Predicate yield)
+                  (Change (Stream yield it))))
+     (when it
+           {/.:Impure [item after]}
+           (if (? item)
+               {/.:Impure [item (|>> after (only ?))]}
+               (only ? (after [])))
 
-    {/.:Pure it}
-    {/.:Pure it}))
+           {/.:Pure it}
+           {/.:Pure it}))
 
 (the .public (mix step it state)
-  (for_any (_ yield state it)
-    (-> (-> yield (Change state))
-        (-> (Stream yield it) state [state it])))
-  (when it
-    {/.:Impure [item after]}
-    (mix step (after []) (step item state))
+     (for_any (_ yield state it)
+              (-> (-> yield (Change state))
+                  (-> (Stream yield it) state [state it])))
+     (when it
+           {/.:Impure [item after]}
+           (mix step (after []) (step item state))
 
-    {/.:Pure it}
-    [state it]))
+           {/.:Pure it}
+           [state it]))
 
 (the .public (sequence it)
-  (for_any (_ yield it)
-    (-> (Stream yield it)
-        [(Sequence yield) it]))
-  (mix sequence.suffix
-       it
-       sequence.empty))
+     (for_any (_ yield it)
+              (-> (Stream yield it)
+                  [(Sequence yield) it]))
+     (mix sequence.suffix
+          it
+          sequence.empty))
 
 (the .public (one it)
-  (for_any (_ it)
-    (-> it
-        (Stream it Any)))
-  {/.:Impure [[it] (by ..monad pure)]})
+     (for_any (_ it)
+              (-> it
+                  (Stream it Any)))
+     {/.:Impure [[it] (by ..monad pure)]})
 
 (the .public many
-  (for_any (_ it)
-    (-> (List it)
-        (Stream it Any)))
-  (list.each' ..monad ..one))
+     (for_any (_ it)
+              (-> (List it)
+                  (Stream it Any)))
+     (list.each' ..monad ..one))

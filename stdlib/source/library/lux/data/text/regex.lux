@@ -34,439 +34,438 @@
   ["%" \\injection]])
 
 (the regex_character^
-  (Projection Text)
-  (<text>.none_of "\.|&()[]{}"))
+     (Projection Text)
+     (<text>.none_of "\.|&()[]{}"))
 
 (the escaped_character^
-  (Projection Text)
-  (monad.let <>.monad
-    [? (<>.parses? (<text>.this "\"))]
-    (if ?
-        <text>.any
-        regex_character^)))
+     (Projection Text)
+     (monad.let <>.monad
+                [? (<>.parses? (<text>.this "\"))]
+                (if ?
+                    <text>.any
+                    regex_character^)))
 
 (the ,!
-  (template.macro (_ <it>)
-    [(` (.in_module# (, (code.text (.let [[module proper] (.name .._)]
-                                     module)))
-                     <it>))]))
+     (template.macro (_ <it>)
+                     [(` (.in_module# (, (code.text (.let [[module proper] (.name .._)]
+                                                          module)))
+                                      <it>))]))
 
 (the (refined refinement^ base^)
-  (for_any (_ it)
-    (-> (Projection it) (Projection Text)
-        (Projection Text)))
-  (monad.let <>.monad
-    [output base^
-     _ (<text>.local output refinement^)]
-    (pure output)))
+     (for_any (_ it)
+              (-> (Projection it) (Projection Text)
+                  (Projection Text)))
+     (monad.let <>.monad
+                [output base^
+                 _ (<text>.local output refinement^)]
+                (pure output)))
 
 (the word
-  (Projection Text)
-  (<>.either <text>.alpha_numeric
-             (<text>.one_of "_")))
+     (Projection Text)
+     (<>.either <text>.alpha_numeric
+                (<text>.one_of "_")))
 
 (the (copy reference)
-  (-> Text
-      (Projection Text))
-  (<>.after (<text>.this reference)
-            (<>:pure reference)))
+     (-> Text
+         (Projection Text))
+     (<>.after (<text>.this reference)
+               (<>:pure reference)))
 
 (the together
-  (-> (Projection (List Text))
-      (Projection Text))
-  (by <>.monad each //.together))
+     (-> (Projection (List Text))
+         (Projection Text))
+     (by <>.monad each //.together))
 
 (the name_character^
-  (Projection Text)
-  (<text>.none_of (text "[]{}()s.<>" //.double_quote)))
+     (Projection Text)
+     (<text>.none_of (text "[]{}()s.<>" //.double_quote)))
 
 (the name_part^
-  (Projection Text)
-  (monad.let <>.monad
-    [head (refined (<text>.not <text>.base_10)
-                   name_character^)
-     tail (<text>.some name_character^)]
-    (pure (text head tail))))
+     (Projection Text)
+     (monad.let <>.monad
+                [head (refined (<text>.not <text>.base_10)
+                               name_character^)
+                 tail (<text>.some name_character^)]
+                (pure (text head tail))))
 
 (the (name^ current_module)
-  (-> Text
-      (Projection Name))
-  (all <>.either
-       (<>.and (<>:pure current_module) (<>.after (<text>.this "..") name_part^))
-       (<>.and name_part^ (<>.after (<text>.this ".") name_part^))
-       (<>.and (<>:pure .prelude) (<>.after (<text>.this ".") name_part^))
-       (<>.and (<>:pure "") name_part^)))
+     (-> Text
+         (Projection Name))
+     (all <>.either
+          (<>.and (<>:pure current_module) (<>.after (<text>.this "..") name_part^))
+          (<>.and name_part^ (<>.after (<text>.this ".") name_part^))
+          (<>.and (<>:pure .prelude) (<>.after (<text>.this ".") name_part^))
+          (<>.and (<>:pure "") name_part^)))
 
 (the (re_var^ current_module)
-  (-> Text
-      (Projection Code))
-  (monad.let <>.monad
-    [name (<text>.enclosed ["\@<" ">"] (name^ current_module))]
-    (pure (` (is (<text>.Projection Text) (, (code.name name)))))))
+     (-> Text
+         (Projection Code))
+     (monad.let <>.monad
+                [name (<text>.enclosed ["\@<" ">"] (name^ current_module))]
+                (pure (` (is (<text>.Projection Text) (, (code.name name)))))))
 
 (the re_range^
-  (Projection Code)
-  (monad.let [! <>.monad]
-    [from (|> regex_character^ (by ! each (|>> (//.character 0) maybe.trusted)))
-     _ (<text>.this "-")
-     to (|> regex_character^ (by ! each (|>> (//.character 0) maybe.trusted)))]
-    (pure (` (<text>.range (, (code.natural from)) (, (code.natural to)))))))
+     (Projection Code)
+     (monad.let [! <>.monad]
+                [from (|> regex_character^ (by ! each (|>> (//.character 0) maybe.trusted)))
+                 _ (<text>.this "-")
+                 to (|> regex_character^ (by ! each (|>> (//.character 0) maybe.trusted)))]
+                (pure (` (<text>.range (, (code.natural from)) (, (code.natural to)))))))
 
 (the re_character^
-  (Projection Code)
-  (monad.let <>.monad
-    [character escaped_character^]
-    (pure (` ((, (,! ..copy)) (, (code.text character)))))))
+     (Projection Code)
+     (monad.let <>.monad
+                [character escaped_character^]
+                (pure (` ((, (,! ..copy)) (, (code.text character)))))))
 
 (the re_options^
-  (Projection Code)
-  (monad.let <>.monad
-    [options (<text>.many escaped_character^)]
-    (pure (` (<text>.one_of (, (code.text options)))))))
+     (Projection Code)
+     (monad.let <>.monad
+                [options (<text>.many escaped_character^)]
+                (pure (` (<text>.one_of (, (code.text options)))))))
 
 (the re_user_class^'
-  (Projection Code)
-  (monad.let <>.monad
-    [negate? (<>.maybe (<text>.this "^"))
-     parts (<>.many (all <>.either
-                         re_range^
-                         re_options^))
-     .let [positive (` (all <>.either (,* parts)))]]
-    (pure (when negate?
-            {.:Some _}
-            (` (<text>.not (, positive)))
-            
-            {.:None}
-            positive))))
+     (Projection Code)
+     (monad.let <>.monad
+                [negate? (<>.maybe (<text>.this "^"))
+                 parts (<>.many (all <>.either
+                                     re_range^
+                                     re_options^))
+                 .let [positive (` (all <>.either (,* parts)))]]
+                (pure (when negate?
+                            {.:Some _}
+                            (` (<text>.not (, positive)))
+                            
+                            {.:None}
+                            positive))))
 
 (the re_user_class^
-  (Projection Code)
-  (monad.let <>.monad
-    [init ..re_user_class^'
-     rest (<>.some (<>.after (<text>.this "&&")
-                             (<text>.enclosed ["[" "]"]
-                                              ..re_user_class^')))]
-    (pure (list.mix (function (_ refinement base)
-                      (` ((, (,! ..refined)) (, refinement) (, base))))
-                    rest
-                    init))))
+     (Projection Code)
+     (monad.let <>.monad
+                [init ..re_user_class^'
+                 rest (<>.some (<>.after (<text>.this "&&")
+                                         (<text>.enclosed ["[" "]"]
+                                                          ..re_user_class^')))]
+                (pure (list.mix (function (_ refinement base)
+                                          (` ((, (,! ..refined)) (, refinement) (, base))))
+                                rest
+                                init))))
 
 (the blank
-  (Projection Text)
-  (<text>.one_of (text " " //.tab)))
+     (Projection Text)
+     (<text>.one_of (text " " //.tab)))
 
 (the ascii
-  (Projection Text)
-  (<text>.range (number.base_16 "0") (number.base_16 "7F")))
+     (Projection Text)
+     (<text>.range (number.base_16 "0") (number.base_16 "7F")))
 
 (the control
-  (Projection Text)
-  (<>.either (<text>.range (number.base_16 "0") (number.base_16 "1F"))
-             (<text>.one_of (//.of_character (number.base_16 "7F")))))
+     (Projection Text)
+     (<>.either (<text>.range (number.base_16 "0") (number.base_16 "1F"))
+                (<text>.one_of (//.of_character (number.base_16 "7F")))))
 
 (the punctuation
-  (Projection Text)
-  (<text>.one_of (text "!#$%&'()*+,-./:;<=>?@[\]^_`{|}~"
-                       //.double_quote)))
+     (Projection Text)
+     (<text>.one_of (text "!#$%&'()*+,-./:;<=>?@[\]^_`{|}~"
+                          //.double_quote)))
 
 (the graph
-  (Projection Text)
-  (<>.either ..punctuation
-             <text>.alpha_numeric))
+     (Projection Text)
+     (<>.either ..punctuation
+                <text>.alpha_numeric))
 
 (the print
-  (Projection Text)
-  (<>.either ..graph
-             (<text>.one_of //.space)))
+     (Projection Text)
+     (<>.either ..graph
+                (<text>.one_of //.space)))
 
 (the re_system_class^
-  (Projection Code)
-  (monad.let <>.monad
-    []
-    (all <>.either
-         (<>.after (<text>.this ".") (pure (` <text>.any)))
-         (<>.after (<text>.this "\d") (pure (` <text>.base_10)))
-         (<>.after (<text>.this "\D") (pure (` (<text>.not <text>.base_10))))
-         (<>.after (<text>.this "\s") (pure (` <text>.space)))
-         (<>.after (<text>.this "\S") (pure (` (<text>.not <text>.space))))
-         (<>.after (<text>.this "\w") (pure (,! ..word)))
-         (<>.after (<text>.this "\W") (pure (` (<text>.not (, (,! ..word))))))
+     (Projection Code)
+     (monad.let <>.monad
+                []
+                (all <>.either
+                     (<>.after (<text>.this ".") (pure (` <text>.any)))
+                     (<>.after (<text>.this "\d") (pure (` <text>.base_10)))
+                     (<>.after (<text>.this "\D") (pure (` (<text>.not <text>.base_10))))
+                     (<>.after (<text>.this "\s") (pure (` <text>.space)))
+                     (<>.after (<text>.this "\S") (pure (` (<text>.not <text>.space))))
+                     (<>.after (<text>.this "\w") (pure (,! ..word)))
+                     (<>.after (<text>.this "\W") (pure (` (<text>.not (, (,! ..word))))))
 
-         (<>.after (<text>.this "\p{Lower}") (pure (` <text>.lower)))
-         (<>.after (<text>.this "\p{Upper}") (pure (` <text>.upper)))
-         (<>.after (<text>.this "\p{Alpha}") (pure (` <text>.alpha)))
-         (<>.after (<text>.this "\p{Digit}") (pure (` <text>.base_10)))
-         (<>.after (<text>.this "\p{Alnum}") (pure (` <text>.alpha_numeric)))
-         (<>.after (<text>.this "\p{Space}") (pure (` <text>.space)))
-         (<>.after (<text>.this "\p{HexDigit}") (pure (` <text>.base_16)))
-         (<>.after (<text>.this "\p{OctDigit}") (pure (` <text>.base_08)))
-         (<>.after (<text>.this "\p{Blank}") (pure (,! ..blank)))
-         (<>.after (<text>.this "\p{ASCII}") (pure (,! ..ascii)))
-         (<>.after (<text>.this "\p{Contrl}") (pure (,! ..control)))
-         (<>.after (<text>.this "\p{Punct}") (pure (,! ..punctuation)))
-         (<>.after (<text>.this "\p{Graph}") (pure (,! ..graph)))
-         (<>.after (<text>.this "\p{Print}") (pure (,! ..print)))
-         )))
+                     (<>.after (<text>.this "\p{Lower}") (pure (` <text>.lower)))
+                     (<>.after (<text>.this "\p{Upper}") (pure (` <text>.upper)))
+                     (<>.after (<text>.this "\p{Alpha}") (pure (` <text>.alpha)))
+                     (<>.after (<text>.this "\p{Digit}") (pure (` <text>.base_10)))
+                     (<>.after (<text>.this "\p{Alnum}") (pure (` <text>.alpha_numeric)))
+                     (<>.after (<text>.this "\p{Space}") (pure (` <text>.space)))
+                     (<>.after (<text>.this "\p{HexDigit}") (pure (` <text>.base_16)))
+                     (<>.after (<text>.this "\p{OctDigit}") (pure (` <text>.base_08)))
+                     (<>.after (<text>.this "\p{Blank}") (pure (,! ..blank)))
+                     (<>.after (<text>.this "\p{ASCII}") (pure (,! ..ascii)))
+                     (<>.after (<text>.this "\p{Contrl}") (pure (,! ..control)))
+                     (<>.after (<text>.this "\p{Punct}") (pure (,! ..punctuation)))
+                     (<>.after (<text>.this "\p{Graph}") (pure (,! ..graph)))
+                     (<>.after (<text>.this "\p{Print}") (pure (,! ..print)))
+                     )))
 
 (the re_class^
-  (Projection Code)
-  (<>.either re_system_class^
-             (<text>.enclosed ["[" "]"] re_user_class^)))
+     (Projection Code)
+     (<>.either re_system_class^
+                (<text>.enclosed ["[" "]"] re_user_class^)))
 
 (the number^
-  (Projection Natural)
-  (|> (<text>.many <text>.base_10)
-      (<>.of n.base_10)))
+     (Projection Natural)
+     (|> (<text>.many <text>.base_10)
+         (<>.of n.base_10)))
 
 (the re_back_reference^
-  (Projection Code)
-  (<>.either (monad.let <>.monad
-               [_ (<text>.this "\")
-                id number^]
-               (pure (` ((, (,! ..copy)) (, (code.name ["" (n:as id)]))))))
-             (monad.let <>.monad
-               [_ (<text>.this "\k<")
-                captured_name name_part^
-                _ (<text>.this ">")]
-               (pure (` ((, (,! ..copy)) (, (code.name ["" captured_name]))))))))
+     (Projection Code)
+     (<>.either (monad.let <>.monad
+                           [_ (<text>.this "\")
+                            id number^]
+                           (pure (` ((, (,! ..copy)) (, (code.name ["" (n:as id)]))))))
+                (monad.let <>.monad
+                           [_ (<text>.this "\k<")
+                            captured_name name_part^
+                            _ (<text>.this ">")]
+                           (pure (` ((, (,! ..copy)) (, (code.name ["" captured_name]))))))))
 
 (the (re_simple^ current_module)
-  (-> Text
-      (Projection Code))
-  (all <>.either
-       re_class^
-       (re_var^ current_module)
-       re_back_reference^
-       re_character^
-       ))
+     (-> Text
+         (Projection Code))
+     (all <>.either
+          re_class^
+          (re_var^ current_module)
+          re_back_reference^
+          re_character^
+          ))
 
 (the (re_simple_quantified^ current_module)
-  (-> Text
-      (Projection Code))
-  (monad.let <>.monad
-    [base (re_simple^ current_module)
-     quantifier (<text>.one_of "?*+")]
-    (when quantifier
-      "?"
-      (pure (` (<>.else "" (, base))))
-      
-      "*"
-      (pure (` ((, (,! ..together)) (<>.some (, base)))))
-      
-      ... "+"
-      _
-      (pure (` ((, (,! ..together)) (<>.many (, base)))))
-      )))
+     (-> Text
+         (Projection Code))
+     (monad.let <>.monad
+                [base (re_simple^ current_module)
+                 quantifier (<text>.one_of "?*+")]
+                (when quantifier
+                      "?"
+                      (pure (` (<>.else "" (, base))))
+                      
+                      "*"
+                      (pure (` ((, (,! ..together)) (<>.some (, base)))))
+                      
+                      _
+                      (comment "+"
+                               (pure (` ((, (,! ..together)) (<>.many (, base)))))))))
 
 (exception.the .public (incorrect_quantification [from to])
-  (Exception [Natural Natural])
-  (exception.report
-   (list ["Input" (text (%.natural from) "," (%.natural to))]
-         ["Should be" (text (%.natural to) "," (%.natural from))])))
+               (Exception [Natural Natural])
+               (exception.report
+                (list ["Input" (text (%.natural from) "," (%.natural to))]
+                      ["Should be" (text (%.natural to) "," (%.natural from))])))
 
 (the (re_counted_quantified^ current_module)
-  (-> Text
-      (Projection Code))
-  (monad.let [! <>.monad]
-    [base (re_simple^ current_module)]
-    (<| (<text>.enclosed ["{" "}"])
-        (all <>.either
-             (monad.let !
-               [[from to] (<>.and number^ (<>.after (<text>.this ",") number^))
-                _ (<>.assertion (exception.error ..incorrect_quantification [from to])
-                                (n.<= to from))]
-               (pure (` ((, (,! ..together)) (<>.between (, (code.natural from))
-                                                         (, (code.natural (n.- from to)))
-                                                         (, base))))))
-             (monad.let !
-               [limit (<>.after (<text>.this ",") number^)]
-               (pure (` ((, (,! ..together)) (<>.at_most (, (code.natural limit)) (, base))))))
-             (monad.let !
-               [limit (<>.before (<text>.this ",") number^)]
-               (pure (` ((, (,! ..together)) (<>.at_least (, (code.natural limit)) (, base))))))
-             (monad.let !
-               [limit number^]
-               (pure (` ((, (,! ..together)) (<>.exactly (, (code.natural limit)) (, base))))))))))
+     (-> Text
+         (Projection Code))
+     (monad.let [! <>.monad]
+                [base (re_simple^ current_module)]
+                (<| (<text>.enclosed ["{" "}"])
+                    (all <>.either
+                         (monad.let !
+                                    [[from to] (<>.and number^ (<>.after (<text>.this ",") number^))
+                                     _ (<>.assertion (exception.error ..incorrect_quantification [from to])
+                                                     (n.<= to from))]
+                                    (pure (` ((, (,! ..together)) (<>.between (, (code.natural from))
+                                                                              (, (code.natural (n.- from to)))
+                                                                              (, base))))))
+                         (monad.let !
+                                    [limit (<>.after (<text>.this ",") number^)]
+                                    (pure (` ((, (,! ..together)) (<>.at_most (, (code.natural limit)) (, base))))))
+                         (monad.let !
+                                    [limit (<>.before (<text>.this ",") number^)]
+                                    (pure (` ((, (,! ..together)) (<>.at_least (, (code.natural limit)) (, base))))))
+                         (monad.let !
+                                    [limit number^]
+                                    (pure (` ((, (,! ..together)) (<>.exactly (, (code.natural limit)) (, base))))))))))
 
 (the (re_quantified^ current_module)
-  (-> Text
-      (Projection Code))
-  (<>.either (re_simple_quantified^ current_module)
-             (re_counted_quantified^ current_module)))
+     (-> Text
+         (Projection Code))
+     (<>.either (re_simple_quantified^ current_module)
+                (re_counted_quantified^ current_module)))
 
 (the (re_complex^ current_module)
-  (-> Text
-      (Projection Code))
-  (all <>.either
-       (re_quantified^ current_module)
-       (re_simple^ current_module)))
+     (-> Text
+         (Projection Code))
+     (all <>.either
+          (re_quantified^ current_module)
+          (re_simple^ current_module)))
 
 (every Re_Group
-  (Variant
-   {:Non_Capturing}
-   {:Capturing [(Maybe Text) Natural]}))
+       (Variant
+        {:Non_Capturing}
+        {:Capturing [(Maybe Text) Natural]}))
 
 (the (re_sequential^ capturing? re_scoped^ current_module)
-  (-> Bit (-> Text (Projection [Re_Group Code])) Text
-      (Projection [Natural Code]))
-  (monad.let <>.monad
-    [parts (<>.many (<>.or (re_complex^ current_module)
-                           (re_scoped^ current_module)))
-     .let ['total (code.name ["" "0total"])
-           'temp (code.name ["" "0temp"])
-           [_ names steps] (list.mix (is (-> (Either Code [Re_Group Code])
-                                             (Change [Natural (Stack Code) (List Code)]))
-                                         (function (_ part [idx names steps])
-                                           (when part
-                                             (^.or {.:Left complex}
-                                                   {.:Right [{:Non_Capturing} complex]})
-                                             [idx
-                                              names
-                                              (list:composite steps
-                                                              (list 'temp complex
-                                                                    (` .let) (` [(, 'total) (by //.monoid (,' composite) (, 'total) (, 'temp))])))]
-                                             
-                                             {.:Right [{:Capturing [?name num_captures]} scoped]}
-                                             (let [[idx! name!] (when ?name
-                                                                  {.:Some _name}
-                                                                  [idx (code.name ["" _name])]
+     (-> Bit (-> Text (Projection [Re_Group Code])) Text
+         (Projection [Natural Code]))
+     (monad.let <>.monad
+                [parts (<>.many (<>.or (re_complex^ current_module)
+                                       (re_scoped^ current_module)))
+                 .let ['total (code.name ["" "0total"])
+                       'temp (code.name ["" "0temp"])
+                       [_ names steps] (list.mix (is (-> (Either Code [Re_Group Code])
+                                                         (Change [Natural (Stack Code) (List Code)]))
+                                                     (function (_ part [idx names steps])
+                                                               (when part
+                                                                     (^.or {.:Left complex}
+                                                                           {.:Right [{:Non_Capturing} complex]})
+                                                                     [idx
+                                                                      names
+                                                                      (list:composite steps
+                                                                                      (list 'temp complex
+                                                                                            (` .let) (` [(, 'total) (by //.monoid (,' composite) (, 'total) (, 'temp))])))]
+                                                                     
+                                                                     {.:Right [{:Capturing [?name num_captures]} scoped]}
+                                                                     (let [[idx! name!] (when ?name
+                                                                                              {.:Some _name}
+                                                                                              [idx (code.name ["" _name])]
 
-                                                                  {.:None}
-                                                                  [(++ idx) (code.name ["" (n:as idx)])])
-                                                   access (if (n.> 0 num_captures)
-                                                              (` (pair.left (, name!)))
-                                                              name!)]
-                                               [idx!
-                                                (stack.partial name! names)
-                                                (list:composite steps
-                                                                (list name! scoped
-                                                                      (` .let) (` [(, 'total) (by //.monoid (,' composite) (, 'total) (, access))])))])
-                                             )))
-                                     parts
-                                     [0
-                                      (is (Stack Code) (stack))
-                                      (is (List Code) (list))])]]
-    (pure [(if capturing?
-               (stack.size names)
-               0)
-           (` (monad.let <>.monad
-                [.let [(, 'total) ""]
-                 (,* steps)]
-                ((, (' pure)) [(, 'total) (,* (list.in_reverse (view.of list.stack names)))])))])
-    ))
+                                                                                              {.:None}
+                                                                                              [(++ idx) (code.name ["" (n:as idx)])])
+                                                                           access (if (n.> 0 num_captures)
+                                                                                      (` (pair.left (, name!)))
+                                                                                      name!)]
+                                                                          [idx!
+                                                                           (stack.partial name! names)
+                                                                           (list:composite steps
+                                                                                           (list name! scoped
+                                                                                                 (` .let) (` [(, 'total) (by //.monoid (,' composite) (, 'total) (, access))])))])
+                                                                     )))
+                                                 parts
+                                                 [0
+                                                  (is (Stack Code) (stack))
+                                                  (is (List Code) (list))])]]
+                (pure [(if capturing?
+                           (stack.size names)
+                           0)
+                       (` (monad.let <>.monad
+                                     [.let [(, 'total) ""]
+                                      (,* steps)]
+                                     ((, (' pure)) [(, 'total) (,* (list.in_reverse (view.of list.stack names)))])))])
+                ))
 
 (the (alternative lexer)
-  (-> (Projection Text)
-      (Projection [Text Any]))
-  (<>.and lexer (by <>.monad pure [])))
+     (-> (Projection Text)
+         (Projection [Text Any]))
+     (<>.and lexer (by <>.monad pure [])))
 
 (the (or left right)
-  (for_any (_ left right)
-    (-> (Projection [Text left]) (Projection [Text right])
-        (Projection [Text (Or left right)])))
-  (function (_ input)
-    (when (left input)
-      {try.:Success [input' [lt lv]]}
-      {try.:Success [input' [lt {0b lv}]]}
+     (for_any (_ left right)
+              (-> (Projection [Text left]) (Projection [Text right])
+                  (Projection [Text (Or left right)])))
+     (function (_ input)
+               (when (left input)
+                     {try.:Success [input' [lt lv]]}
+                     {try.:Success [input' [lt {0b lv}]]}
 
-      {try.:Failure _}
-      (when (right input)
-        {try.:Success [input' [rt rv]]}
-        {try.:Success [input' [rt {1b rv}]]}
+                     {try.:Failure _}
+                     (when (right input)
+                           {try.:Success [input' [rt rv]]}
+                           {try.:Success [input' [rt {1b rv}]]}
 
-        {try.:Failure error}
-        {try.:Failure error}))))
+                           {try.:Failure error}
+                           {try.:Failure error}))))
 
 (the (either left right)
-  (for_any (_ left right)
-    (-> (Projection [Text left]) (Projection [Text right])
-        (Projection Text)))
-  (function (_ input)
-    (when (left input)
-      {try.:Success [input' [lt lv]]}
-      {try.:Success [input' lt]}
+     (for_any (_ left right)
+              (-> (Projection [Text left]) (Projection [Text right])
+                  (Projection Text)))
+     (function (_ input)
+               (when (left input)
+                     {try.:Success [input' [lt lv]]}
+                     {try.:Success [input' lt]}
 
-      {try.:Failure _}
-      (when (right input)
-        {try.:Success [input' [rt rv]]}
-        {try.:Success [input' rt]}
+                     {try.:Failure _}
+                     (when (right input)
+                           {try.:Success [input' [rt rv]]}
+                           {try.:Success [input' rt]}
 
-        {try.:Failure error}
-        {try.:Failure error}))))
+                           {try.:Failure error}
+                           {try.:Failure error}))))
 
 (the (prep_alternative [num_captures alt])
-  (-> [Natural Code]
-      Code)
-  (if (n.> 0 num_captures)
-      alt
-      (` ((, (,! ..alternative)) (, alt)))))
+     (-> [Natural Code]
+         Code)
+     (if (n.> 0 num_captures)
+         alt
+         (` ((, (,! ..alternative)) (, alt)))))
 
 (the (re_alternative^ capturing? re_scoped^ current_module)
-  (-> Bit (-> Text (Projection [Re_Group Code])) Text
-      (Projection [Natural Code]))
-  (monad.let <>.monad
-    [.let [sub^ (re_sequential^ capturing? re_scoped^ current_module)]
-     head sub^
-     tail (<>.some (<>.after (<text>.this "|") sub^))]
-    (if (list.empty? tail)
-        (pure head)
-        (pure [(list.mix n.major (list:each pair.left tail) (pair.left head))
-               (` (all ((, (if capturing?
-                               (,! ..or)
-                               (,! ..either))))
-                       (, (prep_alternative head))
-                       (,* (list:each prep_alternative tail))))]))))
+     (-> Bit (-> Text (Projection [Re_Group Code])) Text
+         (Projection [Natural Code]))
+     (monad.let <>.monad
+                [.let [sub^ (re_sequential^ capturing? re_scoped^ current_module)]
+                 head sub^
+                 tail (<>.some (<>.after (<text>.this "|") sub^))]
+                (if (list.empty? tail)
+                    (pure head)
+                    (pure [(list.mix n.major (list:each pair.left tail) (pair.left head))
+                           (` (all ((, (if capturing?
+                                           (,! ..or)
+                                           (,! ..either))))
+                                   (, (prep_alternative head))
+                                   (,* (list:each prep_alternative tail))))]))))
 
 (the (re_scoped^ current_module)
-  (-> Text
-      (Projection [Re_Group Code]))
-  (all <>.either
-       (monad.let <>.monad
-         [_ (<text>.this "(?:")
-          [_ scoped] (re_alternative^ false re_scoped^ current_module)
-          _ (<text>.this ")")]
-         (pure [{:Non_Capturing} scoped]))
-       (monad.let <>.monad
-         [complex (re_complex^ current_module)]
-         (pure [{:Non_Capturing} complex]))
-       (monad.let <>.monad
-         [_ (<text>.this "(?<")
-          captured_name name_part^
-          _ (<text>.this ">")
-          [num_captures pattern] (re_alternative^ true re_scoped^ current_module)
-          _ (<text>.this ")")]
-         (pure [{:Capturing [{.:Some captured_name} num_captures]} pattern]))
-       (monad.let <>.monad
-         [_ (<text>.this "(")
-          [num_captures pattern] (re_alternative^ true re_scoped^ current_module)
-          _ (<text>.this ")")]
-         (pure [{:Capturing [{.:None} num_captures]} pattern]))))
+     (-> Text
+         (Projection [Re_Group Code]))
+     (all <>.either
+          (monad.let <>.monad
+                     [_ (<text>.this "(?:")
+                      [_ scoped] (re_alternative^ false re_scoped^ current_module)
+                      _ (<text>.this ")")]
+                     (pure [{:Non_Capturing} scoped]))
+          (monad.let <>.monad
+                     [complex (re_complex^ current_module)]
+                     (pure [{:Non_Capturing} complex]))
+          (monad.let <>.monad
+                     [_ (<text>.this "(?<")
+                      captured_name name_part^
+                      _ (<text>.this ">")
+                      [num_captures pattern] (re_alternative^ true re_scoped^ current_module)
+                      _ (<text>.this ")")]
+                     (pure [{:Capturing [{.:Some captured_name} num_captures]} pattern]))
+          (monad.let <>.monad
+                     [_ (<text>.this "(")
+                      [num_captures pattern] (re_alternative^ true re_scoped^ current_module)
+                      _ (<text>.this ")")]
+                     (pure [{:Capturing [{.:None} num_captures]} pattern]))))
 
 (the (regex^ current_module)
-  (-> Text
-      (Projection Code))
-  (by <>.monad each pair.right (re_alternative^ true re_scoped^ current_module)))
+     (-> Text
+         (Projection Code))
+     (by <>.monad each pair.right (re_alternative^ true re_scoped^ current_module)))
 
 (syntax.the .public (regex [pattern <code>.text])
-  (monad.let meta.monad
-    [[current_module _] module.current]
-    (when (<text>.value (regex^ current_module)
-                        pattern)
-      {try.:Failure error}
-      (meta.failure (text "Error while parsing regular-expression:" //.new_line
-                          error))
+            (monad.let meta.monad
+                       [[current_module _] module.current]
+                       (when (<text>.value (regex^ current_module)
+                                           pattern)
+                             {try.:Failure error}
+                             (meta.failure (text "Error while parsing regular-expression:" //.new_line
+                                                 error))
 
-      {try.:Success regex}
-      (pure (list regex)))))
+                             {try.:Success regex}
+                             (pure (list regex)))))
 
 (the .public pattern
-  (.pattern
-   (syntax.macro (_ [[pattern bindings] (<code>.form (<>.and <code>.text (<>.maybe ?list.any)))
-                     body ?list.any
-                     branches (<>.many ?list.any)])
-     (with_names ['temp]
-                 (pure (list:composite (list (` (^.multi (, 'temp)
-                                                         [(<text>.value (..regex (, (code.text pattern))) (, 'temp))
-                                                          {try.:Success (, (maybe.else 'temp bindings))}]))
-                                             body)
-                                       branches))))))
+     (.pattern
+      (syntax.macro (_ [[pattern bindings] (<code>.form (<>.and <code>.text (<>.maybe ?list.any)))
+                        body ?list.any
+                        branches (<>.many ?list.any)])
+                    (with_names ['temp]
+                                (pure (list:composite (list (` (^.multi (, 'temp)
+                                                                        [(<text>.value (..regex (, (code.text pattern))) (, 'temp))
+                                                                         {try.:Success (, (maybe.else 'temp bindings))}]))
+                                                            body)
+                                                      branches))))))

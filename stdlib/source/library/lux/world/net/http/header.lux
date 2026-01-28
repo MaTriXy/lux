@@ -37,158 +37,156 @@
     ["[1]" encoding]]]])
 
 (every .public Headers
-  (Dictionary Text Text))
+       (Dictionary Text Text))
 
 (the .public empty
-  Headers
-  (dictionary.empty text.hash))
+     Headers
+     (dictionary.empty text.hash))
 
-... https://developer.mozilla.org/en-US/docs/Glossary/HTTP_header
-(every .public (Header it)
-  (Record
-   [:name Text
-    :in (text.Injection it)
-    :out (-> Text (Try it))]))
+(comment "https://developer.mozilla.org/en-US/docs/Glossary/HTTP_header"
+         (every .public (Header it)
+                (Record [:name Text
+                         :in (text.Injection it)
+                         :out (-> Text (Try it))])))
 
 (exception.the .public (unknown [name])
-  (Exception Text)
-  (exception.report
-   (list ["Name" (%.text name)])))
+               (Exception Text)
+               (exception.report
+                (list ["Name" (%.text name)])))
 
 (the .public (one header it)
-  (for_any (_ it)
-    (-> (Header it) Headers
-        (Try it)))
-  (when (dictionary.value (its :name header) it)
-    {try.:Success raw}
-    ((its :out header) raw)
-    
-    failure
-    (exception.except ..unknown [(its :name header)])))
+     (for_any (_ it)
+              (-> (Header it) Headers
+                  (Try it)))
+     (when (dictionary.value (its :name header) it)
+           {try.:Success raw}
+           ((its :out header) raw)
+           
+           failure
+           (exception.except ..unknown [(its :name header)])))
 
-... https://en.wikipedia.org/wiki/Delimiter
-(the delimiter ",")
+(comment "https://en.wikipedia.org/wiki/Delimiter"
+         (the delimiter ","))
 
 (the .public (has header value)
-  (for_any (_ it)
-    (-> (Header it) it
-        (Change Headers)))
-  (dictionary.revised' (its :name header) ""
-                       (|>> (pipe.when
-                              ""
-                              ((its :in header) value)
-                              
-                              previous
-                              (text previous ..delimiter ((its :in header) value))))))
+     (for_any (_ it)
+              (-> (Header it) it
+                  (Change Headers)))
+     (dictionary.revised' (its :name header) ""
+                          (|>> (pipe.when
+                                ""
+                                ((its :in header) value)
+                                
+                                previous
+                                (text previous ..delimiter ((its :in header) value))))))
 
 (the .public content_length
-  (Header Natural)
-  [:name "Content-Length"
-   :in (by natural.base_10 as)
-   :out (by natural.base_10 of)])
+     (Header Natural)
+     [:name "Content-Length"
+      :in (by natural.base_10 as)
+      :out (by natural.base_10 of)])
 
 (template.with [,name ,header]
                [(the .public ,name
-                  (Header MIME)
-                  [:name ,header
-                   :in mime.name
-                   :out (|>> mime.mime {try.:Success})])]
+                     (Header MIME)
+                     [:name ,header
+                      :in mime.name
+                      :out (|>> mime.mime {try.:Success})])]
 
                [[content_type "Content-Type"]
                 [accept "Accept"]])
 
 (template.with [,name ,header ,type]
                [(the .public ,name
-                  (Header ,type)
-                  [:name ,header
-                   :in (|>>)
-                   :out (|>> {try.:Success})])]
+                     (Header ,type)
+                     [:name ,header
+                      :in (|>>)
+                      :out (|>> {try.:Success})])]
 
                [[location "Location" URL]
                 [user_agent "User-Agent" Text]])
 
-... https://en.wikipedia.org/wiki/Basic_access_authentication
-(every .public Credential
-  (Record
-   [:id Text
-    :password Text]))
+(comment "https://en.wikipedia.org/wiki/Basic_access_authentication"
+         (every .public Credential
+                (Record [:id Text
+                         :password Text])))
 
 (the prefix_of_basic_authorization
-  "Basic ")
+     "Basic ")
 
 (the separator_of_authorization
-  ":")
+     ":")
 
 (the .public basic_authorization
-  (Header Credential)
-  [:name "Authorization"
-   :in (function (_ it)
-         (|> (text (its :id it)
-                   ..separator_of_authorization
-                   (its :password it))
-             (by utf8.binary as)
-             (case.some base64.text)
-             (text ..prefix_of_basic_authorization)))
-   :out (function (_ it)
-          (expansion.let [,*else (these else
-                                        {try.:Failure error.not_valid})]
-            (when (text.split_by ..prefix_of_basic_authorization it)
-              {.:Some [text.empty id,password]}
-              (when (case.if base64.text id,password)
-                {.:Right id,password}
-                (when (by utf8.binary of id,password)
-                  {try.:Success id,password}
-                  (when (text.split_by ..separator_of_authorization id,password)
-                    {.:Some [id password]}
-                    {try.:Success [:id id
-                                   :password password]}
+     (Header Credential)
+     [:name "Authorization"
+      :in (function (_ it)
+                    (|> (text (its :id it)
+                              ..separator_of_authorization
+                              (its :password it))
+                        (by utf8.binary as)
+                        (case.some base64.text)
+                        (text ..prefix_of_basic_authorization)))
+      :out (function (_ it)
+                     (expansion.let [,*else (these else
+                                                   {try.:Failure error.not_valid})]
+                                    (when (text.split_by ..prefix_of_basic_authorization it)
+                                          {.:Some [text.empty id,password]}
+                                          (when (case.if base64.text id,password)
+                                                {.:Right id,password}
+                                                (when (by utf8.binary of id,password)
+                                                      {try.:Success id,password}
+                                                      (when (text.split_by ..separator_of_authorization id,password)
+                                                            {.:Some [id password]}
+                                                            {try.:Success [:id id
+                                                                           :password password]}
 
-                    ,*else)
-                  ,*else)
-                ,*else)
-              ,*else)))])
+                                                            ,*else)
+                                                      ,*else)
+                                                ,*else)
+                                          ,*else)))])
 
 (the prefix_of_bearer_authorization
-  "Bearer ")
+     "Bearer ")
 
 (every .public Token
-  Text)
+       Text)
 
 (the .public bearer_authorization
-  (Header Token)
-  [:name "Authorization"
-   :in (|>> (text ..prefix_of_bearer_authorization))
-   :out (function (_ it)
-          (when (text.split_by ..prefix_of_bearer_authorization it)
-            {.:Some [text.empty token]}
-            {try.:Success token}
-            
-            else
-            {try.:Failure error.not_valid}))])
+     (Header Token)
+     [:name "Authorization"
+      :in (|>> (text ..prefix_of_bearer_authorization))
+      :out (function (_ it)
+                     (when (text.split_by ..prefix_of_bearer_authorization it)
+                           {.:Some [text.empty token]}
+                           {try.:Success token}
+                           
+                           else
+                           {try.:Failure error.not_valid}))])
 
 (the assignment "=")
 
 (the .public set_cookies
-  (Header cookie.Jar)
-  [:name "Set-Cookie"
-   :in (function (_ it)
-         (list.mix (function (_ [name value] previous)
-                     (expansion.let [<key,value> (these (uri.as_text name) ..assignment value)]
-                       (when previous
-                         "" (text <key,value>)
-                         _ (text previous ..delimiter <key,value>))))
-                   (dictionary.entries it)
-                   ""))
-   :out (function (_ it)
-          (list.mix' try.monad
-                     (function (_ cookie jar)
-                       (when (text.split_by ..assignment cookie)
-                         {.:Some [name value]}
-                         (monad.let try.monad
-                           [name (uri.of_text name)]
-                           (pure (dictionary.has name value jar)))
-                         
-                         {.:None}
-                         (try:pure jar)))
-                     (text.all_split_by ..delimiter it)
-                     cookie.empty))])
+     (Header cookie.Jar)
+     [:name "Set-Cookie"
+      :in (function (_ it)
+                    (list.mix (function (_ [name value] previous)
+                                        (expansion.let [<key,value> (these (uri.as_text name) ..assignment value)]
+                                                       (when previous
+                                                             "" (text <key,value>)
+                                                             _ (text previous ..delimiter <key,value>))))
+                              (dictionary.entries it)
+                              ""))
+      :out (function (_ it)
+                     (list.mix' try.monad
+                                (function (_ cookie jar)
+                                          (when (text.split_by ..assignment cookie)
+                                                {.:Some [name value]}
+                                                (monad.let try.monad
+                                                           [name (uri.of_text name)]
+                                                           (pure (dictionary.has name value jar)))
+                                                
+                                                {.:None}
+                                                (try:pure jar)))
+                                (text.all_split_by ..delimiter it)
+                                cookie.empty))])

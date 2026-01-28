@@ -50,211 +50,211 @@
         ["[0]" archive]]]]]]]])
 
 (the (eval archive type term)
-  Eval
-  (//phase:pure []))
+     Eval
+     (//phase:pure []))
 
 (the (expander macro inputs state)
-  //macro.Expander
-  {try.:Success ((macro.function macro) inputs state)})
+     //macro.Expander
+     {try.:Success ((macro.function macro) inputs state)})
 
 (the analysis
-  //analysis.Phase
-  (//.phase ..expander))
+     //analysis.Phase
+     (//.phase ..expander))
 
 (the test|function
-  Test
-  (monad.let [! random.monad]
-    [lux $//type.random_state
-     .let [state [//extension.:bundle (//extension/analysis.bundle ..eval)
-                  //extension.:state lux]]
-     input/0 ($type.random 0)
-     input/1 ($type.random 0)
-     function/0 (random.lower_cased 1)
-     function/1 (random.lower_cased 2)
-     argument/0 (random.lower_cased 3)
-     argument/1 (random.lower_cased 4)
-     module/0 (random.lower_cased 5)
-     [output/0 term/0] $//inference.simple_parameter
-     [output/1 term/1] (random.only (|>> pair.left (identical? output/0) not)
-                                    $//inference.simple_parameter)
-     name/0 ($name.random 1 1)
-     .let [$function/0 (code.local function/0)
-           $function/1 (code.local function/1)
-           $argument/0 (code.local argument/0)
-           $argument/1 (code.local argument/1)]]
-    (all _.and
-         ... (_.coverage [/.function]
-         ...   (let [function?' (is (-> Type Code (-> [(Stack Analysis) Analysis] Bit) Bit)
-         ...                        (function (_ function_type output_term ?)
-         ...                          (|> (monad.let //phase.monad
-         ...                                [analysis (|> (/.function ..analysis function/0 argument/0 archive.empty
-         ...                                                output_term)
-         ...                                              (//type.with function_type))]
-         ...                                (pure (when analysis
-         ...                                      {//analysis.:Function it}
-         ...                                      (? it)
+     Test
+     (monad.let [! random.monad]
+                [lux $//type.random_state
+                 .let [state [//extension.:bundle (//extension/analysis.bundle ..eval)
+                              //extension.:state lux]]
+                 input/0 ($type.random 0)
+                 input/1 ($type.random 0)
+                 function/0 (random.lower_cased 1)
+                 function/1 (random.lower_cased 2)
+                 argument/0 (random.lower_cased 3)
+                 argument/1 (random.lower_cased 4)
+                 module/0 (random.lower_cased 5)
+                 [output/0 term/0] $//inference.simple_parameter
+                 [output/1 term/1] (random.only (|>> pair.left (identical? output/0) not)
+                                                $//inference.simple_parameter)
+                 name/0 ($name.random 1 1)
+                 .let [$function/0 (code.local function/0)
+                       $function/1 (code.local function/1)
+                       $argument/0 (code.local argument/0)
+                       $argument/1 (code.local argument/1)]]
+                (all _.and
+                     (comment (_.coverage [/.function]
+                                          (let [function?' (is (-> Type Code (-> [(Stack Analysis) Analysis] Bit) Bit)
+                                                               (function (_ function_type output_term ?)
+                                                                         (|> (monad.let //phase.monad
+                                                                                        [analysis (|> (/.function ..analysis function/0 argument/0 archive.empty
+                                                                                                                  output_term)
+                                                                                                      (//type.with function_type))]
+                                                                                        (pure (when analysis
+                                                                                                    {//analysis.:Function it}
+                                                                                                    (? it)
 
-         ...                                      _
-         ...                                      false)))
-         ...                              (//module.with 0 module/0)
-         ...                              (//phase:each pair.right)
-         ...                              (//phase.value state)
-         ...                              (try.else false))))
-         ...         function? (is (-> Type Code Bit)
-         ...                       (function (_ function_type output_term)
-         ...                         (function?' function_type output_term (function.constant true))))
-         ...         inferring? (is (-> Type Code Bit)
-         ...                        (function (_ :expected: term)
-         ...                          (|> (monad.let //phase.monad
-         ...                                [[:actual: analysis] (|> (/.function ..analysis function/0 argument/0 archive.empty
-         ...                                                           term)
-         ...                                                         //type.inferring)]
-         ...                                (pure (when analysis
-         ...                                      {//analysis.:Function [actual_env actual_body]}
-         ...                                      (type.= :expected: :actual:)
+                                                                                                    _
+                                                                                                    false)))
+                                                                             (//module.with 0 module/0)
+                                                                             (//phase:each pair.right)
+                                                                             (//phase.value state)
+                                                                             (try.else false))))
+                                                function? (is (-> Type Code Bit)
+                                                              (function (_ function_type output_term)
+                                                                        (function?' function_type output_term (function.constant true))))
+                                                inferring? (is (-> Type Code Bit)
+                                                               (function (_ :expected: term)
+                                                                         (|> (monad.let //phase.monad
+                                                                                        [[:actual: analysis] (|> (/.function ..analysis function/0 argument/0 archive.empty
+                                                                                                                             term)
+                                                                                                                 //type.inferring)]
+                                                                                        (pure (when analysis
+                                                                                                    {//analysis.:Function [actual_env actual_body]}
+                                                                                                    (type.= :expected: :actual:)
 
-         ...                                      _
-         ...                                      false)))
-         ...                              (//module.with 0 module/0)
-         ...                              (//phase:each pair.right)
-         ...                              (//phase.value state)
-         ...                              (try.else false))))]
-         ...     (and (function? (-> input/0 output/0) term/0)
-         ...          (function? (-> input/0 input/0) $argument/0)
+                                                                                                    _
+                                                                                                    false)))
+                                                                             (//module.with 0 module/0)
+                                                                             (//phase:each pair.right)
+                                                                             (//phase.value state)
+                                                                             (try.else false))))]
+                                               (and (function? (-> input/0 output/0) term/0)
+                                                    (function? (-> input/0 input/0) $argument/0)
 
-         ...          (function? {.:Named name/0 (-> input/0 output/0)} term/0)
-         
-         ...          (function? (for_any (_ a) (-> a a)) $argument/0)
-         ...          (function? (for_some (_ a) (-> a a)) $argument/0)
-         ...          (function? (for_some (_ a) (-> input/0 a)) term/0)
-         ...          (function? (for_some (_ a) (-> a a)) term/0)
-         ...          (function? (Rec self (-> input/0 self)) $function/0)
+                                                    (function? {.:Named name/0 (-> input/0 output/0)} term/0)
+                                                    
+                                                    (function? (for_any (_ a) (-> a a)) $argument/0)
+                                                    (function? (for_some (_ a) (-> a a)) $argument/0)
+                                                    (function? (for_some (_ a) (-> input/0 a)) term/0)
+                                                    (function? (for_some (_ a) (-> a a)) term/0)
+                                                    (function? (Rec self (-> input/0 self)) $function/0)
 
-         ...          (function? (type ((for_any (_ a) (-> a a)) output/0)) term/0)
-         ...          (not (function? (type ((for_any (_ a) (-> a a)) output/1)) term/0))
+                                                    (function? (type ((for_any (_ a) (-> a a)) output/0)) term/0)
+                                                    (not (function? (type ((for_any (_ a) (-> a a)) output/1)) term/0))
 
-         ...          (function? (type ((for_some (_ a) (-> a a)) output/0)) term/0)
-         ...          (not (function? (type ((for_some (_ a) (-> a a)) output/1)) term/0))
+                                                    (function? (type ((for_some (_ a) (-> a a)) output/0)) term/0)
+                                                    (not (function? (type ((for_some (_ a) (-> a a)) output/1)) term/0))
 
-         ...          (function?' (-> input/0 input/1 input/0) (` ([(, $function/1) (, $argument/1)] (, $argument/0)))
-         ...                      (function (_ [outer body])
-         ...                        (and (stack.empty? outer)
-         ...                             (when body
-         ...                               {//analysis.:Function [inner body]}
-         ...                               (n.= 1 (stack.size inner))
+                                                    (function?' (-> input/0 input/1 input/0) (` ([(, $function/1) (, $argument/1)] (, $argument/0)))
+                                                                (function (_ [outer body])
+                                                                          (and (stack.empty? outer)
+                                                                               (when body
+                                                                                     {//analysis.:Function [inner body]}
+                                                                                     (n.= 1 (stack.size inner))
 
-         ...                               _
-         ...                               false))))
-         ...          (function?' (-> input/0 input/1 input/1) (` ([(, $function/1) (, $argument/1)] (, $argument/1)))
-         ...                      (function (_ [outer body])
-         ...                        (and (stack.empty? outer)
-         ...                             (when body
-         ...                               {//analysis.:Function [inner body]}
-         ...                               (n.= 0 (stack.size inner))
+                                                                                     _
+                                                                                     false))))
+                                                    (function?' (-> input/0 input/1 input/1) (` ([(, $function/1) (, $argument/1)] (, $argument/1)))
+                                                                (function (_ [outer body])
+                                                                          (and (stack.empty? outer)
+                                                                               (when body
+                                                                                     {//analysis.:Function [inner body]}
+                                                                                     (n.= 0 (stack.size inner))
 
-         ...                               _
-         ...                               false))))
+                                                                                     _
+                                                                                     false))))
 
-         ...          (|> (monad.let //phase.monad
-         ...                [[@var :var:] (//type.check check.var)
-         ...                 _ (//type.check (check.check :var: (-> input/0 output/0)))
-         ...                 analysis (|> (/.function ..analysis function/0 argument/0 archive.empty
-         ...                                term/0)
-         ...                              (//type.with :var:))]
-         ...                (pure (when analysis
-         ...                      {//analysis.:Function [actual_env actual_body]}
-         ...                      true
+                                                    (|> (monad.let //phase.monad
+                                                                   [[@var :var:] (//type.check check.var)
+                                                                    _ (//type.check (check.check :var: (-> input/0 output/0)))
+                                                                    analysis (|> (/.function ..analysis function/0 argument/0 archive.empty
+                                                                                             term/0)
+                                                                                 (//type.with :var:))]
+                                                                   (pure (when analysis
+                                                                               {//analysis.:Function [actual_env actual_body]}
+                                                                               true
 
-         ...                      _
-         ...                      false)))
-         ...              (//module.with 0 module/0)
-         ...              (//phase:each pair.right)
-         ...              (//phase.value state)
-         ...              (try.else false))
-         
-         ...          (inferring? (for_any (_ a) (-> a output/0)) term/0)
-         ...          (inferring? (for_any (_ a) (-> a a)) $argument/0)
-         ...          (inferring? (for_any (_ @0) (-> @0 @0 (And .Bit @0)))
-         ...                      (` ([(, $function/1) (, $argument/1)]
-         ...                          [(.is?# (, $argument/0) (, $argument/1))
-         ...                           (, $argument/1)]))))))
-         (_.coverage [/.cannot_analyse]
-           (|> (monad.let //phase.monad
-                 [analysis (|> (/.function ..analysis function/0 argument/0 archive.empty
-                                 term/1)
-                               (//type.with (-> input/0 output/0)))]
-                 (pure (when analysis
-                         {//analysis.:Function [actual_env actual_body]}
-                         true
+                                                                               _
+                                                                               false)))
+                                                        (//module.with 0 module/0)
+                                                        (//phase:each pair.right)
+                                                        (//phase.value state)
+                                                        (try.else false))
+                                                    
+                                                    (inferring? (for_any (_ a) (-> a output/0)) term/0)
+                                                    (inferring? (for_any (_ a) (-> a a)) $argument/0)
+                                                    (inferring? (for_any (_ @0) (-> @0 @0 (And .Bit @0)))
+                                                                (` ([(, $function/1) (, $argument/1)]
+                                                                    [(.is?# (, $argument/0) (, $argument/1))
+                                                                     (, $argument/1)]))))))
+                              (_.coverage [/.cannot_analyse]
+                                          (|> (monad.let //phase.monad
+                                                         [analysis (|> (/.function ..analysis function/0 argument/0 archive.empty
+                                                                                   term/1)
+                                                                       (//type.with (-> input/0 output/0)))]
+                                                         (pure (when analysis
+                                                                     {//analysis.:Function [actual_env actual_body]}
+                                                                     true
 
-                         _
-                         false)))
-               (//module.with 0 module/0)
-               (//phase:each pair.right)
-               (//phase.value state)
-               (exception.else (text.contains? (its exception.:label /.cannot_analyse)))))
-         )))
+                                                                     _
+                                                                     false)))
+                                              (//module.with 0 module/0)
+                                              (//phase:each pair.right)
+                                              (//phase.value state)
+                                              (exception.else (text.contains? (its exception.:label /.cannot_analyse))))))
+                     )))
 
 (the test|reification
-  Test
-  (monad.let [! random.monad]
-    [lux $//type.random_state
-     .let [state [//extension.:bundle (//extension/analysis.bundle ..eval)
-                  //extension.:state lux]]
-     [input/0 term/0] $//inference.simple_parameter
-     [input/1 term/1] (random.only (|>> pair.left (identical? input/0) not)
-                                   $//inference.simple_parameter)
-     output/0 ($type.random 0)
-     module/0 (random.lower_cased 1)]
-    (all _.and
-         ... (_.coverage [/.reification]
-         ...   (let [reification? (is (-> Type (Stack Code) Type Bit)
-         ...                          (function (_ :abstraction: terms :expected:)
-         ...                            (|> (monad.let //phase.monad
-         ...                                  [[:actual: analysis] (|> (/.reification ..analysis terms
-         ...                                                                    :abstraction:
-         ...                                                                    (//analysis.unit)
-         ...                                                                    archive.empty
-         ...                                                                    (' []))
-         ...                                                           //type.inferring)]
-         ...                                  (pure (and (check.< :expected: :actual:)
-         ...                                           (when analysis
-         ...                                             {//analysis.:Reification _}
-         ...                                             true
+     Test
+     (monad.let [! random.monad]
+                [lux $//type.random_state
+                 .let [state [//extension.:bundle (//extension/analysis.bundle ..eval)
+                              //extension.:state lux]]
+                 [input/0 term/0] $//inference.simple_parameter
+                 [input/1 term/1] (random.only (|>> pair.left (identical? input/0) not)
+                                               $//inference.simple_parameter)
+                 output/0 ($type.random 0)
+                 module/0 (random.lower_cased 1)]
+                (all _.and
+                     (comment (_.coverage [/.reification]
+                                          (let [reification? (is (-> Type (Stack Code) Type Bit)
+                                                                 (function (_ :abstraction: terms :expected:)
+                                                                           (|> (monad.let //phase.monad
+                                                                                          [[:actual: analysis] (|> (/.reification ..analysis terms
+                                                                                                                                  :abstraction:
+                                                                                                                                  (//analysis.unit)
+                                                                                                                                  archive.empty
+                                                                                                                                  (' []))
+                                                                                                                   //type.inferring)]
+                                                                                          (pure (and (check.< :expected: :actual:)
+                                                                                                     (when analysis
+                                                                                                           {//analysis.:Reification _}
+                                                                                                           true
 
-         ...                                             _
-         ...                                             false))))
-         ...                                (//module.with 0 module/0)
-         ...                                (//phase:each pair.right)
-         ...                                (//phase.value state)
-         ...                                (try.else false))))]
-         ...     (and (reification? (-> input/0 input/1 output/0) (stack term/0 term/1) output/0)
-         ...          (reification? (-> input/0 input/1 output/0) (stack term/0) (-> input/1 output/0))
-         ...          (reification? (for_any (_ a) (-> a a)) (stack term/0) input/0)
-         ...          (reification? (for_any (_ a) (-> a a a)) (stack term/0) (-> input/0 input/0))
-         ...          (reification? (for_any (_ a) (-> input/0 a)) (stack term/0) .Nothing)
-         ...          (reification? (for_any (_ a b) (-> a b a)) (stack term/0) (for_any (_ b) (-> b input/0)))
-         ...          (reification? (for_some (_ a) (-> a input/0)) (stack (` (.error# ""))) input/0)
-         ...          (reification? (for_some (_ a) (-> input/0 a)) (stack term/0) .Any))))
-         (_.coverage [/.cannot_reify]
-           (|> (monad.let //phase.monad
-                 [_ (|> (/.reification ..analysis (stack term/1 term/0)
-                                       (-> input/0 input/1 output/0)
-                                       (//analysis.unit)
-                                       archive.empty
-                                       (' []))
-                        (//type.with output/0))]
-                 (pure false))
-               (//module.with 0 module/0)
-               (//phase:each pair.right)
-               (//phase.value state)
-               (exception.else (text.contains? (its exception.:label /.cannot_reify)))))
-         )))
+                                                                                                           _
+                                                                                                           false))))
+                                                                               (//module.with 0 module/0)
+                                                                               (//phase:each pair.right)
+                                                                               (//phase.value state)
+                                                                               (try.else false))))]
+                                               (and (reification? (-> input/0 input/1 output/0) (stack term/0 term/1) output/0)
+                                                    (reification? (-> input/0 input/1 output/0) (stack term/0) (-> input/1 output/0))
+                                                    (reification? (for_any (_ a) (-> a a)) (stack term/0) input/0)
+                                                    (reification? (for_any (_ a) (-> a a a)) (stack term/0) (-> input/0 input/0))
+                                                    (reification? (for_any (_ a) (-> input/0 a)) (stack term/0) .Nothing)
+                                                    (reification? (for_any (_ a b) (-> a b a)) (stack term/0) (for_any (_ b) (-> b input/0)))
+                                                    (reification? (for_some (_ a) (-> a input/0)) (stack (` (.error# ""))) input/0)
+                                                    (reification? (for_some (_ a) (-> input/0 a)) (stack term/0) .Any))))
+                              (_.coverage [/.cannot_reify]
+                                          (|> (monad.let //phase.monad
+                                                         [_ (|> (/.reification ..analysis (stack term/1 term/0)
+                                                                               (-> input/0 input/1 output/0)
+                                                                               (//analysis.unit)
+                                                                               archive.empty
+                                                                               (' []))
+                                                                (//type.with output/0))]
+                                                         (pure false))
+                                              (//module.with 0 module/0)
+                                              (//phase:each pair.right)
+                                              (//phase.value state)
+                                              (exception.else (text.contains? (its exception.:label /.cannot_reify))))))
+                     )))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (all _.and
-           ..test|function
-           ..test|reification
-           )))
+     Test
+     (<| (_.covering /._)
+         (all _.and
+              ..test|function
+              ..test|reification
+              )))

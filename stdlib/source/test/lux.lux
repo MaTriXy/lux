@@ -95,896 +95,898 @@
   ["[1][0]" target]])
 
 (the for_try
-  Test
-  (monad.let random.monad
-    [expected_error (random.lower_cased 5)
-     expected random.natural]
-    (all _.and
-         (_.coverage [/.try]
-           (when (/.try expected)
-             {.:Left _}
-             false
+     Test
+     (monad.let random.monad
+                [expected_error (random.lower_cased 5)
+                 expected random.natural]
+                (all _.and
+                     (_.coverage [/.try]
+                                 (when (/.try expected)
+                                       {.:Left _}
+                                       false
 
-             {.:Right actual}
-             (n.= expected actual)))
-         (_.coverage [/.undefined]
-           (when (/.try (/.undefined))
-             {.:Left _}
-             true
+                                       {.:Right actual}
+                                       (n.= expected actual)))
+                     (_.coverage [/.undefined]
+                                 (when (/.try (/.undefined))
+                                       {.:Left _}
+                                       true
 
-             {.:Right _}
-             false))
-         (_.coverage [/.halt!]
-           (when (/.try (/.halt! expected_error))
-             {.:Left actual_error}
-             (text.contains? expected_error actual_error)
+                                       {.:Right _}
+                                       false))
+                     (_.coverage [/.halt!]
+                                 (when (/.try (/.halt! expected_error))
+                                       {.:Left actual_error}
+                                       (text.contains? expected_error actual_error)
 
-             {.:Right _}
-             false))
-         )))
+                                       {.:Right _}
+                                       false))
+                     )))
 
 (the for_stack
-  Test
-  (monad.let random.monad
-    [e/0 random.natural
-     e/1 random.natural
-     e/2 random.natural
-     e/3 random.natural]
-    (all _.and
-         (_.coverage [/.stack]
-           (when (/.stack e/0 e/1)
-             (/.stack a/0 a/1)
-             (and (n.= e/0 a/0)
-                  (n.= e/1 a/1))
+     Test
+     (monad.let random.monad
+                [e/0 random.natural
+                 e/1 random.natural
+                 e/2 random.natural
+                 e/3 random.natural]
+                (all _.and
+                     (_.coverage [/.stack]
+                                 (when (/.stack e/0 e/1)
+                                       (/.stack a/0 a/1)
+                                       (and (n.= e/0 a/0)
+                                            (n.= e/1 a/1))
 
-             _
-             false))
-         )))
+                                       _
+                                       false))
+                     )))
 
 (every (Returner a)
-  (/.Interface
-   (is (-> Any a)
-       return)))
+       (/.Interface
+        (is (-> Any a)
+            return)))
 
 (the (global_returner value)
-  (for_any (_ a) (-> a (Returner a)))
-  (/.implementation
-   (the (return _)
-     value)))
+     (for_any (_ a) (-> a (Returner a)))
+     (/.implementation
+      (the (return _)
+           value)))
 
 (the static_return 123)
 
 (/.open "global:[0]" (..global_returner ..static_return))
 
 (the for_interface
-  Test
-  (monad.let random.monad
-    [expected random.natural
-     .let [local_returner (is (Returner Natural)
-                              (/.implementation
-                               (the (return _)
-                                 expected)))]]
-    (_.for [/.Interface]
-           (all _.and
-                (_.coverage [/.implementation]
-                  (n.= expected (by local_returner return [])))
-                (_.coverage [/.open]
-                  (n.= static_return (global:return [])))
-                (_.coverage [/.by]
-                  (n.= expected
-                       (/.by local_returner return [])))
-                (_.coverage [/.with]
-                  (n.= expected
-                       (/.with local_returner
-                               (return []))))
-                ))))
+     Test
+     (monad.let random.monad
+                [expected random.natural
+                 .let [local_returner (is (Returner Natural)
+                                          (/.implementation
+                                           (the (return _)
+                                                expected)))]]
+                (_.for [/.Interface]
+                       (all _.and
+                            (_.coverage [/.implementation]
+                                        (n.= expected (by local_returner return [])))
+                            (_.coverage [/.open]
+                                        (n.= static_return (global:return [])))
+                            (_.coverage [/.by]
+                                        (n.= expected
+                                             (/.by local_returner return [])))
+                            (_.coverage [/.with]
+                                        (n.= expected
+                                             (/.with local_returner
+                                                     (return []))))
+                            ))))
 
 (the for_module
-  Test
-  (all _.and
-       (let [[module proper] (/.name .example)]
-         (_.coverage [/.name /.prelude]
-           (and (text.= /.prelude module)
-                (text.= proper "example"))))
-       ))
+     Test
+     (all _.and
+          (let [[module proper] (/.name .example)]
+               (_.coverage [/.name /.prelude]
+                           (and (text.= /.prelude module)
+                                (text.= proper "example"))))
+          ))
 
 (the for_pipe
-  Test
-  (monad.let random.monad
-    [start random.natural
-     factor random.natural
-     .let [expected (n.x factor (++ start))]]
-    (all _.and
-         (_.coverage [/.|>]
-           (n.= expected
-                (/.|> start ++ (n.x factor))))
-         (_.coverage [/.|>>]
-           (n.= expected
-                ((/.|>> ++ (n.x factor)) start)))
-         (_.coverage [/.<|]
-           (n.= expected
-                (/.<| (n.x factor) ++ start)))
-         (_.coverage [/.<<|]
-           (n.= expected
-                ((/.<<| (n.x factor) ++) start)))
-         )))
+     Test
+     (monad.let random.monad
+                [start random.natural
+                 factor random.natural
+                 .let [expected (n.x factor (++ start))]]
+                (all _.and
+                     (_.coverage [/.|>]
+                                 (n.= expected
+                                      (/.|> start ++ (n.x factor))))
+                     (_.coverage [/.|>>]
+                                 (n.= expected
+                                      ((/.|>> ++ (n.x factor)) start)))
+                     (_.coverage [/.<|]
+                                 (n.= expected
+                                      (/.<| (n.x factor) ++ start)))
+                     (_.coverage [/.<<|]
+                                 (n.= expected
+                                      ((/.<<| (n.x factor) ++) start)))
+                     )))
 
 (the example_name "YOLO")
 (the i08 8)
 
 (the current_module
-  Text
-  (let [[module _] (name .._)]
-    module))
+     Text
+     (let [[module _] (name .._)]
+          module))
 
 (the for_code/'
-  Test
-  (monad.let random.monad
-    [example_natural random.natural]
-    (_.coverage [/.' /.quote]
-      (and (code.= (code.natural 0) (/.' 0))
-           (code.= (code.integer -1) (/.' -1))
-           (code.= (code.revolution .2) (/.' .2))
-           (code.= (code.real +3.4) (/.' +3.4))
-           (code.= (code.text "5") (/.' "5"))
-           (code.= (code.name ["" "example_name"])
-                   (/.' example_name))
-           (code.= (code.name [/.prelude "example_name"])
-                   (/.' .example_name))
-           (code.= (code.name [..current_module "example_name"])
-                   (/.' ..example_name))
-           (code.= (code.form (list (code.natural 6) (code.integer +7) (code.revolution .8)))
-                   (/.' (6 +7 .8)))
-           (code.= (code.variant (list (code.real +9.0)
-                                       (code.text "9")
-                                       (code.name ["" "i08"])))
-                   (/.' {+9.0 "9" i08}))
-           (code.= (code.tuple (list (code.real +9.0)
-                                     (code.text "9")
-                                     (code.name ["" "i08"])))
-                   (/.' [+9.0 "9" i08]))
-           ))))
+     Test
+     (monad.let random.monad
+                [example_natural random.natural]
+                (_.coverage [/.' /.quote]
+                            (and (code.= (code.natural 0) (/.' 0))
+                                 (code.= (code.integer -1) (/.' -1))
+                                 (code.= (code.revolution .2) (/.' .2))
+                                 (code.= (code.real +3.4) (/.' +3.4))
+                                 (code.= (code.text "5") (/.' "5"))
+                                 (code.= (code.name ["" "example_name"])
+                                         (/.' example_name))
+                                 (code.= (code.name [/.prelude "example_name"])
+                                         (/.' .example_name))
+                                 (code.= (code.name [..current_module "example_name"])
+                                         (/.' ..example_name))
+                                 (code.= (code.form (list (code.natural 6) (code.integer +7) (code.revolution .8)))
+                                         (/.' (6 +7 .8)))
+                                 (code.= (code.variant (list (code.real +9.0)
+                                                             (code.text "9")
+                                                             (code.name ["" "i08"])))
+                                         (/.' {+9.0 "9" i08}))
+                                 (code.= (code.tuple (list (code.real +9.0)
+                                                           (code.text "9")
+                                                           (code.name ["" "i08"])))
+                                         (/.' [+9.0 "9" i08]))
+                                 ))))
 
 (the for_code/`
-  Test
-  (monad.let random.monad
-    [example_natural random.natural]
-    (_.coverage [/.` /.complete_quote]
-      (and (code.= (code.natural 0) (/.` 0))
-           (code.= (code.integer -1) (/.` -1))
-           (code.= (code.revolution .2) (/.` .2))
-           (code.= (code.real +3.4) (/.` +3.4))
-           (code.= (code.text "5") (/.` "5"))
-           (code.= (code.name [..current_module "example_name"])
-                   (/.` example_name))
-           (code.= (code.name [/.prelude "example_name"])
-                   (/.` .example_name))
-           (code.= (code.name [..current_module "example_name"])
-                   (/.` ..example_name))
-           (code.= (code.form (list (code.natural 6) (code.integer +7) (code.revolution .8)))
-                   (/.` (6 +7 .8)))
-           (code.= (code.variant (list (code.real +9.0)
-                                       (code.text "9")
-                                       (code.name [..current_module "i08"])))
-                   (/.` {+9.0 "9" i08}))
-           (code.= (code.tuple (list (code.real +9.0)
-                                     (code.text "9")
-                                     (code.name [..current_module "i08"])))
-                   (/.` [+9.0 "9" i08]))
-           ))))
+     Test
+     (monad.let random.monad
+                [example_natural random.natural]
+                (_.coverage [/.` /.complete_quote]
+                            (and (code.= (code.natural 0) (/.` 0))
+                                 (code.= (code.integer -1) (/.` -1))
+                                 (code.= (code.revolution .2) (/.` .2))
+                                 (code.= (code.real +3.4) (/.` +3.4))
+                                 (code.= (code.text "5") (/.` "5"))
+                                 (code.= (code.name [..current_module "example_name"])
+                                         (/.` example_name))
+                                 (code.= (code.name [/.prelude "example_name"])
+                                         (/.` .example_name))
+                                 (code.= (code.name [..current_module "example_name"])
+                                         (/.` ..example_name))
+                                 (code.= (code.form (list (code.natural 6) (code.integer +7) (code.revolution .8)))
+                                         (/.` (6 +7 .8)))
+                                 (code.= (code.variant (list (code.real +9.0)
+                                                             (code.text "9")
+                                                             (code.name [..current_module "i08"])))
+                                         (/.` {+9.0 "9" i08}))
+                                 (code.= (code.tuple (list (code.real +9.0)
+                                                           (code.text "9")
+                                                           (code.name [..current_module "i08"])))
+                                         (/.` [+9.0 "9" i08]))
+                                 ))))
 
 (the for_code/`'
-  Test
-  (monad.let random.monad
-    [example_natural random.natural]
-    (_.coverage [/.`' /.incomplete_quote]
-      (and (code.= (code.natural 0) (/.`' 0))
-           (code.= (code.integer -1) (/.`' -1))
-           (code.= (code.revolution .2) (/.`' .2))
-           (code.= (code.real +3.4) (/.`' +3.4))
-           (code.= (code.text "5") (/.`' "5"))
-           (code.= (code.name ["" "example_name"])
-                   (/.`' example_name))
-           (code.= (code.name [/.prelude "example_name"])
-                   (/.`' .example_name))
-           (code.= (code.name [..current_module "example_name"])
-                   (/.`' ..example_name))
-           (code.= (code.form (list (code.natural 6) (code.integer +7) (code.revolution .8)))
-                   (/.`' (6 +7 .8)))
-           (code.= (code.variant (list (code.real +9.0)
-                                       (code.text "9")
-                                       (code.name ["" "i08"])))
-                   (/.`' {+9.0 "9" i08}))
-           (code.= (code.tuple (list (code.real +9.0)
-                                     (code.text "9")
-                                     (code.name ["" "i08"])))
-                   (/.`' [+9.0 "9" i08]))
-           ))))
+     Test
+     (monad.let random.monad
+                [example_natural random.natural]
+                (_.coverage [/.`' /.incomplete_quote]
+                            (and (code.= (code.natural 0) (/.`' 0))
+                                 (code.= (code.integer -1) (/.`' -1))
+                                 (code.= (code.revolution .2) (/.`' .2))
+                                 (code.= (code.real +3.4) (/.`' +3.4))
+                                 (code.= (code.text "5") (/.`' "5"))
+                                 (code.= (code.name ["" "example_name"])
+                                         (/.`' example_name))
+                                 (code.= (code.name [/.prelude "example_name"])
+                                         (/.`' .example_name))
+                                 (code.= (code.name [..current_module "example_name"])
+                                         (/.`' ..example_name))
+                                 (code.= (code.form (list (code.natural 6) (code.integer +7) (code.revolution .8)))
+                                         (/.`' (6 +7 .8)))
+                                 (code.= (code.variant (list (code.real +9.0)
+                                                             (code.text "9")
+                                                             (code.name ["" "i08"])))
+                                         (/.`' {+9.0 "9" i08}))
+                                 (code.= (code.tuple (list (code.real +9.0)
+                                                           (code.text "9")
+                                                           (code.name ["" "i08"])))
+                                         (/.`' [+9.0 "9" i08]))
+                                 ))))
 
 (the for_code
-  Test
-  (monad.let [! random.monad]
-    [example (by ! each code.natural random.natural)
-     example_bit random.bit
-     example_natural random.natural
-     example_integer random.integer]
-    (all _.and
-         (all _.and
-              ..for_code/'
-              ..for_code/`
-              ..for_code/`'
-              )
-         (_.coverage [/., /.but]
-           (expansion.let [<natural> (code.natural example_natural)]
-             (and (not (code.= <natural>
-                               (/.' (/., <natural>))))
-                  (code.= <natural>
-                          (/.` (/., <natural>)))
-                  (code.= <natural>
-                          (/.`' (/., <natural>))))))
-         (_.coverage [/.,* /.also]
-           (expansion.let [<bit> (code.bit example_bit)
-                           <natural> (code.natural example_natural)
-                           <integer> (code.integer example_integer)
-                           <expected> (code.tuple (list <bit> <natural> <integer>))
-                           <actual> [(/.,* (list <bit> <natural> <integer>))]]
-             (and (not (code.= <expected>
-                               (/.' <actual>)))
-                  (code.= <expected>
-                          (/.` <actual>))
-                  (code.= <expected>
-                          (/.`' <actual>)))))
-         (_.coverage [/.,' /.verbatim]
-           (expansion.let [<bit> (code.bit example_bit)
-                           <natural> (code.natural example_natural)
-                           <integer> (code.integer example_integer)
-                           <expected> (/.' [(stack <bit> <natural> <integer>)])
-                           <actual> [(/.,' (stack <bit> <natural> <integer>))]]
-             (and (not (code.= <expected>
-                               (/.' <actual>)))
-                  (code.= <expected>
-                          (/.` <actual>))
-                  (code.= <expected>
-                          (/.`' <actual>)))))
-         )))
+     Test
+     (monad.let [! random.monad]
+                [example (by ! each code.natural random.natural)
+                 example_bit random.bit
+                 example_natural random.natural
+                 example_integer random.integer]
+                (all _.and
+                     (all _.and
+                          ..for_code/'
+                          ..for_code/`
+                          ..for_code/`'
+                          )
+                     (_.coverage [/., /.but]
+                                 (expansion.let [<natural> (code.natural example_natural)]
+                                                (and (not (code.= <natural>
+                                                                  (/.' (/., <natural>))))
+                                                     (code.= <natural>
+                                                             (/.` (/., <natural>)))
+                                                     (code.= <natural>
+                                                             (/.`' (/., <natural>))))))
+                     (_.coverage [/.,* /.also]
+                                 (expansion.let [<bit> (code.bit example_bit)
+                                                 <natural> (code.natural example_natural)
+                                                 <integer> (code.integer example_integer)
+                                                 <expected> (code.tuple (list <bit> <natural> <integer>))
+                                                 <actual> [(/.,* (list <bit> <natural> <integer>))]]
+                                                (and (not (code.= <expected>
+                                                                  (/.' <actual>)))
+                                                     (code.= <expected>
+                                                             (/.` <actual>))
+                                                     (code.= <expected>
+                                                             (/.`' <actual>)))))
+                     (_.coverage [/.,' /.verbatim]
+                                 (expansion.let [<bit> (code.bit example_bit)
+                                                 <natural> (code.natural example_natural)
+                                                 <integer> (code.integer example_integer)
+                                                 <expected> (/.' [(stack <bit> <natural> <integer>)])
+                                                 <actual> [(/.,' (stack <bit> <natural> <integer>))]]
+                                                (and (not (code.= <expected>
+                                                                  (/.' <actual>)))
+                                                     (code.= <expected>
+                                                             (/.` <actual>))
+                                                     (code.= <expected>
+                                                             (/.`' <actual>)))))
+                     )))
 
 (the identity_macro
-  (/.macro (_ tokens)
-    (by meta.monad pure tokens)))
+     (/.macro (_ tokens)
+              (by meta.monad pure tokens)))
 
 (the crosshair
-  "This is an arbitrary text whose only purpose is to be found, somewhere, in the source-code.")
+     "This is an arbitrary text whose only purpose is to be found, somewhere, in the source-code.")
 
 (the found_crosshair?
-  (macro (_ tokens lux)
-    (let [[_ _ source_code] (its .:source lux)]
-      {.:Right [lux (list (code.bit (text.contains? ..crosshair source_code)))]})))
+     (macro (_ tokens lux)
+            (let [[_ _ source_code] (its .:source lux)]
+                 {.:Right [lux (list (code.bit (text.contains? ..crosshair source_code)))]})))
 
 (the for_macro
-  Test
-  (let [macro (is /.Macro'
-                  (function (_ tokens lux)
-                    {.:Right [lux (list)]}))]
-    (monad.let random.monad
-      [expected random.natural]
-      (`` (`` (all _.and
-                   (_.coverage [/.Macro']
-                     (|> macro
-                         (is /.Macro')
-                         (identical? macro)))
-                   (_.coverage [/.Macro]
-                     (|> macro
-                         macro.macro
-                         (is /.Macro)
-                         (is Any)
-                         (identical? (is Any macro))))
-                   (_.coverage [/.macro]
-                     (identical? expected (..identity_macro expected)))
-                   (_.coverage [/.Source]
-                     (..found_crosshair?))))))))
+     Test
+     (let [macro (is /.Macro'
+                     (function (_ tokens lux)
+                               {.:Right [lux (list)]}))]
+          (monad.let random.monad
+                     [expected random.natural]
+                     (`` (`` (all _.and
+                                  (_.coverage [/.Macro']
+                                              (|> macro
+                                                  (is /.Macro')
+                                                  (identical? macro)))
+                                  (_.coverage [/.Macro]
+                                              (|> macro
+                                                  macro.macro
+                                                  (is /.Macro)
+                                                  (is Any)
+                                                  (identical? (is Any macro))))
+                                  (_.coverage [/.macro]
+                                              (identical? expected (..identity_macro expected)))
+                                  (_.coverage [/.Source]
+                                              (..found_crosshair?))))))))
 
 (/.every for_type/variant
-  (Variant
-   {:Case/0}
-   {:Case/1 Natural}
-   {:Case/2 Integer Text}))
+         (Variant
+          {:Case/0}
+          {:Case/1 Natural}
+          {:Case/2 Integer Text}))
 
 (/.every for_type/record
-  (Record
-   [:slot/0 Bit
-    :slot/1 Revolution]))
+         (Record
+          [:slot/0 Bit
+           :slot/1 Revolution]))
 
 (/.every (for_type/all parameter)
-  [parameter parameter])
+         [parameter parameter])
 
 (the for_type
-  Test
-  (monad.let [! random.monad]
-    [expected random.natural
+     Test
+     (monad.let [! random.monad]
+                [expected random.natural
 
-     expected_left random.natural
-     expected_right random.natural
+                 expected_left random.natural
+                 expected_right random.natural
 
-     .let [existential_type (by ! each (|>> {/.:Variable .special}) random.natural)]
-     expected/0 existential_type
-     expected/1 existential_type]
-    (all _.and
-         (_.coverage [/.is]
-           (|> expected
-               (/.is Any)
-               (identical? (/.is Any expected))))
-         (_.coverage [/.as]
-           (|> expected
-               (/.as (-> Any /.Natural))
-               (identical? expected)))
-         (_.coverage [/.as_expected]
-           (|> expected
-               (/.is Any)
-               /.as_expected
-               (/.is /.Natural)
-               (identical? expected)))
-         (_.coverage [/.type_of]
-           (identical? /.Natural (/.type_of expected)))
-         (_.coverage [/.Nominal]
-           (when (/.Nominal "foo" [[1b expected/0]
-                                   [1b expected/1]])
-             {.:Nominal "foo" (list [1b actual/0] [1b actual/1])}
-             (and (identical? expected/0 actual/0)
-                  (identical? expected/1 actual/1))
+                 .let [existential_type (by ! each (|>> {/.:Variable .special}) random.natural)]
+                 expected/0 existential_type
+                 expected/1 existential_type]
+                (all _.and
+                     (_.coverage [/.is]
+                                 (|> expected
+                                     (/.is Any)
+                                     (identical? (/.is Any expected))))
+                     (_.coverage [/.as]
+                                 (|> expected
+                                     (/.as (-> Any /.Natural))
+                                     (identical? expected)))
+                     (_.coverage [/.as_expected]
+                                 (|> expected
+                                     (/.is Any)
+                                     /.as_expected
+                                     (/.is /.Natural)
+                                     (identical? expected)))
+                     (_.coverage [/.type_of]
+                                 (identical? /.Natural (/.type_of expected)))
+                     (_.coverage [/.Nominal]
+                                 (when (/.Nominal "foo" [[1b expected/0]
+                                                         [1b expected/1]])
+                                       {.:Nominal "foo" (list [1b actual/0] [1b actual/1])}
+                                       (and (identical? expected/0 actual/0)
+                                            (identical? expected/1 actual/1))
 
-             _
-             false))
-         (_.coverage [/.every]
-           (exec
-             (is /.Type ..for_type/variant)
-             (is /.Type ..for_type/record)
-             (is /.Type ..for_type/all)
-             true))
-         (_.coverage [/.Variant]
-           (exec
-             (is for_type/variant
-                 {:Case/1 expected_left})
-             true))
-         (_.coverage [/.Record]
-           (exec
-             (is for_type/record
-                 [:slot/0 (n.= expected_left expected_right)
-                  :slot/1 (.revolution expected_right)])
-             true))
-         (_.coverage [/.type]
-           (and (type.= expected/0
-                        (/.type expected/0))
-                (type.= (type.Sum expected/0 expected/1)
-                        (/.type (Or expected/0 expected/1)))
-                (type.= (type.Product expected/0 expected/1)
-                        (/.type [expected/0 expected/1]))
-                (type.= (type.Function expected/0 expected/1)
-                        (/.type (-> expected/0 expected/1)))
-                (type.= {.:Reification expected/1 expected/0}
-                        (/.type (expected/0 expected/1)))))
-         )))
+                                       _
+                                       false))
+                     (_.coverage [/.every]
+                                 (exec
+                                  (is /.Type ..for_type/variant)
+                                  (is /.Type ..for_type/record)
+                                  (is /.Type ..for_type/all)
+                                  true))
+                     (_.coverage [/.Variant]
+                                 (exec
+                                  (is for_type/variant
+                                      {:Case/1 expected_left})
+                                  true))
+                     (_.coverage [/.Record]
+                                 (exec
+                                  (is for_type/record
+                                      [:slot/0 (n.= expected_left expected_right)
+                                       :slot/1 (.revolution expected_right)])
+                                  true))
+                     (_.coverage [/.type]
+                                 (and (type.= expected/0
+                                              (/.type expected/0))
+                                      (type.= (type.Sum expected/0 expected/1)
+                                              (/.type (Or expected/0 expected/1)))
+                                      (type.= (type.Product expected/0 expected/1)
+                                              (/.type [expected/0 expected/1]))
+                                      (type.= (type.Function expected/0 expected/1)
+                                              (/.type (-> expected/0 expected/1)))
+                                      (type.= {.:Reification expected/1 expected/0}
+                                              (/.type (expected/0 expected/1)))))
+                     )))
 
 (the for_i64
-  Test
-  (monad.let random.monad
-    [expected random.i64]
-    (all _.and
-         (_.coverage [/.i64]
-           (identical? (is Any expected)
-                       (is Any (/.i64 expected))))
-         (_.coverage [/.natural]
-           (identical? (is Any expected)
-                       (is Any (/.natural expected))))
-         (_.coverage [/.integer]
-           (identical? (is Any expected)
-                       (is Any (/.integer expected))))
-         (_.coverage [/.revolution]
-           (identical? (is Any expected)
-                       (is Any (/.revolution expected))))
-         (_.for [/.Change]
+     Test
+     (monad.let random.monad
+                [expected random.i64]
                 (all _.and
-                     (_.coverage [/.++]
-                       (n.= 1 (n.- expected
-                                   (/.++ expected))))
-                     (_.coverage [/.--]
-                       (n.= 1 (n.- (/.-- expected)
-                                   expected)))
-                     )))))
+                     (_.coverage [/.i64]
+                                 (identical? (is Any expected)
+                                             (is Any (/.i64 expected))))
+                     (_.coverage [/.natural]
+                                 (identical? (is Any expected)
+                                             (is Any (/.natural expected))))
+                     (_.coverage [/.integer]
+                                 (identical? (is Any expected)
+                                             (is Any (/.integer expected))))
+                     (_.coverage [/.revolution]
+                                 (identical? (is Any expected)
+                                             (is Any (/.revolution expected))))
+                     (_.for [/.Change]
+                            (all _.and
+                                 (_.coverage [/.++]
+                                             (n.= 1 (n.- expected
+                                                         (/.++ expected))))
+                                 (_.coverage [/.--]
+                                             (n.= 1 (n.- (/.-- expected)
+                                                         expected)))
+                                 )))))
 
 (the for_function
-  Test
-  (monad.let random.monad
-    [expected_left random.natural
-     expected_right random.natural
+     Test
+     (monad.let random.monad
+                [expected_left random.natural
+                 expected_right random.natural
 
-     left (/type.random 0)
-     right (/type.random 0)]
-    (all _.and
-         (_.coverage [/.->]
-           (and (let [actual (is (/.-> Natural Natural Natural)
-                                 (/.function (_ actual_left actual_right)
-                                   (n.x (++ actual_left) (-- actual_right))))]
-                  (n.= (n.x (++ expected_left) (-- expected_right))
-                       (actual expected_left expected_right)))
-                (let [actual (is (/.-> [Natural Natural] Natural)
-                                 (/.function (_ [actual_left actual_right])
-                                   (n.x (++ actual_left) (-- actual_right))))]
-                  (n.= (n.x (++ expected_left) (-- expected_right))
-                       (actual [expected_left expected_right])))))
-         (_.coverage [/.<-]
-           (type.= (/.-> left right)
-                   (/.<- right left)))
-         )))
+                 left (/type.random 0)
+                 right (/type.random 0)]
+                (all _.and
+                     (_.coverage [/.->]
+                                 (and (let [actual (is (/.-> Natural Natural Natural)
+                                                       (/.function (_ actual_left actual_right)
+                                                                   (n.x (++ actual_left) (-- actual_right))))]
+                                           (n.= (n.x (++ expected_left) (-- expected_right))
+                                                (actual expected_left expected_right)))
+                                      (let [actual (is (/.-> [Natural Natural] Natural)
+                                                       (/.function (_ [actual_left actual_right])
+                                                                   (n.x (++ actual_left) (-- actual_right))))]
+                                           (n.= (n.x (++ expected_left) (-- expected_right))
+                                                (actual [expected_left expected_right])))))
+                     (_.coverage [/.<-]
+                                 (type.= (/.-> left right)
+                                         (/.<- right left)))
+                     )))
 
 (the option/0 "0")
 (the option/1 "1")
 (the static_character "@")
 
 (the for_static
-  Test
-  (monad.let random.monad
-    [sample (random.either (pure option/0)
-                           (pure option/1))]
-    (all _.and
-         (_.coverage [/.static]
-           (when sample
-             (/.static option/0) true
-             (/.static option/1) true
-             _ false))
-         (_.coverage [/.character]
-           (|> (`` (/.character (,, (/.static static_character))))
-               text.of_character
-               (text.= static_character)))
-         )))
+     Test
+     (monad.let random.monad
+                [sample (random.either (pure option/0)
+                                       (pure option/1))]
+                (all _.and
+                     (_.coverage [/.static]
+                                 (when sample
+                                       (/.static option/0) true
+                                       (/.static option/1) true
+                                       _ false))
+                     (_.coverage [/.character]
+                                 (|> (`` (/.character (,, (/.static static_character))))
+                                     text.of_character
+                                     (text.= static_character)))
+                     )))
 
 (every Small
-  (Record
-   [:small_left Natural
-    :small_right Text]))
+       (Record
+        [:small_left Natural
+         :small_right Text]))
 
 (every Big
-  (Record
-   [:big_left Natural
-    :big_right Small]))
+       (Record
+        [:big_left Natural
+         :big_right Small]))
 
 (the for_slot
-  Test
-  (monad.let random.monad
-    [start/s random.natural
-     start/b random.natural
-     shift/s random.natural
-     shift/b random.natural
-     text (random.lower_cased 1)
-     .let [expected/s (n.+ shift/s start/s)
-           expected/b (n.+ shift/b start/b)
+     Test
+     (monad.let random.monad
+                [start/s random.natural
+                 start/b random.natural
+                 shift/s random.natural
+                 shift/b random.natural
+                 text (random.lower_cased 1)
+                 .let [expected/s (n.+ shift/s start/s)
+                       expected/b (n.+ shift/b start/b)
 
-           sample [:big_left start/b
-                   :big_right [:small_left start/s
-                               :small_right text]]]]
-    (all _.and
-         (_.coverage [/.its]
-           (and (and (|> sample
-                         (/.its :big_left)
-                         (identical? start/b))
-                     (|> sample
-                         ((/.its :big_left))
-                         (identical? start/b)))
-                (and (|> sample
-                         (/.its [:big_right :small_left])
-                         (identical? start/s))
-                     (|> sample
-                         ((/.its [:big_right :small_left]))
-                         (identical? start/s)))))
-         (_.coverage [/.has]
-           (and (and (|> sample
-                         (/.has :big_left shift/b)
-                         (/.its :big_left)
-                         (identical? shift/b))
-                     (|> sample
-                         ((/.has :big_left shift/b))
-                         (/.its :big_left)
-                         (identical? shift/b))
-                     (|> sample
-                         ((/.has :big_left) shift/b)
-                         (/.its :big_left)
-                         (identical? shift/b)))
-                (and (|> sample
-                         (/.has [:big_right :small_left] shift/s)
-                         (/.its [:big_right :small_left])
-                         (identical? shift/s))
-                     (|> sample
-                         ((/.has [:big_right :small_left] shift/s))
-                         (/.its [:big_right :small_left])
-                         (identical? shift/s))
-                     (|> sample
-                         ((/.has [:big_right :small_left]) shift/s)
-                         (/.its [:big_right :small_left])
-                         (identical? shift/s)))))
-         (_.coverage [/.revised]
-           (and (and (|> sample
-                         (/.revised :big_left (n.+ shift/b))
-                         (/.its :big_left)
-                         (n.= expected/b))
-                     (|> sample
-                         ((/.revised :big_left (n.+ shift/b)))
-                         (/.its :big_left)
-                         (n.= expected/b))
-                     (|> sample
-                         ((is (-> (-> Natural Natural) (-> Big Big))
-                              (/.revised :big_left))
-                          (n.+ shift/b))
-                         (/.its :big_left)
-                         (n.= expected/b)))
-                (and (|> sample
-                         (/.revised [:big_right :small_left] (n.+ shift/s))
-                         (/.its [:big_right :small_left])
-                         (n.= expected/s))
-                     (|> sample
-                         ((/.revised [:big_right :small_left] (n.+ shift/s)))
-                         (/.its [:big_right :small_left])
-                         (n.= expected/s))
-                     (|> sample
-                         ((is (-> (-> Natural Natural) (-> Big Big))
-                              (/.revised [:big_right :small_left]))
-                          (n.+ shift/s))
-                         (/.its [:big_right :small_left])
-                         (n.= expected/s)))))
-         )))
+                       sample [:big_left start/b
+                               :big_right [:small_left start/s
+                                           :small_right text]]]]
+                (all _.and
+                     (_.coverage [/.its]
+                                 (and (and (|> sample
+                                               (/.its :big_left)
+                                               (identical? start/b))
+                                           (|> sample
+                                               ((is (-> Big Natural) (/.its :big_left)))
+                                               (identical? start/b)))
+                                      (and (|> sample
+                                               (/.its [:big_right :small_left])
+                                               (identical? start/s))
+                                           (|> sample
+                                               ((is (-> Big Natural) (/.its [:big_right :small_left])))
+                                               (identical? start/s)))))
+                     (_.coverage [/.has]
+                                 (and (and (|> sample
+                                               (/.has :big_left shift/b)
+                                               (/.its :big_left)
+                                               (identical? shift/b))
+                                           (|> sample
+                                               ((is (Change Big) (/.has :big_left shift/b)))
+                                               (/.its :big_left)
+                                               (identical? shift/b))
+                                           (|> sample
+                                               ((is (-> Natural (Change Big)) (/.has :big_left)) shift/b)
+                                               (/.its :big_left)
+                                               (identical? shift/b)))
+                                      (and (|> sample
+                                               (/.has [:big_right :small_left] shift/s)
+                                               (/.its [:big_right :small_left])
+                                               (identical? shift/s))
+                                           (|> sample
+                                               ((is (Change Big) (/.has [:big_right :small_left] shift/s)))
+                                               (/.its [:big_right :small_left])
+                                               (identical? shift/s))
+                                           (|> sample
+                                               ((is (-> Natural (Change Big)) (/.has [:big_right :small_left])) shift/s)
+                                               (/.its [:big_right :small_left])
+                                               (identical? shift/s)))))
+                     (_.coverage [/.revised]
+                                 (and (and (|> sample
+                                               (/.revised :big_left (n.+ shift/b))
+                                               (/.its :big_left)
+                                               (n.= expected/b))
+                                           (|> sample
+                                               ((is (Change Big)
+                                                    (/.revised :big_left (n.+ shift/b))))
+                                               (/.its :big_left)
+                                               (n.= expected/b))
+                                           (|> sample
+                                               ((is (-> (Change Natural) (Change Big))
+                                                    (/.revised :big_left))
+                                                (n.+ shift/b))
+                                               (/.its :big_left)
+                                               (n.= expected/b)))
+                                      (and (|> sample
+                                               (/.revised [:big_right :small_left] (n.+ shift/s))
+                                               (/.its [:big_right :small_left])
+                                               (n.= expected/s))
+                                           (|> sample
+                                               ((is (Change Big)
+                                                    (/.revised [:big_right :small_left] (n.+ shift/s))))
+                                               (/.its [:big_right :small_left])
+                                               (n.= expected/s))
+                                           (|> sample
+                                               ((is (-> (Change Natural) (Change Big))
+                                                    (/.revised [:big_right :small_left]))
+                                                (n.+ shift/s))
+                                               (/.its [:big_right :small_left])
+                                               (n.= expected/s)))))
+                     )))
 
 (the for_associative
-  Test
-  (monad.let random.monad
-    [left (random.lower_cased 1)
-     mid (random.lower_cased 1)
-     right (random.lower_cased 1)
-     .let [expected (text.interposed "" (list left mid right))]]
-    (all _.and
-         (_.coverage [/.left_associative /.right_associative]
-           (expansion.let [<left_association> (/.left_associative .text left mid right)
-                           <right_association> (/.right_associative .text left mid right)]
-             (and (text.= <left_association>
-                          <right_association>)
-                  (not (code.= (' <left_association>)
-                               (' <right_association>))))))
-         (_.coverage [/.all]
-           (identical? /.right_associative /.all))
-         (_.coverage [/.per]
-           (identical? /.left_associative /.per))
-         )))
+     Test
+     (monad.let random.monad
+                [left (random.lower_cased 1)
+                 mid (random.lower_cased 1)
+                 right (random.lower_cased 1)
+                 .let [expected (text.interposed "" (list left mid right))]]
+                (all _.and
+                     (_.coverage [/.left_associative /.right_associative]
+                                 (expansion.let [<left_association> (/.left_associative .text left mid right)
+                                                 <right_association> (/.right_associative .text left mid right)]
+                                                (and (text.= <left_association>
+                                                             <right_association>)
+                                                     (not (code.= (' <left_association>)
+                                                                  (' <right_association>))))))
+                     (_.coverage [/.all]
+                                 (identical? /.right_associative /.all))
+                     (_.coverage [/.per]
+                                 (identical? /.left_associative /.per))
+                     )))
 
 (the for_expansion
-  Test
-  (monad.let random.monad
-    [left random.natural
-     right random.natural
-     dummy random.natural
-     .let [expected (n.+ left right)]]
-    (all _.and
-         (_.coverage [/.these]
-           (`` (and (,, (these true
-                               true
-                               true)))))
-         (_.coverage [/.comment]
-           (n.= expected
-                (/.comment dummy (n.+ left right))))
-         (_.coverage [/.`` /.,,]
-           (n.= expected
-                (/.`` (all n.+
-                           (/.,, (these left))
-                           (/.,, (/.comment dummy right))))))
-         )))
+     Test
+     (monad.let random.monad
+                [left random.natural
+                 right random.natural
+                 dummy random.natural
+                 .let [expected (n.+ left right)]]
+                (all _.and
+                     (_.coverage [/.these]
+                                 (`` (and (,, (these true
+                                                     true
+                                                     true)))))
+                     (_.coverage [/.comment]
+                                 (n.= expected
+                                      (/.comment dummy (n.+ left right))))
+                     (_.coverage [/.`` /.,,]
+                                 (n.= expected
+                                      (/.`` (all n.+
+                                                 (/.,, (these left))
+                                                 (/.,, (/.comment dummy right))))))
+                     )))
 
 (alias [identical?']
        /.identical?)
 
 (the for_value
-  Test
-  (monad.let random.monad
-    [left random.natural
-     right (random.lower_cased 1)
+     Test
+     (monad.let random.monad
+                [left random.natural
+                 right (random.lower_cased 1)
 
-     item/0 random.natural
-     item/1 random.natural
-     item/2 random.natural]
-    (all _.and
-         (_.coverage [/.Either
-                      /.:Left /.:Right]
-           (and (exec
-                  (is (/.Either Natural Text)
-                      {.:Left left})
-                  true)
-                (exec
-                  (is (/.Either Natural Text)
-                      {.:Right right})
-                  true)))
-         (_.coverage [/.Any
-                      /.True /.Verum]
-           (and (exec
-                  (is /.Any
-                      left)
-                  true)
-                (exec
-                  (is /.Any
-                      right)
-                  true)
-                (identical? /.Any /.True)
-                (identical? /.Any /.Verum)))
-         (_.coverage [/.Nothing
-                      /.False /.Falsum]
-           (and (exec
-                  (is (-> /.Any /.Nothing)
-                      (function (_ _)
-                        (undefined)))
-                  true)
-                (exec
-                  (is (-> /.Any /.Integer)
-                      (function (_ _)
-                        (is /.Integer (undefined))))
-                  true)
-                (identical? /.Nothing /.False)
-                (identical? /.Nothing /.Falsum)))
-         (_.for [/.__adjusted_quantified_type__]
+                 item/0 random.natural
+                 item/1 random.natural
+                 item/2 random.natural]
                 (all _.and
-                     (_.coverage [/.for_any]
-                       (let [identity (is (/.for_any (_ a) (-> a a))
-                                          (|>>))]
-                         (and (exec
-                                (is Natural
-                                    (identity left))
-                                true)
-                              (exec
-                                (is Text
-                                    (identity right))
-                                true))))
-                     (_.coverage [/.for_some]
-                       (let [hide (is (/.for_some (_ a) (-> Natural a))
-                                      (|>>))]
-                         (exec
-                           (is /.Any
-                               (hide left))
-                           true)))))
-         (_.coverage [/.identical?]
-           (and (let [not_left (atom.atom left)
-                      left (atom.atom left)]
-                  (and (/.identical? left left)
-                       (/.identical? not_left not_left)
-                       (not (/.identical? left not_left))))
-                (/.identical? /.identical? /.identical?)))
-         (_.coverage [/.alias]
-           (/.identical? /.identical?
-                         ..identical?'))
-         (_.coverage [/.Rec]
-           (let [stack (is (/.Rec NStack
-                             (Maybe [Natural NStack]))
-                           {.:Some [item/0
-                                    {.:Some [item/1
-                                             {.:Some [item/2
-                                                      {.:None}]}]}]})]
-             (when stack
-               {.:Some [actual/0 {.:Some [actual/1 {.:Some [actual/2 {.:None}]}]}]}
-               (and (identical? item/0 actual/0)
-                    (identical? item/1 actual/1)
-                    (identical? item/2 actual/2))
+                     (_.coverage [/.Either
+                                  /.:Left /.:Right]
+                                 (and (exec
+                                       (is (/.Either Natural Text)
+                                           {.:Left left})
+                                       true)
+                                      (exec
+                                       (is (/.Either Natural Text)
+                                           {.:Right right})
+                                       true)))
+                     (_.coverage [/.Any
+                                  /.True /.Verum]
+                                 (and (exec
+                                       (is /.Any
+                                           left)
+                                       true)
+                                      (exec
+                                       (is /.Any
+                                           right)
+                                       true)
+                                      (identical? /.Any /.True)
+                                      (identical? /.Any /.Verum)))
+                     (_.coverage [/.Nothing
+                                  /.False /.Falsum]
+                                 (and (exec
+                                       (is (-> /.Any /.Nothing)
+                                           (function (_ _)
+                                                     (undefined)))
+                                       true)
+                                      (exec
+                                       (is (-> /.Any /.Integer)
+                                           (function (_ _)
+                                                     (is /.Integer (undefined))))
+                                       true)
+                                      (identical? /.Nothing /.False)
+                                      (identical? /.Nothing /.Falsum)))
+                     (_.for [/.__adjusted_quantified_type__]
+                            (all _.and
+                                 (_.coverage [/.for_any]
+                                             (let [identity (is (/.for_any (_ a) (-> a a))
+                                                                (|>>))]
+                                                  (and (exec
+                                                        (is Natural
+                                                            (identity left))
+                                                        true)
+                                                       (exec
+                                                        (is Text
+                                                            (identity right))
+                                                        true))))
+                                 (_.coverage [/.for_some]
+                                             (let [hide (is (/.for_some (_ a) (-> Natural a))
+                                                            (|>>))]
+                                                  (exec
+                                                   (is /.Any
+                                                       (hide left))
+                                                   true)))))
+                     (_.coverage [/.identical?]
+                                 (and (let [not_left (atom.atom left)
+                                            left (atom.atom left)]
+                                           (and (/.identical? left left)
+                                                (/.identical? not_left not_left)
+                                                (not (/.identical? left not_left))))
+                                      (/.identical? /.identical? /.identical?)))
+                     (_.coverage [/.alias]
+                                 (/.identical? /.identical?
+                                               ..identical?'))
+                     (_.coverage [/.Rec]
+                                 (let [stack (is (/.Rec NStack
+                                                        (Maybe [Natural NStack]))
+                                                 {.:Some [item/0
+                                                          {.:Some [item/1
+                                                                   {.:Some [item/2
+                                                                            {.:None}]}]}]})]
+                                      (when stack
+                                            {.:Some [actual/0 {.:Some [actual/1 {.:Some [actual/2 {.:None}]}]}]}
+                                            (and (identical? item/0 actual/0)
+                                                 (identical? item/1 actual/1)
+                                                 (identical? item/2 actual/2))
 
-               _
-               false)))
-         )))
+                                            _
+                                            false)))
+                     )))
 
 (every (Pair l r)
-  (Record
-   [:left l
-    :right r]))
+       (Record
+        [:left l
+         :right r]))
 
 (the !pair
-  (template.macro (_ <left> <right>)
-    [[..:left <left>
-      ..:right <right>]]))
+     (template.macro (_ <left> <right>)
+                     [[..:left <left>
+                       ..:right <right>]]))
 
 (the for_when
-  Test
-  (monad.let [! random.monad]
-    [expected_natural (by ! each (n.% 1) random.natural)
-     expected_integer (by ! each (i.% +1) random.integer)
-     expected_revolution (random.either (pure .5)
-                                        (pure .25))
-     expected_real (random.either (pure +0.5)
-                                  (pure +1.25))
-     expected_text (random.either (pure "+0.5")
-                                  (pure "+1.25"))]
-    (all _.and
-         (_.coverage [/.when]
-           (and (/.when expected_natural
-                  0 true
-                  _ false)
-                (/.when expected_integer
-                  +0 true
-                  _ false)
-                (/.when expected_revolution
-                  .5 true
-                  .25 true
-                  _ false)
-                (/.when expected_real
-                  +0.5 true
-                  +1.25 true
-                  _ false)
-                (/.when expected_text
-                  "+0.5" true
-                  "+1.25" true
-                  _ false)
-                (/.when [expected_natural expected_integer]
-                  [0 +0] true
-                  _ false)
-                (/.when [..:left expected_natural ..:right expected_integer]
-                  [..:left 0 ..:right +0] true
-                  _ false)
-                (/.when (is (Either Natural Integer) {.:Left expected_natural})
-                  {.:Left 0} true
-                  _ false)
-                (/.when (is (Either Natural Integer) {.:Right expected_integer})
-                  {.:Right +0} true
-                  _ false)
-                ))
-         (_.coverage [/.match?]
-           (and (/.match? 0 expected_natural)
-                (/.match? +0 expected_integer)
-                (/.match? (^.or .5 .25) expected_revolution)
-                (/.match? (^.or +0.5 +1.25) expected_real)
-                (/.match? (^.or "+0.5" "+1.25") expected_text)
-                (/.match? [0 +0] [expected_natural expected_integer])
-                (/.match? [..:left 0 ..:right +0] [..:left expected_natural ..:right expected_integer])
-                (/.match? {.:Left 0} (is (Either Natural Integer) {.:Left expected_natural}))
-                (/.match? {.:Right +0} (is (Either Natural Integer) {.:Right expected_integer}))
-                ))
-         (_.coverage [/.let]
-           (and (/.let [actual_natural expected_natural]
-                  (/.identical? expected_natural actual_natural))
-                (/.let [[actual_left actual_right] [..:left expected_natural ..:right expected_integer]]
-                  (and (/.identical? expected_natural actual_left)
-                       (/.identical? expected_integer actual_right)))))
-         )))
+     Test
+     (monad.let [! random.monad]
+                [expected_natural (by ! each (n.% 1) random.natural)
+                 expected_integer (by ! each (i.% +1) random.integer)
+                 expected_revolution (random.either (pure .5)
+                                                    (pure .25))
+                 expected_real (random.either (pure +0.5)
+                                              (pure +1.25))
+                 expected_text (random.either (pure "+0.5")
+                                              (pure "+1.25"))]
+                (all _.and
+                     (_.coverage [/.when]
+                                 (and (/.when expected_natural
+                                              0 true
+                                              _ false)
+                                      (/.when expected_integer
+                                              +0 true
+                                              _ false)
+                                      (/.when expected_revolution
+                                              .5 true
+                                              .25 true
+                                              _ false)
+                                      (/.when expected_real
+                                              +0.5 true
+                                              +1.25 true
+                                              _ false)
+                                      (/.when expected_text
+                                              "+0.5" true
+                                              "+1.25" true
+                                              _ false)
+                                      (/.when [expected_natural expected_integer]
+                                              [0 +0] true
+                                              _ false)
+                                      (/.when [..:left expected_natural ..:right expected_integer]
+                                              [..:left 0 ..:right +0] true
+                                              _ false)
+                                      (/.when (is (Either Natural Integer) {.:Left expected_natural})
+                                              {.:Left 0} true
+                                              _ false)
+                                      (/.when (is (Either Natural Integer) {.:Right expected_integer})
+                                              {.:Right +0} true
+                                              _ false)
+                                      ))
+                     (_.coverage [/.match?]
+                                 (and (/.match? 0 expected_natural)
+                                      (/.match? +0 expected_integer)
+                                      (/.match? (^.or .5 .25) expected_revolution)
+                                      (/.match? (^.or +0.5 +1.25) expected_real)
+                                      (/.match? (^.or "+0.5" "+1.25") expected_text)
+                                      (/.match? [0 +0] [expected_natural expected_integer])
+                                      (/.match? [..:left 0 ..:right +0] [..:left expected_natural ..:right expected_integer])
+                                      (/.match? {.:Left 0} (is (Either Natural Integer) {.:Left expected_natural}))
+                                      (/.match? {.:Right +0} (is (Either Natural Integer) {.:Right expected_integer}))
+                                      ))
+                     (_.coverage [/.let]
+                                 (and (/.let [actual_natural expected_natural]
+                                             (/.identical? expected_natural actual_natural))
+                                      (/.let [[actual_left actual_right] [..:left expected_natural ..:right expected_integer]]
+                                             (and (/.identical? expected_natural actual_left)
+                                                  (/.identical? expected_integer actual_right)))))
+                     )))
 
 (the for_control_flow
-  Test
-  (all _.and
-       (monad.let random.monad
-         [factor (random:each (|>> (n.% 10) (n.major 1)) random.natural)
-          iterations (random:each (n.% 10) random.natural)
-          .let [expected (n.x factor iterations)]]
-         (_.coverage [/.loop]
-           (n.= expected
-                (/.loop (again [counter 0
-                                value 0])
-                  (if (n.< iterations counter)
-                      (again (++ counter) (n.+ factor value))
-                      value)))))
-       (monad.let random.monad
-         [pre random.natural
-          post (random.only (|>> (n.= pre) not) random.natural)
-          .let [box (atom.atom pre)]]
-         (_.coverage [/.exec]
-           (and (identical? pre (io.value (atom.read! box)))
-                (/.exec
-                  (io.value (atom.write! post box))
-                  (identical? post (io.value (atom.read! box)))))))
-       ))
+     Test
+     (all _.and
+          (monad.let random.monad
+                     [factor (random:each (|>> (n.% 10) (n.major 1)) random.natural)
+                      iterations (random:each (n.% 10) random.natural)
+                      .let [expected (n.x factor iterations)]]
+                     (_.coverage [/.loop]
+                                 (n.= expected
+                                      (/.loop (again [counter 0
+                                                      value 0])
+                                              (if (n.< iterations counter)
+                                                  (again (++ counter) (n.+ factor value))
+                                                  value)))))
+          (monad.let random.monad
+                     [pre random.natural
+                      post (random.only (|>> (n.= pre) not) random.natural)
+                      .let [box (atom.atom pre)]]
+                     (_.coverage [/.exec]
+                                 (and (identical? pre (io.value (atom.read! box)))
+                                      (/.exec
+                                       (io.value (atom.write! post box))
+                                       (identical? post (io.value (atom.read! box)))))))
+          ))
 
 (the identity/constant
-  (for_any (_ a)
-    (-> a
-        a))
-  (function (_ value)
-    value))
+     (for_any (_ a)
+              (-> a
+                  a))
+     (function (_ value)
+               value))
 
 (the (identity/function value)
-  (for_any (_ a)
-    (-> a
-        a))
-  value)
+     (for_any (_ a)
+              (-> a
+                  a))
+     value)
 
 (the for_def
-  Test
-  (monad.let random.monad
-    [expected random.natural]
-    (_.coverage [/.the]
-      (and (identical? expected (identity/constant expected))
-           (identical? expected (identity/function expected))))))
+     Test
+     (monad.let random.monad
+                [expected random.natural]
+                (_.coverage [/.the]
+                            (and (identical? expected (identity/constant expected))
+                                 (identical? expected (identity/function expected))))))
 
 (the possible_targets
-  (Set target.Target)
-  (<| (set.of_list text.hash)
-      (list target.js
-            target.jvm
-            target.lua
-            target.python
-            target.ruby)))
+     (Set target.Target)
+     (<| (set.of_list text.hash)
+         (list target.js
+               target.jvm
+               target.lua
+               target.python
+               target.ruby)))
 
 (syntax.the (for_meta|Info [])
-  (function (_ lux)
-    (let [info (its .:info lux)
+            (function (_ lux)
+                      (let [info (its .:info lux)
 
-          conforming_target!
-          (set.member? ..possible_targets (its .:target info))
+                            conforming_target!
+                            (set.member? ..possible_targets (its .:target info))
 
-          compiling!
-          (when (its .:mode info)
-            {.:Build} true
-            _ false)]
-      {.:Right [lux (list (code.bit (and conforming_target!
-                                         compiling!)))]})))
+                            compiling!
+                            (when (its .:mode info)
+                                  {.:Build} true
+                                  _ false)]
+                           {.:Right [lux (list (code.bit (and conforming_target!
+                                                              compiling!)))]})))
 
 (syntax.the (for_meta|Module_State [])
-  (monad.let meta.monad
-    [prelude (module.by_name .prelude)]
-    (pure (list (code.bit (when (its .:module_state prelude)
-                            {/.:Active} false
-                            {/.:Compiled} true
-                            {/.:Cached} true))))))
+            (monad.let meta.monad
+                       [prelude (module.by_name .prelude)]
+                       (pure (list (code.bit (when (its .:module_state prelude)
+                                                   {/.:Active} false
+                                                   {/.:Compiled} true
+                                                   {/.:Cached} true))))))
 
 (the for_meta
-  Test
-  (all _.and
-       (_.coverage [/.Info
-                    /.:target /.:version /.:mode /.:configuration
+     Test
+     (all _.and
+          (_.coverage [/.Info
+                       /.:target /.:version /.:mode /.:configuration
 
-                    @type.Info
-                    @type.:target @type.:version @type.:mode @type.:configuration
+                       @type.Info
+                       @type.:target @type.:version @type.:mode @type.:configuration
 
-                    /.Mode
-                    /.:Build /.:Eval /.:Interpreter]
-         (for_meta|Info))
-       (_.coverage [/.Module_State
-                    /.:Active /.:Compiled /.:Cached]
-         (for_meta|Module_State))
-       ))
+                       /.Mode
+                       /.:Build /.:Eval /.:Interpreter]
+                      (for_meta|Info))
+          (_.coverage [/.Module_State
+                       /.:Active /.:Compiled /.:Cached]
+                      (for_meta|Module_State))
+          ))
 
 (the for_export
-  Test
-  (all _.and
-       (_.coverage [/.public /.private]
-         (and /.public (not /.private)))
-       (_.coverage [/.global /.local]
-         (and (bit.= /.public /.global)
-              (bit.= /.private /.local)))
-       ))
+     Test
+     (all _.and
+          (_.coverage [/.public /.private]
+                      (and /.public (not /.private)))
+          (_.coverage [/.global /.local]
+                      (and (bit.= /.public /.global)
+                           (bit.= /.private /.local)))
+          ))
 
 (the for_complex
-  Test
-  (monad.let random.monad
-    [expected random.natural
-     expected_left random.natural
-     expected_right random.natural
-     expected_bit random.bit
-     expected_revolution random.revolution]
-    (all _.and
-         (_.coverage [/.variant /.|]
-           (and (when (is (Maybe Natural)
-                          (/.variant .:None []))
-                  (/.variant .:None _)
-                  true
+     Test
+     (monad.let random.monad
+                [expected random.natural
+                 expected_left random.natural
+                 expected_right random.natural
+                 expected_bit random.bit
+                 expected_revolution random.revolution]
+                (all _.and
+                     (_.coverage [/.variant /.|]
+                                 (and (when (is (Maybe Natural)
+                                                (/.variant .:None []))
+                                            (/.variant .:None _)
+                                            true
 
-                  _
-                  false)
-                (when (is (Maybe Natural)
-                          (/.variant .:Some expected))
-                  (/.variant .:Some actual)
-                  (identical? expected actual)
+                                            _
+                                            false)
+                                      (when (is (Maybe Natural)
+                                                (/.variant .:Some expected))
+                                            (/.variant .:Some actual)
+                                            (identical? expected actual)
 
-                  _
-                  false)
-                (identical? /.variant /.|))))))
+                                            _
+                                            false)
+                                      (identical? /.variant /.|))))))
 
 (the for_extension
-  Test
-  (all _.and
-       (_.coverage [/.Analysis]
-         true)
-       (_.coverage [/.Synthesis]
-         true)
-       (_.coverage [/.Translation]
-         true)
-       (_.coverage [/.Declaration]
-         true)
-       ))
+     Test
+     (all _.and
+          (_.coverage [/.Analysis]
+                      true)
+          (_.coverage [/.Synthesis]
+                      true)
+          (_.coverage [/.Translation]
+                      true)
+          (_.coverage [/.Declaration]
+                      true)
+          ))
 
 (syntax.the (for_bindings|test lux_state
                                [fn/0 <code>.local
@@ -1000,209 +1002,208 @@
                                 let/2 <code>.local
 
                                 let/3 <code>.local])
-  (pure (list (code.bit (when (its .:scopes lux_state)
-                          (stack.partial scope/2 _)
-                          (let [locals/2 (its .:locals scope/2)
-                                expected_locals/2 (set.of_list text.hash (list fn/2 var/2 let/2
-                                                                               let/3))
-                                actual_locals/2 (|> locals/2
-                                                    (its .:mappings)
-                                                    (list:each pair.left)
-                                                    (set.of_list text.hash))
+            (pure (list (code.bit (when (its .:scopes lux_state)
+                                        (stack.partial scope/2 _)
+                                        (let [locals/2 (its .:locals scope/2)
+                                              expected_locals/2 (set.of_list text.hash (list fn/2 var/2 let/2
+                                                                                             let/3))
+                                              actual_locals/2 (|> locals/2
+                                                                  (its .:mappings)
+                                                                  (list:each pair.left)
+                                                                  (set.of_list text.hash))
 
-                                correct_locals!
-                                (and (n.= 4 (its .:counter locals/2))
-                                     (set.= expected_locals/2
-                                            actual_locals/2))
+                                              correct_locals!
+                                              (and (n.= 4 (its .:counter locals/2))
+                                                   (set.= expected_locals/2
+                                                          actual_locals/2))
 
-                                captured/2 (its .:captured scope/2)
+                                              captured/2 (its .:captured scope/2)
 
-                                local? (is (Predicate Ref)
-                                           (function (_ ref)
-                                             (when ref
-                                               {.:Local _} true
-                                               {.:Captured _} false)))
-                                captured? (is (Predicate Ref)
-                                              (|>> local? not))
-                                binding? (is (-> (Predicate Ref)
-                                                 (Predicate Text))
-                                             (function (_ is? name)
-                                               (|> captured/2
-                                                   (its .:mappings)
-                                                   (property.value name)
-                                                   (maybe:each (|>> pair.right is?))
-                                                   (maybe.else false))))
+                                              local? (is (Predicate Ref)
+                                                         (function (_ ref)
+                                                                   (when ref
+                                                                         {.:Local _} true
+                                                                         {.:Captured _} false)))
+                                              captured? (is (Predicate Ref)
+                                                            (|>> local? not))
+                                              binding? (is (-> (Predicate Ref)
+                                                               (Predicate Text))
+                                                           (function (_ is? name)
+                                                                     (|> captured/2
+                                                                         (its .:mappings)
+                                                                         (property.value name)
+                                                                         (maybe:each (|>> pair.right is?))
+                                                                         (maybe.else false))))
 
-                                correct_closure!
-                                (and (n.= 6 (its .:counter captured/2))
-                                     (binding? local? fn/1)
-                                     (binding? local? var/1)
-                                     (binding? local? let/1)
-                                     (binding? captured? fn/0)
-                                     (binding? captured? var/0)
-                                     (binding? captured? let/0))]
-                            (and correct_locals!
-                                 correct_closure!))
+                                              correct_closure!
+                                              (and (n.= 6 (its .:counter captured/2))
+                                                   (binding? local? fn/1)
+                                                   (binding? local? var/1)
+                                                   (binding? local? let/1)
+                                                   (binding? captured? fn/0)
+                                                   (binding? captured? var/0)
+                                                   (binding? captured? let/0))]
+                                             (and correct_locals!
+                                                  correct_closure!))
 
-                          _
-                          false)))))
+                                        _
+                                        false)))))
 
 (the for_bindings
-  Test
-  ((<| (template.with_locals [fn/0 var/0 let/0
-                              fn/1 var/1 let/1
-                              fn/2 var/2 let/2
-                              let/3])
-       (function (fn/0 var/0)) (let [let/0 123])
-       (function (fn/1 var/1)) (let [let/1 456])
-       (function (fn/2 var/2)) (let [let/2 789])
-       (let [let/3 [fn/0 var/0 let/0
-                    fn/1 var/1 let/1
-                    fn/2 var/2 let/2]
-             verdict (for_bindings|test fn/0 var/0 let/0
-                                        fn/1 var/1 let/1
-                                        fn/2 var/2 let/2
-                                        let/3)]
-         (_.coverage [/.Ref
-                      /.:Local /.:Captured
-                      
-                      /.Bindings
-                      /.:counter /.:mappings
+     Test
+     ((<| (template.with_locals [fn/0 var/0 let/0
+                                 fn/1 var/1 let/1
+                                 fn/2 var/2 let/2
+                                 let/3])
+          (function (fn/0 var/0)) (let [let/0 123])
+          (function (fn/1 var/1)) (let [let/1 456])
+          (function (fn/2 var/2)) (let [let/2 789])
+          (let [let/3 [fn/0 var/0 let/0
+                       fn/1 var/1 let/1
+                       fn/2 var/2 let/2]
+                verdict (for_bindings|test fn/0 var/0 let/0
+                                           fn/1 var/1 let/1
+                                           fn/2 var/2 let/2
+                                           let/3)]
+               (_.coverage [/.Ref
+                            /.:Local /.:Captured
+                            
+                            /.Bindings
+                            /.:counter /.:mappings
 
-                      @type.Bindings
-                      @type.:counter @type.:mappings]
-           verdict)))
-   0 1 2))
+                            @type.Bindings
+                            @type.:counter @type.:mappings]
+                           verdict)))
+      0 1 2))
 
 (comment "https://en.wikipedia.org/wiki/Involution_(mathematics)"
          (every (Involution it)
-           (-> it
-               it)))
+                (-> it
+                    it)))
 
 (the for_can
-  Test
-  (<| (_.for [/.Can])
-      (all _.and
-           (monad.let random.monad
-             [expected random.bit]
-             (_.coverage [/.can /.ability /.entity]
-               (let [ability (is (Involution Bit)
-                                 not)
-                     it (is (Can Involution Bit)
-                            (/.can ability expected))]
-                 (and (identical? ability (/.ability it))
-                      (identical? expected (/.entity it))
-                      (bit.= (ability expected)
-                             ((is (Involution Bit)
-                                  (/.ability it))
-                              (/.entity it)))))))
-           )))
+     Test
+     (<| (_.for [/.Can])
+         (all _.and
+              (monad.let random.monad
+                         [expected random.bit]
+                         (_.coverage [/.can /.ability /.entity]
+                                     (let [ability (is (Involution Bit)
+                                                       not)
+                                           it (is (Can Involution Bit)
+                                                  (/.can ability expected))]
+                                          (and (identical? ability (/.ability it))
+                                               (identical? expected (/.entity it))
+                                               (bit.= (ability expected)
+                                                      ((is (Involution Bit)
+                                                           (/.ability it))
+                                                       (/.entity it)))))))
+              )))
 
 (the test|lux
-  Test
-  (all _.and
-       ..for_try
-       ..for_stack
-       ..for_interface
-       ..for_module
-       ..for_pipe
-       ..for_code
-       ..for_macro
-       ..for_type
-       ..for_i64
-       ..for_function
-       ..for_static
-       ..for_slot
-       ..for_associative
-       ..for_expansion
-       ..for_value
-       ..for_when
-       ..for_control_flow
-       ..for_def
-       ..for_meta
-       ..for_export
-       ..for_complex
-       ..for_extension
-       ..for_bindings
-       ..for_can
-       ))
+     Test
+     (all _.and
+          ..for_try
+          ..for_stack
+          ..for_interface
+          ..for_module
+          ..for_pipe
+          ..for_code
+          ..for_macro
+          ..for_type
+          ..for_i64
+          ..for_function
+          ..for_static
+          ..for_slot
+          ..for_associative
+          ..for_expansion
+          ..for_value
+          ..for_when
+          ..for_control_flow
+          ..for_def
+          ..for_meta
+          ..for_export
+          ..for_complex
+          ..for_extension
+          ..for_bindings
+          ..for_can
+          ))
 
 (the for_finance
-  Test
-  (all _.and
-       /finance/money.test
-       /finance/trade/volume.test
-       /finance/trade/session.test
-       /finance/market/price.test
-       /finance/market/ticker.test
-       /finance/interest/rate.test
-       ))
+     Test
+     (all _.and
+          /finance/money.test
+          /finance/trade/volume.test
+          /finance/trade/session.test
+          /finance/market/price.test
+          /finance/market/ticker.test
+          /finance/interest/rate.test
+          ))
 
 (the for_security
-  Test
-  (all _.and
-       /security/policy.test
-       /security/capability.test
-       ))
+     Test
+     (all _.and
+          /security/policy.test
+          /security/capability.test
+          ))
 
 (the test
-  Test
-  (<| (_.covering /._)
-      _.in_parallel
-      (list ..test|lux
+     Test
+     (<| (_.covering /._)
+         _.in_parallel
+         (list ..test|lux
 
-            /abstract.test
-            /control.test
-            /error.test
-            /function.test
-            /concurrency.test
-            /color.test
-            /data.test
-            /debug.test
-            /documentation.test
-            /math.test
-            /type.test
-            /macro.test
-            /meta.test
-            /compiler.test
-            /program.test
-            /test.test
+               /abstract.test
+               /control.test
+               /error.test
+               /function.test
+               /concurrency.test
+               /color.test
+               /data.test
+               /debug.test
+               /documentation.test
+               /math.test
+               /type.test
+               /macro.test
+               /meta.test
+               /compiler.test
+               /program.test
+               /test.test
 
-            /web/permission.test
-            /web/html/tag.test
-            /web/html/attribute.test
-            /web/dom/event.test
+               /web/permission.test
+               /web/html/tag.test
+               /web/html/attribute.test
+               /web/dom/event.test
 
-            /time.test
-            /world.test
-            /ffi.test
-            /music.test
-            
-            ..for_finance
-            ..for_security
+               /time.test
+               /world.test
+               /ffi.test
+               /music.test
+               
+               ..for_finance
+               ..for_security
 
-            /transduction.test
-            /aspect.test
-            /logic.test
-            /theorem.test
-            /target.test
-            )))
+               /transduction.test
+               /aspect.test
+               /logic.test
+               /theorem.test
+               /target.test
+               )))
 
 (the _
-  (program args
-    (let [times (target.if target.jvm
-                           100
-                           
-                           target.js
-                           10
-                           
-                           [target.python target.lua target.ruby]
-                           1
-                           
-                           ... else
-                           100)]
-      (<| io.io
-          _.value
-          (_.times times _.announce_success)
-          ..test
-          ))))
+     (program args
+              (let [times (target.if target.jvm
+                                     100
+                                     target.js
+                                     10
+                                     [target.python target.lua target.ruby]
+                                     1
+                                     (comment "else"
+                                              100))]
+                   (<| io.io
+                       _.value
+                       ... (_.times times _.announce_success)
+                       ... (_.seed 9696183099318158644)
+                       (_.seed 9223428312596971130)
+                       ..test
+                       ))))

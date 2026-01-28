@@ -20,112 +20,112 @@
  ["[0]" //])
 
 (nominal.every .public Slice
-  (Record
-   [:space Text
-    :origin Natural
-    :size Natural])
+               (Record
+                [:space Text
+                 :origin Natural
+                 :size Natural])
 
-  (the .public (whole it)
-    (-> Text
-        Slice)
-    (nominal.of [:space it
-                 :origin 0
-                 :size (//.size it)]))
+               (the .public (whole it)
+                    (-> Text
+                        Slice)
+                    (nominal.of [:space it
+                                 :origin 0
+                                 :size (//.size it)]))
 
-  (exception.the .public (cannot_slice [space origin size])
-    (Exception [Text Natural Natural])
-    (exception.report
-     (list ["Origin" (by n.base_10 as origin)]
-           ["Size" (by n.base_10 as size)]
-           ["Space" (//.as_text space)])))
+               (exception.the .public (cannot_slice [space origin size])
+                              (Exception [Text Natural Natural])
+                              (exception.report
+                               (list ["Origin" (by n.base_10 as origin)]
+                                     ["Size" (by n.base_10 as size)]
+                                     ["Space" (//.as_text space)])))
 
-  (the .public (partial origin size space)
-    (-> Natural Natural Text
-        (Try Slice))
-    (if (n.<= (//.size space) (n.+ origin size))
-        {try.:Success (nominal.of [:space space
-                                   :origin origin
-                                   :size size])}
-        (exception.except ..cannot_slice [space origin size])))
+               (the .public (partial origin size space)
+                    (-> Natural Natural Text
+                        (Try Slice))
+                    (if (n.<= (//.size space) (n.+ origin size))
+                        {try.:Success (nominal.of [:space space
+                                                   :origin origin
+                                                   :size size])}
+                        (exception.except ..cannot_slice [space origin size])))
 
-  (the (as_text it)
-    (-> Slice
-        Text)
-    (let [it (nominal.as it)]
-      (.text_clip# (its :origin it)
-                   (its :size it)
-                   (its :space it))))
+               (the (as_text it)
+                    (-> Slice
+                        Text)
+                    (let [it (nominal.as it)]
+                         (.text_clip# (its :origin it)
+                                      (its :size it)
+                                      (its :space it))))
 
-  (the .public text
-    (View Slice
-          Text)
-    (view.new whole as_text))
+               (the .public text
+                    (View Slice
+                          Text)
+                    (view.new whole as_text))
 
-  (the .public size
-    (-> Slice
-        Natural)
-    (|>> nominal.as
-         (its :size)))
+               (the .public size
+                    (-> Slice
+                        Natural)
+                    (|>> nominal.as
+                         (its :size)))
 
-  (the .public empty
-    Slice
-    (whole //.empty))
+               (the .public empty
+                    Slice
+                    (whole //.empty))
 
-  (the .public empty?
-    (Predicate Slice)
-    (|>> size
-         (n.= 0)))
+               (the .public empty?
+                    (Predicate Slice)
+                    (|>> size
+                         (n.= 0)))
 
-  (these (the macro (.in_module# .prelude template:macro))
-         (the with_template (.in_module# .prelude with_template))
-         (with_template [,name ,slot]
-           [(the ,name
-              (macro (_ ,it)
-                [(its ,slot (nominal.as ,it))]))]
+               (these (the macro (.in_module# .prelude template:macro))
+                      (the with_template (.in_module# .prelude with_template))
+                      (with_template [,name ,slot]
+                                     [(the ,name
+                                           (macro (_ ,it)
+                                                  [(its ,slot (nominal.as ,it))]))]
 
-           [[space ..:space]
-            [origin ..:origin]]))
+                                     [[space ..:space]
+                                      [origin ..:origin]]))
 
-  (the .public (+ origin it)
-    (-> Slice
-        (Change Slice))
-    (if (empty? origin)
-        it
+               (the .public (+ origin it)
+                    (-> Slice
+                        (Change Slice))
+                    (if (empty? origin)
+                        it
 
-        (empty? it)
-        origin
+                        (empty? it)
+                        origin
 
-        (let [same_space!
-              (identical? (..space origin)
-                          (..space it))
+                        (let [same_space!
+                              (identical? (..space origin)
+                                          (..space it))
 
-              contiguity!
-              (n.= (n.+ (..origin origin)
-                        (..size origin))
-                   (..origin it))]
-          (and same_space!
-               contiguity!))
-        (nominal.of [:space (..space origin)
-                     :origin (..origin origin)
-                     :size (n.+ (..size origin) (..size it))])
+                              contiguity!
+                              (n.= (n.+ (..origin origin)
+                                        (..size origin))
+                                   (..origin it))]
+                             (and same_space!
+                                  contiguity!))
+                        (nominal.of [:space (..space origin)
+                                     :origin (..origin origin)
+                                     :size (n.+ (..size origin) (..size it))])
 
-        ... else
-        (whole (.text (as_text origin) (as_text it)))))
+                        (comment "else"
+                                 (whole (.text (as_text origin) (as_text it))))))
 
-  (the .public (random size)
-    (-> Natural
-        (Random Slice))
-    (|> (random.upper_cased size)
-        (random:each whole)))
+               (the .public (random size)
+                    (-> Natural
+                        (Random Slice))
+                    (|> (random.upper_cased size)
+                        (random:each whole)))
 
-  (the .public (= reference it)
-    (-> Slice
-        (Predicate Slice))
-    (//.= (as_text reference)
-          (as_text it)))
+               (the .public (= reference it)
+                    (-> Slice
+                        (Predicate Slice))
+                    (//.= (as_text reference)
+                          (as_text it)))
 
-  (the .public equality
-    (Equality Slice)
-    (implementation
-     (the = ..=)))
-  )
+               (the .public equality
+                    (Equality Slice)
+                    (implementation
+                     (the = ..=)))
+               )

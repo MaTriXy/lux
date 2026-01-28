@@ -931,15 +931,15 @@
                      else
                      (failure ""))))
 
-(the' .private (list:mix' mix complete partial)
-      ... (for_any (_ a b) (-> (-> Natural b a a) a (List b) a))
+(the' .private (list:mix' mix partial complete)
+      ... (for_any (_ a b) (-> (-> Natural b a a) (List b) a a))
       {:Quantification .universal {:Empty}
                        {:Quantification .universal {:Empty}
                                         (Function (Function Natural
                                                             (Function {:Parameter ..argument 0}
                                                                       ($ Change {:Parameter ..argument 1})))
-                                                  (Function {:Parameter ..argument 1}
-                                                            (Function {:Reification {:Parameter ..argument 0} List}
+                                                  (Function {:Reification {:Parameter ..argument 0} List}
+                                                            (Function {:Parameter ..argument 1}
                                                                       {:Parameter ..argument 1})))}}
       (.let# limit (.list_size# partial)
              ((.is# {:Quantification .universal {:Empty}
@@ -948,34 +948,34 @@
                                                                 (Function (Function Natural
                                                                                     (Function {:Parameter ..argument 0}
                                                                                               ($ Change {:Parameter ..argument 1})))
-                                                                          (Function {:Parameter ..argument 1}
-                                                                                    (Function {:Reification {:Parameter ..argument 0} List}
+                                                                          (Function {:Reification {:Parameter ..argument 0} List}
+                                                                                    (Function {:Parameter ..argument 1}
                                                                                               {:Parameter ..argument 1}))))}}
-                    (function' (list:mix' item mix complete partial)
+                    (function' (list:mix' item mix partial complete)
                                (.if# (.int_<# (.as# (Function Natural Integer) limit)
                                               (.as# (Function Natural Integer) item))
                                      (list:mix' (.i64_+# 1 item)
                                                 mix
+                                                partial
                                                 (mix item
                                                      (.list_item# item partial)
-                                                     complete)
-                                                partial)
+                                                     complete))
                                      complete)))
-              0 mix complete partial)))
+              0 mix partial complete)))
 
-(the' .private (list:mix mix complete partial)
-      ... (for_any (_ a b) (-> (-> b a a) a (List b) a))
+(the' .private (list:mix mix partial complete)
+      ... (for_any (_ a b) (-> (-> b a a) a a (List b)))
       {:Quantification .universal {:Empty}
                        {:Quantification .universal {:Empty}
                                         (Function (Function {:Parameter ..argument 0}
                                                             ($ Change {:Parameter ..argument 1}))
-                                                  (Function {:Parameter ..argument 1}
-                                                            (Function {:Reification {:Parameter ..argument 0} List}
+                                                  (Function {:Reification {:Parameter ..argument 0} List}
+                                                            (Function {:Parameter ..argument 1}
                                                                       {:Parameter ..argument 1})))}}
       (list:mix' (function' (_ item input output)
                             (mix input output))
-                 complete
-                 partial))
+                 partial
+                 complete))
 
 (the' ..private 'Array
       ($ Change Code)
@@ -1054,8 +1054,8 @@
                        ($ Change ($ Array {:Parameter ..argument 0}))}
       (list:mix' (function' (_ address item output)
                             (.array_has# address item output))
-                 (.array# (.array_size# it))
-                 (list:of_array it)))
+                 (list:of_array it)
+                 (.array# (.array_size# it))))
 
 (the' .private (list:each' value it)
       {:Quantification .universal {:Empty}
@@ -1067,8 +1067,8 @@
                                                             ($ List {:Parameter ..argument 0})))}}
       (list:of_array (list:mix' (function' (_ address item output)
                                            (.array_has# address (value address item) output))
-                                (.array# (.list_size# it))
-                                it)))
+                                it
+                                (.array# (.list_size# it)))))
 
 (the' .private (list:each value it)
       {:Quantification .universal {:Empty}
@@ -1087,8 +1087,8 @@
                             (.let# last (.i64_-# 1 size)
                                    (list:mix' (function' (_ address item output)
                                                          (.array_has# (.i64_-# address last) item output))
-                                              (.array# size)
-                                              it)))))
+                                              it
+                                              (.array# size))))))
 
 (the' .private (list:first to_retain it)
       {:Quantification .universal {:Empty}
@@ -1286,8 +1286,8 @@
                                                                                 (.if# verdict
                                                                                       1b
                                                                                       (.text_=# ..level_of_quantification local))))
-                                                             0b
-                                                             locals))))
+                                                             locals
+                                                             0b))))
                          0b
                          scopes)))
 
@@ -1371,7 +1371,7 @@
       (macro (_ tokens)
              (.when# (list:split 1 (list:in_reverse tokens))
                      [(.list# output) inputs]
-                     (meta:pure (list (list:mix ..'Function output inputs)))
+                     (meta:pure (list (list:mix ..'Function inputs output)))
                      
                      _
                      (failure ""))))
@@ -1381,8 +1381,8 @@
       (macro (_ it)
              (meta:pure (list (list:mix' (function' (_ _ head tail)
                                                     (':Top head tail))
-                                         ':Empty
-                                         (list:in_reverse it))))))
+                                         (list:in_reverse it)
+                                         ':Empty)))))
 
 (the' .public Union
       Macro
@@ -1505,7 +1505,9 @@
                      2 (meta:pure (list (.list_item# 2 tokens)))
                      _ (.when# [(.list_item# 0 tokens) (.list_item# 1 tokens)]
                                [op first]
-                               (meta:pure (list (list:mix (function:flipped (right_associativity op)) first (list:after 2 tokens))))))))
+                               (meta:pure (list (list:mix (function:flipped (right_associativity op))
+                                                          (list:after 2 tokens)
+                                                          first)))))))
 
 (the' .public right_associative
       Macro
@@ -1514,7 +1516,9 @@
                      [(.list# op) tokens']
                      (.when# (list:split 1 (list:in_reverse tokens'))
                              [(.list# last) prevs]
-                             (meta:pure (list (list:mix (right_associativity op) last prevs)))
+                             (meta:pure (list (list:mix (right_associativity op)
+                                                        prevs
+                                                        last)))
 
                              _
                              (failure ""))
@@ -1621,19 +1625,20 @@
                      _
                      (failure ""))))
 
-(the' .private (monad:mix ! mix initial_state)
+(the' .private (monad:mix ! mix every_input initial_state)
       (for_any (_ ! mix input)
                (-> ($ Monad !)
                    (-> input mix ($ ! mix))
-                   (-> mix ($ List input) ($ ! mix))))
+                   (-> ($ List input) mix ($ ! mix))))
       (list:mix (function' (_ partial state)
                            (monad:let !
                                       [state state]
                                       (mix partial state)))
+                every_input
                 (let' [[..:pure pure ..:then _] !]
                       (pure initial_state))))
 
-(the' .private (monad:each ! value)
+(the' .private (monad:each ! value it)
       (for_any (_ ! input output)
                (-> ($ Monad !)
                    (-> input
@@ -1645,6 +1650,7 @@
                             (monad:let !
                                        [head (value head)]
                                        (pure (.list_composite# tail (list head)))))
+                 it
                  (list)))
 
 (the' .private 'if
@@ -1822,12 +1828,13 @@
                                               {:None}))))
               choice it 0)))
 
-(the' .private list:conjoint
+(the' .private (list:conjoint it)
       (for_any (_ it)
                (-> ($ List ($ List it))
                    ($ List it)))
       (list:mix' (function' (_ _ right left)
                             (.list_composite# left right))
+                 it
                  (list)))
 
 (the' .private (list:all choice it)
@@ -1969,7 +1976,7 @@
                  (.text_=# moduleL moduleR)
                  (.text_=# properL properR))))
 
-(the' .private (list:every? ?)
+(the' .private (list:every? ? it)
       (for_any (_ it)
                (-> (Predicate it)
                    (Predicate ($ List it))))
@@ -1977,6 +1984,7 @@
                             (if _1
                                 (? _2)
                                 0b))
+                 it
                  1b))
 
 (the' .private (natural:minor left right)
@@ -2198,8 +2206,8 @@
 
                                                            _
                                                            (expanded_list head tail)))
-                                        empty_list
-                                        (list:in_reverse elements))
+                                        (list:in_reverse elements)
+                                        empty_list)
                              (monad:let meta:monad
                                         [=elements (monad:each meta:monad (untemplated replace? subst) elements)]
                                         (pure ('list =elements))))]
@@ -2431,8 +2439,8 @@
 
                                                                          _
                                                                          (` ((, app) (, acc))))))
-                                                init
-                                                apps)))
+                                                apps
+                                                init)))
 
                      _
                      (failure ""))))
@@ -2456,8 +2464,8 @@
 
                                                                          _
                                                                          (` ((, app) (, acc))))))
-                                                init
-                                                apps)))
+                                                apps
+                                                init)))
 
                      _
                      (failure ""))))
@@ -3063,7 +3071,7 @@
               (let' [interpositions (.i64_-# 1 size)
                      new_size (.i64_+# interpositions size)
                      last_item (.i64_-# 1 new_size)]
-                    (|> it
+                    (|> (.array# new_size)
                         (list:mix' (function' (_ address item it)
                                               (let' [address (.i64_+# address address)]
                                                     (if (.i64_=# last_item address)
@@ -3072,7 +3080,7 @@
                                                         (|> it
                                                             (.array_has# address item)
                                                             (.array_has# (.i64_+# 1 address) delimiter)))))
-                                   (.array# new_size))
+                                   it)
                         (.as# (for_any (_ it)
                                        (-> ($ Array it)
                                            ($ List it))))))))
@@ -3108,27 +3116,27 @@
               (name:as [module name])
               
               {:Form _ it}
-              (|> it
-                  (list:each code:as_text)
-                  (list:interposed " ")
-                  list:in_reverse
-                  (list:mix text:composite "")
+              (|> ""
+                  (list:mix text:composite (|> it
+                                               (list:each code:as_text)
+                                               (list:interposed " ")
+                                               list:in_reverse))
                   (text:enclosed ["(" ")"]))
               
               {:Tuple _ it}
-              (|> it
-                  (list:each code:as_text)
-                  (list:interposed " ")
-                  list:in_reverse
-                  (list:mix text:composite "")
+              (|> ""
+                  (list:mix text:composite (|> it
+                                               (list:each code:as_text)
+                                               (list:interposed " ")
+                                               list:in_reverse))
                   (text:enclosed ["[" "]"]))
               
               {:Variant _ it}
-              (|> it
-                  (list:each code:as_text)
-                  (list:interposed " ")
-                  list:in_reverse
-                  (list:mix text:composite "")
+              (|> ""
+                  (list:mix text:composite (|> it
+                                               (list:each code:as_text)
+                                               (list:interposed " ")
+                                               list:in_reverse))
                   (text:enclosed ["{" "}"]))))
 
 (the' .private (single_expansion token)
@@ -3178,8 +3186,8 @@
       (list:mix (.is# (-> Code ($ Change Code))
                       (function' (_ parameter abstraction)
                                  (` {..:Reification (, parameter) (, abstraction)})))
-                abstraction
-                parameters))
+                parameters
+                abstraction))
 
 (the' .private (normal_type_reification normal_type abstraction parameters)
       (-> (-> Code ($ Meta Code)) Code ($ List Code)
@@ -3449,7 +3457,7 @@
                      {:Some [value actions]}
                      (monad:let meta:monad
                                 ['_ (generated_name "_")]
-                                (pure (list (list:mix ('let '_) value actions))))
+                                (pure (list (list:mix ('let '_) actions value))))
 
                      else
                      (failure ""))))
@@ -3471,17 +3479,17 @@
       (.when# type
               {:Nominal name params}
               (text "(Nominal " (text:as name)
-                    (|> params
-                        (list:each (function' (_ it)
-                                              (.when# it
-                                                      [polarity it]
-                                                      (text " "
-                                                            "[" (bit:as_text polarity)
-                                                            " " (type:as_text it)
-                                                            "]"))))
-                        list:in_reverse
-                        (list:mix' (function' (_ _ left right) (text left right))
-                                   ""))
+                    (list:mix' (function' (_ _ left right) (text left right))
+                               (|> params
+                                   (list:each (function' (_ it)
+                                                         (.when# it
+                                                                 [polarity it]
+                                                                 (text " "
+                                                                       "[" (bit:as_text polarity)
+                                                                       " " (type:as_text it)
+                                                                       "]"))))
+                                   list:in_reverse)
+                               "")
                     ")")
 
               {:Parameter parameter id}
@@ -3508,11 +3516,12 @@
               {:Reification _}
               (let' [[func args] (flat_reification type)]
                     (text "(" (type:as_text func) " "
-                          (|> args
-                              (list:each type:as_text)
-                              (list:interposed " ")
-                              list:in_reverse
-                              (list:mix text:composite ""))
+                          (list:mix text:composite
+                                    (|> args
+                                        (list:each type:as_text)
+                                        (list:interposed " ")
+                                        list:in_reverse)
+                                    "")
                           ")"))
               
               {:Named name _}
@@ -3845,17 +3854,23 @@
       (type [[Name (Maybe Bundle)]
              Code]))
 
+(the' .private Else
+      Type
+      (type [Text
+             Code]))
+
 (the' .private When
       Type
       (type (Or [Code Code]
-                [Bit Code Text Code]
-                [(List [Natural Code]) Text Code]
-                [(List [Integer Code]) Text Code]
-                [(List [Revolution Code]) Text Code]
-                [(List [Real Code]) Text Code]
-                [(List [Text Code]) Text Code]
-                [Case (List Case) (Maybe [Text Code])]
+                [Bit Code Else]
+                [(List [Natural Code]) Else]
+                [(List [Integer Code]) Else]
+                [(List [Revolution Code]) Else]
+                [(List [Real Code]) Else]
+                [(List [Text Code]) Else]
+                [Case (List Case) (Maybe Else)]
                 [[[Name Code] (List [Name Code])] Code]
+                [(List [(List Text) Code]) Else]
                 [Bundle Code])))
 
 (the' .private every_tag_of_when
@@ -3869,6 +3884,7 @@
             [..prelude ":When/If_Text"]
             [..prelude ":When/Complete_If_Case"]
             [..prelude ":When/Simple_Record"]
+            [..prelude ":When/If_List"]
             [..prelude ":When/Let"]))
 (the' .private :When/Complete_If Tag (..tag [{:Some [0 0b ..every_tag_of_when]} When]))
 (the' .private :When/Partial_If Tag (..tag [{:Some [1 0b ..every_tag_of_when]} When]))
@@ -3879,7 +3895,8 @@
 (the' .private :When/If_Text Tag (..tag [{:Some [6 0b ..every_tag_of_when]} When]))
 (the' .private :When/Complete_If_Case Tag (..tag [{:Some [7 0b ..every_tag_of_when]} When]))
 (the' .private :When/Simple_Record Tag (..tag [{:Some [8 0b ..every_tag_of_when]} When]))
-(the' .private :When/Let Tag (..tag [{:Some [8 1b ..every_tag_of_when]} When]))
+(the' .private :When/If_List Tag (..tag [{:Some [9 0b ..every_tag_of_when]} When]))
+(the' .private :When/Let Tag (..tag [{:Some [9 1b ..every_tag_of_when]} When]))
 
 (the' .private ?:when/complete_if
       (type (Projection [Code Code]))
@@ -3897,7 +3914,8 @@
 
 (the' .private ?:when/let'
       (type (Projection [Text Code]))
-      (?:and ?:member ?:any))
+      (?:and ?:member
+             ?:any))
 
 (the' .private ?:when/let
       (type (Projection [Bundle Code]))
@@ -3936,6 +3954,14 @@
             (?:and (?:tuple (?:and slot (?:some slot)))
                    ?:any)))
 
+(the' .private ?:when/if_list
+      (type (Projection [(List [(List Text) Code]) Text Code]))
+      (let' [pattern (?:form (?:after (?:this_name [..prelude "list#"]) (?:some ?:member)))
+             clause (?:and pattern
+                           ?:any)]
+            (?:and (?:many clause)
+                   ?:when/let')))
+
 (the' .private ?:when
       (type (Projection When))
       (all ?:or
@@ -3948,6 +3974,7 @@
            (?:switch ?:text)
            ?:when/complete_if_case
            ?:when/simple_record
+           ?:when/if_list
            ?:when/let))
 
 (the' .private Equality
@@ -3965,8 +3992,8 @@
                                                       {.:Some [last init]}
                                                       (list:mix (is (-> Code (Change Code))
                                                                     (function' (_ pre post) (` <form>)))
-                                                                last
-                                                                init)
+                                                                init
+                                                                last)
                                                       
                                                       else
                                                       (` <nullary>))))))]
@@ -4023,8 +4050,8 @@
                                                                                                      (, '_)))
                                                                                              then
                                                                                              'else)))
-                                                                  ('let (code:local variable) '_ 'else)
-                                                                  (list:in_reverse every_then)))))))))]
+                                                                  (list:in_reverse every_then)
+                                                                  ('let (code:local variable) '_ 'else)))))))))]
 
                [[if_natural ..Natural natural:= .i64_=# code:natural]
                 [if_integer ..Integer integer:= .i64_=# code:integer]
@@ -4046,8 +4073,8 @@
                                  (if (text:= it left)
                                      right
                                      (text left delimiter right)))
-                      it
-                      parts)))
+                      parts
+                      it)))
 
 (the' .private (module name)
       (type (-> Text
@@ -4440,8 +4467,8 @@
                                                                                              (let' [[label content body] it]
                                                                                                    (property:with (index_of_label label)
                                                                                                                   [content body])))
-                                                                                  (list)
-                                                                                  every_tag))]]
+                                                                                  every_tag
+                                                                                  (list)))]]
                                                    (if (and (not (natural:= 1 expectation_for_arity))
                                                             (list:every? (function' (_ tag)
                                                                                     (type:= expectation_for_type
@@ -4496,16 +4523,16 @@
                                                                                                 .let' [[exported? [slot type]] slot]]
                                                                                                (if (type:= expectation_for_type type)
                                                                                                    (pure [[slot type] value])
-                                                                                                   (failure ""))))
+                                                                                                   (failure "Cannot mix slots from different types of records."))))
                                                                          tail)
                                                         .let' [in_order (is (type (Property_List Code))
                                                                             (list:mix (function' (_ slot,value)
                                                                                                  (let' [[slot value] slot,value]
                                                                                                        (property:with (index_of_label slot)
                                                                                                                       value)))
-                                                                                      (list)
                                                                                       (.list_composite# (list [slot_of_head value_of_head])
-                                                                                                        tail)))]])
+                                                                                                        tail)
+                                                                                      (list)))]])
                                             (if (natural:= expectation_for_arity (.list_size# in_order))
                                                 (.when# (monad:each maybe:monad
                                                                     (function' (_ index)
@@ -4519,7 +4546,37 @@
 
                                                         {:None}
                                                         (failure ""))
-                                                (failure "")))
+                                                (failure "Invalid size for record.")))
+
+                                        {:Some {:When/If_List [every_clause name_of_else 'body_of_else]}}
+                                        (let' [in_order (is (type (Property_List Code))
+                                                            (list:mix (function' (_ pattern,'body)
+                                                                                 (let' [[pattern 'body] pattern,'body]
+                                                                                       (property:with (natural:as (.list_size# pattern))
+                                                                                                      'body)))
+                                                                      every_clause
+                                                                      (list)))]
+                                              (if (natural:= (.list_size# every_clause)
+                                                             (.list_size# in_order))
+                                                  (monad:let meta:monad
+                                                             ['it (generated_name "'it")]
+                                                             (pure (list ('let 'it 'value
+                                                                               (list:mix (function' (_ clause 'else)
+                                                                                                    (let' [[pattern 'body] clause]
+                                                                                                          ('if (` (.i64_=# (, (code:natural (.list_size# pattern)))
+                                                                                                                           (.list_size# (, 'it))))
+                                                                                                               (list:mix (function' (_ member 'then)
+                                                                                                                                    (let' [[address binding] member]
+                                                                                                                                          ('let (code:local binding)
+                                                                                                                                                (` (.list_item# (, (code:natural address)) (, 'it)))
+                                                                                                                                                'then)))
+                                                                                                                         (list:in_reverse (list:enumeration pattern))
+                                                                                                                         'body)
+                                                                                                               'else)))
+                                                                                         every_clause
+                                                                                         ('let (code:local name_of_else) 'it
+                                                                                               'body_of_else))))))
+                                                  (failure "Redundancy in list patterns.")))
 
                                         else
                                         (comment (.log!# (text "[when]"
@@ -4540,21 +4597,20 @@
                        (?:value tokens))
                    {:Some [bindings body]}
                    (monad:let meta:monad
-                              [it (|>  bindings
-                                       list:in_reverse
-                                       (monad:mix meta:monad
-                                                  (function' (_ variable,value 'body)
-                                                             (let' [[pattern 'value] variable,value]
-                                                                   (when (|> ?:bundle
-                                                                             (?:value (list pattern)))
-                                                                         {:Some bundle}
-                                                                         (let_pair bundle 'value 'body)
-                                                                         
-                                                                         {:None}
-                                                                         (pure (` (..when (, 'value)
-                                                                                          (, pattern)
-                                                                                          (, 'body)))))))
-                                                  body))]
+                              [it (monad:mix meta:monad
+                                             (function' (_ variable,value 'body)
+                                                        (let' [[pattern 'value] variable,value]
+                                                              (when (|> ?:bundle
+                                                                        (?:value (list pattern)))
+                                                                    {:Some bundle}
+                                                                    (let_pair bundle 'value 'body)
+                                                                    
+                                                                    {:None}
+                                                                    (pure (` (..when (, 'value)
+                                                                                     (, pattern)
+                                                                                     (, 'body)))))))
+                                             (list:in_reverse bindings)
+                                             body)]
                               (pure (list it)))
 
                    else
@@ -4584,7 +4640,9 @@
                                                  (` (.function# (, 'name) (, 'blank)
                                                                 (.when (, 'blank) (, arg) (, body')))))))]
                         (meta:pure (list (nest (code:local 'name) head
-                                               (list:mix (nest 'blank) body (list:in_reverse tail))))))
+                                               (list:mix (nest 'blank)
+                                                         (list:in_reverse tail)
+                                                         body)))))
 
                    else
                    (failure ""))))
@@ -5357,8 +5415,8 @@
      (list:mix (function (_ when prev)
                          (or prev
                              (.text_=# when name)))
-               0b
-               whens))
+               whens
+               0b))
 
 (the (test_referrals current_module imported_module all_defs)
      (-> Text Text (List Text)
@@ -5431,8 +5489,8 @@
                                                     (.array_has# address_of_output input output)
                                                     (.i64_+# 1 address_of_output))
                                                    address_of_output))
-                                     0
-                                     it)]
+                                     it
+                                     0)]
           (if (.i64_=# size_of_input size_of_output)
               (list:of_array output)
               (list:first size_of_output (list:of_array output)))))
@@ -5577,8 +5635,8 @@
                   (list {:Tuple _ slots} record)
                   (meta:pure (list (list:mix' (function (_ _ slot inner)
                                                         (` (..its (, slot) (, inner))))
-                                              record
-                                              slots)))
+                                              slots
+                                              record)))
 
                   (list selector)
                   (monad:let meta:monad
@@ -5695,8 +5753,8 @@
                                                                                                             (pure [(.list_composite# (list (` (.the# .private (, 'implementation) (, it))))
                                                                                                                                      pre_defs)
                                                                                                                    (.list_composite# (list 'implementation) implementations)]))))
-                                                                                 [(list) (list)]
-                                                                                 implementations))
+                                                                                 implementations
+                                                                                 [(list) (list)]))
                                          .let [[pre_defs implementations] pre_defs,implementations]]
                                         (pure (list (` (these (,* (list:in_reverse pre_defs))
                                                               (..open (, (code:text current_module))
@@ -5813,15 +5871,15 @@
                                                                         (Change Code))
                                                                     (function (_ [s b] v)
                                                                               (` (..has (, s) (, v) (, b)))))
-                                                                value
-                                                                (list:in_reverse pairs))
+                                                                (list:in_reverse pairs)
+                                                                value)
                                           [_ accesses] (list:mix (is (-> [Code Code]
                                                                          (Change [Code (List Code)]))
                                                                      (function (_ [new_slot new_binding] [old_record accesses'])
                                                                                [(` (its (, new_slot) (, new_binding)))
                                                                                 (.list_composite# accesses' (list new_binding old_record))]))
-                                                                 [record (is (List Code) (list))]
-                                                                 pairs)]]
+                                                                 pairs
+                                                                 [record (is (List Code) (list))])]]
                                    (pure (list (` (let [(,* accesses)]
                                                        (, update_expr)))))))
                   
@@ -6047,8 +6105,8 @@
                                         (function (_ map it)
                                                   (list:mix (function (_ [binding expansion] it)
                                                                       (list:conjoint (list:each (expansion:let' binding expansion) it)))
-                                                            (list it)
-                                                            map)))]
+                                                            map
+                                                            (list it))))]
                             (monad:let meta:monad
                                        [map (is (Meta (Property_List (List Code)))
                                                 (monad:mix meta:monad
@@ -6063,8 +6121,8 @@
                                                                                                                 " | Binding: " (text:as var_name)
                                                                                                                 " | Expression: " (code:as_text expr))))]
                                                                                 (pure (property:with var_name expansion map))))
-                                                           (list)
-                                                           bindings))]
+                                                           bindings
+                                                           (list)))]
                                        (meta:pure (normal map body))))
                        
                        {:None}

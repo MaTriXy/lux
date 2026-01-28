@@ -84,20 +84,20 @@
                 [Character box.char]
                 [String    "java.lang.String"]])
 
-(template.with [,name ,class]
-               [(`` (.the .public ,name
-                          .Type
-                          {.:Nominal (reflection.reflection ,class) (list)}))]
+(comment "Primitives"
+         (template.with [,name ,class]
+                        [(`` (.the .public ,name
+                                   .Type
+                                   {.:Nominal (reflection.reflection ,class) (list)}))]
 
-               [... Primitives
-                [boolean   reflection.boolean]
-                [byte      reflection.byte]
-                [short     reflection.short]
-                [int       reflection.int]
-                [long      reflection.long]
-                [float     reflection.float]
-                [double    reflection.double]
-                [char      reflection.char]])
+                        [[boolean   reflection.boolean]
+                         [byte      reflection.byte]
+                         [short     reflection.short]
+                         [int       reflection.int]
+                         [long      reflection.long]
+                         [float     reflection.float]
+                         [double    reflection.double]
+                         [char      reflection.char]]))
 
 (.the (get_static_field class field)
       (-> Text Text Code)
@@ -341,8 +341,8 @@
                 (by jvm.equality = jvm.float type) (` ..Float)
                 (by jvm.equality = jvm.double type) (` ..Double)
                 (by jvm.equality = jvm.char type) (` ..Character)
-                ... else
-                (undefined))
+                (comment "else"
+                         (undefined)))
             
             {:AutoPrM}
             (if (by jvm.equality = jvm.boolean type)
@@ -361,8 +361,8 @@
                 (by jvm.equality = jvm.char type)
                 (` .Natural)
 
-                ... else
-                (undefined))))
+                (comment "else"
+                         (undefined)))))
 
 (.the (parameter_type value_type type)
       (-> (-> (Type Value) Code)
@@ -391,9 +391,8 @@
                                          
                                          {.:None}
                                          (` (.Array (, (value_type elementT)))))]]))
-              ... else
-              (undefined)
-              )))
+              (comment "else"
+                       (undefined)))))
 
 (.the (value_type mode type)
       (-> Primitive_Mode (Type Value) Code)
@@ -1524,13 +1523,13 @@
                 (its :import_member_maybe? commons)
                 (` (??? (, return_term)))
 
-                ... else
-                (let ['temp (` ((,' ,') (, (code.name ["" " Ω "]))))]
-                     (` (let [(, 'temp) (, return_term)]
-                             (if (not (..null? (.as (-> Any (.Nominal "java.lang.Object"))
-                                                    (, 'temp))))
-                                 (, 'temp)
-                                 (halt! "Cannot produce null references from method calls."))))))
+                (comment "else"
+                         (let ['temp (` ((,' ,') (, (code.name ["" " Ω "]))))]
+                              (` (let [(, 'temp) (, return_term)]
+                                      (if (not (..null? (.as (-> Any (.Nominal "java.lang.Object"))
+                                                             (, 'temp))))
+                                          (, 'temp)
+                                          (halt! "Cannot produce null references from method calls.")))))))
 
             _
             return_term))
@@ -1568,12 +1567,12 @@
 
                                                                                                        ,special+)]
                                                                              (if ,if_cases
-                                                                                 ... else
-                                                                                 [unboxed
-                                                                                  (if ,input?
-                                                                                      (` (.jvm_object_cast# (, raw)))
-                                                                                      raw)
-                                                                                  (list)]))))
+                                                                                 (comment "else"
+                                                                                          [unboxed
+                                                                                           (if ,input?
+                                                                                               (` (.jvm_object_cast# (, raw)))
+                                                                                               raw)
+                                                                                           (list)])))))
                             unboxed/boxed (when (dictionary.value unboxed ..boxes)
                                                 {try.:Success boxed}
                                                 (,unbox/box unboxed boxed refined)
@@ -1929,22 +1928,22 @@
                                              _
                                              ,failure)
 
-                                       ... else
-                                       (by meta.monad each
-                                           (function (_ parameters)
-                                                     (jvm.class parameters name))
-                                           (.is (Meta (List (Type Parameter)))
-                                                (list.each' meta.monad
-                                                            (function (_ [polarity paramLT])
-                                                                      (monad.let meta.monad
-                                                                                 [paramJT (lux_type->jvm_type context paramLT)]
-                                                                                 (when (projection.parameter? paramJT)
-                                                                                       {.:Some paramJT}
-                                                                                       (pure paramJT)
+                                       (comment "else"
+                                                (by meta.monad each
+                                                    (function (_ parameters)
+                                                              (jvm.class parameters name))
+                                                    (.is (Meta (List (Type Parameter)))
+                                                         (list.each' meta.monad
+                                                                     (function (_ [polarity paramLT])
+                                                                               (monad.let meta.monad
+                                                                                          [paramJT (lux_type->jvm_type context paramLT)]
+                                                                                          (when (projection.parameter? paramJT)
+                                                                                                {.:Some paramJT}
+                                                                                                (pure paramJT)
 
-                                                                                       {.:None}
-                                                                                       ,failure)))
-                                                            params)))))
+                                                                                                {.:None}
+                                                                                                ,failure)))
+                                                                     params))))))
 
                                {.:Reification A F}
                                (when (type.reified (list A) F)
@@ -1990,8 +1989,8 @@
                                                                            [jvm.double .jvm_array_length_double#]
                                                                            [jvm.char .jvm_array_length_char#]]))
                                                        
-                                                       ... else
-                                                       (` .jvm_array_length_object#)))]]
+                                                       (comment "else"
+                                                                (` .jvm_array_length_object#))))]]
                              (pure (list (` (.|> ((, 'extension) (, array))
                                                  .jvm_conversion_int_to_long#
                                                  .jvm_object_cast#
@@ -2033,8 +2032,8 @@
                                                          [jvm.double .jvm_array_read_double# box.double]
                                                          [jvm.char .jvm_array_read_char# box.char]]))
                                      
-                                     ... else
-                                     (pure (list (` (.jvm_array_read_object# (, 'idx) (, array))))))))
+                                     (comment "else"
+                                              (pure (list (` (.jvm_array_read_object# (, 'idx) (, array)))))))))
 
                   _
                   (with_names ['array]
@@ -2074,8 +2073,8 @@
                                                          [jvm.double .jvm_array_write_double# box.double]
                                                          [jvm.char .jvm_array_write_char# box.char]]))
                                      
-                                     ... else
-                                     (pure (list (` (.jvm_array_write_object# (, 'idx) (, value) (, array))))))))
+                                     (comment "else"
+                                              (pure (list (` (.jvm_array_write_object# (, 'idx) (, value) (, array)))))))))
 
                   _
                   (with_names ['array]
@@ -2109,10 +2108,10 @@
                                                       [jvm.float   .jvm_array_new_float#]
                                                       [jvm.double  .jvm_array_new_double#]
                                                       [jvm.char    .jvm_array_new_char#]]))
-                                  ... else
-                                  (` (.as (-> (, (value_type {:ManualPrM} (jvm.array type)))
-                                              (.Array (, (value_type {:ManualPrM} type))))
-                                          (.jvm_array_new_object# (, 'size)))))))))))
+                                  (comment "else"
+                                           (` (.as (-> (, (value_type {:ManualPrM} (jvm.array type)))
+                                                       (.Array (, (value_type {:ManualPrM} type))))
+                                                   (.jvm_array_new_object# (, 'size))))))))))))
 
 (syntax.the .public (array [type (..type^ (list))
                             elements_or_size (?.or (?code.tuple (?.some ?list.any))
@@ -2145,10 +2144,10 @@
                                                                    [jvm.float   .jvm_array_new_float#]
                                                                    [jvm.double  .jvm_array_new_double#]
                                                                    [jvm.char    .jvm_array_new_char#]]))
-                                               ... else
-                                               (` (.as (-> (, (value_type {:ManualPrM} (jvm.array type)))
-                                                           (.Array (, (value_type {:ManualPrM} type))))
-                                                       (.jvm_array_new_object# (, 'size)))))))))))
+                                               (comment "else"
+                                                        (` (.as (-> (, (value_type {:ManualPrM} (jvm.array type)))
+                                                                    (.Array (, (value_type {:ManualPrM} type))))
+                                                                (.jvm_array_new_object# (, 'size))))))))))))
 
 (syntax.the .public (class_for [type (..type^ (list))])
             (pure (list (` (.jvm_object_class# (, (code.text (..reflection type))))))))

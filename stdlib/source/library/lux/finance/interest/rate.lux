@@ -18,44 +18,44 @@
  [///
   ["[0]" money (.only Money)]])
 
-... https://en.wikipedia.org/wiki/Interest_rate
-(every .public Rate
-  Real)
+(comment "https://en.wikipedia.org/wiki/Interest_rate"
+         (every .public Rate
+                Real))
 
-... https://en.wikipedia.org/wiki/Break-even
-(the .public break_even
-  Rate
-  +1.0)
+(comment "https://en.wikipedia.org/wiki/Break-even"
+         (the .public break_even
+              Rate
+              +1.0))
 
-... https://en.wikipedia.org/wiki/Compound_interest
-(the .public compound
-  (-> Rate Rate
-      Rate)
-  r.x)
+(comment "https://en.wikipedia.org/wiki/Compound_interest"
+         (the .public compound
+              (-> Rate Rate
+                  Rate)
+              r.x))
 
 (template.with [<order> <name>]
-  [(the .public <name>
-     (Predicate Rate)
-     (<order> ..break_even))]
+               [(the .public <name>
+                     (Predicate Rate)
+                     (<order> ..break_even))]
 
-  [[r.< loss?]
-   [r.> gain?]
-   [r.= break_even?]])
+               [[r.< loss?]
+                [r.> gain?]
+                [r.= break_even?]])
 
 (the .public monoid
-  (Monoid Rate)
-  (implementation
-   (the identity ..break_even)
-   (the composite ..compound)))
+     (Monoid Rate)
+     (implementation
+      (the identity ..break_even)
+      (the composite ..compound)))
 
 (the .public as_text
-  (text.Injection Rate)
-  (|>> (r.- ..break_even)
-       %.per_cent))
+     (text.Injection Rate)
+     (|>> (r.- ..break_even)
+          %.per_cent))
 
 (the .public (rate before after)
-  (for_any (_ $)
-    (-> (Money $) (Money $)
-        Rate))
-  (r./ (n.real (money.amount before))
-       (n.real (money.amount after))))
+     (for_any (_ $)
+              (-> (Money $) (Money $)
+                  Rate))
+     (r./ (n.real (money.amount before))
+          (n.real (money.amount after))))

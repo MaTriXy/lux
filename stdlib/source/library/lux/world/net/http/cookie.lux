@@ -1,186 +1,186 @@
-... https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
-(.using
- [library
-  [lux (.except has)
-   [abstract
-    [equality (.only Equality)]]
-   [error
-    ["[0]" try (.only Try)]
-    ["[0]" exception (.only Exception)]]
-   [data
-    ["[0]" text (.only)
-     ["%" \\injection]]
-    [collection
-     ["[0]" dictionary (.only Dictionary)]]]
-   [math
-    [number
-     [/64
-      ["n" natural]
-      ["i" integer]]]]
-   [macro
-    ["[0]" template]]
-   [type
-    ["[0]" nominal (.only)]]
-   ["[0]" time (.only)
-    ["[0]" day]
-    ["[0]" month]
-    ["[0]" year]
-    ["[0]" date]
-    ["[0]" instant (.only Instant)]
-    ["[0]" duration (.only Duration)]]]])
+(.comment "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie"
+          (.using
+           [library
+            [lux (.except has)
+             [abstract
+              [equality (.only Equality)]]
+             [error
+              ["[0]" try (.only Try)]
+              ["[0]" exception (.only Exception)]]
+             [data
+              ["[0]" text (.only)
+               ["%" \\injection]]
+              [collection
+               ["[0]" dictionary (.only Dictionary)]]]
+             [math
+              [number
+               [/64
+                ["n" natural]
+                ["i" integer]]]]
+             [macro
+              ["[0]" template]]
+             [type
+              ["[0]" nominal (.only)]]
+             ["[0]" time (.only)
+              ["[0]" day]
+              ["[0]" month]
+              ["[0]" year]
+              ["[0]" date]
+              ["[0]" instant (.only Instant)]
+              ["[0]" duration (.only Duration)]]]]))
 
 (every .public (Cookie it)
-  (Record
-   [:name Text
-    :in (-> it
-            Text)
-    :out (-> Text
-             (Try it))]))
+       (Record
+        [:name Text
+         :in (-> it
+                 Text)
+         :out (-> Text
+                  (Try it))]))
 
 (the (digits/2 it)
-  (-> Natural
-      Text)
-  (if (n.< 10 it)
-      (text "0" (%.natural it))
-      (%.natural it)))
+     (-> Natural
+         Text)
+     (if (n.< 10 it)
+         (text "0" (%.natural it))
+         (%.natural it)))
 
-... https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date
-(the (date it)
-  (-> Instant
-      Text)
-  (let [day (when (instant.day_of_week it)
-              {day.:Sunday} "Sun"
-              {day.:Monday} "Mon"
-              {day.:Tuesday} "Tue"
-              {day.:Wednesday} "Wed"
-              {day.:Thursday} "Thu"
-              {day.:Friday} "Fri"
-              {day.:Saturday} "Sat")
-        date (let [it (instant.date it)
-                   day_of_month (digits/2 (date.day_of_month it))
-                   month (when (date.month it)
-                           {month.:January} "Jan"
-                           {month.:February} "Feb"
-                           {month.:March} "Mar"
-                           {month.:April} "Apr"
-                           {month.:May} "May"
-                           {month.:June} "Jun"
-                           {month.:July} "Jul"
-                           {month.:August} "Aug"
-                           {month.:September} "Sep"
-                           {month.:October} "Oct"
-                           {month.:November} "Nov"
-                           {month.:December} "Dec")
-                   year (let [it (year.value (date.year it))]
-                          (if (i.< +0 it)
-                              (%.integer it)
-                              (%.natural (.natural it))))]
-               (text day_of_month " " month " " year))
-        time (let [it (time.clock (instant.time it))]
-               (text (digits/2 (its time.:hour it))
-                     ":" (digits/2 (its time.:minute it))
-                     ":" (digits/2 (its time.:second it))))]
-    (text day ", " date " " time " GMT")))
+(comment "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Date"
+         (the (date it)
+              (-> Instant
+                  Text)
+              (let [day (when (instant.day_of_week it)
+                              {day.:Sunday} "Sun"
+                              {day.:Monday} "Mon"
+                              {day.:Tuesday} "Tue"
+                              {day.:Wednesday} "Wed"
+                              {day.:Thursday} "Thu"
+                              {day.:Friday} "Fri"
+                              {day.:Saturday} "Sat")
+                    date (let [it (instant.date it)
+                               day_of_month (digits/2 (date.day_of_month it))
+                               month (when (date.month it)
+                                           {month.:January} "Jan"
+                                           {month.:February} "Feb"
+                                           {month.:March} "Mar"
+                                           {month.:April} "Apr"
+                                           {month.:May} "May"
+                                           {month.:June} "Jun"
+                                           {month.:July} "Jul"
+                                           {month.:August} "Aug"
+                                           {month.:September} "Sep"
+                                           {month.:October} "Oct"
+                                           {month.:November} "Nov"
+                                           {month.:December} "Dec")
+                               year (let [it (year.value (date.year it))]
+                                         (if (i.< +0 it)
+                                             (%.integer it)
+                                             (%.natural (.natural it))))]
+                              (text day_of_month " " month " " year))
+                    time (let [it (time.clock (instant.time it))]
+                              (text (digits/2 (its time.:hour it))
+                                    ":" (digits/2 (its time.:minute it))
+                                    ":" (digits/2 (its time.:second it))))]
+                   (text day ", " date " " time " GMT"))))
 
 (every .public (Attribute it)
-  (-> (Cookie it)
-      (Cookie it)))
+       (-> (Cookie it)
+           (Cookie it)))
 
-... https://en.wikipedia.org/wiki/Delimiter
-(the delimiter "; ")
+(comment "https://en.wikipedia.org/wiki/Delimiter"
+         (the delimiter "; "))
 
 (the (attribute extension it)
-  (-> Text
-      Attribute)
-  [:name (its :name it)
-   :in (function (_ value)
-         (text ((its :in it) value) ..delimiter extension))
-   :out (its :out it)])
-
-(the .public (expires when)
-  (-> Instant
-      Attribute)
-  (..attribute (text "Expires=" (date when))))
-
-(the .public (max_age duration)
-  (-> Duration
-      Attribute)
-  (let [seconds (duration.ticks duration.second duration)]
-    (..attribute (text "Max-Age=" (if (i.< +0 seconds)
-                                      (%.integer seconds)
-                                      (%.natural (.natural seconds)))))))
-
-(template.with [<name> <prefix>]
-  [(the .public (<name> value)
      (-> Text
          Attribute)
-     (..attribute (text <prefix> "=" value)))]
+     [:name (its :name it)
+      :in (function (_ value)
+                    (text ((its :in it) value) ..delimiter extension))
+      :out (its :out it)])
 
-  [[domain "Domain"]
-   [path "Path"]])
+(the .public (expires when)
+     (-> Instant
+         Attribute)
+     (..attribute (text "Expires=" (date when))))
+
+(the .public (max_age duration)
+     (-> Duration
+         Attribute)
+     (let [seconds (duration.ticks duration.second duration)]
+          (..attribute (text "Max-Age=" (if (i.< +0 seconds)
+                                            (%.integer seconds)
+                                            (%.natural (.natural seconds)))))))
+
+(template.with [<name> <prefix>]
+               [(the .public (<name> value)
+                     (-> Text
+                         Attribute)
+                     (..attribute (text <prefix> "=" value)))]
+
+               [[domain "Domain"]
+                [path "Path"]])
 
 (template.with [<name> <tag>]
-  [(the .public <name>
-     Attribute
-     (..attribute <tag>))]
+               [(the .public <name>
+                     Attribute
+                     (..attribute <tag>))]
 
-  [[secure "Secure"]
-   [http_only "HttpOnly"]])
+               [[secure "Secure"]
+                [http_only "HttpOnly"]])
 
 (nominal.every .public CSRF_Policy
-  Text
+               Text
 
-  (template.with [<name> <value>]
-    [(the .public <name>
-       CSRF_Policy
-       (nominal.of <value>))]
-    
-    [[strict "Strict"]
-     [lax "Lax"]
-     [none "None"]])
+               (template.with [<name> <value>]
+                              [(the .public <name>
+                                    CSRF_Policy
+                                    (nominal.of <value>))]
+                              
+                              [[strict "Strict"]
+                               [lax "Lax"]
+                               [none "None"]])
 
-  (the .public (same_site policy)
-    (-> CSRF_Policy
-        Attribute)
-    (..attribute (text "SameSite=" (nominal.as policy))))
-  )
+               (the .public (same_site policy)
+                    (-> CSRF_Policy
+                        Attribute)
+                    (..attribute (text "SameSite=" (nominal.as policy))))
+               )
 
 (every .public Jar
-  (Dictionary Text Text))
+       (Dictionary Text Text))
 
 (the .public equality
-  (Equality Jar)
-  (dictionary.equality text.equality))
+     (Equality Jar)
+     (dictionary.equality text.equality))
 
 (the .public empty
-  Jar
-  (dictionary.empty text.hash))
+     Jar
+     (dictionary.empty text.hash))
 
 (the .public (has cookie value jar)
-  (for_any (_ it)
-    (-> (Cookie it) it Jar
-        Jar))
-  (dictionary.has (its :name cookie) ((its :in cookie) value) jar))
+     (for_any (_ it)
+              (-> (Cookie it) it Jar
+                  Jar))
+     (dictionary.has (its :name cookie) ((its :in cookie) value) jar))
 
 (exception.the .public (unknown [cookie])
-  (for_any (_ it)
-    (Exception (Cookie it)))
-  (exception.report
-   (list ["Cookie" (%.text (its :name cookie))])))
+               (for_any (_ it)
+                        (Exception (Cookie it)))
+               (exception.report
+                (list ["Cookie" (%.text (its :name cookie))])))
 
 (the .public (value cookie jar)
-  (for_any (_ it)
-    (-> (Cookie it) Jar
-        (Try it)))
-  (when (dictionary.value (its :name cookie) jar)
-    {try.:Success it}
-    (let [value (when (text.split_by ..delimiter it)
-                  {.:Some [before after]}
-                  before
-                  
-                  {.:None}
-                  it)]
-      ((its :out cookie) value))
-    
-    failure
-    (exception.except ..unknown [cookie])))
+     (for_any (_ it)
+              (-> (Cookie it) Jar
+                  (Try it)))
+     (when (dictionary.value (its :name cookie) jar)
+           {try.:Success it}
+           (let [value (when (text.split_by ..delimiter it)
+                             {.:Some [before after]}
+                             before
+                             
+                             {.:None}
+                             it)]
+                ((its :out cookie) value))
+           
+           failure
+           (exception.except ..unknown [cookie])))

@@ -46,295 +46,295 @@
 
 (target.if target.js
            (these (every (Analysis_Branch it)
-                    [Pattern it])
+                         [Pattern it])
 
                   (every (Analysis_Match it)
-                    [(Analysis_Branch it) (List (Analysis_Branch it))])
+                         [(Analysis_Branch it) (List (Analysis_Branch it))])
 
                   (every (Environment it)
-                    (List it))
+                         (List it))
 
                   (every (Extension it)
-                    [.Name (List it)])
+                         [.Name (List it)])
 
                   (every (Analysis~ _)
-                    (Or (And Provenance @type.Simple)
-                        (And Provenance (Complex Analysis~))
-                        (And Provenance Reference)
-                        (And Provenance [Analysis~ (Analysis_Match Analysis~)])
-                        (And Provenance [(Environment Analysis~) Analysis~])
-                        (And Provenance [Analysis~ Analysis~])
-                        (And Provenance (Extension Analysis~))))
+                         (Or (And Provenance @type.Simple)
+                             (And Provenance (Complex Analysis~))
+                             (And Provenance Reference)
+                             (And Provenance [Analysis~ (Analysis_Match Analysis~)])
+                             (And Provenance [(Environment Analysis~) Analysis~])
+                             (And Provenance [Analysis~ Analysis~])
+                             (And Provenance (Extension Analysis~))))
 
                   (.the extension_analysis
-                    (template.macro (_ <name> <parameter>)
-                      [(is Analysis~
-                           [provenance.dummy {5 1b [<name> <parameter>]}])]))
+                        (template.macro (_ <name> <parameter>)
+                                        [(is Analysis~
+                                             [provenance.dummy {5 1b [<name> <parameter>]}])]))
 
                   (.the text_analysis
-                    (template.macro (_ <it>)
-                      [(is Analysis~
-                           [provenance.dummy {0b {5 1b <it>}}])]))
+                        (template.macro (_ <it>)
+                                        [(is Analysis~
+                                             [provenance.dummy {0b {5 1b <it>}}])]))
 
                   (.the analysis
-                    (template.macro (_ <name> <bindings> <projection> <inputs> <body>)
-                      [(.the .public <name>
-                         (<| (as (-> Any .Analysis))
-                             (.function (_ phase archive inputs))
-                             (.function (_ state))
-                             (let [<bindings> [phase archive state]]
-                               (when (?list.value inputs <projection>)
-                                 {try.:Success <inputs>}
-                                 <body>
+                        (template.macro (_ <name> <bindings> <projection> <inputs> <body>)
+                                        [(.the .public <name>
+                                               (<| (as (-> Any .Analysis))
+                                                   (.function (_ phase archive inputs))
+                                                   (.function (_ state))
+                                                   (let [<bindings> [phase archive state]]
+                                                        (when (?list.value inputs <projection>)
+                                                              {try.:Success <inputs>}
+                                                              <body>
 
-                                 {try.:Failure error}
-                                 {try.:Failure (text "Invalid inputs for extension..."
-                                                     text.\n error)}))))]))
+                                                              {try.:Failure error}
+                                                              {try.:Failure (text "Invalid inputs for extension..."
+                                                                                  text.\n error)}))))]))
 
                   (every (Synthesis_Road value next)
-                    [value next])
+                         [value next])
 
                   (every (Synthesis_Fork value next)
-                    [(Synthesis_Road value next)
-                     (List (Synthesis_Road value next))])
+                         [(Synthesis_Road value next)
+                          (List (Synthesis_Road value next))])
 
                   (every (Synthesis_Path s)
-                    (Or Any
-                        Register
-                        Access
-                        [Bit (Synthesis_Path s) (Maybe (Synthesis_Path s))]
-                        (Synthesis_Fork I64 (Synthesis_Path s))
-                        (Synthesis_Fork Real (Synthesis_Path s))
-                        (Synthesis_Fork Text (Synthesis_Path s))
-                        [(Synthesis_Path s) (Synthesis_Path s)]
-                        [(Synthesis_Path s) (Synthesis_Path s)]
-                        s))
+                         (Or Any
+                             Register
+                             Access
+                             [Bit (Synthesis_Path s) (Maybe (Synthesis_Path s))]
+                             (Synthesis_Fork I64 (Synthesis_Path s))
+                             (Synthesis_Fork Real (Synthesis_Path s))
+                             (Synthesis_Fork Text (Synthesis_Path s))
+                             [(Synthesis_Path s) (Synthesis_Path s)]
+                             [(Synthesis_Path s) (Synthesis_Path s)]
+                             s))
 
                   (every (Synthesis_Abstraction s)
-                    [(Environment s) Arity s])
+                         [(Environment s) Arity s])
 
                   (every (Synthesis_Reification s)
-                    [s (List s)])
+                         [s (List s)])
 
                   (every (Synthesis_Function s)
-                    (Or (Synthesis_Abstraction s)
-                        (Synthesis_Reification s)))
+                         (Or (Synthesis_Abstraction s)
+                             (Synthesis_Reification s)))
 
                   (every (Synthesis_Branch s)
-                    (Or [s s]
-                        [s Register s]
-                        [s s s]
-                        [(List synthesis/member.Member) s]
-                        [s (Synthesis_Path s)]))
+                         (Or [s s]
+                             [s Register s]
+                             [s s s]
+                             [(List synthesis/member.Member) s]
+                             [s (Synthesis_Path s)]))
 
                   (every (Synthesis_Scope s)
-                    [Register (List s) s])
+                         [Register (List s) s])
 
                   (every (Synthesis_Loop s)
-                    (Or (Synthesis_Scope s)
-                        (List s)))
+                         (Or (Synthesis_Scope s)
+                             (List s)))
 
                   (every (Synthesis_Control s)
-                    (Or (Synthesis_Branch s)
-                        (Synthesis_Loop s)
-                        (Synthesis_Function s)))
+                         (Or (Synthesis_Branch s)
+                             (Synthesis_Loop s)
+                             (Synthesis_Function s)))
 
                   (every (Synthesis~ $)
-                    (Or (And Provenance synthesis/simple.Simple)
-                        (And Provenance (Complex @))
-                        (And Provenance Reference)
-                        (And Provenance (Synthesis_Control @))
-                        (And Provenance (Extension @))))
+                         (Or (And Provenance synthesis/simple.Simple)
+                             (And Provenance (Complex @))
+                             (And Provenance Reference)
+                             (And Provenance (Synthesis_Control @))
+                             (And Provenance (Extension @))))
 
                   (.the text_synthesis
-                    (template.macro (_ <@> <it>)
-                      [[<@> {0 0b {2 1b <it>}}]]))
+                        (template.macro (_ <@> <it>)
+                                        [[<@> {0 0b {2 1b <it>}}]]))
 
                   (.the .public invalid_inputs_for_extension
-                    Error
-                    (provenance.with (provenance.here)
-                                     "Invalid inputs for extension."))
+                        Error
+                        (provenance.with (provenance.here)
+                                         "Invalid inputs for extension."))
 
                   (syntax.the (translation [<name> ?list.any
                                             <bindings> ?list.any
                                             <inputs> (<>.or <code>.local
                                                             ?list.any)
                                             <body> ?list.any])
-                    (with_names ['_ 'phase 'archive 'inputs 'state]
-                                (pure (list (` (.the .public (, <name>)
-                                                 (<| (as (-> Any .Translation))
-                                                     (.function ((, '_) (, 'phase) (, 'archive) (, 'inputs)))
-                                                     (.function ((, '_) (, 'state)))
-                                                     (let [(, <bindings>) [(, 'phase) (, 'archive) (, 'state)]]
-                                                       (, (when <inputs>
-                                                            {.:Left <inputs>}
-                                                            (` (when (is (List Synthesis~) (, 'inputs))
-                                                                 (, (code.local <inputs>))
-                                                                 (, <body>)))
-                                                            
-                                                            {.:Right <inputs>}
-                                                            (` (when (is (List Synthesis~) (, 'inputs))
-                                                                 (, <inputs>)
-                                                                 (, <body>)
+                              (with_names ['_ 'phase 'archive 'inputs 'state]
+                                          (pure (list (` (.the .public (, <name>)
+                                                               (<| (as (-> Any .Translation))
+                                                                   (.function ((, '_) (, 'phase) (, 'archive) (, 'inputs)))
+                                                                   (.function ((, '_) (, 'state)))
+                                                                   (let [(, <bindings>) [(, 'phase) (, 'archive) (, 'state)]]
+                                                                        (, (when <inputs>
+                                                                                 {.:Left <inputs>}
+                                                                                 (` (when (is (List Synthesis~) (, 'inputs))
+                                                                                          (, (code.local <inputs>))
+                                                                                          (, <body>)))
+                                                                                 
+                                                                                 {.:Right <inputs>}
+                                                                                 (` (when (is (List Synthesis~) (, 'inputs))
+                                                                                          (, <inputs>)
+                                                                                          (, <body>)
 
-                                                                 (, '_)
-                                                                 {try.:Failure ..invalid_inputs_for_extension}))))))))))))
+                                                                                          (, '_)
+                                                                                          {try.:Failure ..invalid_inputs_for_extension}))))))))))))
 
                   (translation undefined?|translation
-                    [phase archive state]
-                    (list it)
-                    (monad.let try.monad
-                      [.let [phase (sharing [archive it state]
-                                     (is [archive it state]
-                                         [archive it state])
-                                     (is (-> archive it state
-                                             (Try [state js.Expression]))
-                                         (as_expected phase)))]
-                       [state it] (phase archive it state)]
-                      (pure [state (js.= js.undefined it)])))
+                               [phase archive state]
+                               (list it)
+                               (monad.let try.monad
+                                          [.let [phase (sharing [archive it state]
+                                                                (is [archive it state]
+                                                                    [archive it state])
+                                                                (is (-> archive it state
+                                                                        (Try [state js.Expression]))
+                                                                    (as_expected phase)))]
+                                           [state it] (phase archive it state)]
+                                          (pure [state (js.= js.undefined it)])))
 
                   (analysis undefined?|analysis
-                    [phase archive state]
-                    ?list.any
-                    it
-                    (monad.let try.monad
-                      [.let [phase (sharing [archive state]
-                                     (is [archive state]
-                                         [archive state])
-                                     (is (-> archive Code state
-                                             (Try [state Analysis~]))
-                                         (as_expected phase)))]
-                       [state it] (phase archive (` (.is .Any (, it))) state)]
-                      (pure [state (extension_analysis (name ..undefined?|translation)
-                                                       (list it))])))
+                            [phase archive state]
+                            ?list.any
+                            it
+                            (monad.let try.monad
+                                       [.let [phase (sharing [archive state]
+                                                             (is [archive state]
+                                                                 [archive state])
+                                                             (is (-> archive Code state
+                                                                     (Try [state Analysis~]))
+                                                                 (as_expected phase)))]
+                                        [state it] (phase archive (` (.is .Any (, it))) state)]
+                                       (pure [state (extension_analysis (name ..undefined?|translation)
+                                                                        (list it))])))
 
                   (.the .public undefined?
-                    (template.macro (undefined? <it>)
-                      [(.as (-> Any .Bit)
-                            (..undefined?|analysis <it>))]))
+                        (template.macro (undefined? <it>)
+                                        [(.as (-> Any .Bit)
+                                              (..undefined?|analysis <it>))]))
 
                   (translation undefined|translation
-                    [phase archive state]
-                    (list)
-                    {try.:Success [state js.undefined]})
+                               [phase archive state]
+                               (list)
+                               {try.:Success [state js.undefined]})
 
                   (analysis undefined|analysis
-                    [phase archive state]
-                    (<>:pure [])
-                    _
-                    {try.:Success [state (extension_analysis (name ..undefined|translation)
-                                                             (list))]})
+                            [phase archive state]
+                            (<>:pure [])
+                            _
+                            {try.:Success [state (extension_analysis (name ..undefined|translation)
+                                                                     (list))]})
 
                   (.the .public undefined
-                    (template.macro (_)
-                      [(.is ..Undefined
-                            (..undefined|analysis))]))
+                        (template.macro (_)
+                                        [(.is ..Undefined
+                                              (..undefined|analysis))]))
 
                   (.the (pairs it)
-                    (for_any (_ it)
-                      (-> (List it)
-                          (List [it it])))
-                    (when (list.split 2 it)
-                      [(list left right) tail]
-                      (list:composite (list [left right])
-                                      (pairs tail))
-                      
-                      [(list) (list)]
-                      (list)
+                        (for_any (_ it)
+                                 (-> (List it)
+                                     (List [it it])))
+                        (when (list.split 2 it)
+                              [(list left right) tail]
+                              (list:composite (list [left right])
+                                              (pairs tail))
+                              
+                              [(list) (list)]
+                              (list)
 
-                      _
-                      (.undefined)))
+                              _
+                              (.undefined)))
 
                   (translation object|translation
-                    [phase archive state]
-                    it
-                    (monad.let [! try.monad]
-                      [.let [phase (sharing [archive state]
-                                     (is [archive state]
-                                         [archive state])
-                                     (is (-> archive Synthesis~ state
-                                             (Try [state js.Expression]))
-                                         (as_expected phase)))]
-                       [state output] (list.mix' !
-                                                 (.function (_ [key value] [state output])
-                                                   (when key
-                                                     (text_synthesis @ key)
-                                                     (monad.let !
-                                                       [[state value] (phase archive value state)]
-                                                       (pure [state (list:composite output (list [key value]))]))
-                                                     
-                                                     _
-                                                     (.undefined)))
-                                                 (pairs it)
-                                                 [state (is (List [Text js.Expression])
-                                                            (list))])]
-                      (pure [state (js.object output)])))
+                               [phase archive state]
+                               it
+                               (monad.let [! try.monad]
+                                          [.let [phase (sharing [archive state]
+                                                                (is [archive state]
+                                                                    [archive state])
+                                                                (is (-> archive Synthesis~ state
+                                                                        (Try [state js.Expression]))
+                                                                    (as_expected phase)))]
+                                           [state output] (list.mix' !
+                                                                     (.function (_ [key value] [state output])
+                                                                                (when key
+                                                                                      (text_synthesis @ key)
+                                                                                      (monad.let !
+                                                                                                 [[state value] (phase archive value state)]
+                                                                                                 (pure [state (list:composite output (list [key value]))]))
+                                                                                      
+                                                                                      _
+                                                                                      (.undefined)))
+                                                                     (pairs it)
+                                                                     [state (is (List [Text js.Expression])
+                                                                                (list))])]
+                                          (pure [state (js.object output)])))
 
                   (analysis object|analysis
-                    [phase archive state]
-                    (<>.some (<>.and <code>.text ?list.any))
-                    it
-                    (monad.let [! try.monad]
-                      [.let [phase (sharing [archive state]
-                                     (is [archive state]
-                                         [archive state])
-                                     (is (-> archive Code state
-                                             (Try [state Analysis~]))
-                                         (as_expected phase)))]
-                       [state output] (list.mix' ! (.function (_ [key value] [state output])
-                                                     (monad.let !
-                                                       [[state value] (phase archive (` (.is .Any (, value))) state)]
-                                                       (pure [state (list:composite (list value (text_analysis key))
-                                                                                    output)])))
-                                                 it
-                                                 [state (is (List Analysis~)
-                                                            (list))])]
-                      (pure [state (extension_analysis (name ..object|translation)
-                                                       (list.in_reverse output))])))
+                            [phase archive state]
+                            (<>.some (<>.and <code>.text ?list.any))
+                            it
+                            (monad.let [! try.monad]
+                                       [.let [phase (sharing [archive state]
+                                                             (is [archive state]
+                                                                 [archive state])
+                                                             (is (-> archive Code state
+                                                                     (Try [state Analysis~]))
+                                                                 (as_expected phase)))]
+                                        [state output] (list.mix' ! (.function (_ [key value] [state output])
+                                                                               (monad.let !
+                                                                                          [[state value] (phase archive (` (.is .Any (, value))) state)]
+                                                                                          (pure [state (list:composite (list value (text_analysis key))
+                                                                                                                       output)])))
+                                                                  it
+                                                                  [state (is (List Analysis~)
+                                                                             (list))])]
+                                       (pure [state (extension_analysis (name ..object|translation)
+                                                                        (list.in_reverse output))])))
 
                   (syntax.the .public (object [it (<>.some ?list.any)])
-                    (pure (list (` (.as (-> Any (..Object .Any))
-                                        (..object|analysis (,* it)))))))
+                              (pure (list (` (.as (-> Any (..Object .Any))
+                                                  (..object|analysis (,* it)))))))
 
                   (translation set|translation
-                    [phase archive state]
-                    (list (text_synthesis @ field) value object)
-                    (monad.let try.monad
-                      [.let [phase (sharing [archive state]
-                                     (is [archive state]
-                                         [archive state])
-                                     (is (-> archive Synthesis~ state
-                                             (Try [state js.Expression]))
-                                         (as_expected phase)))]
-                       [state value] (phase archive value state)
-                       [state object] (phase archive object state)]
-                      (pure [state (js.set (js.its field object) value)])))
+                               [phase archive state]
+                               (list (text_synthesis @ field) value object)
+                               (monad.let try.monad
+                                          [.let [phase (sharing [archive state]
+                                                                (is [archive state]
+                                                                    [archive state])
+                                                                (is (-> archive Synthesis~ state
+                                                                        (Try [state js.Expression]))
+                                                                    (as_expected phase)))]
+                                           [state value] (phase archive value state)
+                                           [state object] (phase archive object state)]
+                                          (pure [state (js.set (js.its field object) value)])))
 
                   (analysis set|analysis
-                    [phase archive state]
-                    (all <>.and <code>.text ?list.any ?list.any)
-                    [field value object]
-                    (monad.let try.monad
-                      [.let [phase (sharing [archive state]
-                                     (is [archive state]
-                                         [archive state])
-                                     (is (-> archive Code state
-                                             (Try [state Analysis~]))
-                                         (as_expected phase)))]
-                       [state value] (phase archive (` (.is .Any (, value))) state)
-                       [state object] (phase archive (` (.is (..Object .Any) (, object))) state)]
-                      (pure [state (extension_analysis (name ..set|translation)
-                                                       (list (text_analysis field) value object))])))
+                            [phase archive state]
+                            (all <>.and <code>.text ?list.any ?list.any)
+                            [field value object]
+                            (monad.let try.monad
+                                       [.let [phase (sharing [archive state]
+                                                             (is [archive state]
+                                                                 [archive state])
+                                                             (is (-> archive Code state
+                                                                     (Try [state Analysis~]))
+                                                                 (as_expected phase)))]
+                                        [state value] (phase archive (` (.is .Any (, value))) state)
+                                        [state object] (phase archive (` (.is (..Object .Any) (, object))) state)]
+                                       (pure [state (extension_analysis (name ..set|translation)
+                                                                        (list (text_analysis field) value object))])))
 
                   (syntax.the .public (set [field ?list.any
                                             value ?list.any
                                             object ?list.any])
-                    (pure (list (` (.as (-> Any .Any)
-                                        (..set|analysis (, field) (, value) (, object)))))))
+                              (pure (list (` (.as (-> Any .Any)
+                                                  (..set|analysis (, field) (, value) (, object)))))))
                   )
            
-           ... else
-           (these))
+           (comment "else"
+                    (these)))
 
 (expansion.let [<constant> (target.if target.js .js_constant#
                                       target.python .python_constant#
@@ -367,754 +367,748 @@
                                       target.python .python_function#
                                       target.lua .lua_function#
                                       (these))]
-  (these (nominal.every .public (Object it) Any)
+               (these (nominal.every .public (Object it) Any)
 
-         (expansion.let [<un_common> (target.if target.js (these [Symbol] [Null] [Undefined])
-                                                target.python (these [None] [Dict])
-                                                target.lua (these [Nil] [Table])
-                                                target.ruby (these [Nil]))
-                         <un_common> <un_common>]
-           (template.with [<name>]
-                          [(expansion.let [<it> (template.name [<name> "'"])]
-                             (nominal.every <it>
-                               Any
-                               
-                               (every .public <name>
-                                 (Object <it>))))]
+                      (expansion.let [<un_common> (target.if target.js (these [Symbol] [Null] [Undefined])
+                                                             target.python (these [None] [Dict])
+                                                             target.lua (these [Nil] [Table])
+                                                             target.ruby (these [Nil]))
+                                      <un_common> <un_common>]
+                                     (template.with [<name>]
+                                                    [(expansion.let [<it> (template.name [<name> "'"])]
+                                                                    (nominal.every <it>
+                                                                                   Any
+                                                                                   
+                                                                                   (every .public <name>
+                                                                                          (Object <it>))))]
 
-                          [[Function]
-                           <un_common>]))
+                                                    [[Function]
+                                                     <un_common>]))
 
-         (expansion.let [<un_common> (target.if target.js (these [Number Real])
-                                                target.python (these [Integer .Integer]
-                                                                     [Float Real])
-                                                target.lua (these [Integer .Integer]
-                                                                  [Float Real])
-                                                target.ruby (these [Integer .Integer]
-                                                                   [Float Real]))
-                         <un_common> <un_common>]
-           (template.with [<name> <type>]
-                          [(every .public <name>
-                             <type>)]
+                      (expansion.let [<un_common> (target.if target.js (these [Number Real])
+                                                             target.python (these [Integer .Integer]
+                                                                                  [Float Real])
+                                                             target.lua (these [Integer .Integer]
+                                                                               [Float Real])
+                                                             target.ruby (these [Integer .Integer]
+                                                                                [Float Real]))
+                                      <un_common> <un_common>]
+                                     (template.with [<name> <type>]
+                                                    [(every .public <name>
+                                                            <type>)]
 
-                          [[Boolean Bit]
-                           [String  Text]
-                           <un_common>]))
+                                                    [[Boolean Bit]
+                                                     [String  Text]
+                                                     <un_common>]))
 
-         (every Alias
-           (Maybe Text))
+                      (every Alias
+                             (Maybe Text))
 
-         (.the alias
-           (Projection Alias)
-           (<>.maybe (<>.after (<code>.this (' "as")) <code>.local)))
+                      (.the alias
+                            (Projection Alias)
+                            (<>.maybe (<>.after (<code>.this (' "as")) <code>.local)))
 
-         (`` (`` (every Optional
-                   (Record
-                    [:optional? Bit
-                     (,, (target.if target.lua
-                                    (,, (these :multiple? Bit))
+                      (`` (`` (every Optional
+                                     (Record
+                                      [:optional? Bit
+                                       (,, (target.if target.lua
+                                                      (,, (these :multiple? Bit))
+                                                      (,, (these))))
+                                       :mandatory Code]))))
 
-                                    ... else
-                                    (,, (these))))
-                     :mandatory Code]))))
+                      (`` (`` (.the optional
+                                    (Projection Optional)
+                                    (let [token_for_optional? "?"
+                                          token_for_multiple? "multiple"]
+                                         (<| (<>.and (<>.parses? (<code>.this_text token_for_optional?)))
+                                             (<>.after (<>.not (<code>.this_text token_for_optional?)))
 
-         (`` (`` (.the optional
-                   (Projection Optional)
-                   (let [token_for_optional? "?"
-                         token_for_multiple? "multiple"]
-                     (<| (<>.and (<>.parses? (<code>.this_text token_for_optional?)))
-                         (<>.after (<>.not (<code>.this_text token_for_optional?)))
+                                             (,, (target.if target.lua
+                                                            (,, (these (<>.and (<>.parses? (<code>.this_text token_for_multiple?)))
+                                                                       (<>.after (<>.not (<code>.this_text token_for_multiple?)))))
+                                                            (,, (these))))
+                                             
+                                             ?list.any)))))
 
-                         (,, (target.if target.lua
-                                        (,, (these (<>.and (<>.parses? (<code>.this_text token_for_multiple?)))
-                                                   (<>.after (<>.not (<code>.this_text token_for_multiple?)))))
+                      (every (Named it)
+                             (Record
+                              [:name Text
+                               :alias Alias
+                               :anonymous it]))
 
-                                        ... else
-                                        (,, (these))))
-                         
-                         ?list.any)))))
+                      (template.with [<case> <name>]
+                                     [(.the <case>
+                                            (for_any (_ it)
+                                                     (-> (Projection it)
+                                                         (Projection (Named it))))
+                                            (|>> (all <>.and
+                                                      <name>
+                                                      ..alias
+                                                      )))]
 
-         (every (Named it)
-           (Record
-            [:name Text
-             :alias Alias
-             :anonymous it]))
+                                     [[named <code>.local]
+                                      [anonymous (<>:pure "")]])
 
-         (template.with [<case> <name>]
-                        [(.the <case>
-                           (for_any (_ it)
-                             (-> (Projection it)
-                                 (Projection (Named it))))
-                           (|>> (all <>.and
-                                     <name>
-                                     ..alias
-                                     )))]
+                      (every Output
+                             Optional)
 
-                        [[named <code>.local]
-                         [anonymous (<>:pure "")]])
+                      (.the output
+                            (Projection Output)
+                            ..optional)
 
-         (every Output
-           Optional)
+                      (every Global
+                             (Named Output))
 
-         (.the output
-           (Projection Output)
-           ..optional)
+                      (.the variables
+                            (Projection (List Text))
+                            (<>.else (list) (<code>.tuple (<>.some <code>.local))))
 
-         (every Global
-           (Named Output))
+                      (.the (generalized $ it)
+                            (for_any (_ it)
+                                     (-> (-> (List Text) it it)
+                                         (-> (Projection it) (Projection it))))
+                            (monad.let <>.monad
+                                       [variables ..variables
+                                        it it]
+                                       (pure ($ variables it))))
 
-         (.the variables
-           (Projection (List Text))
-           (<>.else (list) (<code>.tuple (<>.some <code>.local))))
+                      (every Input
+                             (Record
+                              [:variables (List Text)
+                               :parameters (List Optional)
+                               :io? Bit
+                               :try? Bit]))
 
-         (.the (generalized $ it)
-           (for_any (_ it)
-             (-> (-> (List Text) it it)
-                 (-> (Projection it) (Projection it))))
-           (monad.let <>.monad
-             [variables ..variables
-              it it]
-             (pure ($ variables it))))
+                      (.the input
+                            (Projection Input)
+                            (all <>.and
+                                 (<>:pure (list))
+                                 (<code>.tuple (<>.some ..optional))
+                                 (<>.parses? (<code>.this_text "io"))
+                                 (<>.parses? (<code>.this_text "try"))))
 
-         (every Input
-           (Record
-            [:variables (List Text)
-             :parameters (List Optional)
-             :io? Bit
-             :try? Bit]))
+                      (every Constructor
+                             (Named Input))
 
-         (.the input
-           (Projection Input)
-           (all <>.and
-                (<>:pure (list))
-                (<code>.tuple (<>.some ..optional))
-                (<>.parses? (<code>.this_text "io"))
-                (<>.parses? (<code>.this_text "try"))))
+                      (.the constructor
+                            (Projection Constructor)
+                            (<| <code>.form
+                                (..generalized (has [:anonymous :variables]))
+                                (<>.after (<code>.this (' new)))
+                                (..anonymous ..input)))
 
-         (every Constructor
-           (Named Input))
+                      (every (Member it)
+                             (Record
+                              [:static? Bit
+                               :member it]))
 
-         (.the constructor
-           (Projection Constructor)
-           (<| <code>.form
-               (..generalized (has [:anonymous :variables]))
-               (<>.after (<code>.this (' new)))
-               (..anonymous ..input)))
+                      (.the static!
+                            (Projection Any)
+                            (<code>.this_text "static"))
 
-         (every (Member it)
-           (Record
-            [:static? Bit
-             :member it]))
+                      (.the (member it)
+                            (for_any (_ it)
+                                     (-> (Projection it)
+                                         (Projection (Member it))))
+                            (monad.let [! <>.monad]
+                                       [static? (<>.parses? ..static!)]
+                                       (by ! each
+                                           (|>> [:static? static?
+                                                 :member])
+                                           it)))
 
-         (.the static!
-           (Projection Any)
-           (<code>.this_text "static"))
+                      (every Field
+                             (Member (Named Output)))
 
-         (.the (member it)
-           (for_any (_ it)
-             (-> (Projection it)
-                 (Projection (Member it))))
-           (monad.let [! <>.monad]
-             [static? (<>.parses? ..static!)]
-             (by ! each
-                 (|>> [:static? static?
-                       :member])
-                 it)))
+                      (.the field
+                            (Projection Field)
+                            (<| <code>.form
+                                ..member
+                                ..named
+                                ..output))
 
-         (every Field
-           (Member (Named Output)))
+                      (every Procedure
+                             (Record
+                              [:input Input
+                               :output Optional]))
 
-         (.the field
-           (Projection Field)
-           (<| <code>.form
-               ..member
-               ..named
-               ..output))
+                      (.the procedure
+                            (Projection (Named Procedure))
+                            (<| (..generalized (has [:anonymous :input :variables]))
+                                ..named
+                                (all <>.and
+                                     ..input
+                                     ..optional
+                                     )))
 
-         (every Procedure
-           (Record
-            [:input Input
-             :output Optional]))
+                      (every Method
+                             (Member (Named Procedure)))
 
-         (.the procedure
-           (Projection (Named Procedure))
-           (<| (..generalized (has [:anonymous :input :variables]))
-               ..named
-               (all <>.and
-                    ..input
-                    ..optional
-                    )))
+                      (.the method
+                            (Projection Method)
+                            (<| <code>.form
+                                ..member
+                                ..procedure))
 
-         (every Method
-           (Member (Named Procedure)))
+                      (`` (`` (every Sub
+                                     (Variant
+                                      (,, (target.if [target.lua target.ruby]
+                                                     (,, (these))
+                                                     {:Constructor Constructor}))
+                                      {:Field Field}
+                                      {:Method Method}))))
 
-         (.the method
-           (Projection Method)
-           (<| <code>.form
-               ..member
-               ..procedure))
+                      (`` (`` (.the sub
+                                    (Projection Sub)
+                                    (all <>.or
+                                         (,, (target.if [target.lua target.ruby]
+                                                        (,, (these))
+                                                        ..constructor))
+                                         ..field
+                                         ..method
+                                         ))))
 
-         (`` (`` (every Sub
-                   (Variant
-                    (,, (target.if [target.lua target.ruby]
-                                   (,, (these))
-                                   ... else
-                                   {:Constructor Constructor}))
-                    {:Field Field}
-                    {:Method Method}))))
+                      (.the parameters
+                            (-> (Change (List Optional)))
+                            (|>> list.enumeration
+                                 (list:each (.function (_ [idx it])
+                                                       (has :mandatory (|> idx %.natural code.local) it)))))
 
-         (`` (`` (.the sub
-                   (Projection Sub)
-                   (all <>.or
-                        (,, (target.if [target.lua target.ruby]
-                                       (,, (these))
-                                       ... else
-                                       ..constructor))
-                        ..field
-                        ..method
-                        ))))
+                      (.the (output_type it)
+                            (-> Optional
+                                Code)
+                            (if (its :optional? it)
+                                (` (.Maybe (, (its :mandatory it))))
+                                (its :mandatory it)))
 
-         (.the parameters
-           (-> (Change (List Optional)))
-           (|>> list.enumeration
-                (list:each (.function (_ [idx it])
-                             (has :mandatory (|> idx %.natural code.local) it)))))
+                      (`` (template.with [<lux_it> <host_it>
+                                          <lux_?> <host_?>]
+                                         [(.the .public (<lux_it> _)
+                                                (-> Any
+                                                    Nothing)
+                                                (as_expected (<host_it>)))
 
-         (.the (output_type it)
-           (-> Optional
-               Code)
-           (if (its :optional? it)
-               (` (.Maybe (, (its :mandatory it))))
-               (its :mandatory it)))
+                                          (.the .public <lux_?>
+                                                (-> Any
+                                                    Bit)
+                                                (|>> <host_?>))
 
-         (`` (template.with [<lux_it> <host_it>
-                             <lux_?> <host_?>]
-                            [(.the .public (<lux_it> _)
-                               (-> Any
-                                   Nothing)
-                               (as_expected (<host_it>)))
+                                          (template.with_locals ['it]
+                                                                (these (.the 'it' (' 'it))
+                                                                       (.the (host_optional it)
+                                                                             (-> Optional
+                                                                                 Code)
+                                                                             (.if (.its :optional? it)
+                                                                                  (` (.when (, (its :mandatory it))
+                                                                                            {.:Some (, 'it')}
+                                                                                            (, 'it')
 
-                             (.the .public <lux_?>
-                               (-> Any
-                                   Bit)
-                               (|>> <host_?>))
+                                                                                            {.:None}
+                                                                                            (<host_it>)))
+                                                                                  (its :mandatory it)))
 
-                             (template.with_locals ['it]
-                                                   (these (.the 'it' (' 'it))
-                                                          (.the (host_optional it)
-                                                            (-> Optional
-                                                                Code)
-                                                            (.if (.its :optional? it)
-                                                                 (` (.when (, (its :mandatory it))
-                                                                      {.:Some (, 'it')}
-                                                                      (, 'it')
+                                                                       (`` (.the (lux_optional it output)
+                                                                                 (-> Optional
+                                                                                     (Change Code))
+                                                                                 (,, (target.if target.lua
+                                                                                                (` (.let [(, 'it') (, (if (its :multiple? it)
+                                                                                                                          (` (<of> (<constant> "table.pack") [(, output)]))
+                                                                                                                          output))]
+                                                                                                         (, (if (its :optional? it)
+                                                                                                                (` (.if (not (<host_?> (, 'it')))
+                                                                                                                        {.:Some (, 'it')}
+                                                                                                                        {.:None}))
+                                                                                                                (` (.if (.not (<host_?> (, 'it')))
+                                                                                                                        (, 'it')
+                                                                                                                        (.halt! "Invalid output.")))))))
 
+                                                                                                (comment "by default"
+                                                                                                         (` (.let [(, 'it') (, output)]
+                                                                                                                  (, (if (its :optional? it)
+                                                                                                                         (` (.if (not (<host_?> (, 'it')))
+                                                                                                                                 {.:Some (, 'it')}
+                                                                                                                                 {.:None}))
+                                                                                                                         (` (.if (.not (<host_?> (, 'it')))
+                                                                                                                                 (, 'it')
+                                                                                                                                 (.halt! "Invalid output."))))))))))))))]
+
+                                         [(,, (target.if target.js [null .js_object_null#
+                                                                    null? .js_object_null?#]
+                                                         target.python [none .python_object_none#
+                                                                        none? .python_object_none?#]
+                                                         target.lua [nil .lua_object_nil#
+                                                                     nil? .lua_object_nil?#]
+                                                         target.ruby [nil .ruby_object_nil#
+                                                                      nil? .ruby_object_nil?#]))]
+                                         ))
+
+                      (every Declaration
+                             [Text (List Text)])
+
+                      (every Namespace
+                             Text)
+
+                      (every Class
+                             (Record
+                              [:declaration Declaration
+                               :class_alias Alias
+                               :namespace Namespace
+                               :members (List Sub)]))
+
+                      (.the class
+                            (Projection Class)
+                            (all <>.and
+                                 (<>.either (<>.and <code>.local
+                                                    (<>:pure (list)))
+                                            (<code>.form (<>.and <code>.local
+                                                                 (<>.some <code>.local))))
+                                 ..alias
+                                 (?.else "[1]:[0]" <code>.text)
+                                 (<>.some ..sub)))
+
+                      (every Import
+                             (Variant
+                              {:Class Class}
+                              {:Procedure (Named Procedure)}
+                              {:Global Global}))
+
+                      (.the importP
+                            (Projection Import)
+                            (all <>.or
+                                 ..class
+                                 (<code>.form ..procedure)
+                                 (<code>.form (..named ..output))))
+
+                      (.the (input_type input :it:)
+                            (-> Input Code
+                                Code)
+                            (let [:it: (if (its :try? input)
+                                           (` (Try (, :it:)))
+                                           :it:)]
+                                 (if (its :io? input)
+                                     (` (io.IO (, :it:)))
+                                     :it:)))
+
+                      (.the (input_term input term)
+                            (-> Input Code
+                                Code)
+                            (let [term (if (its :try? input)
+                                           (` (.try (, term)))
+                                           term)]
+                                 (if (its :io? input)
+                                     (` (io.io (, term)))
+                                     term)))
+
+                      (.the (procedure_definition import! source it)
+                            (-> (List Code) Code (Named Procedure)
+                                Code)
+                            (let ['it (|> (its :alias it)
+                                          (maybe.else (its :name it))
+                                          code.local)
+                                  'variables (list:each code.local (its [:anonymous :input :variables] it))
+                                  input (its [:anonymous :input] it)
+                                  :parameters: (its :parameters input)
+                                  'parameters (..parameters :parameters:)
+                                  :output: (its [:anonymous :output] it)
+                                  :input:/* (when :parameters:
+                                                  (list)
+                                                  (list (` []))
+                                                  
+                                                  not_empty!
+                                                  (list:each ..output_type :parameters:))
+
+                                  type_of_return (|>> ..output_type
+                                                      (..input_type input))
+                                  type_of_any_return (|>> (has :mandatory (` .Any))
+                                                          type_of_return)]
+                                 (` (.the ((, 'it) [(,* (list:each (its :mandatory) 'parameters))])
+                                          (.for_any ((, 'it) (,* 'variables))
+                                                    (-> [(,* :input:/*)]
+                                                        (, (type_of_return :output:))))
+                                          (.exec
+                                           (,* import!)
+                                           (.as (.for_any ((, 'it) (,* 'variables))
+                                                          (-> (, (type_of_any_return :output:))
+                                                              (, (type_of_return :output:))))
+                                                (, (<| (..input_term input)
+                                                       (..lux_optional :output:)
+                                                       (` (<of> (.as_expected (, source))
+                                                                [(,* (list:each ..host_optional 'parameters))]))))))))))
+
+                      (.the (namespaced namespace host_module class alias member)
+                            (-> Namespace Text Text Alias Text
+                                Text)
+                            (|> namespace
+                                (text.replaced "[2]" host_module)
+                                (text.replaced "[1]" (maybe.else class alias))
+                                (text.replaced "[0]" member)))
+
+                      (comment "https://en.wikipedia.org/wiki/Delimiter"
+                               (.the class_delimiter "."))
+
+                      (.the host_path
+                            (text.replaced module.delimiter ..class_delimiter))
+
+                      (target.if target.js
+                                 (these)
+
+                                 (comment "else"
+                                          (.the (imported class)
+                                                (-> Text
+                                                    Code)
+                                                (when (list.split 1 (text.all_split_by module.delimiter class))
+                                                      [(list head) tail]
+                                                      (list.mix (.function (_ sub super)
+                                                                           (` (<get> (, (code.text sub))
+                                                                                     (.as (-> Any (..Object .Any))
+                                                                                          (, super)))))
+                                                                tail
+                                                                (` (<import> (, (code.text head)))))
+                                                      
+                                                      else
+                                                      (` (<import> (, (code.text class))))))))
+
+                      (.the (global_definition import! it)
+                            (-> (List Code) Global
+                                Code)
+                            (let ['name (|> (its :alias it)
+                                            (maybe.else (its :name it))
+                                            code.local)
+                                  :output: (its :anonymous it)]
+                                 (` (.the (, 'name)
+                                          (, (..output_type :output:))
+                                          (.exec
+                                           (,* import!)
+                                           (.as_expected
+                                            (, (<| (lux_optional :output:)
+                                                   (` (<constant> (, (code.text (..host_path (its :name it))))))))))))))
+                      
+                      (target.if [target.lua target.ruby]
+                                 (these)
+
+                                 (comment "else"
+                                          (.the (constructor_definition host_module [class_name class_parameters] alias namespace it)
+                                                (-> Text Declaration Alias Namespace Constructor
+                                                    Code)
+                                                (let ['it (|> it
+                                                              (its :alias)
+                                                              (maybe.else "new")
+                                                              (..namespaced namespace host_module class_name alias)
+                                                              code.local)
+                                                      input (its :anonymous it)
+                                                      'input_variables (list:each code.local (its :variables input))
+                                                      :parameters: (its :parameters input)
+                                                      'parameters (..parameters :parameters:)
+                                                      'class_variables (list:each code.local class_parameters)
+                                                      'class (` ((, (code.local (maybe.else class_name alias))) (,* 'class_variables)))
+                                                      :output: [:optional? false :mandatory 'class]
+                                                      unquantified_type (` (.-> [(,* (list:each ..output_type :parameters:))]
+                                                                                (, (|> :output:
+                                                                                       ..output_type
+                                                                                       (..input_type input)))))
+                                                      quantified_type (when (list:composite 'class_variables 'input_variables)
+                                                                            (list)
+                                                                            unquantified_type
+
+                                                                            _
+                                                                            (` (.for_any ((, 'it) (,* 'class_variables) (,* 'input_variables))
+                                                                                         (, unquantified_type))))]
+                                                     (` (.the ((, 'it) [(,* (list:each (its :mandatory) 'parameters))])
+                                                              (, quantified_type)
+                                                              (.as_expected
+                                                               (, (<| (..input_term input)
+                                                                      (..lux_optional :output:)
+                                                                      (` (<new> (, (target.if target.js
+                                                                                              (` (<constant> (, (code.text (..host_path class_name)))))
+                                                                                              
+                                                                                              target.python
+                                                                                              (` (.as (-> Any ..Function)
+                                                                                                      (, (..imported class_name))))))
+                                                                                [(,* (list:each ..host_optional 'parameters))])))))))))))
+
+                      (.the (optional_value value)
+                            (-> Code
+                                (Change Optional))
+                            (has :mandatory value))
+                      
+                      (.the (static_field_definition import! host_module [class_name class_parameters] alias namespace it)
+                            (-> (List Code) Text Declaration Alias Namespace (Named Output)
+                                Code)
+                            (let [field (its :name it)
+                                  'it (|> (its :alias it)
+                                          (maybe.else field)
+                                          (..namespaced namespace host_module class_name alias)
+                                          code.local)
+                                  :field: (its :anonymous it)
+                                  get (` (.as (-> Any (io.IO (, (..output_type :field:))))
+                                              (io.io (, (<| (lux_optional :field:)
+                                                            (target.if target.js
+                                                                       (` (<constant> (, (code.text (text (..host_path class_name) "." field)))))
+                                                                       
+                                                                       target.ruby
+                                                                       (` (<constant> (, (code.text (text (..host_path class_name) "::" field)))))
+                                                                       
+                                                                       (comment "else"
+                                                                                (` (<get> (, (code.text field))
+                                                                                          (, (..imported class_name)))))))))))
+                                  set (let ['value_to_set (host_optional (optional_value (` ((,' ,) (, 'it))) :field:))]
+                                           (` (.as (-> Any (io.IO .Any))
+                                                   (io.io (, (target.if target.js
+                                                                        (` (..set (, (code.text field))
+                                                                                  (, 'value_to_set)
+                                                                                  (.as (-> Any (..Object .Any))
+                                                                                       (<constant> (, (code.text (..host_path class_name)))))))
+                                                                        
+                                                                        target.ruby
+                                                                        (` (<set> (, (code.text field))
+                                                                                  (, 'value_to_set)
+                                                                                  (<constant> (, (code.text (..host_path class_name))))))
+                                                                        
+                                                                        target.python
+                                                                        (` (<of> (<constant> "setattr")
+                                                                                 [(, (..imported class_name))
+                                                                                  (, (code.text field))
+                                                                                  (, 'value_to_set)]))
+                                                                        
+                                                                        (comment "else"
+                                                                                 (` (<set> (, (code.text field))
+                                                                                           (, 'value_to_set)
+                                                                                           (, (..imported class_name)))))))))))]
+                                 (` (syntax.the ((, 'it) [(, 'it) (<>.maybe ?list.any)])
+                                                (.by meta.monad (,' pure)
+                                                     (.list (`' (.exec
+                                                                 (,* import!)
+                                                                 ((,' ,) (when (, 'it)
+                                                                               {.:None}
+                                                                               (`' (, get))
+
+                                                                               {.:Some (, 'it)}
+                                                                               (`' (, set))))))))))))
+
+                      (.the (virtual_field_definition host_module [class_name class_parameters] alias namespace it)
+                            (-> Text Declaration Alias Namespace (Named Output)
+                                Code)
+                            (let [name (its :name it)
+                                  'it (|> (its :alias it)
+                                          (maybe.else name)
+                                          (..namespaced namespace host_module class_name alias)
+                                          code.local)
+                                  path (text (..host_path class_name) "." name)
+                                  :field: (its :anonymous it)
+                                  'variables (list:each code.local class_parameters)
+                                  'class (` ((, (code.local (maybe.else class_name alias))) (,* 'variables)))]
+                                 (` (.the ((, 'it) (, 'it))
+                                          (.for_any ((, 'it) (,* 'variables))
+                                                    (.-> (, 'class)
+                                                         (, (..output_type :field:))))
+                                          (.as_expected
+                                           (, (<| (lux_optional :field:)
+                                                  (` (<get> (, (code.text name)) (, 'it))))))))))
+
+                      (.the (field_definition import! host_module class alias namespace it)
+                            (-> (List Code) Text Declaration Alias Namespace Field
+                                Code)
+                            (if (its :static? it)
+                                (..static_field_definition import! host_module class alias namespace (its :member it))
+                                (..virtual_field_definition host_module class alias namespace (its :member it))))
+
+                      (.the (static_method_definition import! host_module [class_name class_parameters] alias namespace it)
+                            (-> (List Code) Text Declaration Alias Namespace (Named Procedure)
+                                Code)
+                            (let [method (its :name it)
+                                  name (|> (its :alias it)
+                                           (maybe.else (its :name it))
+                                           (..namespaced namespace host_module class_name alias))]
+                                 (|> it
+                                     (has :alias {.:Some name})
+                                     (..procedure_definition import!
+                                                             (target.if target.js
+                                                                        (` (<constant> (, (code.text (text (..host_path class_name) "." method)))))
+                                                                        
+                                                                        target.ruby
+                                                                        (` (<constant> (, (code.text (text (..host_path class_name) "::" method)))))
+
+                                                                        (comment "else"
+                                                                                 (` (<get> (, (code.text method))
+                                                                                           (.as (-> Any (..Object .Any))
+                                                                                                (, (..imported class_name)))))))))))
+
+                      (.the (virtual_method_definition host_module [class_name class_parameters] alias namespace it)
+                            (-> Text Declaration Alias Namespace (Named Procedure)
+                                Code)
+                            (let [method (its :name it)
+                                  'it (|> (its :alias it)
+                                          (maybe.else method)
+                                          (..namespaced namespace host_module class_name alias)
+                                          code.local)
+                                  procedure (its :anonymous it)
+                                  input (its :input procedure)
+                                  'input_variables (list:each code.local (its :variables input))
+                                  :parameters: (its :parameters input)
+                                  'parameters (..parameters :parameters:)
+                                  'class_variables (list:each code.local class_parameters)
+                                  'class (` ((, (code.local (maybe.else class_name alias))) (,* 'class_variables)))
+                                  :output: (its :output procedure)
+
+                                  type_of_return (|>> ..output_type
+                                                      (..input_type input))
+                                  type_of_any_return (|>> (has :mandatory (` .Any))
+                                                          type_of_return)]
+                                 (` (.the ((, 'it) [(,* (list:each (its :mandatory) 'parameters))] (, 'it))
+                                          (.for_any ((, 'it) (,* 'class_variables) (,* 'input_variables))
+                                                    (.-> [(,* (list:each ..output_type :parameters:))]
+                                                         (, 'class)
+                                                         (, (type_of_return :output:))))
+                                          (.as (.for_any ((, 'it) (,* 'class_variables) (,* 'input_variables))
+                                                         (-> (, (type_of_any_return :output:))
+                                                             (, (type_of_return :output:))))
+                                               (, (<| (..input_term input)
+                                                      (..lux_optional :output:)
+                                                      (` (<do> (, (code.text method))
+                                                               (, 'it)
+                                                               [(,* (list:each ..host_optional 'parameters))])))))))))
+
+                      (.the (method_definition import! host_module class alias namespace it)
+                            (-> (List Code) Text Declaration Alias Namespace Method
+                                Code)
+                            (if (its :static? it)
+                                (static_method_definition import! host_module class alias namespace (its :member it))
+                                (virtual_method_definition host_module class alias namespace (its :member it))))
+
+                      (syntax.the .public (the [host_module (<>.else "" <code>.text)
+                                                it ..importP])
+                                  (let [host_module_import! (is (List Code)
+                                                                (when host_module
+                                                                      ""
+                                                                      (list)
+
+                                                                      _
+                                                                      (list (` (<import> (, (code.text host_module)))))))]
+                                       (when it
+                                             {:Global it}
+                                             (pure (list (..global_definition host_module_import! it)))
+
+                                             {:Procedure it}
+                                             (pure (list (..procedure_definition host_module_import!
+                                                                                 (` (<constant> (, (code.text (..host_path (its :name it))))))
+                                                                                 it)))
+
+                                             {:Class it}
+                                             (let [class (its :declaration it)
+                                                   alias (its :class_alias it)
+                                                   [class_name class_parameters] class
+                                                   namespace (its :namespace it)
+                                                   'class_variables (list:each code.local class_parameters)
+                                                   declaration (` ((, (code.local (maybe.else class_name alias)))
+                                                                   (,* 'class_variables)))]
+                                                  (pure (list (` (these (.every (, declaration)
+                                                                                (..Object (.Nominal (, (code.text (..host_path class_name)))
+                                                                                                    [(,* (list:each (|>> (list (code.bit .co_variant))
+                                                                                                                         code.tuple)
+                                                                                                                    'class_variables))])))
+                                                                        (,* (list:each (.function (_ member)
+                                                                                                  (`` (`` (when member
+                                                                                                                (,, (target.if [target.lua target.ruby]
+                                                                                                                               (,, (these))
+
+                                                                                                                               (comment "else"
+                                                                                                                                        (,, (these {:Constructor it}
+                                                                                                                                                   (..constructor_definition host_module class alias namespace it))))))
+                                                                                                                
+                                                                                                                {:Field it}
+                                                                                                                (..field_definition host_module_import! host_module class alias namespace it)
+                                                                                                                
+                                                                                                                {:Method it}
+                                                                                                                (..method_definition host_module_import! host_module class alias namespace it)))))
+                                                                                       (its :members it))))))))
+                                             )))
+
+                      (target.if target.ruby
+                                 (these)
+
+                                 (comment "else"
+                                          (syntax.the .public (function [[self inputs] (<code>.form
+                                                                                        (all <>.and
+                                                                                             <code>.local
+                                                                                             (<code>.tuple (<>.some (<>.and ?list.any ?list.any)))))
+                                                                         type ?list.any
+                                                                         term ?list.any])
+                                                      (pure (list (` (.<| (.as (-> Any ..Function))
+                                                                          (<function> (, (code.natural (list.size inputs))))
+                                                                          (.as (-> (.-> [(,* (list:each pair.right inputs))]
+                                                                                        (, type))
+                                                                                   (.-> [(,* (list.repeated (list.size inputs) (` .Any)))]
+                                                                                        .Any)))
+                                                                          (.function ((, (code.local self)) [(,* (list:each pair.left inputs))])
+                                                                                     (, term)))))))))
+
+                      (target.if target.js
+                                 (these (.the .public type_of
+                                              (template.macro (type_of object)
+                                                              [(.js_type_of# object)]))
+
+                                        (syntax.the .public (global [type ?list.any
+                                                                     [head next,tail] (<code>.tuple (<>.and <code>.local (<>.maybe (<>.and <code>.local (<>.some <code>.local)))))])
+                                                    (with_names ['_]
+                                                                (let [global (` (.js_constant# (, (code.text head))))]
+                                                                     (when next,tail
+                                                                           {.:None}
+                                                                           (pure (list (` (is (.Maybe (, type))
+                                                                                              (when (..type_of (, global))
+                                                                                                    "undefined"
+                                                                                                    {.:None}
+
+                                                                                                    (, '_)
+                                                                                                    {.:Some (as (-> Any (, type)) (, global))})))))
+                                                                           
+                                                                           {.:Some [next tail]}
+                                                                           (let [delimiter "."]
+                                                                                (pure (list (` (is (.Maybe (, type))
+                                                                                                   (when (..type_of (, global))
+                                                                                                         "undefined"
+                                                                                                         {.:None}
+
+                                                                                                         (, '_)
+                                                                                                         (..global (, type) [(, (code.local (text head delimiter next)))
+                                                                                                                             (,* (list:each code.local tail))])))))))))))
+
+                                        (.the !defined?
+                                              (template.macro (_ <global>)
+                                                              [(.when (..global Any <global>)
                                                                       {.:None}
-                                                                      (<host_it>)))
-                                                                 (its :mandatory it)))
+                                                                      .false
 
-                                                          (`` (.the (lux_optional it output)
-                                                                (-> Optional
-                                                                    (Change Code))
-                                                                (,, (target.if target.lua
-                                                                               (` (.let [(, 'it') (, (if (its :multiple? it)
-                                                                                                         (` (<of> (<constant> "table.pack") [(, output)]))
-                                                                                                         output))]
-                                                                                    (, (if (its :optional? it)
-                                                                                           (` (.if (not (<host_?> (, 'it')))
-                                                                                                   {.:Some (, 'it')}
-                                                                                                   {.:None}))
-                                                                                           (` (.if (.not (<host_?> (, 'it')))
-                                                                                                   (, 'it')
-                                                                                                   (.halt! "Invalid output.")))))))
+                                                                      {.:Some _}
+                                                                      .true)]))
 
-                                                                               ... by default
-                                                                               (` (.let [(, 'it') (, output)]
-                                                                                    (, (if (its :optional? it)
-                                                                                           (` (.if (not (<host_?> (, 'it')))
-                                                                                                   {.:Some (, 'it')}
-                                                                                                   {.:None}))
-                                                                                           (` (.if (.not (<host_?> (, 'it')))
-                                                                                                   (, 'it')
-                                                                                                   (.halt! "Invalid output.")))))))))))))]
+                                        (template.with [<name> <global>]
+                                                       [(.the .public <name>
+                                                              Bit
+                                                              (!defined? <global>))]
 
-                            [(,, (target.if target.js [null .js_object_null#
-                                                       null? .js_object_null?#]
-                                            target.python [none .python_object_none#
-                                                           none? .python_object_none?#]
-                                            target.lua [nil .lua_object_nil#
-                                                        nil? .lua_object_nil?#]
-                                            target.ruby [nil .ruby_object_nil#
-                                                         nil? .ruby_object_nil?#]))]
-                            ))
+                                                       [[on_browser? [window]]
+                                                        [on_nashorn? [java lang Object]]])
 
-         (every Declaration
-           [Text (List Text)])
+                                        (.the .public on_node_js?
+                                              Bit
+                                              (|> (..global (Object Any) [process])
+                                                  (maybe:each (|>> []
+                                                                   (.js_of# (.js_constant# "Object.prototype.toString.call"))
+                                                                   (as (-> Any Text))
+                                                                   (text.= "[object process]")))
+                                                  (maybe.else false))))
 
-         (every Namespace
-           Text)
-
-         (every Class
-           (Record
-            [:declaration Declaration
-             :class_alias Alias
-             :namespace Namespace
-             :members (List Sub)]))
-
-         (.the class
-           (Projection Class)
-           (all <>.and
-                (<>.either (<>.and <code>.local
-                                   (<>:pure (list)))
-                           (<code>.form (<>.and <code>.local
-                                                (<>.some <code>.local))))
-                ..alias
-                (?.else "[1]:[0]" <code>.text)
-                (<>.some ..sub)))
-
-         (every Import
-           (Variant
-            {:Class Class}
-            {:Procedure (Named Procedure)}
-            {:Global Global}))
-
-         (.the importP
-           (Projection Import)
-           (all <>.or
-                ..class
-                (<code>.form ..procedure)
-                (<code>.form (..named ..output))))
-
-         (.the (input_type input :it:)
-           (-> Input Code
-               Code)
-           (let [:it: (if (its :try? input)
-                          (` (Try (, :it:)))
-                          :it:)]
-             (if (its :io? input)
-                 (` (io.IO (, :it:)))
-                 :it:)))
-
-         (.the (input_term input term)
-           (-> Input Code
-               Code)
-           (let [term (if (its :try? input)
-                          (` (.try (, term)))
-                          term)]
-             (if (its :io? input)
-                 (` (io.io (, term)))
-                 term)))
-
-         (.the (procedure_definition import! source it)
-           (-> (List Code) Code (Named Procedure)
-               Code)
-           (let ['it (|> (its :alias it)
-                         (maybe.else (its :name it))
-                         code.local)
-                 'variables (list:each code.local (its [:anonymous :input :variables] it))
-                 input (its [:anonymous :input] it)
-                 :parameters: (its :parameters input)
-                 'parameters (..parameters :parameters:)
-                 :output: (its [:anonymous :output] it)
-                 :input:/* (when :parameters:
-                             (list)
-                             (list (` []))
-                             
-                             not_empty!
-                             (list:each ..output_type :parameters:))
-
-                 type_of_return (|>> ..output_type
-                                     (..input_type input))
-                 type_of_any_return (|>> (has :mandatory (` .Any))
-                                         type_of_return)]
-             (` (.the ((, 'it) [(,* (list:each (its :mandatory) 'parameters))])
-                  (.for_any ((, 'it) (,* 'variables))
-                    (-> [(,* :input:/*)]
-                        (, (type_of_return :output:))))
-                  (.exec
-                    (,* import!)
-                    (.as (.for_any ((, 'it) (,* 'variables))
-                           (-> (, (type_of_any_return :output:))
-                               (, (type_of_return :output:))))
-                         (, (<| (..input_term input)
-                                (..lux_optional :output:)
-                                (` (<of> (.as_expected (, source))
-                                         [(,* (list:each ..host_optional 'parameters))]))))))))))
-
-         (.the (namespaced namespace host_module class alias member)
-           (-> Namespace Text Text Alias Text
-               Text)
-           (|> namespace
-               (text.replaced "[2]" host_module)
-               (text.replaced "[1]" (maybe.else class alias))
-               (text.replaced "[0]" member)))
-
-         ... https://en.wikipedia.org/wiki/Delimiter
-         (.the class_delimiter ".")
-
-         (.the host_path
-           (text.replaced module.delimiter ..class_delimiter))
-
-         (target.if target.js
-                    (these)
-
-                    ... else
-                    (.the (imported class)
-                      (-> Text
-                          Code)
-                      (when (list.split 1 (text.all_split_by module.delimiter class))
-                        [(list head) tail]
-                        (list.mix (.function (_ sub super)
-                                    (` (<get> (, (code.text sub))
-                                              (.as (-> Any (..Object .Any))
-                                                   (, super)))))
-                                  tail
-                                  (` (<import> (, (code.text head)))))
-                        
-                        else
-                        (` (<import> (, (code.text class)))))))
-
-         (.the (global_definition import! it)
-           (-> (List Code) Global
-               Code)
-           (let ['name (|> (its :alias it)
-                           (maybe.else (its :name it))
-                           code.local)
-                 :output: (its :anonymous it)]
-             (` (.the (, 'name)
-                  (, (..output_type :output:))
-                  (.exec
-                    (,* import!)
-                    (.as_expected
-                     (, (<| (lux_optional :output:)
-                            (` (<constant> (, (code.text (..host_path (its :name it))))))))))))))
-         
-         (target.if [target.lua target.ruby]
-                    (these)
-
-                    ... else
-                    (.the (constructor_definition host_module [class_name class_parameters] alias namespace it)
-                      (-> Text Declaration Alias Namespace Constructor
-                          Code)
-                      (let ['it (|> it
-                                    (its :alias)
-                                    (maybe.else "new")
-                                    (..namespaced namespace host_module class_name alias)
-                                    code.local)
-                            input (its :anonymous it)
-                            'input_variables (list:each code.local (its :variables input))
-                            :parameters: (its :parameters input)
-                            'parameters (..parameters :parameters:)
-                            'class_variables (list:each code.local class_parameters)
-                            'class (` ((, (code.local (maybe.else class_name alias))) (,* 'class_variables)))
-                            :output: [:optional? false :mandatory 'class]
-                            unquantified_type (` (.-> [(,* (list:each ..output_type :parameters:))]
-                                                      (, (|> :output:
-                                                             ..output_type
-                                                             (..input_type input)))))
-                            quantified_type (when (list:composite 'class_variables 'input_variables)
-                                              (list)
-                                              unquantified_type
-
-                                              _
-                                              (` (.for_any ((, 'it) (,* 'class_variables) (,* 'input_variables))
-                                                   (, unquantified_type))))]
-                        (` (.the ((, 'it) [(,* (list:each (its :mandatory) 'parameters))])
-                             (, quantified_type)
-                             (.as_expected
-                              (, (<| (..input_term input)
-                                     (..lux_optional :output:)
-                                     (` (<new> (, (target.if target.js
-                                                             (` (<constant> (, (code.text (..host_path class_name)))))
-                                                             
-                                                             target.python
-                                                             (` (.as (-> Any ..Function)
-                                                                     (, (..imported class_name))))))
-                                               [(,* (list:each ..host_optional 'parameters))]))))))))))
-
-         (.the (optional_value value)
-           (-> Code
-               (Change Optional))
-           (has :mandatory value))
-         
-         (.the (static_field_definition import! host_module [class_name class_parameters] alias namespace it)
-           (-> (List Code) Text Declaration Alias Namespace (Named Output)
-               Code)
-           (let [field (its :name it)
-                 'it (|> (its :alias it)
-                         (maybe.else field)
-                         (..namespaced namespace host_module class_name alias)
-                         code.local)
-                 :field: (its :anonymous it)
-                 get (` (.as (-> Any (io.IO (, (..output_type :field:))))
-                             (io.io (, (<| (lux_optional :field:)
-                                           (target.if target.js
-                                                      (` (<constant> (, (code.text (text (..host_path class_name) "." field)))))
-                                                      
-                                                      target.ruby
-                                                      (` (<constant> (, (code.text (text (..host_path class_name) "::" field)))))
-                                                      
-                                                      ... else
-                                                      (` (<get> (, (code.text field))
-                                                                (, (..imported class_name))))))))))
-                 set (let ['value_to_set (host_optional (optional_value (` ((,' ,) (, 'it))) :field:))]
-                       (` (.as (-> Any (io.IO .Any))
-                               (io.io (, (target.if target.js
-                                                    (` (..set (, (code.text field))
-                                                              (, 'value_to_set)
-                                                              (.as (-> Any (..Object .Any))
-                                                                   (<constant> (, (code.text (..host_path class_name)))))))
-                                                    
-                                                    target.ruby
-                                                    (` (<set> (, (code.text field))
-                                                              (, 'value_to_set)
-                                                              (<constant> (, (code.text (..host_path class_name))))))
-                                                    
-                                                    target.python
-                                                    (` (<of> (<constant> "setattr")
-                                                             [(, (..imported class_name))
-                                                              (, (code.text field))
-                                                              (, 'value_to_set)]))
-                                                    
-                                                    ... else
-                                                    (` (<set> (, (code.text field))
-                                                              (, 'value_to_set)
-                                                              (, (..imported class_name))))))))))]
-             (` (syntax.the ((, 'it) [(, 'it) (<>.maybe ?list.any)])
-                  (.by meta.monad (,' pure)
-                       (.list (`' (.exec
-                                    (,* import!)
-                                    ((,' ,) (when (, 'it)
-                                              {.:None}
-                                              (`' (, get))
-
-                                              {.:Some (, 'it)}
-                                              (`' (, set))))))))))))
-
-         (.the (virtual_field_definition host_module [class_name class_parameters] alias namespace it)
-           (-> Text Declaration Alias Namespace (Named Output)
-               Code)
-           (let [name (its :name it)
-                 'it (|> (its :alias it)
-                         (maybe.else name)
-                         (..namespaced namespace host_module class_name alias)
-                         code.local)
-                 path (text (..host_path class_name) "." name)
-                 :field: (its :anonymous it)
-                 'variables (list:each code.local class_parameters)
-                 'class (` ((, (code.local (maybe.else class_name alias))) (,* 'variables)))]
-             (` (.the ((, 'it) (, 'it))
-                  (.for_any ((, 'it) (,* 'variables))
-                    (.-> (, 'class)
-                         (, (..output_type :field:))))
-                  (.as_expected
-                   (, (<| (lux_optional :field:)
-                          (` (<get> (, (code.text name)) (, 'it))))))))))
-
-         (.the (field_definition import! host_module class alias namespace it)
-           (-> (List Code) Text Declaration Alias Namespace Field
-               Code)
-           (if (its :static? it)
-               (..static_field_definition import! host_module class alias namespace (its :member it))
-               (..virtual_field_definition host_module class alias namespace (its :member it))))
-
-         (.the (static_method_definition import! host_module [class_name class_parameters] alias namespace it)
-           (-> (List Code) Text Declaration Alias Namespace (Named Procedure)
-               Code)
-           (let [method (its :name it)
-                 name (|> (its :alias it)
-                          (maybe.else (its :name it))
-                          (..namespaced namespace host_module class_name alias))]
-             (|> it
-                 (has :alias {.:Some name})
-                 (..procedure_definition import!
-                                         (target.if target.js
-                                                    (` (<constant> (, (code.text (text (..host_path class_name) "." method)))))
-                                                    
-                                                    target.ruby
-                                                    (` (<constant> (, (code.text (text (..host_path class_name) "::" method)))))
-
-                                                    ... else
-                                                    (` (<get> (, (code.text method))
-                                                              (.as (-> Any (..Object .Any))
-                                                                   (, (..imported class_name))))))))))
-
-         (.the (virtual_method_definition host_module [class_name class_parameters] alias namespace it)
-           (-> Text Declaration Alias Namespace (Named Procedure)
-               Code)
-           (let [method (its :name it)
-                 'it (|> (its :alias it)
-                         (maybe.else method)
-                         (..namespaced namespace host_module class_name alias)
-                         code.local)
-                 procedure (its :anonymous it)
-                 input (its :input procedure)
-                 'input_variables (list:each code.local (its :variables input))
-                 :parameters: (its :parameters input)
-                 'parameters (..parameters :parameters:)
-                 'class_variables (list:each code.local class_parameters)
-                 'class (` ((, (code.local (maybe.else class_name alias))) (,* 'class_variables)))
-                 :output: (its :output procedure)
-
-                 type_of_return (|>> ..output_type
-                                     (..input_type input))
-                 type_of_any_return (|>> (has :mandatory (` .Any))
-                                         type_of_return)]
-             (` (.the ((, 'it) [(,* (list:each (its :mandatory) 'parameters))] (, 'it))
-                  (.for_any ((, 'it) (,* 'class_variables) (,* 'input_variables))
-                    (.-> [(,* (list:each ..output_type :parameters:))]
-                         (, 'class)
-                         (, (type_of_return :output:))))
-                  (.as (.for_any ((, 'it) (,* 'class_variables) (,* 'input_variables))
-                         (-> (, (type_of_any_return :output:))
-                             (, (type_of_return :output:))))
-                       (, (<| (..input_term input)
-                              (..lux_optional :output:)
-                              (` (<do> (, (code.text method))
-                                       (, 'it)
-                                       [(,* (list:each ..host_optional 'parameters))])))))))))
-
-         (.the (method_definition import! host_module class alias namespace it)
-           (-> (List Code) Text Declaration Alias Namespace Method
-               Code)
-           (if (its :static? it)
-               (static_method_definition import! host_module class alias namespace (its :member it))
-               (virtual_method_definition host_module class alias namespace (its :member it))))
-
-         (syntax.the .public (the [host_module (<>.else "" <code>.text)
-                                   it ..importP])
-           (let [host_module_import! (is (List Code)
-                                         (when host_module
-                                           ""
-                                           (list)
-
-                                           _
-                                           (list (` (<import> (, (code.text host_module)))))))]
-             (when it
-               {:Global it}
-               (pure (list (..global_definition host_module_import! it)))
-
-               {:Procedure it}
-               (pure (list (..procedure_definition host_module_import!
-                                                   (` (<constant> (, (code.text (..host_path (its :name it))))))
-                                                   it)))
-
-               {:Class it}
-               (let [class (its :declaration it)
-                     alias (its :class_alias it)
-                     [class_name class_parameters] class
-                     namespace (its :namespace it)
-                     'class_variables (list:each code.local class_parameters)
-                     declaration (` ((, (code.local (maybe.else class_name alias)))
-                                     (,* 'class_variables)))]
-                 (pure (list (` (these (.every (, declaration)
-                                         (..Object (.Nominal (, (code.text (..host_path class_name)))
-                                                             [(,* (list:each (|>> (list (code.bit .co_variant))
-                                                                                  code.tuple)
-                                                                             'class_variables))])))
-                                       (,* (list:each (.function (_ member)
-                                                        (`` (`` (when member
-                                                                  (,, (target.if [target.lua target.ruby]
-                                                                                 (,, (these))
-
-                                                                                 ... else
-                                                                                 (,, (these {:Constructor it}
-                                                                                            (..constructor_definition host_module class alias namespace it)))))
-                                                                  
-                                                                  {:Field it}
-                                                                  (..field_definition host_module_import! host_module class alias namespace it)
-                                                                  
-                                                                  {:Method it}
-                                                                  (..method_definition host_module_import! host_module class alias namespace it)))))
-                                                      (its :members it))))))))
-               )))
-
-         (target.if target.ruby
-                    (these)
-
-                    ... else
-                    (syntax.the .public (function [[self inputs] (<code>.form
-                                                                  (all <>.and
-                                                                       <code>.local
-                                                                       (<code>.tuple (<>.some (<>.and ?list.any ?list.any)))))
-                                                   type ?list.any
-                                                   term ?list.any])
-                      (pure (list (` (.<| (.as (-> Any ..Function))
-                                          (<function> (, (code.natural (list.size inputs))))
-                                          (.as (-> (.-> [(,* (list:each pair.right inputs))]
-                                                        (, type))
-                                                   (.-> [(,* (list.repeated (list.size inputs) (` .Any)))]
-                                                        .Any)))
-                                          (.function ((, (code.local self)) [(,* (list:each pair.left inputs))])
-                                            (, term))))))))
-
-         (target.if target.js
-                    (these (.the .public type_of
-                             (template.macro (type_of object)
-                               [(.js_type_of# object)]))
-
-                           (syntax.the .public (global [type ?list.any
-                                                        [head next,tail] (<code>.tuple (<>.and <code>.local (<>.maybe (<>.and <code>.local (<>.some <code>.local)))))])
-                             (with_names ['_]
-                                         (let [global (` (.js_constant# (, (code.text head))))]
-                                           (when next,tail
-                                             {.:None}
-                                             (pure (list (` (is (.Maybe (, type))
-                                                                (when (..type_of (, global))
-                                                                  "undefined"
-                                                                  {.:None}
-
-                                                                  (, '_)
-                                                                  {.:Some (as (-> Any (, type)) (, global))})))))
-                                             
-                                             {.:Some [next tail]}
-                                             (let [delimiter "."]
-                                               (pure (list (` (is (.Maybe (, type))
-                                                                  (when (..type_of (, global))
-                                                                    "undefined"
-                                                                    {.:None}
-
-                                                                    (, '_)
-                                                                    (..global (, type) [(, (code.local (text head delimiter next)))
-                                                                                        (,* (list:each code.local tail))])))))))))))
-
-                           (.the !defined?
-                             (template.macro (_ <global>)
-                               [(.when (..global Any <global>)
-                                  {.:None}
-                                  .false
-
-                                  {.:Some _}
-                                  .true)]))
-
-                           (template.with [<name> <global>]
-                                          [(.the .public <name>
-                                             Bit
-                                             (!defined? <global>))]
-
-                                          [[on_browser? [window]]
-                                           [on_nashorn? [java lang Object]]])
-
-                           (.the .public on_node_js?
-                             Bit
-                             (|> (..global (Object Any) [process])
-                                 (maybe:each (|>> []
-                                                  (.js_of# (.js_constant# "Object.prototype.toString.call"))
-                                                  (as (-> Any Text))
-                                                  (text.= "[object process]")))
-                                 (maybe.else false))))
-
-                    ... else
-                    (these (syntax.the .public (global [type ?list.any
-                                                        [head next,tail] (<code>.tuple (<>.and <code>.local (<>.maybe (<>.and <code>.local (<>.some <code>.local)))))])
-                             (let [global (` (<constant> (, (code.text head))))]
-                               (pure (list (when next,tail
-                                             {.:None}
-                                             (` (as (-> Any (, type))
-                                                    (, global)))
-                                             
-                                             {.:Some [next tail]}
-                                             (let [delimiter "."]
-                                               (` (..global (, type) [(, (code.local (text head delimiter next)))
-                                                                      (,* (list:each code.local tail))])))))))))))
-  )
+                                 (comment "else"
+                                          (these (syntax.the .public (global [type ?list.any
+                                                                              [head next,tail] (<code>.tuple (<>.and <code>.local (<>.maybe (<>.and <code>.local (<>.some <code>.local)))))])
+                                                             (let [global (` (<constant> (, (code.text head))))]
+                                                                  (pure (list (when next,tail
+                                                                                    {.:None}
+                                                                                    (` (as (-> Any (, type))
+                                                                                           (, global)))
+                                                                                    
+                                                                                    {.:Some [next tail]}
+                                                                                    (let [delimiter "."]
+                                                                                         (` (..global (, type) [(, (code.local (text head delimiter next)))
+                                                                                                                (,* (list:each code.local tail))]))))))))))))
+               )

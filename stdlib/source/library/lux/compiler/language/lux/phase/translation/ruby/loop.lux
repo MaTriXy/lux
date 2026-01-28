@@ -7,7 +7,7 @@
     ["[0]" pair]
     ["[0]" text]
     [collection
-     ["[0]" list (.open functor mix)]
+     ["[0]" list (.open functor)]
      ["[0]" set]]]
    [math
     [number
@@ -31,56 +31,56 @@
      ["[1][0]" translation]]]]])
 
 (the (setup offset bindings body)
-  (-> Register (List _.Expression) _.Statement _.Statement)
-  (let [variables (|> bindings
-                      list.enumeration
-                      (list:each (|>> pair.left (n.+ offset) //when.register)))]
-    (all _.then
-         (_.; (_.set variables (_.multi bindings)))
-         body)))
+     (-> Register (List _.Expression) _.Statement _.Statement)
+     (let [variables (|> bindings
+                         list.enumeration
+                         (list:each (|>> pair.left (n.+ offset) //when.register)))]
+          (all _.then
+               (_.; (_.set variables (_.multi bindings)))
+               body)))
 
 (the .public with_tail_recursion
-  (-> _.Statement
-      _.Statement)
-  (_.while (_.bool true)))
+     (-> _.Statement
+         _.Statement)
+     (_.while (_.bool true)))
 
 (the .public (tail_recursion! statement expression archive [start initsS+ bodyS])
-  (Statement (synthesis.Tail_Recursion synthesis.Term))
-  (when initsS+
-    (list)
-    (comment "function/false/non-independent loop"
-             (statement expression archive bodyS))
+     (Statement (synthesis.Tail_Recursion synthesis.Term))
+     (when initsS+
+           (list)
+           (comment "function/false/non-independent loop"
+                    (statement expression archive bodyS))
 
-    non_empty
-    (comment "true loop"
-             (monad.let [! phase.monad]
-               [initsO+ (list.each' ! (expression archive) initsS+)
-                body! (/////translation.with_anchor start
-                                                    (statement expression archive bodyS))]
-               (pure (<| (..setup start initsO+)
-                         ..with_tail_recursion
-                         body!))))))
+           non_empty
+           (comment "true loop"
+                    (monad.let [! phase.monad]
+                               [initsO+ (list.each' ! (expression archive) initsS+)
+                                body! (/////translation.with_anchor start
+                                                                    (statement expression archive bodyS))]
+                               (pure (<| (..setup start initsO+)
+                                         ..with_tail_recursion
+                                         body!))))))
 
 (the .public (tail_recursion statement expression archive [start initsS+ bodyS])
-  (-> Phase!
-      (Expression (synthesis.Tail_Recursion synthesis.Term)))
-  (when initsS+
-    (list)
-    (comment "function/false/non-independent loop"
-             (expression archive bodyS))
+     (-> Phase!
+         (Expression (synthesis.Tail_Recursion synthesis.Term)))
+     (when initsS+
+           (list)
+           (comment "function/false/non-independent loop"
+                    (expression archive bodyS))
 
-    non_empty
-    (comment "true loop"
-             (monad.let [! phase.monad]
-               [body! (tail_recursion! statement expression archive [start initsS+ bodyS])]
-               (pure (|> body!
-                         [(list)] (_.lambda {.:None})
-                         (_.of_lambda (list))))))))
+           non_empty
+           (comment "true loop"
+                    (monad.let [! phase.monad]
+                               [body! (tail_recursion! statement expression archive [start initsS+ bodyS])]
+                               (pure (|> body!
+                                         [(list)] (_.lambda {.:None})
+                                         (_.of_lambda (list))))))))
 
 (the .public (tail_iteration! statement expression archive it)
-  (Statement (List synthesis.Term))
-  (monad.let [! phase.monad]
-    [offset /////translation.anchor
-     it (list.each' ! (expression archive) it)]
-    (pure (..setup offset it
-                   _.next))))
+     (Statement (List synthesis.Term))
+     (monad.let [! phase.monad]
+                [offset /////translation.anchor
+                 it (list.each' ! (expression archive) it)]
+                (pure (..setup offset it
+                               _.next))))

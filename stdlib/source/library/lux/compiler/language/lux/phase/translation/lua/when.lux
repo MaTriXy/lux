@@ -36,476 +36,478 @@
        [archive (.only Archive)]]]]]]])
 
 (the .public register
-  (-> Register
-      Var)
-  (|>> (///reference.local //reference.system) as_expected))
+     (-> Register
+         Var)
+     (|>> (///reference.local //reference.system) as_expected))
 
 (the .public capture
-  (-> Register
-      Var)
-  (|>> (///reference.foreign //reference.system) as_expected))
+     (-> Register
+         Var)
+     (|>> (///reference.foreign //reference.system) as_expected))
 
 (the .public (exec expression archive it)
-  (Expression synthesis.Exec)
-  (monad.let [! phase.monad]
-    [.let [[tail after] (synthesis.flat_exec (.its synthesis.:exec_after it))]
-     all_before (list.each' ! (expression archive)
-                            (list:composite (list (.its synthesis.:exec_before it))
-                                            tail))
-     after (expression archive after)]
-    (pure (_.item (_.int +2)
-                  (_.array (list (_.array all_before)
-                                 after))))))
+     (Expression synthesis.Exec)
+     (monad.let [! phase.monad]
+                [.let [[tail after] (synthesis.flat_exec (.its synthesis.:exec_after it))]
+                 all_before (list.each' ! (expression archive)
+                                        (list:composite (list (.its synthesis.:exec_before it))
+                                                        tail))
+                 after (expression archive after)]
+                (pure (_.item (_.int +2)
+                              (_.array (list (_.array all_before)
+                                             after))))))
 
 (the .public (exec! statement expression archive [this that])
-  (Statement synthesis.Exec)
-  (monad.let [! phase.monad]
-    [this (expression archive this)
-     that (statement expression archive that)
-     $dummy (by ! each _.var (/////translation.name "_exec"))]
-    (pure (all _.then
-               (_.local/1 $dummy this)
-               that))))
+     (Statement synthesis.Exec)
+     (monad.let [! phase.monad]
+                [this (expression archive this)
+                 that (statement expression archive that)
+                 $dummy (by ! each _.var (/////translation.name "_exec"))]
+                (pure (all _.then
+                           (_.local/1 $dummy this)
+                           that))))
 
 (the .public (let expression archive [head_binding head_value body])
-  (Expression synthesis.Let)
-  (monad.let [! phase.monad]
-    [.let [[tail body] (synthesis.flat_let body)]
-     bindings (list.each' ! (function (_ [binding value])
-                              (phase:each (_.local/1 (..register binding))
-                                          (expression archive value)))
-                          (list:composite (list [head_binding head_value])
-                                          tail))
-     body (expression archive body)]
-    (comment "TODO: Find some way to do 'let' without paying the price of the closure."
-             (pure (<| (_.of (list))
-                       (_.closure (list))
-                       (list.mix _.then
-                                 (list.in_reverse bindings)
-                                 (_.return body)))))))
+     (Expression synthesis.Let)
+     (monad.let [! phase.monad]
+                [.let [[tail body] (synthesis.flat_let body)]
+                 bindings (list.each' ! (function (_ [binding value])
+                                                  (phase:each (_.local/1 (..register binding))
+                                                              (expression archive value)))
+                                      (list:composite (list [head_binding head_value])
+                                                      tail))
+                 body (expression archive body)]
+                (comment "TODO: Find some way to do 'let' without paying the price of the closure."
+                         (pure (<| (_.of (list))
+                                   (_.closure (list))
+                                   (list.mix _.then
+                                             (list.in_reverse bindings)
+                                             (_.return body)))))))
 
 (the .public (let! statement expression archive [register valueS bodyS])
-  (Statement synthesis.Let)
-  (monad.let phase.monad
-    [valueO (expression archive valueS)
-     bodyO (statement expression archive bodyS)]
-    (pure (all _.then
-               (_.local/1 (..register register) valueO)
-               bodyO))))
+     (Statement synthesis.Let)
+     (monad.let phase.monad
+                [valueO (expression archive valueS)
+                 bodyO (statement expression archive bodyS)]
+                (pure (all _.then
+                           (_.local/1 (..register register) valueO)
+                           bodyO))))
 
 (the (projection it)
-  (.if (.its member.:right? it)
-       (//runtime.tuple//right (_.int (.integer (.its member.:lefts it))))
-       (//runtime.tuple//left (_.int (.integer (.its member.:lefts it))))))
+     (-> Member
+         (Change _.Expression))
+     (.if (.its member.:right? it)
+          (//runtime.tuple//right (_.int (.integer (.its member.:lefts it))))
+          (//runtime.tuple//left (_.int (.integer (.its member.:lefts it))))))
 
 (the .public (its expression archive [pathP valueS])
-  (Expression synthesis.Its)
-  (monad.let phase.monad
-    [valueO (expression archive valueS)]
-    (pure (list.mix ..projection
-                    pathP
-                    valueO))))
+     (Expression synthesis.Its)
+     (monad.let phase.monad
+                [valueO (expression archive valueS)]
+                (pure (list.mix ..projection
+                                pathP
+                                valueO))))
 
 (the .public (if! statement expression archive [testS thenS elseS])
-  (Statement (synthesis.If synthesis.Term))
-  (monad.let phase.monad
-    [testO (expression archive testS)
-     thenO (statement expression archive thenS)
-     elseO (statement expression archive elseS)]
-    (pure (_.if testO
-                thenO
-                elseO))))
+     (Statement (synthesis.If synthesis.Term))
+     (monad.let phase.monad
+                [testO (expression archive testS)
+                 thenO (statement expression archive thenS)
+                 elseO (statement expression archive elseS)]
+                (pure (_.if testO
+                            thenO
+                            elseO))))
 
 (the .public (if expression archive [testS thenS elseS])
-  (Expression (synthesis.If synthesis.Term))
-  (monad.let phase.monad
-    [testO (expression archive testS)
-     thenO (expression archive thenS)
-     elseO (expression archive elseS)]
-    (pure (|> (_.if testO
-                    (_.return thenO)
-                    (_.return elseO))
-              (_.closure (list))
-              (_.of (list))))))
+     (Expression (synthesis.If synthesis.Term))
+     (monad.let phase.monad
+                [testO (expression archive testS)
+                 thenO (expression archive thenS)
+                 elseO (expression archive elseS)]
+                (pure (|> (_.if testO
+                                (_.return thenO)
+                                (_.return elseO))
+                          (_.closure (list))
+                          (_.of (list))))))
 
 (the .public (variant_if! statement expression archive [test [the_then then] [the_else else]])
-  (Statement (synthesis.If [(Maybe Register) synthesis.Term]))
-  (monad.let [! phase.monad]
-    [test (expression archive test)
-     then (statement expression archive then)
-     else (statement expression archive else)
+     (Statement (synthesis.If [(Maybe Register) synthesis.Term]))
+     (monad.let [! phase.monad]
+                [test (expression archive test)
+                 then (statement expression archive then)
+                 else (statement expression archive else)
 
-     $test (by ! each _.var (/////translation.name "_test"))
-     .let [is_right? (_.or (_.its //runtime.variant_right?_field $test)
-                           (_.not (_.= (_.int +0) (_.its //runtime.variant_lefts_field $test))))
-           bind_else! (function (_ the_else)
-                        (_.local/1 (..register the_else) (//runtime.sum//get $test //runtime.unit (_.int +0))))
-           bind_then! (function (_ the_then)
-                        (_.local/1 (..register the_then) (_.its //runtime.variant_value_field $test)))]]
-    (pure (all _.then
-               (_.local/1 $test test)
-               (.when [the_then the_else]
-                 [{.:Some the_then} {.:Some the_else}]
-                 (_.if is_right?
-                       (all _.then
-                            (bind_else! the_else)
-                            else)
-                       (all _.then
-                            (bind_then! the_then)
-                            then))
-                 
-                 [{.:None} {.:Some the_else}]
-                 (_.if is_right?
-                       (all _.then
-                            (bind_else! the_else)
-                            else)
-                       then)
-                 
-                 [{.:Some the_then} {.:None}]
-                 (_.if is_right?
-                       else
-                       (all _.then
-                            (bind_then! the_then)
-                            then))
-                 
-                 [{.:None} {.:None}]
-                 (_.if is_right?
-                       else
-                       then))))))
+                 $test (by ! each _.var (/////translation.name "_test"))
+                 .let [is_right? (_.or (_.its //runtime.variant_right?_field $test)
+                                       (_.not (_.= (_.int +0) (_.its //runtime.variant_lefts_field $test))))
+                       bind_else! (function (_ the_else)
+                                            (_.local/1 (..register the_else) (//runtime.sum//get $test //runtime.unit (_.int +0))))
+                       bind_then! (function (_ the_then)
+                                            (_.local/1 (..register the_then) (_.its //runtime.variant_value_field $test)))]]
+                (pure (all _.then
+                           (_.local/1 $test test)
+                           (.when [the_then the_else]
+                                  [{.:Some the_then} {.:Some the_else}]
+                                  (_.if is_right?
+                                        (all _.then
+                                             (bind_else! the_else)
+                                             else)
+                                        (all _.then
+                                             (bind_then! the_then)
+                                             then))
+                                  
+                                  [{.:None} {.:Some the_else}]
+                                  (_.if is_right?
+                                        (all _.then
+                                             (bind_else! the_else)
+                                             else)
+                                        then)
+                                  
+                                  [{.:Some the_then} {.:None}]
+                                  (_.if is_right?
+                                        else
+                                        (all _.then
+                                             (bind_then! the_then)
+                                             then))
+                                  
+                                  [{.:None} {.:None}]
+                                  (_.if is_right?
+                                        else
+                                        then))))))
 
 (the .public (variant_if statement expression archive)
-  (-> Phase!
-      (Expression (synthesis.If [(Maybe Register) synthesis.Term])))
-  (|>> (variant_if! statement expression archive)
-       (phase:each (|>> (_.closure (list))
-                        (_.of (list))))))
+     (-> Phase!
+         (Expression (synthesis.If [(Maybe Register) synthesis.Term])))
+     (|>> (variant_if! statement expression archive)
+          (phase:each (|>> (_.closure (list))
+                           (_.of (list))))))
 
 (the @savepoint (_.var "lux_pm_savepoint"))
 (the @cursor (_.var "lux_pm_cursor"))
 (the @temp (_.var "lux_pm_temp"))
 
 (the (push! value)
-  (-> _.Expression
-      _.Statement)
-  (_.; (|> (_.var "table.insert") (_.of (list @cursor value)))))
+     (-> _.Expression
+         _.Statement)
+     (_.; (|> (_.var "table.insert") (_.of (list @cursor value)))))
 
 (the peek_and_pop
-  _.Expression
-  (|> (_.var "table.remove") (_.of (list @cursor))))
+     _.Expression
+     (|> (_.var "table.remove") (_.of (list @cursor))))
 
 (the pop!
-  _.Statement
-  (_.; ..peek_and_pop))
+     _.Statement
+     (_.; ..peek_and_pop))
 
 (template.with [,index ,name]
                [(the ,name
-                  _.Access
-                  (_.at ,index @cursor))]
+                     _.Access
+                     (_.at ,index @cursor))]
 
                [[(_.- (_.int +1) (_.length @cursor)) previous]
                 [(_.length @cursor) current]])
 
 (the replace_current!
-  (-> _.Expression
-      _.Statement)
-  (_.set (list ..current)))
+     (-> _.Expression
+         _.Statement)
+     (_.set (list ..current)))
 
 (every Access
-  (-> _.Access
-      _.Expression))
+       (-> _.Access
+           _.Expression))
 
 (the the_left_member
-  Access
-  (_.item (_.int +1)))
+     Access
+     (_.item (_.int +1)))
 
 (the (any_member lefts side)
-  (-> Natural (-> _.Expression _.Expression _.Expression)
-      Access)
-  (side (_.int (.integer lefts))))
+     (-> Natural (-> _.Expression _.Expression _.Expression)
+         Access)
+     (side (_.int (.integer lefts))))
 
 (the (any_list_item index)
-  (-> Natural
-      Access)
-  (_.item (_.int (.integer (++ index)))))
+     (-> Natural
+         Access)
+     (_.item (_.int (.integer (++ index)))))
 
 (the save!
-  _.Statement
-  (_.; (|> (_.var "table.insert")
-           (_.of (list @savepoint
-                       (_.of (list @cursor
-                                   (_.int +1)
-                                   (_.length @cursor)
-                                   (_.int +1)
-                                   (_.table (list)))
-                             (_.var "table.move")))))))
+     _.Statement
+     (_.; (|> (_.var "table.insert")
+              (_.of (list @savepoint
+                          (_.of (list @cursor
+                                      (_.int +1)
+                                      (_.length @cursor)
+                                      (_.int +1)
+                                      (_.table (list)))
+                                (_.var "table.move")))))))
 
 (the restore!
-  _.Statement
-  (_.local/1 @cursor (|> (_.var "table.remove") (_.of (list @savepoint)))))
+     _.Statement
+     (_.local/1 @cursor (|> (_.var "table.remove") (_.of (list @savepoint)))))
 
 (the fail! _.break)
 
 (template.with [<name> <flag>]
                [(the (<name> simple? idx)
-                  (-> Bit Natural
-                      _.Statement)
-                  (all _.then
-                       (_.local/1 @temp (//runtime.sum//get ..current <flag>
-                                                            (|> idx .integer _.int)))
-                       (.if simple?
-                            (_.when (_.= _.nil @temp)
-                              fail!)
-                            (_.if (_.= _.nil @temp)
-                                  fail!
-                                  (..push! @temp)))))]
+                     (-> Bit Natural
+                         _.Statement)
+                     (all _.then
+                          (_.local/1 @temp (//runtime.sum//get ..current <flag>
+                                                               (|> idx .integer _.int)))
+                          (.if simple?
+                               (_.when (_.= _.nil @temp)
+                                       fail!)
+                               (_.if (_.= _.nil @temp)
+                                     fail!
+                                     (..push! @temp)))))]
 
                [[left_choice  _.nil]
                 [right_choice //runtime.unit]])
 
 (the (alternation pre! [must_restore? post!])
-  (-> _.Statement [Bit _.Statement]
-      _.Statement)
-  (all _.then
-       (_.while (_.boolean true)
-                (all _.then
-                     ..save!
-                     pre!))
-       (.if must_restore?
-            (all _.then
-                 ..restore!
-                 post!)
-            post!)))
+     (-> _.Statement [Bit _.Statement]
+         _.Statement)
+     (all _.then
+          (_.while (_.boolean true)
+                   (all _.then
+                        ..save!
+                        pre!))
+          (.if must_restore?
+               (all _.then
+                    ..restore!
+                    post!)
+               post!)))
 
 (the (binding_of of source register thenP)
-  (-> (-> (path.Path synthesis.Term) (Operation _.Statement))
-      _.Expression Register (path.Path synthesis.Term)
-      (Operation _.Statement))
-  (phase:each (_.then (_.local/1 (..register register) source))
-              (of thenP)))
+     (-> (-> (path.Path synthesis.Term) (Operation _.Statement))
+         _.Expression Register (path.Path synthesis.Term)
+         (Operation _.Statement))
+     (phase:each (_.then (_.local/1 (..register register) source))
+                 (of thenP)))
 
 (the (substitution_by of access thenP)
-  (-> (-> (path.Path synthesis.Term) (Operation _.Statement))
-      Access (path.Path synthesis.Term)
-      (Operation _.Statement))
-  (phase:each (_.then (replace_current! (access ..previous)))
-              (of thenP)))
+     (-> (-> (path.Path synthesis.Term) (Operation _.Statement))
+         Access (path.Path synthesis.Term)
+         (Operation _.Statement))
+     (phase:each (_.then (replace_current! (access ..previous)))
+                 (of thenP)))
 
 (the (pattern_matching' statement expression archive)
-  (-> Phase! Phase Archive (path.Path synthesis.Term)
-      (Operation _.Statement))
-  (function (of pathP)
-    (`` (.when pathP
-          {path.:Then bodyS}
-          (statement expression archive bodyS)
+     (-> Phase! Phase Archive (path.Path synthesis.Term)
+         (Operation _.Statement))
+     (function (of pathP)
+               (`` (.when pathP
+                          {path.:Then bodyS}
+                          (statement expression archive bodyS)
 
-          {path.:Pop}
-          (phase:pure ..pop!)
+                          {path.:Pop}
+                          (phase:pure ..pop!)
 
-          {path.:Bind register}
-          (phase:pure (_.local/1 (..register register) ..current))
+                          {path.:Bind register}
+                          (phase:pure (_.local/1 (..register register) ..current))
 
-          {path.:Bit_Fork when thenP elseP}
-          (monad.let [! phase.monad]
-            [then! (of thenP)
-             else! (.when elseP
-                     {.:Some elseP}
-                     (of elseP)
+                          {path.:Bit_Fork when thenP elseP}
+                          (monad.let [! phase.monad]
+                                     [then! (of thenP)
+                                      else! (.when elseP
+                                                   {.:Some elseP}
+                                                   (of elseP)
 
-                     {.:None}
-                     (pure ..fail!))]
-            (pure (.if when
-                       (_.if ..current
-                             then!
-                             else!)
-                       (_.if ..current
-                             else!
-                             then!))))
+                                                   {.:None}
+                                                   (pure ..fail!))]
+                                     (pure (.if when
+                                                (_.if ..current
+                                                      then!
+                                                      else!)
+                                                (_.if ..current
+                                                      else!
+                                                      then!))))
 
-          (,, (template.with [<tag> <injection>]
-                             [{<tag> [head tail]}
-                              (monad.let [! phase.monad]
-                                ['input (phase:each _.var (/////translation.name "input"))
-                                 clauses (list.each' ! (function (_ [match then])
-                                                         (monad.let !
-                                                           [then! (of then)]
-                                                           (pure [(_.= (<injection> match)
-                                                                       'input)
-                                                                  then!])))
-                                                     (list:composite (list head) tail))]
-                                (pure (all _.then
-                                           (_.local/1 'input ..current)
-                                           (list.mix (function (_ [when then!] else!)
-                                                       (_.if when then! else!))
-                                                     (list.in_reverse clauses)
-                                                     ..fail!))))]
+                          (,, (template.with [<tag> <injection>]
+                                             [{<tag> [head tail]}
+                                              (monad.let [! phase.monad]
+                                                         ['input (phase:each _.var (/////translation.name "input"))
+                                                          clauses (list.each' ! (function (_ [match then])
+                                                                                          (monad.let !
+                                                                                                     [then! (of then)]
+                                                                                                     (pure [(_.= (<injection> match)
+                                                                                                                 'input)
+                                                                                                            then!])))
+                                                                              (list:composite (list head) tail))]
+                                                         (pure (all _.then
+                                                                    (_.local/1 'input ..current)
+                                                                    (list.mix (function (_ [when then!] else!)
+                                                                                        (_.if when then! else!))
+                                                                              (list.in_reverse clauses)
+                                                                              ..fail!))))]
 
-                             [[path.:I64_Fork //primitive.i64]
-                              [path.:F64_Fork //primitive.f64]
-                              [path.:Text_Fork //primitive.text]]))
+                                             [[path.:I64_Fork //primitive.i64]
+                                              [path.:F64_Fork //primitive.f64]
+                                              [path.:Text_Fork //primitive.text]]))
 
-          (,, (template.with [<complex> <simple> <choice>]
-                             [(<complex> idx)
-                              (phase:pure (<choice> false idx))
+                          (,, (template.with [<complex> <simple> <choice>]
+                                             [(<complex> idx)
+                                              (phase:pure (<choice> false idx))
 
-                              (<simple> idx nextP)
-                              (phase:each (_.then (<choice> true idx)) (of nextP))]
+                                              (<simple> idx nextP)
+                                              (phase:each (_.then (<choice> true idx)) (of nextP))]
 
-                             [[path.left_side  path.simple_left_side  ..left_choice]
-                              [path.right_side path.simple_right_side ..right_choice]]))
+                                             [[path.left_side  path.simple_left_side  ..left_choice]
+                                              [path.right_side path.simple_right_side ..right_choice]]))
 
-          (path.left_member 0)
-          (phase:pure (..push! (the_left_member ..current)))
+                          (path.left_member 0)
+                          (phase:pure (..push! (the_left_member ..current)))
 
-          (path.binding_of_left register thenP)
-          (binding_of of (..the_left_member ..current) register thenP)
+                          (path.binding_of_left register thenP)
+                          (binding_of of (..the_left_member ..current) register thenP)
 
-          (path.substitution_by_left thenP)
-          (substitution_by of ..the_left_member thenP)
-          
-          (,, (template.with [<pm> <getter>]
-                             [(<pm> lefts)
-                              (phase:pure (..push! (any_member lefts <getter> ..current)))
+                          (path.substitution_by_left thenP)
+                          (substitution_by of ..the_left_member thenP)
+                          
+                          (,, (template.with [<pm> <getter>]
+                                             [(<pm> lefts)
+                                              (phase:pure (..push! (any_member lefts <getter> ..current)))
 
-                              (path.binding_of_member <pm> lefts register thenP)
-                              (binding_of of (any_member lefts <getter> ..current) register thenP)
+                                              (path.binding_of_member <pm> lefts register thenP)
+                                              (binding_of of (any_member lefts <getter> ..current) register thenP)
 
-                              (path.substitution_by_member <pm> lefts thenP)
-                              (substitution_by of (any_member lefts <getter>) thenP)]
+                                              (path.substitution_by_member <pm> lefts thenP)
+                                              (substitution_by of (any_member lefts <getter>) thenP)]
 
-                             [[path.left_member  //runtime.tuple//left]
-                              [path.right_member //runtime.tuple//right]]))
+                                             [[path.left_member  //runtime.tuple//left]
+                                              [path.right_member //runtime.tuple//right]]))
 
-          {path.:List size}
-          (phase:pure (_.when (_.not (_.= (_.int (.integer size))
-                                          (_.length ..current)))
-                        ..fail!))
+                          {path.:List size}
+                          (phase:pure (_.when (_.not (_.= (_.int (.integer size))
+                                                          (_.length ..current)))
+                                              ..fail!))
 
-          (path.item index)
-          (phase:pure (..push! (any_list_item index ..current)))
+                          (path.item index)
+                          (phase:pure (..push! (any_list_item index ..current)))
 
-          (path.binding_of_item index register thenP)
-          (binding_of of (..any_list_item index ..current) register thenP)
+                          (path.binding_of_item index register thenP)
+                          (binding_of of (..any_list_item index ..current) register thenP)
 
-          (path.substitution_by_item index thenP)
-          (substitution_by of (..any_list_item index) thenP)
+                          (path.substitution_by_item index thenP)
+                          (substitution_by of (..any_list_item index) thenP)
 
-          (path.binding_of_current register thenP)
-          (binding_of of ..peek_and_pop register thenP)
+                          (path.binding_of_current register thenP)
+                          (binding_of of ..peek_and_pop register thenP)
 
-          {path.:And preP postP}
-          (monad.let phase.monad
-            [pre! (of preP)
-             post! (of postP)]
-            (pure (_.then pre! post!)))
+                          {path.:And preP postP}
+                          (monad.let phase.monad
+                                     [pre! (of preP)
+                                      post! (of postP)]
+                                     (pure (_.then pre! post!)))
 
-          {path.:Or preP postP}
-          (monad.let phase.monad
-            [pre! (of preP)
-             post! (of postP)]
-            (pure (..alternation pre! [(path.must_restore? postP) post!])))))))
+                          {path.:Or preP postP}
+                          (monad.let phase.monad
+                                     [pre! (of preP)
+                                      post! (of postP)]
+                                     (pure (..alternation pre! [(path.must_restore? postP) post!])))))))
 
 (the (pattern_matching statement expression archive pathP)
-  (-> Phase! Phase Archive (path.Path synthesis.Term)
-      (Operation _.Statement))
-  (monad.let phase.monad
-    [pattern_matching! (pattern_matching' statement expression archive pathP)]
-    (pure (all _.then
-               (_.while (_.boolean true)
-                        pattern_matching!)
-               (_.; (|> (_.var "error") (_.of (list (_.string ////synthesis/when.pattern_matching_error)))))))))
+     (-> Phase! Phase Archive (path.Path synthesis.Term)
+         (Operation _.Statement))
+     (monad.let phase.monad
+                [pattern_matching! (pattern_matching' statement expression archive pathP)]
+                (pure (all _.then
+                           (_.while (_.boolean true)
+                                    pattern_matching!)
+                           (_.; (|> (_.var "error") (_.of (list (_.string ////synthesis/when.pattern_matching_error)))))))))
 
 (the .public dependencies
-  (-> (path.Path synthesis.Term)
-      (List Var))
-  (|>> ////synthesis/when.storage
-       (.its ////synthesis/when.:dependencies)
-       set.as_list
-       (list:each (function (_ variable)
-                    (.when variable
-                      {@type.:Local register}
-                      (..register register)
-                      
-                      {@type.:Foreign register}
-                      (..capture register))))))
+     (-> (path.Path synthesis.Term)
+         (List Var))
+     (|>> ////synthesis/when.storage
+          (.its ////synthesis/when.:dependencies)
+          set.as_list
+          (list:each (function (_ variable)
+                               (.when variable
+                                      {@type.:Local register}
+                                      (..register register)
+                                      
+                                      {@type.:Foreign register}
+                                      (..capture register))))))
 
 (the .public (when! statement expression archive [valueS pathP])
-  (Statement [synthesis.Term (path.Path synthesis.Term)])
-  (monad.let phase.monad
-    [start (expression archive valueS)
-     pattern_matching! (pattern_matching statement expression archive pathP)]
-    (pure (all _.then
-               (_.local (list @temp))
-               (_.local/1 @cursor (_.array (list start)))
-               (_.local/1 @savepoint (_.array (list)))
-               pattern_matching!))))
+     (Statement [synthesis.Term (path.Path synthesis.Term)])
+     (monad.let phase.monad
+                [start (expression archive valueS)
+                 pattern_matching! (pattern_matching statement expression archive pathP)]
+                (pure (all _.then
+                           (_.local (list @temp))
+                           (_.local/1 @cursor (_.array (list start)))
+                           (_.local/1 @savepoint (_.array (list)))
+                           pattern_matching!))))
 
 (the .public (when statement expression archive [valueS pathP])
-  (-> Phase!
-      (Expression [synthesis.Term (path.Path synthesis.Term)]))
-  (|> [valueS pathP]
-      (..when! statement expression archive)
-      (phase:each (|>> (_.closure (list))
-                       (_.of (list))))))
+     (-> Phase!
+         (Expression [synthesis.Term (path.Path synthesis.Term)]))
+     (|> [valueS pathP]
+         (..when! statement expression archive)
+         (phase:each (|>> (_.closure (list))
+                          (_.of (list))))))
 
 (the .public (multi_let! statement expression archive [input bindings body])
-  (Statement synthesis.Multi_Let)
-  (monad.let phase.monad
-    [input (expression archive input)
-     body (statement expression archive body)
-     'tuple (phase:each _.var (/////translation.name "tuple"))]
-    (pure (all _.then
-               (list.mix (function (_ [register member] left)
-                           (all _.then
-                                left
-                                (_.local/1 (..register register) (..projection member 'tuple))))
-                         bindings
-                         (_.local/1 'tuple input))
-               body))))
+     (Statement synthesis.Multi_Let)
+     (monad.let phase.monad
+                [input (expression archive input)
+                 body (statement expression archive body)
+                 'tuple (phase:each _.var (/////translation.name "tuple"))]
+                (pure (all _.then
+                           (list.mix (function (_ [register member] left)
+                                               (all _.then
+                                                    left
+                                                    (_.local/1 (..register register) (..projection member 'tuple))))
+                                     bindings
+                                     (_.local/1 'tuple input))
+                           body))))
 
 (the .public (multi_let statement expression archive)
-  (-> Phase!
-      (Expression synthesis.Multi_Let))
-  (|>> (multi_let! statement expression archive)
-       (phase:each (|>> (_.closure (list))
-                        (_.of (list))))))
+     (-> Phase!
+         (Expression synthesis.Multi_Let))
+     (|>> (multi_let! statement expression archive)
+          (phase:each (|>> (_.closure (list))
+                           (_.of (list))))))
 
 (template.with [,lux ,host]
                [(the .public (,lux expression archive [parameter subject])
-                  (Expression [synthesis.Term synthesis.Term])
-                  (monad.let phase.monad
-                    [parameter (expression archive parameter)
-                     subject (expression archive subject)]
-                    (pure (,host parameter subject))))]
+                     (Expression [synthesis.Term synthesis.Term])
+                     (monad.let phase.monad
+                                [parameter (expression archive parameter)
+                                 subject (expression archive subject)]
+                                (pure (,host parameter subject))))]
 
                [[or _.or]
                 [and _.and]])
 
 (template.with [,expression ,statement ,type ,injection]
                [(the .public (,statement statement expression archive [input clauses else])
-                  (Statement [synthesis.Term (List [,type synthesis.Term]) synthesis.Term])
-                  (monad.let [! phase.monad]
-                    [input (expression archive input)
-                     'input (phase:each _.var (/////translation.name "input"))
-                     clauses (list.each' ! (function (_ [when then])
-                                             (by ! each (|>> [when]) (statement expression archive then)))
-                                         clauses)
-                     else (statement expression archive else)]
-                    (pure (all _.then
-                               (_.local/1 'input input)
-                               (list.mix (function (_ [when then] else)
-                                           (_.if (_.= (,injection when)
-                                                      'input)
-                                                 then
-                                                 else))
-                                         (list.in_reverse clauses)
-                                         else)))))
+                     (Statement [synthesis.Term (List [,type synthesis.Term]) synthesis.Term])
+                     (monad.let [! phase.monad]
+                                [input (expression archive input)
+                                 'input (phase:each _.var (/////translation.name "input"))
+                                 clauses (list.each' ! (function (_ [when then])
+                                                                 (by ! each (|>> [when]) (statement expression archive then)))
+                                                     clauses)
+                                 else (statement expression archive else)]
+                                (pure (all _.then
+                                           (_.local/1 'input input)
+                                           (list.mix (function (_ [when then] else)
+                                                               (_.if (_.= (,injection when)
+                                                                          'input)
+                                                                     then
+                                                                     else))
+                                                     (list.in_reverse clauses)
+                                                     else)))))
 
                 (the .public (,expression statement expression archive)
-                  (-> Phase!
-                      (Expression [synthesis.Term (List [,type synthesis.Term]) synthesis.Term]))
-                  (|>> (,statement statement expression archive)
-                       (phase:each (|>> (_.closure (list))
-                                        (_.of (list))))))]
+                     (-> Phase!
+                         (Expression [synthesis.Term (List [,type synthesis.Term]) synthesis.Term]))
+                     (|>> (,statement statement expression archive)
+                          (phase:each (|>> (_.closure (list))
+                                           (_.of (list))))))]
 
                [[when_i64 when_i64! I64 //primitive.i64]
                 [when_f64 when_f64! F64 //primitive.f64]

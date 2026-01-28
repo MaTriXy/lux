@@ -28,88 +28,88 @@
  ["[0]" //// (.only)
   ["[0]" mixin (.only Mixin)]])
 
-... https://en.wikipedia.org/wiki/Subject-oriented_programming
-(nominal.every Bindings
-  (Dictionary Name (for_some (_ input output)
-                     (Mixin input output)))
+(comment "https://en.wikipedia.org/wiki/Subject-oriented_programming"
+         (nominal.every Bindings
+                        (Dictionary Name (for_some (_ input output)
+                                                   (Mixin input output)))
 
-  (every .public Value
-    (Scope Bindings))
+                        (every .public Value
+                               (Scope Bindings))
 
-  (.the .public value
-    (for_any (_ it)
-      (-> (Value it)
-          it))
-    (////.of (is Bindings
-                 (nominal.of
-                  (dictionary.empty name.hash)))))
+                        (.the .public value
+                              (for_any (_ it)
+                                       (-> (Value it)
+                                           it))
+                              (////.of (is Bindings
+                                           (nominal.of
+                                            (dictionary.empty name.hash)))))
 
-  (every .public (Method input output)
-    (-> input
-        (Value output)))
+                        (every .public (Method input output)
+                               (-> input
+                                   (Value output)))
 
-  (.the (method token default)
-    (for_any (_ input output)
-      (-> Name (Mixin input (Value output))
-          (Method input output)))
-    (function (_ input)
-      (function (_ bindings)
-        (|> bindings
-            (nominal.as Bindings)
-            (dictionary.value token)
-            as_expected
-            (is (Maybe (Mixin input output)))
-            (type.sharing [input output]
-              (is (Mixin input output)
-                  default))
-            (maybe:each (////.in_reverse mixin.mixed default))
-            (maybe.else default)
-            mixin.fixed
-            (////.of input)
-            (scope.value bindings)))))
+                        (.the (method token default)
+                              (for_any (_ input output)
+                                       (-> Name (Mixin input (Value output))
+                                           (Method input output)))
+                              (function (_ input)
+                                        (function (_ bindings)
+                                                  (|> bindings
+                                                      (nominal.as Bindings)
+                                                      (dictionary.value token)
+                                                      as_expected
+                                                      (is (Maybe (Mixin input output)))
+                                                      (type.sharing [input output]
+                                                                    (is (Mixin input output)
+                                                                        default))
+                                                      (maybe:each (////.in_reverse mixin.mixed default))
+                                                      (maybe.else default)
+                                                      mixin.fixed
+                                                      (////.of input)
+                                                      (scope.value bindings)))))
 
-  (.the (let' name value _ term)
-    (for_any (_ input output term)
-      (-> Name (Mixin input (Value output)) (Method input output) (Value term)
-          (Value term)))
-    (|>> (nominal.as Bindings)
-         (dictionary.revised' name mixin.nothing
-                              (function (_ old)
-                                (if (identical? mixin.nothing old)
-                                    (as_expected value)
-                                    (mixin.mixed (as_expected value) old))))
-         (nominal.of Bindings)
-         term))
+                        (.the (let' name value _ term)
+                              (for_any (_ input output term)
+                                       (-> Name (Mixin input (Value output)) (Method input output) (Value term)
+                                           (Value term)))
+                              (|>> (nominal.as Bindings)
+                                   (dictionary.revised' name mixin.nothing
+                                                        (function (_ old)
+                                                                  (if (identical? mixin.nothing old)
+                                                                      (as_expected value)
+                                                                      (mixin.mixed (as_expected value) old))))
+                                   (nominal.of Bindings)
+                                   term))
 
-  (syntax.the .public (let [bindings (?code.tuple (?.some (?.and ?code.name ?list.any)))
-                            term ?list.any])
-    (monad.let [! meta.monad]
-      [bindings (list.each' ! (function (_ [name value])
-                                (monad.let !
-                                  [name (binding.normal name)]
-                                  (pure [name value])))
-                            bindings)]
-      (pure (list (list.mix (function (_ [name value] term)
-                              (.let ['name (code.name name)]
-                                (` ((debug.private ..let')
-                                    (name (, 'name))
-                                    (, value)
-                                    (, 'name)
-                                    (, term)))))
-                            (list.in_reverse bindings)
-                            term)))))
+                        (syntax.the .public (let [bindings (?code.tuple (?.some (?.and ?code.name ?list.any)))
+                                                  term ?list.any])
+                                    (monad.let [! meta.monad]
+                                               [bindings (list.each' ! (function (_ [name value])
+                                                                                 (monad.let !
+                                                                                            [name (binding.normal name)]
+                                                                                            (pure [name value])))
+                                                                     bindings)]
+                                               (pure (list (list.mix (function (_ [name value] term)
+                                                                               (.let ['name (code.name name)]
+                                                                                     (` ((debug.private ..let')
+                                                                                         (name (, 'name))
+                                                                                         (, value)
+                                                                                         (, 'name)
+                                                                                         (, term)))))
+                                                                     (list.in_reverse bindings)
+                                                                     term)))))
 
-  (syntax.the .public (the [[policy name input] (export.with (?code.form (?.and ?code.local ?list.any)))
-                            type ?list.any
-                            term ?list.any])
-    (monad.let meta.monad
-      [[here _] module.current
-       macro.with_names ['_ 'next]
-       .let ['name (code.local name)]]
-      (pure (list (` (.the (, policy) (, 'name)
-                       (, type)
-                       ((debug.private ..method)
-                        [(, (code.text here)) (, (code.text name))]
-                        (function ((, '_) (, 'next) (, 'name) (, input))
-                          (, term)))))))))
-  )
+                        (syntax.the .public (the [[policy name input] (export.with (?code.form (?.and ?code.local ?list.any)))
+                                                  type ?list.any
+                                                  term ?list.any])
+                                    (monad.let meta.monad
+                                               [[here _] module.current
+                                                macro.with_names ['_ 'next]
+                                                .let ['name (code.local name)]]
+                                               (pure (list (` (.the (, policy) (, 'name)
+                                                                    (, type)
+                                                                    ((debug.private ..method)
+                                                                     [(, (code.text here)) (, (code.text name))]
+                                                                     (function ((, '_) (, 'next) (, 'name) (, input))
+                                                                               (, term)))))))))
+                        ))

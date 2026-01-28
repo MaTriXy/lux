@@ -1,79 +1,79 @@
-... https://en.wikipedia.org/wiki/Named_parameter
-(.using
- [library
-  [lux (.except the)
-   [abstract
-    ["?" projection]
-    ["[0]" monad]]
-   [error
-    ["[0]" try]
-    ["[0]" exception (.only Exception)]]
-   [data
-    ["[0]" text (.only)
-     ["%" \\injection]]
-    [collection
-     ["[0]" list (.open monad)
-      ["?[1]" \\projection]]
-     ["[0]" set]
-     ["[0]" dictionary]]]
-   [math
-    [number
-     [/64
-      ["n" natural]]]]
-   [macro (.only with_names)
-    ["[0]" expansion]
-    ["[0]" syntax]]
-   ["[0]" meta (.only)
-    ["[0]" name]
-    ["[0]" module]
-    ["[0]" code (.only)
-     ["?[1]" \\projection]
-     ["[0]" export]]]]])
+(.comment "https://en.wikipedia.org/wiki/Named_parameter"
+          (.using
+           [library
+            [lux (.except the)
+             [abstract
+              ["?" projection]
+              ["[0]" monad]]
+             [error
+              ["[0]" try]
+              ["[0]" exception (.only Exception)]]
+             [data
+              ["[0]" text (.only)
+               ["%" \\injection]]
+              [collection
+               ["[0]" list (.open monad)
+                ["?[1]" \\projection]]
+               ["[0]" set]
+               ["[0]" dictionary]]]
+             [math
+              [number
+               [/64
+                ["n" natural]]]]
+             [macro (.only with_names)
+              ["[0]" expansion]
+              ["[0]" syntax]]
+             ["[0]" meta (.only)
+              ["[0]" name]
+              ["[0]" module]
+              ["[0]" code (.only)
+               ["?[1]" \\projection]
+               ["[0]" export]]]]]))
 
 (exception.the .public (duplicate_parameters [definition parameters])
-  (Exception [Name (List Text)])
-  (exception.report
-   (list ["Definition" (name.as_text definition)]
-         ["Parameters" (list.as_text %.text parameters)])))
+               (Exception [Name (List Text)])
+               (exception.report
+                (list ["Definition" (name.as_text definition)]
+                      ["Parameters" (list.as_text %.text parameters)])))
 
 (exception.the .public (invalid_parameters [definition expected actual])
-  (Exception [Name (List Text) (List Text)])
-  (exception.report
-   (list ["Definition" (name.as_text definition)]
-         ["Expected" (list.as_text %.text expected)]
-         ["Actual" (list.as_text %.text actual)])))
+               (Exception [Name (List Text) (List Text)])
+               (exception.report
+                (list ["Definition" (name.as_text definition)]
+                      ["Expected" (list.as_text %.text expected)]
+                      ["Actual" (list.as_text %.text actual)])))
 
 (syntax.the .public (the [[exported? [name parameters] type body]
                           (export.with (all ?.and
                                             (?code.form (?.and ?code.local (?.some ?code.local)))
                                             ?list.any
                                             ?list.any))])
-  (monad.let meta.monad
-    [[here _] module.current]
-    (if (n.= (list.size parameters)
-             (set.size (set.of_list text.hash parameters)))
-        (with_names ['function 'parameters '_ 'it 'error]
-          (expansion.let [<invalid_parameters> (meta.failure (exception.error ..invalid_parameters [(name (, (code.name [here name])))
-                                                                                                    (list (,* (list:each code.text parameters)))
-                                                                                                    (dictionary.domain (, 'parameters))]))]
-            (pure (list (` (.the (, exported?) ((, 'function) (,* (list:each code.local parameters)))
-                             (, type)
-                             (, body)))
-                        (` (syntax.the (, exported?) ((, (code.local name)) [(, 'parameters) (?.some (?.and ?code.local ?list.any))])
-                             (let [(, 'parameters) (dictionary.of_list text.hash (, 'parameters))]
-                               (when (dictionary.size (, 'parameters))
-                                 (, (code.natural (list.size parameters)))
-                                 (when (list.each' try.monad
-                                                   (function ((, '_) (, 'it))
-                                                     (dictionary.value (, 'it) (, 'parameters)))
-                                                   (list (,* (list:each code.text parameters))))
-                                   {try.:Success (, 'parameters)}
-                                   (by meta.monad (,' pure)
-                                       (list (` ((, 'function) ((,' .,*) (, 'parameters))))))
-                                   
-                                   {try.:Failure (, 'error)}
-                                   <invalid_parameters>)
+            (monad.let meta.monad
+                       [[here _] module.current]
+                       (if (n.= (list.size parameters)
+                                (set.size (set.of_list text.hash parameters)))
+                           (with_names ['function 'parameters '_ 'it 'error]
+                                       (expansion.let [<invalid_parameters> (meta.failure (exception.error ..invalid_parameters [(name (, (code.name [here name])))
+                                                                                                                                 (list (,* (list:each code.text parameters)))
+                                                                                                                                 (dictionary.domain (, 'parameters))]))]
+                                                      (pure (list (` (.the (, exported?) ((, 'function) (,* (list:each code.local parameters)))
+                                                                           (, type)
+                                                                           (, body)))
+                                                                  (` (syntax.the (, exported?) ((, (code.local name)) [(, 'parameters) (?.some (?.and ?code.local ?list.any))])
+                                                                                 (let [(, 'parameters) (dictionary.of_list text.hash (, 'parameters))]
+                                                                                      (when (dictionary.size (, 'parameters))
+                                                                                            (, (code.natural (list.size parameters)))
+                                                                                            (when (list.each' try.monad
+                                                                                                              (function ((, '_) (, 'it))
+                                                                                                                        (dictionary.value (, 'it) (, 'parameters)))
+                                                                                                              (list (,* (list:each code.text parameters))))
+                                                                                                  {try.:Success (, 'parameters)}
+                                                                                                  (by meta.monad (,' pure)
+                                                                                                      (list (` ((, 'function) ((,' .,*) (, 'parameters))))))
+                                                                                                  
+                                                                                                  {try.:Failure (, 'error)}
+                                                                                                  <invalid_parameters>)
 
-                                 (, '_)
-                                 <invalid_parameters>))))))))
-        (meta.failure (exception.error ..duplicate_parameters [[here name] parameters])))))
+                                                                                            (, '_)
+                                                                                            <invalid_parameters>))))))))
+                           (meta.failure (exception.error ..duplicate_parameters [[here name] parameters])))))

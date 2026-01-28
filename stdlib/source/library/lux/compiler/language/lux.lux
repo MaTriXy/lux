@@ -23,59 +23,59 @@
 (comment "TODO: Remove :module_hash, :imports & :module_state ASAP."
          "TODO: Not just from this projection, but from the lux.Module type."
          (the .public as_binary
-           (Injection @type.Module)
-           (let [name (is (Injection @type.Name)
-                          (!binary.and !binary.text !binary.text))
-                 definition (is (Injection @type.Definition)
-                                (all !binary.and
-                                     !binary.type
-                                     (!binary.maybe (!binary.and !binary.expression (!binary.maybe !binary.expression)))
-                                     !binary.any))
-                 global (is (Injection @type.Global)
-                            (all !binary.or
-                                 name
-                                 definition))]
-             (all !binary.and
-                  (comment :module_hash
-                           !binary.natural)
-                  (comment :module_aliases
-                           (!binary.list name))
-                  (comment :definitions
-                           (!binary.list (!binary.and !binary.text (!binary.and !binary.bit global))))
-                  (comment :imports
-                           (!binary.list !binary.text))
-                  (comment :module_state
-                           !binary.any)))))
+              (Injection @type.Module)
+              (let [name (is (Injection @type.Name)
+                             (!binary.and !binary.text !binary.text))
+                    definition (is (Injection @type.Definition)
+                                   (all !binary.and
+                                        !binary.type
+                                        (!binary.maybe (!binary.and !binary.construction (!binary.maybe !binary.construction)))
+                                        !binary.any))
+                    global (is (Injection @type.Global)
+                               (all !binary.or
+                                    name
+                                    definition))]
+                   (all !binary.and
+                        (comment :module_hash
+                                 !binary.natural)
+                        (comment :module_aliases
+                                 (!binary.list name))
+                        (comment :definitions
+                                 (!binary.list (!binary.and !binary.text (!binary.and !binary.bit global))))
+                        (comment :imports
+                                 (!binary.list !binary.text))
+                        (comment :module_state
+                                 !binary.any)))))
 
 (the .public of_binary
-  (Projection @type.Module)
-  (let [name (is (Projection @type.Name)
-                 (all ?.and
-                      ?binary.text
-                      ?binary.text))
-        definition (is (Projection @type.Definition)
-                       (all ?.and
-                            ?binary.type
-                            (?binary.maybe (?.and ?binary.expression (?binary.maybe ?binary.expression)))
-                            ?binary.any))
-        global (is (Projection @type.Global)
-                   (all ?binary.or
-                        name
-                        definition))]
-    (all ?.and
-         (comment :module_hash
-                  ?binary.natural)
-         (comment :module_aliases
-                  (?binary.list name))
-         (comment :definitions
-                  (?binary.list (?.and ?binary.text (?.and ?binary.bit global))))
-         (comment :imports
-                  (?binary.list ?binary.text))
-         (comment :module_state
-                  (by ?.monad pure {.:Cached})))))
+     (Projection @type.Module)
+     (let [name (is (Projection @type.Name)
+                    (all ?.and
+                         ?binary.text
+                         ?binary.text))
+           definition (is (Projection @type.Definition)
+                          (all ?.and
+                               ?binary.type
+                               (?binary.maybe (?.and ?binary.construction (?binary.maybe ?binary.construction)))
+                               ?binary.any))
+           global (is (Projection @type.Global)
+                      (all ?binary.or
+                           name
+                           definition))]
+          (all ?.and
+               (comment :module_hash
+                        ?binary.natural)
+               (comment :module_aliases
+                        (?binary.list name))
+               (comment :definitions
+                        (?binary.list (?.and ?binary.text (?.and ?binary.bit global))))
+               (comment :imports
+                        (?binary.list ?binary.text))
+               (comment :module_state
+                        (by ?.monad pure {.:Cached})))))
 
 (the .public key
-  (Key @type.Module)
-  (key.key [signature.:name (name ..compiler)
-            signature.:version version.latest]
-           (module.empty 0)))
+     (Key @type.Module)
+     (key.key [signature.:name (name ..compiler)
+               signature.:version version.latest]
+              (module.empty 0)))

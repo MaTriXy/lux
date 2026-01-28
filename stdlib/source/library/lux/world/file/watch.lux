@@ -39,246 +39,246 @@
  ["[0]" //])
 
 (nominal.every .public Concern
-  (Record
-   [:creation Bit
-    :modification Bit
-    :deletion Bit])
+               (Record
+                [:creation Bit
+                 :modification Bit
+                 :deletion Bit])
 
-  (the none
-    Concern
-    (nominal.of
-     [:creation false
-      :modification false
-      :deletion false]))
-
-  (template.with [<concern> <predicate> <event> <create> <modify> <delete>]
-                 [(the .public <concern>
+               (the none
                     Concern
                     (nominal.of
-                     [:creation <create>
-                      :modification <modify>
-                      :deletion <delete>]))
+                     [:creation false
+                      :modification false
+                      :deletion false]))
 
-                  (the .public <predicate>
-                    (Predicate Concern)
-                    (|>> nominal.as
-                         (its <event>)))]
+               (template.with [<concern> <predicate> <event> <create> <modify> <delete>]
+                              [(the .public <concern>
+                                    Concern
+                                    (nominal.of
+                                     [:creation <create>
+                                      :modification <modify>
+                                      :deletion <delete>]))
 
-                 [[creation creation? :creation
-                   true false false]
-                  [modification modification? :modification
-                   false true false]
-                  [deletion deletion? :deletion
-                   false false true]])
+                               (the .public <predicate>
+                                    (Predicate Concern)
+                                    (|>> nominal.as
+                                         (its <event>)))]
 
-  (the .public (and left right)
-    (-> Concern Concern
-        Concern)
-    (nominal.of
-     [:creation (or (..creation? left) (..creation? right))
-      :modification (or (..modification? left) (..modification? right))
-      :deletion (or (..deletion? left) (..deletion? right))]))
+                              [[creation creation? :creation
+                                true false false]
+                               [modification modification? :modification
+                                false true false]
+                               [deletion deletion? :deletion
+                                false false true]])
 
-  (the .public all
-    Concern
-    (.all ..and
-          ..creation
-          ..modification
-          ..deletion
-          ))
-  )
+               (the .public (and left right)
+                    (-> Concern Concern
+                        Concern)
+                    (nominal.of
+                     [:creation (or (..creation? left) (..creation? right))
+                      :modification (or (..modification? left) (..modification? right))
+                      :deletion (or (..deletion? left) (..deletion? right))]))
+
+               (the .public all
+                    Concern
+                    (.all ..and
+                          ..creation
+                          ..modification
+                          ..deletion
+                          ))
+               )
 
 (every .public (Watcher !)
-  (Interface
-   (is (-> Concern //.Path
-           (! (Try Any)))
-       start)
-   (is (-> //.Path
-           (! (Try Concern)))
-       concern)
-   (is (-> //.Path
-           (! (Try Concern)))
-       stop)
-   (is (-> []
-           (! (Try (List [Concern //.Path]))))
-       poll)))
+       (Interface
+        (is (-> Concern //.Path
+                (! (Try Any)))
+            start)
+        (is (-> //.Path
+                (! (Try Concern)))
+            concern)
+        (is (-> //.Path
+                (! (Try Concern)))
+            stop)
+        (is (-> []
+                (! (Try (List [Concern //.Path]))))
+            poll)))
 
 (template.with [<name>]
                [(exception.the .public (<name> path)
-                  (Exception //.Path)
-                  (exception.report
-                   (list ["Path" (%.text path)])))]
+                               (Exception //.Path)
+                               (exception.report
+                                (list ["Path" (%.text path)])))]
 
                [[not_being_watched]
                 [cannot_poll_a_non_existent_directory]])
 
 (every File_Tracker
-  (Dictionary //.Path Instant))
+       (Dictionary //.Path Instant))
 
 (every Directory_Tracker
-  (Dictionary //.Path [Concern File_Tracker]))
+       (Dictionary //.Path [Concern File_Tracker]))
 
 (the (update_watch! new_concern path tracker)
-  (-> Concern //.Path (Var Directory_Tracker)
-      (STM Bit))
-  (monad.let [! stm.monad]
-    [@tracker (stm.read tracker)]
-    (when (dictionary.value path @tracker)
-      {try.:Success [old_concern last_modified]}
-      (monad.let !
-        [_ (stm.update (dictionary.has path [new_concern last_modified]) tracker)]
-        (pure true))
-      
-      failure
-      (pure false))))
+     (-> Concern //.Path (Var Directory_Tracker)
+         (STM Bit))
+     (monad.let [! stm.monad]
+                [@tracker (stm.read tracker)]
+                (when (dictionary.value path @tracker)
+                      {try.:Success [old_concern last_modified]}
+                      (monad.let !
+                                 [_ (stm.update (dictionary.has path [new_concern last_modified]) tracker)]
+                                 (pure true))
+                      
+                      failure
+                      (pure false))))
 
 (the (file_tracker fs directory)
-  (-> (//.System Future) //.Path
-      (Future (Try File_Tracker)))
-  (monad.let [! (try.with future.monad)]
-    [files (by fs directory_files directory)]
-    (list.mix' !
-               (function (_ file tracker)
-                 (monad.let !
-                   [last_modified (by fs last_modified file)]
-                   (pure (dictionary.has file last_modified tracker))))
-               files
-               (is File_Tracker
-                   (dictionary.empty text.hash)))))
+     (-> (//.System Future) //.Path
+         (Future (Try File_Tracker)))
+     (monad.let [! (try.with future.monad)]
+                [files (by fs directory_files directory)]
+                (list.mix' !
+                           (function (_ file tracker)
+                                     (monad.let !
+                                                [last_modified (by fs last_modified file)]
+                                                (pure (dictionary.has file last_modified tracker))))
+                           files
+                           (is File_Tracker
+                               (dictionary.empty text.hash)))))
 
 (the (available_files fs directory)
-  (-> (//.System Future) //.Path
-      (Future (Try (List [//.Path Instant]))))
-  (monad.let [! (try.with future.monad)]
-    [files (by fs directory_files directory)]
-    (list.each' ! (function (_ file)
-                    (|> file
-                        (by fs last_modified)
-                        (by ! each (|>> [file]))))
-                files)))
+     (-> (//.System Future) //.Path
+         (Future (Try (List [//.Path Instant]))))
+     (monad.let [! (try.with future.monad)]
+                [files (by fs directory_files directory)]
+                (list.each' ! (function (_ file)
+                                        (|> file
+                                            (by fs last_modified)
+                                            (by ! each (|>> [file]))))
+                            files)))
 
 (the (available_directory_changes fs [directory [the_concern file_tracker]])
-  (-> (//.System Future) [//.Path [Concern File_Tracker]]
-      (Future (Try [[//.Path [Concern File_Tracker]]
-                    [(List [//.Path Instant])
-                     (List [//.Path Instant Instant])
-                     (List //.Path)]])))
-  (monad.let [! (try.with future.monad)]
-    [current_files (..available_files fs directory)
-     .let [creations (if (..creation? the_concern)
-                         (list.only (|>> pair.left (dictionary.in_domain? file_tracker) not)
-                                    current_files)
-                         (list))
-           available (|> current_files
-                         (list:each pair.left)
-                         (set.of_list text.hash))
-           deletions (if (..deletion? the_concern)
-                         (|> (dictionary.entries file_tracker)
-                             (list:each pair.left)
-                             (list.only (|>> (set.member? available) not)))
-                         (list))
-           modifications (list.all (function (_ [path current_modification])
-                                     (monad.let maybe.monad
-                                       [previous_modification (dictionary.value path file_tracker)]
-                                       (pure [path previous_modification current_modification])))
-                                   current_files)]]
-    (pure [[directory
-            [the_concern
-             (|> file_tracker
-                 (list.mix dictionary.lacks
-                           deletions)
-                 (list.mix (function (_ [path last_modified] tracker)
-                             (dictionary.has path last_modified tracker))
-                           creations)
-                 (list.mix (function (_ [path previous_modification current_modification] tracker)
-                             (dictionary.has path current_modification tracker))
-                           modifications))]]
-           [creations
-            modifications
-            deletions]])))
+     (-> (//.System Future) [//.Path [Concern File_Tracker]]
+         (Future (Try [[//.Path [Concern File_Tracker]]
+                       [(List [//.Path Instant])
+                        (List [//.Path Instant Instant])
+                        (List //.Path)]])))
+     (monad.let [! (try.with future.monad)]
+                [current_files (..available_files fs directory)
+                 .let [creations (if (..creation? the_concern)
+                                     (list.only (|>> pair.left (dictionary.in_domain? file_tracker) not)
+                                                current_files)
+                                     (list))
+                       available (|> current_files
+                                     (list:each pair.left)
+                                     (set.of_list text.hash))
+                       deletions (if (..deletion? the_concern)
+                                     (|> (dictionary.entries file_tracker)
+                                         (list:each pair.left)
+                                         (list.only (|>> (set.member? available) not)))
+                                     (list))
+                       modifications (list.all (function (_ [path current_modification])
+                                                         (monad.let maybe.monad
+                                                                    [previous_modification (dictionary.value path file_tracker)]
+                                                                    (pure [path previous_modification current_modification])))
+                                               current_files)]]
+                (pure [[directory
+                        [the_concern
+                         (|> file_tracker
+                             (list.mix dictionary.lacks
+                                       deletions)
+                             (list.mix (function (_ [path last_modified] tracker)
+                                                 (dictionary.has path last_modified tracker))
+                                       creations)
+                             (list.mix (function (_ [path previous_modification current_modification] tracker)
+                                                 (dictionary.has path current_modification tracker))
+                                       modifications))]]
+                       [creations
+                        modifications
+                        deletions]])))
 
 (the .public (polling fs)
-  (-> (//.System Future)
-      (Watcher Future))
-  (let [tracker (is (Var Directory_Tracker)
-                    (stm.var (dictionary.empty text.hash)))]
-    (implementation
-     (the (start new_concern path)
-       (monad.let [! future.monad]
-         [exists? (by fs directory? path)]
-         (if exists?
-             (monad.let !
-               [updated? (stm.commit! (..update_watch! new_concern path tracker))]
-               (if updated?
-                   (pure {try.:Success []})
-                   (monad.let (try.with !)
-                     [file_tracker (..file_tracker fs path)]
-                     (monad.let !
-                       [_ (stm.commit! (stm.update (dictionary.has path [new_concern file_tracker]) tracker))]
-                       (pure {try.:Success []})))))
-             (pure (exception.except ..cannot_poll_a_non_existent_directory [path])))))
-     (the (concern path)
-       (stm.commit!
-        (monad.let stm.monad
-          [@tracker (stm.read tracker)]
-          (pure (when (dictionary.value path @tracker)
-                  {try.:Success [it file_tracker]}
-                  {try.:Success it}
+     (-> (//.System Future)
+         (Watcher Future))
+     (let [tracker (is (Var Directory_Tracker)
+                       (stm.var (dictionary.empty text.hash)))]
+          (implementation
+           (the (start new_concern path)
+                (monad.let [! future.monad]
+                           [exists? (by fs directory? path)]
+                           (if exists?
+                               (monad.let !
+                                          [updated? (stm.commit! (..update_watch! new_concern path tracker))]
+                                          (if updated?
+                                              (pure {try.:Success []})
+                                              (monad.let (try.with !)
+                                                         [file_tracker (..file_tracker fs path)]
+                                                         (monad.let !
+                                                                    [_ (stm.commit! (stm.update (dictionary.has path [new_concern file_tracker]) tracker))]
+                                                                    (pure {try.:Success []})))))
+                               (pure (exception.except ..cannot_poll_a_non_existent_directory [path])))))
+           (the (concern path)
+                (stm.commit!
+                 (monad.let stm.monad
+                            [@tracker (stm.read tracker)]
+                            (pure (when (dictionary.value path @tracker)
+                                        {try.:Success [it file_tracker]}
+                                        {try.:Success it}
 
-                  failure
-                  (exception.except ..not_being_watched [path]))))))
-     (the (stop path)
-       (stm.commit!
-        (monad.let [! stm.monad]
-          [@tracker (stm.read tracker)]
-          (when (dictionary.value path @tracker)
-            {try.:Success [the_concern file_tracker]}
-            (monad.let !
-              [_ (stm.update (dictionary.lacks path) tracker)]
-              (pure {try.:Success the_concern}))
+                                        failure
+                                        (exception.except ..not_being_watched [path]))))))
+           (the (stop path)
+                (stm.commit!
+                 (monad.let [! stm.monad]
+                            [@tracker (stm.read tracker)]
+                            (when (dictionary.value path @tracker)
+                                  {try.:Success [the_concern file_tracker]}
+                                  (monad.let !
+                                             [_ (stm.update (dictionary.lacks path) tracker)]
+                                             (pure {try.:Success the_concern}))
 
-            failure
-            (pure (exception.except ..not_being_watched [path]))))))
-     (the (poll _)
-       (monad.let future.monad
-         [@tracker (stm.commit! (stm.read tracker))]
-         (monad.let [! (try.with future.monad)]
-           [changes (|> @tracker
-                        dictionary.entries
-                        (list.each' ! (..available_directory_changes fs)))
-            _ (monad.let future.monad
-                [_ (stm.commit! (stm.write (|> changes
-                                               (list:each pair.left)
-                                               (dictionary.of_list text.hash))
-                                           tracker))]
-                (pure {try.:Success []}))
-            .let [[creations modifications deletions]
-                  (is [(List [//.Path Instant])
-                       (List [//.Path Instant Instant])
-                       (List //.Path)]
-                      (list.mix (function (_ [_ [creations modifications deletions]]
-                                             [all_creations all_modifications all_deletions])
-                                  [(list:composite creations all_creations)
-                                   (list:composite modifications all_modifications)
-                                   (list:composite deletions all_deletions)])
-                                changes
-                                [(list) (list) (list)]))]]
-           (pure (.all list:composite
-                       (list:each (|>> pair.left [..creation]) creations)
-                       (|> modifications
-                           (list.only (function (_ [path previous_modification current_modification])
-                                        (not (instant.= previous_modification current_modification))))
-                           (list:each (|>> pair.left [..modification])))
-                       (list:each (|>> [..deletion]) deletions)
-                       )))))
-     )))
+                                  failure
+                                  (pure (exception.except ..not_being_watched [path]))))))
+           (the (poll _)
+                (monad.let future.monad
+                           [@tracker (stm.commit! (stm.read tracker))]
+                           (monad.let [! (try.with future.monad)]
+                                      [changes (|> @tracker
+                                                   dictionary.entries
+                                                   (list.each' ! (..available_directory_changes fs)))
+                                       _ (monad.let future.monad
+                                                    [_ (stm.commit! (stm.write (|> changes
+                                                                                   (list:each pair.left)
+                                                                                   (dictionary.of_list text.hash))
+                                                                               tracker))]
+                                                    (pure {try.:Success []}))
+                                       .let [[creations modifications deletions]
+                                             (is [(List [//.Path Instant])
+                                                  (List [//.Path Instant Instant])
+                                                  (List //.Path)]
+                                                 (list.mix (function (_ [_ [creations modifications deletions]]
+                                                                        [all_creations all_modifications all_deletions])
+                                                                     [(list:composite creations all_creations)
+                                                                      (list:composite modifications all_modifications)
+                                                                      (list:composite deletions all_deletions)])
+                                                           changes
+                                                           [(list) (list) (list)]))]]
+                                      (pure (.all list:composite
+                                                  (list:each (|>> pair.left [..creation]) creations)
+                                                  (|> modifications
+                                                      (list.only (function (_ [path previous_modification current_modification])
+                                                                           (not (instant.= previous_modification current_modification))))
+                                                      (list:each (|>> pair.left [..modification])))
+                                                  (list:each (|>> [..deletion]) deletions)
+                                                  )))))
+           )))
 
 (the .public (memory delimiter)
-  (-> Text
-      [(//.System Future) (Watcher Future)])
-  (let [fs (//.memory delimiter)]
-    [fs
-     (..polling fs)]))
+     (-> Text
+         [(//.System Future) (Watcher Future)])
+     (let [fs (//.memory delimiter)]
+          [fs
+           (..polling fs)]))
 
 (target.if target.jvm
            (these (ffi.the java/lang/Object)
@@ -286,204 +286,203 @@
                   (ffi.the java/lang/String)
 
                   (ffi.the (java/util/List it)
-                    (size [] int)
-                    (get [int] it))
+                           (size [] int)
+                           (get [int] it))
 
                   (the (default_list it)
-                    (for_any (_ it)
-                      (-> (java/util/List it)
-                          (List it)))
-                    (let [size (.natural (ffi.of_int (java/util/List:size [] it)))]
-                      (loop (of [idx 0
-                                 output (type.sharing [it]
-                                          (is (java/util/List it)
-                                              it)
-                                          (is (List it)
-                                              (list)))])
-                        (if (n.< size idx)
-                            (of (++ idx)
-                                (list:composite output
-                                                (list (as_expected (java/util/List:get [(ffi.as_int (.integer idx))] it)))))
-                            output))))
+                       (for_any (_ it)
+                                (-> (java/util/List it)
+                                    (List it)))
+                       (let [size (.natural (ffi.of_int (java/util/List:size [] it)))]
+                            (loop (of [idx 0
+                                       output (type.sharing [it]
+                                                            (is (java/util/List it)
+                                                                it)
+                                                            (is (List it)
+                                                                (list)))])
+                                  (if (n.< size idx)
+                                      (of (++ idx)
+                                          (list:composite output
+                                                          (list (as_expected (java/util/List:get [(ffi.as_int (.integer idx))] it)))))
+                                      output))))
                   
                   (ffi.the (java/nio/file/WatchEvent$Kind it))
 
                   (ffi.the (java/nio/file/WatchEvent it)
-                    (kind [] (java/nio/file/WatchEvent$Kind it)))
+                           (kind [] (java/nio/file/WatchEvent$Kind it)))
 
                   (ffi.the java/nio/file/Watchable)
 
                   (ffi.the java/nio/file/Path
-                    (register [java/nio/file/WatchService [(java/nio/file/WatchEvent$Kind [? "<" java/lang/Object])]] "io" "try" java/nio/file/WatchKey)
-                    (toString [] java/lang/String))
+                           (register [java/nio/file/WatchService [(java/nio/file/WatchEvent$Kind [? "<" java/lang/Object])]] "io" "try" java/nio/file/WatchKey)
+                           (toString [] java/lang/String))
 
                   (ffi.the java/nio/file/StandardWatchEventKinds
-                    ("read_only" "static" ENTRY_CREATE (java/nio/file/WatchEvent$Kind java/nio/file/Path))
-                    ("read_only" "static" ENTRY_MODIFY (java/nio/file/WatchEvent$Kind java/nio/file/Path))
-                    ("read_only" "static" ENTRY_DELETE (java/nio/file/WatchEvent$Kind java/nio/file/Path)))
+                           ("read_only" "static" ENTRY_CREATE (java/nio/file/WatchEvent$Kind java/nio/file/Path))
+                           ("read_only" "static" ENTRY_MODIFY (java/nio/file/WatchEvent$Kind java/nio/file/Path))
+                           ("read_only" "static" ENTRY_DELETE (java/nio/file/WatchEvent$Kind java/nio/file/Path)))
 
                   (the (default_event_concern event)
-                    (for_any (_ it)
-                      (-> (java/nio/file/WatchEvent it)
-                          Concern))
-                    (let [kind (as (-> (java/nio/file/WatchEvent$Kind Any)
-                                       (java/nio/file/WatchEvent$Kind java/nio/file/Path))
-                                   (java/nio/file/WatchEvent:kind [] event))]
-                      (if (identical? (java/nio/file/StandardWatchEventKinds:ENTRY_CREATE)
-                                      kind)
-                          ..creation
-                          
-                          (identical? (java/nio/file/StandardWatchEventKinds:ENTRY_MODIFY)
-                                      kind)
-                          ..modification
-                          
-                          (identical? (java/nio/file/StandardWatchEventKinds:ENTRY_DELETE)
-                                      kind)
-                          ..deletion
-                          
-                          ... else
-                          ..none
-                          )))
+                       (for_any (_ it)
+                                (-> (java/nio/file/WatchEvent it)
+                                    Concern))
+                       (let [kind (as (-> (java/nio/file/WatchEvent$Kind Any)
+                                          (java/nio/file/WatchEvent$Kind java/nio/file/Path))
+                                      (java/nio/file/WatchEvent:kind [] event))]
+                            (if (identical? (java/nio/file/StandardWatchEventKinds:ENTRY_CREATE)
+                                            kind)
+                                ..creation
+                                
+                                (identical? (java/nio/file/StandardWatchEventKinds:ENTRY_MODIFY)
+                                            kind)
+                                ..modification
+                                
+                                (identical? (java/nio/file/StandardWatchEventKinds:ENTRY_DELETE)
+                                            kind)
+                                ..deletion
+                                
+                                (comment "else"
+                                         ..none))))
 
                   (ffi.the java/nio/file/WatchKey
-                    (reset [] "io" boolean)
-                    (cancel [] "io" void)
-                    (watchable [] java/nio/file/Watchable)
-                    (pollEvents [] "io" (java/util/List (java/nio/file/WatchEvent ?))))
+                           (reset [] "io" boolean)
+                           (cancel [] "io" void)
+                           (watchable [] java/nio/file/Watchable)
+                           (pollEvents [] "io" (java/util/List (java/nio/file/WatchEvent ?))))
 
                   (the default_key_concern
-                    (-> java/nio/file/WatchKey
-                        (IO Concern))
-                    (|>> (java/nio/file/WatchKey:pollEvents [])
-                         (by io.monad each (function (_ it)
-                                             (list.mix ..and
-                                                       (|> it
-                                                           ..default_list
-                                                           (list:each default_event_concern))
-                                                       ..none)))))
+                       (-> java/nio/file/WatchKey
+                           (IO Concern))
+                       (|>> (java/nio/file/WatchKey:pollEvents [])
+                            (by io.monad each (function (_ it)
+                                                        (list.mix ..and
+                                                                  (|> it
+                                                                      ..default_list
+                                                                      (list:each default_event_concern))
+                                                                  ..none)))))
 
                   (ffi.the java/nio/file/WatchService
-                    (poll [] "io" "try" "?" java/nio/file/WatchKey))
+                           (poll [] "io" "try" "?" java/nio/file/WatchKey))
 
                   (ffi.the java/nio/file/FileSystem
-                    (newWatchService [] "io" "try" java/nio/file/WatchService))
+                           (newWatchService [] "io" "try" java/nio/file/WatchService))
 
                   (ffi.the java/nio/file/FileSystems
-                    ("static" getDefault [] java/nio/file/FileSystem))
+                           ("static" getDefault [] java/nio/file/FileSystem))
 
                   (ffi.the java/io/File
-                    (new [java/lang/String])
-                    (toPath [] java/nio/file/Path))
+                           (new [java/lang/String])
+                           (toPath [] java/nio/file/Path))
 
                   (every Watch_Event
-                    (java/nio/file/WatchEvent$Kind java/lang/Object))
+                         (java/nio/file/WatchEvent$Kind java/lang/Object))
 
                   (the (default_start watch_events watcher path)
-                    (-> (List Watch_Event) java/nio/file/WatchService //.Path
-                        (Future (Try java/nio/file/WatchKey)))
-                    (let [watch_events' (list.mix (function (_ [index watch_event] watch_events')
-                                                    (ffi.write! index watch_event watch_events'))
-                                                  (list.enumeration watch_events)
-                                                  (ffi.array (java/nio/file/WatchEvent$Kind java/lang/Object)
-                                                             (list.size watch_events)))]
-                      (future.soon
-                       (java/nio/file/Path:register [watcher
-                                                     watch_events']
-                                                    (|> path ffi.as_string [] java/io/File:new (java/io/File:toPath []))))))
+                       (-> (List Watch_Event) java/nio/file/WatchService //.Path
+                           (Future (Try java/nio/file/WatchKey)))
+                       (let [watch_events' (list.mix (function (_ [index watch_event] watch_events')
+                                                               (ffi.write! index watch_event watch_events'))
+                                                     (list.enumeration watch_events)
+                                                     (ffi.array (java/nio/file/WatchEvent$Kind java/lang/Object)
+                                                                (list.size watch_events)))]
+                            (future.soon
+                             (java/nio/file/Path:register [watcher
+                                                           watch_events']
+                                                          (|> path ffi.as_string [] java/io/File:new (java/io/File:toPath []))))))
 
                   (the (default_poll watcher)
-                    (-> java/nio/file/WatchService
-                        (IO (Try (List [Concern //.Path]))))
-                    (loop (of [output (is (List [Concern //.Path])
-                                          (list))])
-                      (monad.let (try.with io.monad)
-                        [?key (java/nio/file/WatchService:poll [] watcher)]
-                        (when ?key
-                          {.:Some key}
-                          (monad.let [! io.monad]
-                            [valid? (java/nio/file/WatchKey:reset [] key)]
-                            (if (ffi.of_boolean valid?)
-                                (monad.let !
-                                  [.let [path (|> key
-                                                  (java/nio/file/WatchKey:watchable [])
-                                                  (as (-> java/nio/file/Watchable java/nio/file/Path))
-                                                  (java/nio/file/Path:toString [])
-                                                  ffi.of_string
-                                                  (as (-> Text //.Path)))]
-                                   the_concern (..default_key_concern key)]
-                                  (of (list:composite output (list [the_concern path]))))
-                                (of output)))
-                          
-                          {.:None}
-                          (pure output)))))
+                       (-> java/nio/file/WatchService
+                           (IO (Try (List [Concern //.Path]))))
+                       (loop (of [output (is (List [Concern //.Path])
+                                             (list))])
+                             (monad.let (try.with io.monad)
+                                        [?key (java/nio/file/WatchService:poll [] watcher)]
+                                        (when ?key
+                                              {.:Some key}
+                                              (monad.let [! io.monad]
+                                                         [valid? (java/nio/file/WatchKey:reset [] key)]
+                                                         (if (ffi.of_boolean valid?)
+                                                             (monad.let !
+                                                                        [.let [path (|> key
+                                                                                        (java/nio/file/WatchKey:watchable [])
+                                                                                        (as (-> java/nio/file/Watchable java/nio/file/Path))
+                                                                                        (java/nio/file/Path:toString [])
+                                                                                        ffi.of_string
+                                                                                        (as (-> Text //.Path)))]
+                                                                         the_concern (..default_key_concern key)]
+                                                                        (of (list:composite output (list [the_concern path]))))
+                                                             (of output)))
+                                              
+                                              {.:None}
+                                              (pure output)))))
 
                   (the (watch_events concern)
-                    (-> Concern
-                        (List Watch_Event))
-                    (.all list:composite
-                          (if (..creation? concern)
-                              (list (as (-> (java/nio/file/WatchEvent$Kind java/nio/file/Path) Watch_Event)
-                                        (java/nio/file/StandardWatchEventKinds:ENTRY_CREATE)))
-                              (list))
-                          (if (..modification? concern)
-                              (list (as (-> (java/nio/file/WatchEvent$Kind java/nio/file/Path) Watch_Event)
-                                        (java/nio/file/StandardWatchEventKinds:ENTRY_MODIFY)))
-                              (list))
-                          (if (..deletion? concern)
-                              (list (as (-> (java/nio/file/WatchEvent$Kind java/nio/file/Path) Watch_Event)
-                                        (java/nio/file/StandardWatchEventKinds:ENTRY_DELETE)))
-                              (list))
-                          ))
+                       (-> Concern
+                           (List Watch_Event))
+                       (.all list:composite
+                             (if (..creation? concern)
+                                 (list (as (-> (java/nio/file/WatchEvent$Kind java/nio/file/Path) Watch_Event)
+                                           (java/nio/file/StandardWatchEventKinds:ENTRY_CREATE)))
+                                 (list))
+                             (if (..modification? concern)
+                                 (list (as (-> (java/nio/file/WatchEvent$Kind java/nio/file/Path) Watch_Event)
+                                           (java/nio/file/StandardWatchEventKinds:ENTRY_MODIFY)))
+                                 (list))
+                             (if (..deletion? concern)
+                                 (list (as (-> (java/nio/file/WatchEvent$Kind java/nio/file/Path) Watch_Event)
+                                           (java/nio/file/StandardWatchEventKinds:ENTRY_DELETE)))
+                                 (list))
+                             ))
 
                   (the .public default
-                    (IO (Try (Watcher Future)))
-                    (monad.let (try.with io.monad)
-                      [watcher (|> (java/nio/file/FileSystems:getDefault [])
-                                   (java/nio/file/FileSystem:newWatchService []))
-                       .let [tracker (stm.var (is (Dictionary //.Path [Concern java/nio/file/WatchKey])
-                                                  (dictionary.empty text.hash)))
+                       (IO (Try (Watcher Future)))
+                       (monad.let (try.with io.monad)
+                                  [watcher (|> (java/nio/file/FileSystems:getDefault [])
+                                               (java/nio/file/FileSystem:newWatchService []))
+                                   .let [tracker (stm.var (is (Dictionary //.Path [Concern java/nio/file/WatchKey])
+                                                              (dictionary.empty text.hash)))
 
-                             stop (is (-> //.Path (Future (Try Concern)))
-                                      (function (_ path)
-                                        (monad.let [! future.monad]
-                                          [@tracker (stm.commit! (stm.read tracker))]
-                                          (when (dictionary.value path @tracker)
-                                            {try.:Success [the_concern key]}
-                                            (monad.let !
-                                              [_ (future.soon
-                                                  (java/nio/file/WatchKey:cancel [] key))
-                                               _ (stm.commit! (stm.update (dictionary.lacks path) tracker))]
-                                              (pure {try.:Success the_concern}))
+                                         stop (is (-> //.Path (Future (Try Concern)))
+                                                  (function (_ path)
+                                                            (monad.let [! future.monad]
+                                                                       [@tracker (stm.commit! (stm.read tracker))]
+                                                                       (when (dictionary.value path @tracker)
+                                                                             {try.:Success [the_concern key]}
+                                                                             (monad.let !
+                                                                                        [_ (future.soon
+                                                                                            (java/nio/file/WatchKey:cancel [] key))
+                                                                                         _ (stm.commit! (stm.update (dictionary.lacks path) tracker))]
+                                                                                        (pure {try.:Success the_concern}))
 
-                                            failure
-                                            (pure (exception.except ..not_being_watched [path]))))))]]
-                      (pure (is (Watcher Future)
-                                (implementation
-                                 (the (start the_concern path)
-                                   (monad.let future.monad
-                                     [?concern (stop path)]
-                                     (monad.let (try.with future.monad)
-                                       [key (..default_start (..watch_events (..and (try.else ..none ?concern)
-                                                                                    the_concern))
-                                                             watcher
-                                                             path)]
-                                       (monad.let future.monad
-                                         [_ (stm.commit! (stm.update (dictionary.has path [the_concern key]) tracker))]
-                                         (pure {try.:Success []})))))
-                                 (the (concern path)
-                                   (monad.let future.monad
-                                     [@tracker (stm.commit! (stm.read tracker))]
-                                     (when (dictionary.value path @tracker)
-                                       {try.:Success [it key]}
-                                       (pure {try.:Success it})
+                                                                             failure
+                                                                             (pure (exception.except ..not_being_watched [path]))))))]]
+                                  (pure (is (Watcher Future)
+                                            (implementation
+                                             (the (start the_concern path)
+                                                  (monad.let future.monad
+                                                             [?concern (stop path)]
+                                                             (monad.let (try.with future.monad)
+                                                                        [key (..default_start (..watch_events (..and (try.else ..none ?concern)
+                                                                                                                     the_concern))
+                                                                                              watcher
+                                                                                              path)]
+                                                                        (monad.let future.monad
+                                                                                   [_ (stm.commit! (stm.update (dictionary.has path [the_concern key]) tracker))]
+                                                                                   (pure {try.:Success []})))))
+                                             (the (concern path)
+                                                  (monad.let future.monad
+                                                             [@tracker (stm.commit! (stm.read tracker))]
+                                                             (when (dictionary.value path @tracker)
+                                                                   {try.:Success [it key]}
+                                                                   (pure {try.:Success it})
 
-                                       failure
-                                       (pure (exception.except ..not_being_watched [path])))))
-                                 (the stop stop)
-                                 (the (poll _)
-                                   (future.soon (..default_poll watcher)))
-                                 )))))
+                                                                   failure
+                                                                   (pure (exception.except ..not_being_watched [path])))))
+                                             (the stop stop)
+                                             (the (poll _)
+                                                  (future.soon (..default_poll watcher)))
+                                             )))))
                   )
 
-           ... else
-           (these))
+           (comment "else"
+                    (these)))

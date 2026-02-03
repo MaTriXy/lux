@@ -3804,12 +3804,15 @@
 (the' .private (?:bundle tape)
       (type (Projection Bundle))
       (let' [[address' tape'] tape]
-            (.when# (as_bundle (list:as_stack (list:after address' tape')))
-                    {:Some it}
-                    {:Some [[(.list_size# tape') tape'] it]}
+            (if (.int_<# (as (-> Natural Integer) (.list_size# tape'))
+                         (as (-> Natural Integer) address'))
+                (.when# (as_bundle (stack (.list_item# address' tape')))
+                        {:Some it}
+                        {:Some [[(.i64_+# 1 address') tape'] it]}
 
-                    {:None}
-                    {:None})))
+                        {:None}
+                        {:None})
+                {:None})))
 
 (the' .private (let_pair tuple 'value 'body)
       (type (-> Bundle Code Code
@@ -3852,7 +3855,7 @@
 
 (the' .private Case
       Type
-      (type [[Name (Maybe Bundle)]
+      (type [[Name (List Bundle)]
              Code]))
 
 (the' .private Else
@@ -3943,7 +3946,7 @@
 
 (the' .private ?:any_case
       (type (Projection Case))
-      (?:and (?:variant (?:and ?:name (?:maybe ?:bundle)))
+      (?:and (?:variant (?:and ?:name (?:some ?:bundle)))
              ?:any))
 
 (the' .private ?:binary_clause
@@ -4144,15 +4147,26 @@
                [[tag_as_label Tag "tag"]
                 [slot_as_label Slot "slot"]])
 
+(the' .private (single_bundle it)
+      (type (-> (List Bundle)
+                (Maybe Bundle)))
+      (if (natural:= 0 (.list_size# it))
+          {:None}
+          (let' [it (list:in_reverse it)]
+                {:Some (list:mix (function' (_ left right)
+                                            {:Right left right})
+                                 (list:after 1 it)
+                                 (.list_item# 0 it))})))
+
 (the' .private (complete_if_case every_branch)
-      (type (-> (Property_List [(Maybe Bundle) Code])
+      (type (-> (Property_List [(List Bundle) Code])
                 (-> Code Natural (Meta Code))))
       (function' (complete_if_case 'value case)
                  (.when# (property:value (natural:as case) every_branch)
                          {:Some [bundle 'body]}
                          (if (natural:= (.i64_+# 1 case)
                                         (.list_size# every_branch))
-                             (.when# bundle
+                             (.when# (single_bundle bundle)
                                      {:Some bundle}
                                      (let_pair bundle 'value 'body)
 
@@ -4160,7 +4174,7 @@
                                      (meta:pure 'body))
                              (monad:let meta:monad
                                         ['case (generated_name "'case")
-                                         'then (.when# bundle
+                                         'then (.when# (single_bundle bundle)
                                                        {:Some bundle}
                                                        (let_pair bundle 'case 'body)
 
@@ -4175,14 +4189,14 @@
                          (failure (name:as [..prelude "complete_if_case"])))))
 
 (the' .private (partial_if_case every_case every_branch 'else 'full_value)
-      (type (-> Natural (Property_List [(Maybe Bundle) Code]) Code Code
+      (type (-> Natural (Property_List [(List Bundle) Code]) Code Code
                 (-> Code Natural (Meta Code))))
       (function' (partial_if_case 'value case)
                  (.when# (property:value (natural:as case) every_branch)
                          {:Some [bundle 'body]}
                          (if (natural:= (.i64_+# 1 case)
                                         every_case)
-                             (.when# bundle
+                             (.when# (single_bundle bundle)
                                      {:Some bundle}
                                      (let_pair bundle 'value 'body)
 
@@ -4190,7 +4204,7 @@
                                      (meta:pure 'body))
                              (monad:let meta:monad
                                         ['case (generated_name "'case")
-                                         'then (.when# bundle
+                                         'then (.when# (single_bundle bundle)
                                                        {:Some bundle}
                                                        (let_pair bundle 'case 'body)
 
@@ -4508,7 +4522,7 @@
                                         {:Some {:When/Complete_If_Case [head tail else]}}
                                         (monad:let meta:monad
                                                    [tag_of_head (|> head pair:left pair:left tag_as_label)
-                                                    every_tag (is (type (Meta (List [Label (Maybe Bundle) Code])))
+                                                    every_tag (is (type (Meta (List [Label (List Bundle) Code])))
                                                                   (monad:each meta:monad
                                                                               (function' (_ it)
                                                                                          (monad:let meta:monad
@@ -4519,7 +4533,7 @@
                                                                               (.list_composite# (list head) tail)))
                                                     .let' [expectation_for_type (pair:right (pair:right tag_of_head))
                                                            expectation_for_arity (arity_of_label (pair:right tag_of_head))
-                                                           in_order (is (type (Property_List [(Maybe Bundle) Code]))
+                                                           in_order (is (type (Property_List [(List Bundle) Code]))
                                                                         (list:mix (function' (_ it)
                                                                                              (let' [[label content body] it]
                                                                                                    (property:with (index_of_label label)

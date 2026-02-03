@@ -34,607 +34,607 @@
 (every .public Class css/class.Class)
 
 (every .public Script
-  js.Statement)
+       js.Statement)
 
 (the attributes
-  (-> Attributes
-      Text)
-  (|>> (list:each (function (_ [key value])
-                    (when ((its attribute.:as key) value)
-                      {.:None}
-                      ""
-                      
-                      {.:Some value}
-                      (.text " " (its attribute.:label key)
-                             "=" text.double_quote value text.double_quote))))
-       text.together))
+     (-> Attributes
+         Text)
+     (|>> (list:each (function (_ [key value])
+                               (when ((its attribute.:as key) value)
+                                     {.:None}
+                                     ""
+                                     
+                                     {.:Some value}
+                                     (.text " " (its attribute.:label key)
+                                            "=" text.double_quote value text.double_quote))))
+          text.together))
 
 (the (open tag attributes)
-  (-> tag.Name Attributes
-      Text)
-  (|> attributes
-      ..attributes
-      (.text tag)
-      (text.enclosed ["<" ">"])))
+     (-> tag.Name Attributes
+         Text)
+     (|> attributes
+         ..attributes
+         (.text tag)
+         (text.enclosed ["<" ">"])))
 
 (the close
-  (-> tag.Name
-      Text)
-  (text.enclosed ["</" ">"]))
+     (-> tag.Name
+         Text)
+     (text.enclosed ["</" ">"]))
 
 (nominal.every .public (HTML brand)
-  Text
+               Text
 
-  (template.with [<name> <brand>]
-                 [(nominal.every <brand>
-                    Any)
-                  
-                  (every .public <name>
-                    (HTML <brand>))]
+               (template.with [<name> <brand>]
+                              [(nominal.every <brand>
+                                              Any)
+                               
+                               (every .public <name>
+                                      (HTML <brand>))]
 
-                 [[Meta Meta']
-                  [Head Head']
-                  [Item Item']
-                  [Option Option']
-                  [Input Input']
-                  [Cell Cell']
-                  [Header Header']
-                  [Row Row']
-                  [Column Column']
-                  [Parameter Parameter']
-                  [Body Body']
-                  [Document Document']])
+                              [[Meta Meta']
+                               [Head Head']
+                               [Item Item']
+                               [Option Option']
+                               [Input Input']
+                               [Cell Cell']
+                               [Header Header']
+                               [Row Row']
+                               [Column Column']
+                               [Parameter Parameter']
+                               [Body Body']
+                               [Document Document']])
 
-  (template.with [<super> <super_raw> <sub>+]
-                 [(nominal.every (<super_raw> brand)
-                    Any)
-                  
-                  (every .public <super>
-                    (HTML (<super_raw> Any)))
+               (template.with [<super> <super_raw> <sub>+]
+                              [(nominal.every (<super_raw> brand)
+                                              Any)
+                               
+                               (every .public <super>
+                                      (HTML (<super_raw> Any)))
 
-                  (template.with [<sub> <sub_raw>]
-                                 [(nominal.every <sub_raw>
-                                    Any)
-                                  
-                                  (every .public <sub>
-                                    (HTML (<super_raw> <sub_raw>)))]
+                               (template.with [<sub> <sub_raw>]
+                                              [(nominal.every <sub_raw>
+                                                              Any)
+                                               
+                                               (every .public <sub>
+                                                      (HTML (<super_raw> <sub_raw>)))]
 
-                                 <sub>+)]
+                                              <sub>+)]
 
-                 [[Element Element'
-                   [[Content Content']
-                    [Image Image']]]
+                              [[Element Element'
+                                [[Content Content']
+                                 [Image Image']]]
 
-                  [Media Media'
-                   [[Source Source']
-                    [Track Track']]]])
+                               [Media Media'
+                                [[Source Source']
+                                 [Track Track']]]])
 
-  (the .public html
-    (-> Document
-        Text)
-    (|>> nominal.as))
+               (the .public html
+                    (-> Document
+                        Text)
+                    (|>> nominal.as))
 
-  (the .public (and pre post)
-    (for_any (_ brand)
-      (-> (HTML brand) (HTML brand)
-          (HTML brand)))
-    (nominal.of
-     (.text (nominal.as pre)
-            (nominal.as post))))
+               (the .public (and pre post)
+                    (for_any (_ brand)
+                             (-> (HTML brand) (HTML brand)
+                                 (HTML brand)))
+                    (nominal.of
+                     (.text (nominal.as pre)
+                            (nominal.as post))))
 
-  (the .public (comment content node)
-    (for_any (_ brand)
-      (-> Text (HTML brand)
-          (HTML brand)))
-    (nominal.of
-     (.text (text.enclosed ["<!--" "-->"] content)
-            (nominal.as node))))
+               (the .public (comment content node)
+                    (for_any (_ brand)
+                             (-> Text (HTML brand)
+                                 (HTML brand)))
+                    (nominal.of
+                     (.text (text.enclosed ["<!--" "-->"] content)
+                            (nominal.as node))))
 
-  (the (empty_tag name attributes)
-    (-> tag.Name Attributes
-        HTML)
-    (|> (.text (..open name attributes)
-               (..close name))
-        nominal.of
-        (as (-> (HTML Any) HTML))))
+               (the (empty_tag name attributes)
+                    (-> tag.Name Attributes
+                        HTML)
+                    (|> (.text (..open name attributes)
+                               (..close name))
+                        nominal.of
+                        (as (-> (HTML Any) HTML))))
 
-  (the (simple tag attributes)
-    (-> tag.Name Attributes
-        HTML)
-    (|> attributes
-        (..open tag)
-        nominal.of
-        (as (-> (HTML Any) HTML))))
-
-  (the (tag name attributes content)
-    (-> tag.Name Attributes (HTML Any)
-        HTML)
-    (|> (.text (..open name attributes)
-               (nominal.as content)
-               (..close name))
-        nominal.of
-        (as (-> (HTML Any) HTML))))
-
-  (the (raw tag attributes content)
-    (-> Text Attributes Text
-        HTML)
-    (|> (.text (..open tag attributes)
-               content
-               (..close tag))
-        nominal.of
-        (as (-> (HTML Any) HTML))))
-
-  (template.with [<name> <brand>]
-                 [(the .public <name>
-                    (-> Attributes
-                        <brand>)
-                    (..simple (template.name [tag._] [<name>])))]
-
-                 [[link Meta]
-                  [meta Meta]
-                  [input Input]
-                  [embedded Element]
-                  [column Column]
-                  [parameter Parameter]])
-
-  (the .public (base href target)
-    (-> URL (Maybe Target)
-        Meta)
-    (let [partial (list [attribute.hyper_link href])
-          full (when target
-                 {.:Some target}
-                 (list [attribute.hyper_link href]
-                       [attribute.target target])
-                 
-                 {.:None}
-                 (list [attribute.hyper_link href]))]
-      (..simple tag.base full)))
-
-  (the .public style
-    (-> (css.CSS Any)
-        Meta)
-    (|>> css.css
-         (..raw tag.style (list))))
-
-  (the .public (script attributes inline)
-    (-> Attributes (Maybe Script)
-        Element)
-    (|> inline
-        (maybe:each js.code)
-        (maybe.else "")
-        (..raw tag.script attributes)))
-
-  ... Properly formats text to ensure no injection can happen on the HTML.
-  (the safe
-    (Change Text)
-    (|>> (text.replaced "&" "&amp;")
-         (text.replaced "<" "&lt;")
-         (text.replaced ">" "&gt;")
-         (text.replaced text.double_quote "&quot;")
-         (text.replaced "'" "&#x27;")
-         (text.replaced "/" "&#x2F;")))
-
-  (the .public text
-    (-> Text
-        Content)
-    (|>> ..safe
-         nominal.of))
-
-  (template.with [<alias> <name>]
-                 [(the .public <name>
-                    Element
-                    (..simple (template.name [tag._] [<name>]) (list)))
-
-                  (the .public <alias> <name>)]
-                 
-                 [[br  line_break]
-                  [wbr word_break]
-                  [hr  separator]])
-
-  (the .public (image source attributes)
-    (-> URL Attributes
-        Image)
-    (|> attributes
-        (list:composite (list [attribute.source source]))
-        (..simple tag.image)))
-
-  (the .public (svg attributes content)
-    (-> Attributes XML
-        Element)
-    (|> content
-        (by xml.text as)
-        (..raw tag.svg attributes)))
-
-  (every .public Coord
-    (Record
-     [:horizontal Natural
-      :vertical Natural]))
-
-  (the (%coord [horizontal vertical])
-    (-> Coord
-        (List Natural))
-    (list horizontal vertical))
-  
-  (every .public Rectangle
-    (Record
-     [:start Coord
-      :end Coord]))
-
-  (every .public Circle
-    (Record
-     [:center Coord
-      :radius Natural]))
-
-  (every .public Polygon
-    (Record
-     [:first Coord
-      :second Coord
-      :third Coord
-      :extra (List Coord)]))
-
-  (the (%rectangle [start end])
-    (-> Rectangle
-        (List Natural))
-    (all list:composite
-         (%coord start)
-         (%coord end)))
-
-  (the (%circle [center radius])
-    (-> Circle
-        (List Natural))
-    (all list:composite
-         (%coord center)
-         (list radius)))
-
-  (the (%polygon [first second third extra])
-    (-> Polygon
-        (List Natural))
-    (all list:composite
-         (%coord first)
-         (%coord second)
-         (%coord third)
-         (list:conjoint (list:each %coord extra))))
-  
-  (every .public Shape
-    (Variant
-     {:Rectangle Rectangle}
-     {:Circle Circle}
-     {:Polygon Polygon}))
-
-  (template.with [<name> <shape> <type> <injection>]
-                 [(the (<name> attributes shape)
-                    (-> Attributes <type>
-                        (HTML Any))
+               (the (simple tag attributes)
+                    (-> tag.Name Attributes
+                        HTML)
                     (|> attributes
-                        (list:composite (list [attribute.shape <shape>]
-                                              [attribute.coordinates (<injection> shape)]))
-                        (..simple tag.area)))]
+                        (..open tag)
+                        nominal.of
+                        (as (-> (HTML Any) HTML))))
 
-                 [[rectangle shape.rectangle Rectangle ..%rectangle]
-                  [circle shape.circle Circle ..%circle]
-                  [polygon shape.polygon Polygon ..%polygon]])
-  
-  (the (area attributes shape)
-    (-> Attributes Shape
-        (HTML Any))
-    (when shape
-      {:Rectangle rectangle}
-      (..rectangle attributes rectangle)
-      
-      {:Circle circle}
-      (..circle attributes circle)
-      
-      {:Polygon polygon}
-      (..polygon attributes polygon)))
+               (the (tag name attributes content)
+                    (-> tag.Name Attributes (HTML Any)
+                        HTML)
+                    (|> (.text (..open name attributes)
+                               (nominal.as content)
+                               (..close name))
+                        nominal.of
+                        (as (-> (HTML Any) HTML))))
 
-  (the .public (each attributes areas for)
-    (-> Attributes (List [Attributes Shape])
-        (Change Image))
-    (all ..and
-         for
-         (when (list.split 1 (list:each (function.uncurried ..area) areas))
-           [(list head) tail]
-           (..tag tag.map
-                  attributes
-                  (list.mix (function.in_reverse ..and) tail head))
+               (the (raw tag attributes content)
+                    (-> Text Attributes Text
+                        HTML)
+                    (|> (.text (..open tag attributes)
+                               content
+                               (..close tag))
+                        nominal.of
+                        (as (-> (HTML Any) HTML))))
 
-           else
-           (..empty_tag tag.map
-                        attributes))))
+               (template.with [<name> <brand>]
+                              [(the .public <name>
+                                    (-> Attributes
+                                        <brand>)
+                                    (..simple (template.name [tag._] [<name>])))]
 
-  (template.with [<name> <type>]
-                 [(the .public <name>
-                    (-> Attributes
-                        <type>)
-                    (..empty_tag (template.name [tag._] [<name>])))]
+                              [[link Meta]
+                               [meta Meta]
+                               [input Input]
+                               [embedded Element]
+                               [column Column]
+                               [parameter Parameter]])
 
-                 [[canvas Element]
-                  [progress Element]
-                  [output Input]
-                  [source Source]
-                  [track Track]])
+               (the .public (base href target)
+                    (-> URL (Maybe Target)
+                        Meta)
+                    (let [partial (list [attribute.hyper_link href])
+                          full (when target
+                                     {.:Some target}
+                                     (list [attribute.hyper_link href]
+                                           [attribute.target target])
+                                     
+                                     {.:None}
+                                     (list [attribute.hyper_link href]))]
+                         (..simple tag.base full)))
 
-  (template.with [<name>]
-                 [(the .public (<name> attributes media on_unsupported)
-                    (-> Attributes Media (Maybe Content)
+               (the .public style
+                    (-> (css.CSS Any)
+                        Meta)
+                    (|>> css.css
+                         (..raw tag.style (list))))
+
+               (the .public (script attributes inline)
+                    (-> Attributes (Maybe Script)
                         Element)
-                    (..tag (template.name [tag._] [<name>])
-                           attributes
-                           (|> on_unsupported
-                               (maybe.else (..text ""))
-                               (..and media))))]
+                    (|> inline
+                        (maybe:each js.code)
+                        (maybe.else "")
+                        (..raw tag.script attributes)))
 
-                 [[audio]
-                  [video]])
+               (.comment "Properly formats text to ensure no injection can happen on the HTML."
+                         (the safe
+                              (Change Text)
+                              (|>> (text.replaced "&" "&amp;")
+                                   (text.replaced "<" "&lt;")
+                                   (text.replaced ">" "&gt;")
+                                   (text.replaced text.double_quote "&quot;")
+                                   (text.replaced "'" "&#x27;")
+                                   (text.replaced "/" "&#x2F;"))))
 
-  (the .public (picture attributes sources image)
-    (-> Attributes Source Image
-        Element)
-    (..tag tag.picture attributes (..and sources image)))
+               (the .public text
+                    (-> Text
+                        Content)
+                    (|>> ..safe
+                         nominal.of))
 
-  (the .public (anchor href attributes content)
-    (-> URL Attributes Element
-        Element)
-    (..tag tag.anchor
-           (list:composite (list [attribute.hyper_link href])
-                           attributes)
-           content))
+               (template.with [<alias> <name>]
+                              [(the .public <name>
+                                    Element
+                                    (..simple (template.name [tag._] [<name>]) (list)))
 
-  (the .public label
-    (-> ID
-        Input)
-    (|>> [attribute.for] list
-         (..empty_tag tag.label)))
+                               (the .public <alias> <name>)]
+                              
+                              [[br  line_break]
+                               [wbr word_break]
+                               [hr  separator]])
 
-  (template.with [<name> <description> <type>]
-                 [(the .public (<name> description attributes content)
-                    (-> (Maybe Content) Attributes
-                        (Change <type>))
-                    (..tag (template.name [tag._] [<name>])
-                           attributes
-                           (when description
-                             {.:Some description}
-                             (all ..and
-                                  (..tag <description> (list) description)
-                                  content)
-                             
-                             {.:None}
-                             content)))]
+               (the .public (image source attributes)
+                    (-> URL Attributes
+                        Image)
+                    (|> attributes
+                        (list:composite (list [attribute.source source]))
+                        (..simple tag.image)))
 
-                 [[details tag.summary Element]
-                  [field_set tag.legend Element]
-                  [figure tag.figure_caption Element]])
-
-  (template.with [<name> <type>]
-                 [(the .public (<name> attributes content)
-                    (-> Attributes (Maybe Content)
-                        <type>)
+               (the .public (svg attributes content)
+                    (-> Attributes XML
+                        Element)
                     (|> content
-                        (maybe.else (..text ""))
-                        (..tag (template.name [tag._] [<name>])
-                               attributes)))]
+                        (by xml.text as)
+                        (..raw tag.svg attributes)))
 
-                 [[text_area Input]
-                  [iframe Element]])
+               (every .public Coord
+                      (Record
+                       [:horizontal Natural
+                        :vertical Natural]))
 
-  (every .public Phrase
-    (-> Attributes Content
-        Element))
+               (the (%coord [horizontal vertical])
+                    (-> Coord
+                        (List Natural))
+                    (list horizontal vertical))
+               
+               (every .public Rectangle
+                      (Record
+                       [:start Coord
+                        :end Coord]))
 
-  (template.with [<name>]
-                 [(the .public <name>
-                    Phrase
-                    (..tag (template.name [tag._] [<name>])))]
+               (every .public Circle
+                      (Record
+                       [:center Coord
+                        :radius Natural]))
 
-                 [[abbrebiation]
-                  [block_quote]
-                  [bold]
-                  [cite]
-                  [code]
-                  [definition]
-                  [deleted]
-                  [emphasized]
-                  [h1]
-                  [h2]
-                  [h3]
-                  [h4]
-                  [h5]
-                  [h6]
-                  [inserted]
-                  [italic]
-                  [keyboard]
-                  [marked]
-                  [meter]
-                  [pre]
-                  [quote]
-                  [sample]
-                  [struck]
-                  [small]
-                  [sub]
-                  [super]
-                  [strong]
-                  [time]
-                  [underlined]
-                  [variable]])
+               (every .public Polygon
+                      (Record
+                       [:first Coord
+                        :second Coord
+                        :third Coord
+                        :extra (List Coord)]))
 
-  (the .public incorrect ..struck)
+               (the (%rectangle [start end])
+                    (-> Rectangle
+                        (List Natural))
+                    (all list:composite
+                         (%coord start)
+                         (%coord end)))
 
-  (the (ruby_annotation pronunciation)
-    (-> Content
-        (HTML Any))
-    (..tag tag.ruby_annotation
-           (list)
-           (all ..and
-                (..tag tag.ruby_pronunciation (list) (..text "("))
-                pronunciation
-                (..tag tag.ruby_pronunciation (list) (..text ")")))))
+               (the (%circle [center radius])
+                    (-> Circle
+                        (List Natural))
+                    (all list:composite
+                         (%coord center)
+                         (list radius)))
 
-  (the .public (ruby attributes content pronunciation)
-    (-> Attributes Content Content
-        Element)
-    (..tag tag.ruby attributes
-           (all ..and
-                content
-                (ruby_annotation pronunciation))))
+               (the (%polygon [first second third extra])
+                    (-> Polygon
+                        (List Natural))
+                    (all list:composite
+                         (%coord first)
+                         (%coord second)
+                         (%coord third)
+                         (list:conjoint (list:each %coord extra))))
+               
+               (every .public Shape
+                      (Variant
+                       {:Rectangle Rectangle}
+                       {:Circle Circle}
+                       {:Polygon Polygon}))
 
-  (the .public empty
-    Element
-    (..text ""))
+               (template.with [<name> <shape> <type> <injection>]
+                              [(the (<name> attributes shape)
+                                    (-> Attributes <type>
+                                        (HTML Any))
+                                    (|> attributes
+                                        (list:composite (list [attribute.shape <shape>]
+                                                              [attribute.coordinates (<injection> shape)]))
+                                        (..simple tag.area)))]
 
-  (every .public Composite
-    (-> Attributes
-        (Change Element)))
-
-  (template.with [<name>]
-                 [(the .public <name>
-                    Composite
-                    (..tag (template.name [tag._] [<name>])))]
-
-                 [[article]
-                  [aside]
-                  [dialog]
-                  [div]
-                  [footer]
-                  [header]
-                  [main]
-                  [navigation]
-                  [paragraph]
-                  [section]
-                  [span]])
-
-  (template.with [<name> <input>]
-                 [(the <name>
-                    (-> <input>
+                              [[rectangle shape.rectangle Rectangle ..%rectangle]
+                               [circle shape.circle Circle ..%circle]
+                               [polygon shape.polygon Polygon ..%polygon]])
+               
+               (the (area attributes shape)
+                    (-> Attributes Shape
                         (HTML Any))
-                    (..tag (template.name [tag._] [<name>])
-                           (list)))]
+                    (when shape
+                          {:Rectangle rectangle}
+                          (..rectangle attributes rectangle)
+                          
+                          {:Circle circle}
+                          (..circle attributes circle)
+                          
+                          {:Polygon polygon}
+                          (..polygon attributes polygon)))
 
-                 [[term Content]
-                  [description Element]])
+               (the .public (each attributes areas for)
+                    (-> Attributes (List [Attributes Shape])
+                        (Change Image))
+                    (all ..and
+                         for
+                         (when (list.split 1 (list:each (function.uncurried ..area) areas))
+                               [(list head) tail]
+                               (..tag tag.map
+                                      attributes
+                                      (list.mix (function.in_reverse ..and) tail head))
 
-  (the .public (description_list attributes descriptions)
-    (-> Attributes (List [Content Element])
-        Element)
-    (when (|> descriptions
-              (list:each (function (_ [term description])
-                           (all ..and
-                                (..term term)
-                                (..description description))))
-              (list.split 1))
-      [(list head) tail]
-      (..tag tag.description_list
-             attributes
-             (list.mix (function.in_reverse ..and) tail head))
+                               else
+                               (..empty_tag tag.map
+                                            attributes))))
 
-      else
-      (..empty_tag tag.description_list
-                   attributes)))
+               (template.with [<name> <type>]
+                              [(the .public <name>
+                                    (-> Attributes
+                                        <type>)
+                                    (..empty_tag (template.name [tag._] [<name>])))]
 
-  (the .public p ..paragraph)
+                              [[canvas Element]
+                               [progress Element]
+                               [output Input]
+                               [source Source]
+                               [track Track]])
 
-  (template.with [<name> <input> <output>]
-                 [(the .public <name>
-                    (-> Attributes <input>
-                        <output>)
-                    (..tag (template.name [tag._] [<name>])))]
+               (template.with [<name>]
+                              [(the .public (<name> attributes media on_unsupported)
+                                    (-> Attributes Media (Maybe Content)
+                                        Element)
+                                    (..tag (template.name [tag._] [<name>])
+                                           attributes
+                                           (|> on_unsupported
+                                               (maybe.else (..text ""))
+                                               (..and media))))]
 
-                 [[button Element Input]
-                  [item Element Item]
-                  [ordered_list Item Element]
-                  [unordered_list Item Element]
-                  [option Content Option]
-                  [option_group Option Option]
-                  [data_list Option Element]
-                  [select Option Input]
-                  [address Element Element]
-                  [form Input Element]
-                  [data Element Element]
-                  [object Parameter Element]])
+                              [[audio]
+                               [video]])
 
-  (template.with [<name> <input> <output>]
-                 [(the .public <name>
-                    (-> <input>
-                        <output>)
-                    (..tag (template.name [tag._] [<name>])
-                           (list)))]
+               (the .public (picture attributes sources image)
+                    (-> Attributes Source Image
+                        Element)
+                    (..tag tag.picture attributes (..and sources image)))
 
-                 [[title Content Meta]
-                  [no_script Content Meta]
-                  [template (HTML Any) (HTML Nothing)]
-                  [table_header Element Header]
-                  [table_cell Element Cell]
-                  [head Meta Head]])
-
-  (template.with [<name> <input> <output>]
-                 [(the .public (<name> attributes)
-                    (-> Attributes <input>
-                        <output>)
-                    (..tag (template.name [tag._] [<name>])
-                           attributes))]
-
-                 [[body Element Body]])
-
-  (template.with [<name> <input> <output>]
-                 [(the <name>
-                    (-> <input>
-                        <output>)
-                    (..tag (template.name [tag._] [<name>])
-                           (list)))]
-
-                 [[table_row (HTML Any) Row]
-                  [table_head Row HTML]
-                  [table_body Row HTML]
-                  [table_foot Row HTML]
-                  [columns_group Column HTML]])
-
-  (the .public (table attributes caption columns headers rows footer)
-    (-> Attributes (Maybe Content) (Maybe Column) Header (List Cell) (Maybe Cell)
-        Element)
-    (let [head (..table_head (..table_row headers))
-          content (when (list.split 1 (list:each table_row rows))
-                    [(list first) rest]
-                    (..and head
-                           (..table_body (list.mix (function.in_reverse ..and) rest first)))
-
-                    else
-                    head)
-          content (when footer
-                    {.:None}
-                    content
-                    
-                    {.:Some footer}
-                    (..and content
-                           (..table_foot (..table_row footer))))
-          content (when columns
-                    {.:None}
-                    content
-                    
-                    {.:Some columns}
-                    (..and (..columns_group columns)
+               (the .public (anchor href attributes content)
+                    (-> URL Attributes Element
+                        Element)
+                    (..tag tag.anchor
+                           (list:composite (list [attribute.hyper_link href])
+                                           attributes)
                            content))
-          content (when caption
-                    {.:None}
-                    content
 
-                    {.:Some caption}
-                    (..and (as (-> Content HTML) caption)
-                           content))]
-      (..tag tag.table attributes
-             content)))
+               (the .public label
+                    (-> ID
+                        Input)
+                    (|>> [attribute.for] list
+                         (..empty_tag tag.label)))
 
-  (template.with [<name> <doc_type>]
-                 [(the .public <name>
-                    (-> Attributes Head Body
-                        Document)
-                    (let [doc_type <doc_type>]
-                      (function (_ attributes head body)
-                        (|> (..tag tag.html attributes (..and head body))
-                            nominal.as
-                            (.text doc_type)
-                            nominal.of))))]
+               (template.with [<name> <description> <type>]
+                              [(the .public (<name> description attributes content)
+                                    (-> (Maybe Content) Attributes
+                                        (Change <type>))
+                                    (..tag (template.name [tag._] [<name>])
+                                           attributes
+                                           (when description
+                                                 {.:Some description}
+                                                 (all ..and
+                                                      (..tag <description> (list) description)
+                                                      content)
+                                                 
+                                                 {.:None}
+                                                 content)))]
 
-                 [[html/5    "<!DOCTYPE html>"]
-                  [html/4_01 (.text "<!DOCTYPE HTML PUBLIC " text.double_quote "-//W3C//DTD HTML 4.01//EN" text.double_quote " " text.double_quote "http://www.w3.org/TR/html4/strict.dtd" text.double_quote ">")]
-                  [xhtml/1_0 (.text "<!DOCTYPE html PUBLIC " text.double_quote "-//W3C//DTD XHTML 1.0 Strict//EN" text.double_quote " " text.double_quote "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" text.double_quote ">")]
-                  [xhtml/1_1 (.text "<!DOCTYPE html PUBLIC " text.double_quote "-//W3C//DTD XHTML 1.1//EN" text.double_quote " " text.double_quote "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd" text.double_quote ">")]])
-  )
+                              [[details tag.summary Element]
+                               [field_set tag.legend Element]
+                               [figure tag.figure_caption Element]])
+
+               (template.with [<name> <type>]
+                              [(the .public (<name> attributes content)
+                                    (-> Attributes (Maybe Content)
+                                        <type>)
+                                    (|> content
+                                        (maybe.else (..text ""))
+                                        (..tag (template.name [tag._] [<name>])
+                                               attributes)))]
+
+                              [[text_area Input]
+                               [iframe Element]])
+
+               (every .public Phrase
+                      (-> Attributes Content
+                          Element))
+
+               (template.with [<name>]
+                              [(the .public <name>
+                                    Phrase
+                                    (..tag (template.name [tag._] [<name>])))]
+
+                              [[abbrebiation]
+                               [block_quote]
+                               [bold]
+                               [cite]
+                               [code]
+                               [definition]
+                               [deleted]
+                               [emphasized]
+                               [h1]
+                               [h2]
+                               [h3]
+                               [h4]
+                               [h5]
+                               [h6]
+                               [inserted]
+                               [italic]
+                               [keyboard]
+                               [marked]
+                               [meter]
+                               [pre]
+                               [quote]
+                               [sample]
+                               [struck]
+                               [small]
+                               [sub]
+                               [super]
+                               [strong]
+                               [time]
+                               [underlined]
+                               [variable]])
+
+               (the .public incorrect ..struck)
+
+               (the (ruby_annotation pronunciation)
+                    (-> Content
+                        (HTML Any))
+                    (..tag tag.ruby_annotation
+                           (list)
+                           (all ..and
+                                (..tag tag.ruby_pronunciation (list) (..text "("))
+                                pronunciation
+                                (..tag tag.ruby_pronunciation (list) (..text ")")))))
+
+               (the .public (ruby attributes content pronunciation)
+                    (-> Attributes Content Content
+                        Element)
+                    (..tag tag.ruby attributes
+                           (all ..and
+                                content
+                                (ruby_annotation pronunciation))))
+
+               (the .public empty
+                    Element
+                    (..text ""))
+
+               (every .public Composite
+                      (-> Attributes
+                          (Change Element)))
+
+               (template.with [<name>]
+                              [(the .public <name>
+                                    Composite
+                                    (..tag (template.name [tag._] [<name>])))]
+
+                              [[article]
+                               [aside]
+                               [dialog]
+                               [div]
+                               [footer]
+                               [header]
+                               [main]
+                               [navigation]
+                               [paragraph]
+                               [section]
+                               [span]])
+
+               (template.with [<name> <input>]
+                              [(the <name>
+                                    (-> <input>
+                                        (HTML Any))
+                                    (..tag (template.name [tag._] [<name>])
+                                           (list)))]
+
+                              [[term Content]
+                               [description Element]])
+
+               (the .public (description_list attributes descriptions)
+                    (-> Attributes (List [Content Element])
+                        Element)
+                    (when (|> descriptions
+                              (list:each (function (_ [term description])
+                                                   (all ..and
+                                                        (..term term)
+                                                        (..description description))))
+                              (list.split 1))
+                          [(list head) tail]
+                          (..tag tag.description_list
+                                 attributes
+                                 (list.mix (function.in_reverse ..and) tail head))
+
+                          else
+                          (..empty_tag tag.description_list
+                                       attributes)))
+
+               (the .public p ..paragraph)
+
+               (template.with [<name> <input> <output>]
+                              [(the .public <name>
+                                    (-> Attributes <input>
+                                        <output>)
+                                    (..tag (template.name [tag._] [<name>])))]
+
+                              [[button Element Input]
+                               [item Element Item]
+                               [ordered_list Item Element]
+                               [unordered_list Item Element]
+                               [option Content Option]
+                               [option_group Option Option]
+                               [data_list Option Element]
+                               [select Option Input]
+                               [address Element Element]
+                               [form Input Element]
+                               [data Element Element]
+                               [object Parameter Element]])
+
+               (template.with [<name> <input> <output>]
+                              [(the .public <name>
+                                    (-> <input>
+                                        <output>)
+                                    (..tag (template.name [tag._] [<name>])
+                                           (list)))]
+
+                              [[title Content Meta]
+                               [no_script Content Meta]
+                               [template (HTML Any) (HTML Nothing)]
+                               [table_header Element Header]
+                               [table_cell Element Cell]
+                               [head Meta Head]])
+
+               (template.with [<name> <input> <output>]
+                              [(the .public (<name> attributes)
+                                    (-> Attributes <input>
+                                        <output>)
+                                    (..tag (template.name [tag._] [<name>])
+                                           attributes))]
+
+                              [[body Element Body]])
+
+               (template.with [<name> <input> <output>]
+                              [(the <name>
+                                    (-> <input>
+                                        <output>)
+                                    (..tag (template.name [tag._] [<name>])
+                                           (list)))]
+
+                              [[table_row (HTML Any) Row]
+                               [table_head Row HTML]
+                               [table_body Row HTML]
+                               [table_foot Row HTML]
+                               [columns_group Column HTML]])
+
+               (the .public (table attributes caption columns headers rows footer)
+                    (-> Attributes (Maybe Content) (Maybe Column) Header (List Cell) (Maybe Cell)
+                        Element)
+                    (let [head (..table_head (..table_row headers))
+                          content (when (list.split 1 (list:each table_row rows))
+                                        [(list first) rest]
+                                        (..and head
+                                               (..table_body (list.mix (function.in_reverse ..and) rest first)))
+
+                                        else
+                                        head)
+                          content (when footer
+                                        {.:None}
+                                        content
+                                        
+                                        {.:Some footer}
+                                        (..and content
+                                               (..table_foot (..table_row footer))))
+                          content (when columns
+                                        {.:None}
+                                        content
+                                        
+                                        {.:Some columns}
+                                        (..and (..columns_group columns)
+                                               content))
+                          content (when caption
+                                        {.:None}
+                                        content
+
+                                        {.:Some caption}
+                                        (..and (as (-> Content HTML) caption)
+                                               content))]
+                         (..tag tag.table attributes
+                                content)))
+
+               (template.with [<name> <doc_type>]
+                              [(the .public <name>
+                                    (-> Attributes Head Body
+                                        Document)
+                                    (let [doc_type <doc_type>]
+                                         (function (_ attributes head body)
+                                                   (|> (..tag tag.html attributes (..and head body))
+                                                       nominal.as
+                                                       (.text doc_type)
+                                                       nominal.of))))]
+
+                              [[html/5    "<!DOCTYPE html>"]
+                               [html/4_01 (.text "<!DOCTYPE HTML PUBLIC " text.double_quote "-//W3C//DTD HTML 4.01//EN" text.double_quote " " text.double_quote "http://www.w3.org/TR/html4/strict.dtd" text.double_quote ">")]
+                               [xhtml/1_0 (.text "<!DOCTYPE html PUBLIC " text.double_quote "-//W3C//DTD XHTML 1.0 Strict//EN" text.double_quote " " text.double_quote "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" text.double_quote ">")]
+                               [xhtml/1_1 (.text "<!DOCTYPE html PUBLIC " text.double_quote "-//W3C//DTD XHTML 1.1//EN" text.double_quote " " text.double_quote "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd" text.double_quote ">")]])
+               )

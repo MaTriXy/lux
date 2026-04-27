@@ -442,7 +442,7 @@
 0. https://medium.com/the-hoard/building-a-kafka-that-doesnt-depend-on-zookeeper-2c4701b6e961#.paa4pjdtc
 0. https://blog.acolyer.org/2017/01/23/ground-a-data-context-service/
 0. https://engineering.instagram.com/sharding-ids-at-instagram-1cf5a71e5a5c#.omhi4kyaj
-0. http://rystsov.info/2017/02/15/simple-consensus.html
+0. http://rystsov.com/2017/02/15/simple-consensus.html
 0. https://blog.jooq.org/2016/10/05/why-you-should-design-your-database-to-optimise-for-statistics/
 0. https://thesquareplanet.com/blog/students-guide-to-raft/
 0. https://rjuju.github.io/postgresql/2015/07/02/how-about-hypothetical-indexes.html

@@ -20,6 +20,7 @@
 
 # Reference
 
+0. [Making C++ Safe, Healthy, and Efficient - John Lakos - CppCon 2025](https://www.youtube.com/watch?v=p52mNWsh-qs)
 0. [To Int or to Uint, This is the Question - Alex Dathskovsky - CppCon 2024](https://youtu.be/pnaZ0x9Mmm0)
 0. [Compiling C++ with the Clang API](https://maskray.me/blog/2025-03-09-compiling-c++-with-clang-api)
 0. [InstantC](https://gitlab.com/jlinhoff/instantc)
@@ -54,7 +55,6 @@
 
 # Dependency management
 
-0. []()
 0. [vcpkg](https://vcpkg.io/en/index.html)
 
 # constexpr

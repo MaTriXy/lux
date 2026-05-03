@@ -1,9 +1,10 @@
 (.using
  [library
   [lux (.except Label
-                or and identical? not)
+                or and not has)
+   ["[0]" function]
    [data
-    ["[0]" text (.only)
+    ["[0]" text (.only \'')
      ["%" \\injection]]]
    [math
     [number
@@ -29,194 +30,209 @@
 (nominal.every .public Generic Any)
 (nominal.every .public Unique Any)
 (nominal.every .public Specific Any)
-(nominal.every .public Composite Any)
 
-(nominal.every .public (Selector kind)
-  Text
+(nominal.every .public (Selector' kind)
+               Text
 
-  (the .public selector
-    (-> (Selector Any)
-        Text)
-    (|>> nominal.as))
+               (every .public Selector
+                      (for_some (_ kind)
+                                (Selector' kind)))
 
-  (the .public any
-    (Selector Generic)
-    (nominal.of "*"))
+               (the .public selector
+                    (-> Selector
+                        Text)
+                    (|>> nominal.as))
 
-  (the .public tag
-    (-> tag.Name
-        (Selector Generic))
-    (|>> nominal.of))
+               (the .public any
+                    (Selector Generic)
+                    (nominal.of "*"))
 
-  (template.with [<name> <type> <prefix> <kind> <out>]
-    [(the .public <name>
-       (-> <type> (Selector <kind>))
-       (|>> <out>
-            (text <prefix>)
-            nominal.of))]
+               (the .public tag
+                    (-> tag.Name
+                        (Selector Generic))
+                    (|>> nominal.of))
 
-    [[id ID "#" Unique //id.id]
-     [class Class "." Generic //class.class]])
+               (template.with [,name <type> <prefix> <kind> <out>]
+                              [(the .public ,name
+                                    (-> <type> (Selector <kind>))
+                                    (|>> <out>
+                                         (text <prefix>)
+                                         nominal.of))]
 
-  (template.with [<right> <left> <combinator>+]
-    [(template.with [<combinator> <name>]
-       [(the .public (<name> right left)
-          (-> (Selector <right>) (Selector <left>)
-              (Selector Composite))
-          (nominal.of
-           (text (nominal.as left)
-                 <combinator>
-                 (nominal.as right))))]
+                              [[id ID "#" Unique //id.id]
+                               [class Class "." Generic //class.class]])
 
-       <combinator>+)]
+               (template.with [<right> <left> <combinator>+]
+                              [(template.with [<combinator> ,name]
+                                              [(the .public (,name right left)
+                                                    (-> (Selector <right>) (Selector <left>)
+                                                        (Selector Generic))
+                                                    (nominal.of
+                                                     (text (nominal.as left)
+                                                           <combinator>
+                                                           (nominal.as right))))]
 
-    [[Generic Generic
-      [["" and]]]
-     [Specific Generic
-      [["" at]]]
-     [Unique Generic
-      [["" for]]]
-     [Any Any
-      [[" , " or]
-       [" " in]
-       [" > " sub]
-       [" + " next]
-       [" ~ " later]]]])
+                                              <combinator>+)]
 
-  (every .public (Specializer kind)
-    (-> (Selector kind) (Selector Generic)
-        (Selector Composite)))
+                              [[Generic Generic
+                                [["" and]]]
+                               [Specific Generic
+                                [["" at]]]
+                               [Unique Generic
+                                [["" for]]]
+                               [Any Any
+                                [[" , " or]
+                                 [" " in]
+                                 [" > " sub]
+                                 [" + " next]
+                                 [" ~ " later]]]])
 
-  (every .public Combinator
-    (-> (Selector Any) (Selector Any)
-        (Selector Composite)))
+               (every .public (Specializer kind)
+                      (-> (Selector kind)
+                          (Change (Selector Generic))))
 
-  (the .public (with? attribute)
-    (-> Attribute
-        (Selector Generic))
-    (nominal.of
-     (text "[" attribute "]")))
+               (every .public Combinator
+                      (-> Selector Selector
+                          (Selector Generic)))
 
-  (template.with [<check> <name>]
-    [(the .public (<name> attribute value)
-       (-> Attribute Text
-           (Selector Generic))
-       (nominal.of
-        (text "[" attribute <check> value "]")))]
+               (the .public (with? attribute)
+                    (-> Attribute
+                        (Selector Generic))
+                    (nominal.of (text "[" attribute "]")))
 
-    [["=" identical?]
-     ["~=" has?]
-     ["|=" has_start?]
-     ["^=" starts?]
-     ["$=" ends?]
-     ["*=" contains?]])
+               (template.with [,check ,alias ,name]
+                              [(the .public (,name attribute value)
+                                    (-> Attribute Text
+                                        (Selector Generic))
+                                    (nominal.of
+                                     (text "[" attribute ,check \'' value \'' "]")))
 
-  (template.with [<kind> <pseudo>+]
-    [(template.with [<name> <pseudo>]
-       [(the .public <name>
-          (Selector <kind>)
-          (nominal.of <pseudo>))]
+                               (alias [,alias]
+                                      ,name)]
 
-       <pseudo>+)]
+                              [["=" = exactly?]
+                               ["~=" ~= has?]
+                               ["|=" |= has_start?]
+                               ["^=" ^= starts?]
+                               ["$=" $= ends?]
+                               ["*=" *= contains?]])
 
-    [[Generic
-      [[active ":active"]
-       [checked ":checked"]
-       [default ":default"]
-       [disabled ":disabled"]
-       [empty ":empty"]
-       [enabled ":enabled"]
-       [first_child ":first-child"]
-       [first_of_type ":first-of-type"]
-       [focused ":focus"]
-       [hovered ":hover"]
-       [in_range ":in-range"]
-       [indeterminate ":indeterminate"]
-       [invalid ":invalid"]
-       [last_child ":last-child"]
-       [last_of_type ":last-of-type"]
-       [link ":link"]
-       [only_of_type ":only-of-type"]
-       [only_child ":only-child"]
-       [optional ":optional"]
-       [out_of_range ":out-of-range"]
-       [read_only ":read-only"]
-       [read_write ":read-write"]
-       [required ":required"]
-       [root ":root"]
-       [target ":target"]
-       [valid ":valid"]
-       [visited ":visited"]]]
-     
-     [Specific
-      [[after "::after"]
-       [before "::before"]
-       [first_letter "::first-letter"]
-       [first_line "::first-line"]
-       [placeholder "::placeholder"]
-       [selection "::selection"]]]])
+               (template.with [<kind> <pseudo>+]
+                              [(template.with [,name <pseudo>]
+                                              [(the .public ,name
+                                                    (Selector <kind>)
+                                                    (nominal.of <pseudo>))]
 
-  (the .public (language locale)
-    (-> Locale
-        (Selector Generic))
-    (|> locale
-        locale.code
-        (text.enclosed ["(" ")"])
-        (text ":lang")
-        nominal.of))
+                                              <pseudo>+)]
 
-  (the .public not
-    (-> (Selector Any)
-        (Selector Generic))
-    (|>> nominal.as
-         (text.enclosed ["(" ")"])
-         (text ":not")
-         nominal.of))
+                              [[Generic
+                                [[active ":active"]
+                                 [checked ":checked"]
+                                 [default ":default"]
+                                 [disabled ":disabled"]
+                                 [empty ":empty"]
+                                 [enabled ":enabled"]
+                                 [first_child ":first-child"]
+                                 [first_of_type ":first-of-type"]
+                                 [focused ":focus"]
+                                 [hovered ":hover"]
+                                 [in_range ":in-range"]
+                                 [indeterminate ":indeterminate"]
+                                 [invalid ":invalid"]
+                                 [last_child ":last-child"]
+                                 [last_of_type ":last-of-type"]
+                                 [link ":link"]
+                                 [only_of_type ":only-of-type"]
+                                 [only_child ":only-child"]
+                                 [optional ":optional"]
+                                 [out_of_range ":out-of-range"]
+                                 [read_only ":read-only"]
+                                 [read_write ":read-write"]
+                                 [required ":required"]
+                                 [root ":root"]
+                                 [target ":target"]
+                                 [valid ":valid"]
+                                 [visited ":visited"]]]
+                               
+                               [Specific
+                                [[after "::after"]
+                                 [before "::before"]
+                                 [first_letter "::first-letter"]
+                                 [first_line "::first-line"]
+                                 [placeholder "::placeholder"]
+                                 [selection "::selection"]]]])
 
-  (nominal.every .public Index
-    Text
+               (the .public (language locale)
+                    (-> Locale
+                        (Selector Generic))
+                    (|> locale
+                        locale.code
+                        (text.enclosed ["(" ")"])
+                        (text ":lang")
+                        nominal.of))
 
-    (the .public index
-      (-> Natural
-          Index)
-      (|>> %.natural
-           nominal.of))
+               (the .public not
+                    (-> Selector
+                        (Selector Generic))
+                    (|>> nominal.as
+                         (text.enclosed ["(" ")"])
+                         (text ":not")
+                         nominal.of))
 
-    (template.with [<name> <index>]
-      [(the .public <name>
-         Index
-         (nominal.of <index>))]
-      
-      [[odd "odd"]
-       [even "even"]])
+               (the .public has
+                    (-> (Change Selector)
+                        (Selector Generic))
+                    (|>> (function.of (nominal.of ""))
+                         nominal.as
+                         (text.enclosed ["(" ")"])
+                         (text ":has")
+                         nominal.of))
 
-    (every .public Formula
-      (Record
-       [:constant Integer
-        :variable Integer]))
+               (nominal.every .public Index
+                              Text
 
-    (the .public (formula input)
-      (-> Formula
-          Index)
-      (with "_[0]" input
-        (nominal.of
-         (text (if (i.< +0 _:variable)
-                   (%.integer _:variable)
-                   (%.natural (.natural _:variable)))
-               (%.integer _:constant)))))
-    
-    (template.with [<name> <pseudo>]
-      [(the .public (<name> index)
-         (-> Index
-             (Selector Generic))
-         (|> (nominal.as index)
-             (text.enclosed ["(" ")"])
-             (text <pseudo>)
-             (nominal.of Selector)))]
+                              (the .public index
+                                   (-> Natural
+                                       Index)
+                                   (|>> ++
+                                        %.natural
+                                        nominal.of))
 
-      [[nth_child ":nth-child"]
-       [nth_last_child ":nth-last-child"]
-       [nth_of_type ":nth-of-type"]
-       [nth_last_of_type ":nth-last-of-type"]])
-    )
-  )
+                              (template.with [,name <index>]
+                                             [(the .public ,name
+                                                   Index
+                                                   (nominal.of <index>))]
+                                             
+                                             [[odd "odd"]
+                                              [even "even"]])
+
+                              (every .public Formula
+                                     (Record
+                                      [:constant Integer
+                                       :variable Integer]))
+
+                              (the .public (formula input)
+                                   (-> Formula
+                                       Index)
+                                   (with "_[0]" input
+                                         (nominal.of
+                                          (text (if (i.< +0 _:variable)
+                                                    (%.integer _:variable)
+                                                    (%.natural (.natural _:variable)))
+                                                (%.integer _:constant)))))
+                              
+                              (template.with [,name <pseudo>]
+                                             [(the .public (,name index)
+                                                   (-> Index
+                                                       (Selector Generic))
+                                                   (|> (nominal.as index)
+                                                       (text.enclosed ["(" ")"])
+                                                       (text <pseudo>)
+                                                       (nominal.of Selector')))]
+
+                                             [[nth_child ":nth-child"]
+                                              [nth_last_child ":nth-last-child"]
+                                              [nth_of_type ":nth-of-type"]
+                                              [nth_last_of_type ":nth-last-of-type"]])
+                              )
+               )

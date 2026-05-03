@@ -468,8 +468,7 @@ Called by `imenu--generic-function'."
 							   ;; Data
 							   (data//record (or* "its" "has" "revised"))
 							   (data//interface (or* "use" "implementation" "with" "by"))
-							   (data//implicit (or* "implicitly" "a/an" "a" "an"))
-							   (data//collection (or* "list" "sequence" "tree"))
+							   (data//collection (or* "text" "list"))
 							   ;; Code
 							   (code//quotation (or* "`" "`'" "'" "," ",\\*" ",'"))
 							   (code//super-quotation (or* "``" ",,"))
@@ -496,7 +495,6 @@ Called by `imenu--generic-function'."
 											type//capability))
 								 (data (or* data//record
 											data//interface
-											data//implicit
 											data//collection))
 								 (code (or* code//quotation
 											code//super-quotation
@@ -517,7 +515,6 @@ Called by `imenu--generic-function'."
 								   definition
 								   ;; ;;;;;;;;;;;;;;;;;;;;;;
 								   "undefined"
-								   "for"
 								   "io"
 								   "infix"
 								   "message"

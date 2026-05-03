@@ -20,7 +20,6 @@
 
 # Comparison
 
-0. []()
 0. [Comparing Floating-Point Numbers Is Tricky](https://www.youtube.com/watch?v=iW7H1KfSJ8s)
 0. [Approximate Equality for Floating Point](https://github.com/apple/swift-evolution/blob/master/proposals/0259-approximately-equal.md)
 
@@ -41,6 +40,7 @@
 
 # Reference
 
+0. [Floating-Point Printing and Parsing Can Be Simple And Fast](https://research.swtch.com/fp)
 0. [The Secrets of Floating-Point Numbers](https://asawicki.info/articles/secrets_of_floating_point_numbers_en.php)
 0. [Cross-Platform Floating-Point Determinism Out of the Box - Sherry Ignatchenko - CppCon 2024](https://youtu.be/7MatbTHGG6Q)
 0. [Neal Davis - Floating-Point Arithmetic on Deterministic Systems](https://youtu.be/bJSg9pmaD3I)

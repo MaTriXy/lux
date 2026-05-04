@@ -4462,7 +4462,7 @@
       {:Named (name ..Path)
               (type (for_any (Path _)
                              (Or (And Bit Path)
-                                 (And Text Path)
+                                 (List (And Text Path))
 
                                  (List (Maybe Path))
                                  Path
@@ -4513,10 +4513,14 @@
                     " " (path:as_text then)
                     ")")
 
-              {:Path/Text expectation then}
-              (text "(" (text:as_text expectation)
-                    " " (path:as_text then)
-                    ")")
+              {:Path/Text it}
+              (text "{" (|> it
+                            (list:each (<| (function' (_ expectation,then))
+                                           (let' [[expectation then] expectation,then])
+                                           (text (text:as_text expectation)
+                                                 " " (path:as_text then))))
+                            (text:interposed " "))
+                    "}")
 
               {:Path/Case then}
               (let' [cohort (.list_size# then)
@@ -4628,8 +4632,7 @@
                                     body})
 
               {:Text @ it}
-              (meta:pure {:Path/Text it
-                                     body})
+              (meta:pure {:Path/Text (list [it body])})
 
               {:Variant @ it}
               (.when# (.list_size# it)
@@ -4701,6 +4704,37 @@
       (type (-> Path Path
                 (Maybe Path)))
       (.when# [head tail]
+              [{:Path/Pair head} {:Path/Pair tail}]
+              (monad:let maybe:monad
+                         [it (path:or head tail)]
+                         (pure {:Path/Pair it}))
+              
+              [{:Path/Text head} {:Path/Text tail}]
+              (monad:let maybe:monad
+                         [it (monad:mix maybe:monad
+                                        (<| (function' (_ expectation,then fork))
+                                            (let' [[expectation then] expectation,then])
+                                            (.when# (property:value expectation fork)
+                                                    {:Some old}
+                                                    (monad:let maybe:monad
+                                                               [then (path:or then old)]
+                                                               (pure (property:with expectation then fork)))
+                                                    
+                                                    {:None}
+                                                    (pure (property:with expectation then fork))))
+                                        tail
+                                        head)]
+                         (pure {:Path/Text it}))
+
+              [{:Path/Text head} {:Path/Or head' tail'}]
+              (.when# (path:or {:Path/Text head} head')
+                      {:Some {:Path/Text head}}
+                      {:Some {:Path/Or {:Path/Text head} tail'}}
+
+                      else
+                      {:Some {:Path/Or {:Path/Text head}
+                                       {:Path/Or head' tail'}}})
+              
               [{:Path/Case head} {:Path/Case tail}]
               (if (natural:= (.list_size# head) (.list_size# tail))
                   (monad:let maybe:monad
@@ -4841,19 +4875,52 @@
                                         'else
                                         'then))))
 
-              {:Path/Text expectation then}
+              {:Path/Text it}
               (monad:let meta:monad
                          ['top,context (top context)
                           .let' [['top context] 'top,context]
-                          'then (path:as_code context else then)
-                          'else (path:else else)]
-                         (pure ('if (` (.text_=# (, (code:text expectation))
-                                                 (, 'top)))
-                                    'then
-                                    'else)))
+                          it (monad:each meta:monad
+                                         (<| (function' (_ expectation,then))
+                                             (let' [[expectation then] expectation,then])
+                                             (monad:let meta:monad
+                                                        ['then (path:as_code context else then)]
+                                                        (pure (list (code:text expectation) 'then))))
+                                         it)
+                          'else (path:else else)
+                          '_ (generated_name "'_")]
+                         (pure (` (..when (, 'top)
+                                          (,* (list:conjoint it))
+
+                                          (, '_)
+                                          (, 'else)))))
 
               {:Path/Case it}
               (path/case:as_code path:as_code context else (list:as_stack it))
+
+              {:Path/Pair {:Path/Let @left {:Path/Let @right then}}}
+              (monad:let meta:monad
+                         [.let' [@left (code:local @left)
+                                 @right (code:local @right)]
+                          'top,context (top context)
+                          .let' [['top context] 'top,context]
+                          
+                          'then (path:as_code context else then)]
+                         (pure (` (.of_pair# (, 'top)
+                                             (, @left) (, @right)
+                                             (, 'then)))))
+
+              {:Path/Pair {:Path/Let @left then}}
+              (monad:let meta:monad
+                         [.let' [@left (code:local @left)]
+                          @right (generated_name "@right")
+
+                          'top,context (top context)
+                          .let' [['top context] 'top,context]
+                          
+                          'then (path:as_code {:Top @right context} else then)]
+                         (pure (` (.of_pair# (, 'top)
+                                             (, @left) (, @right)
+                                             (, 'then)))))
 
               {:Path/Pair then}
               (monad:let meta:monad

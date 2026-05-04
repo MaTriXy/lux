@@ -18,370 +18,370 @@
   ["[0]" digit]])
 
 (the .public Number
-  .Natural)
+     .Natural)
 
 (the It
-  ..Number)
+     ..Number)
 
 (the with_template
-  (<| (.in_module# .prelude)
-      with_template))
+     (<| (.in_module# .prelude)
+         with_template))
 
 (with_template [<name> <extension> <output>]
-  [(the .public (<name> parameter subject)
-     (-> It It
-         <output>)
-     (<extension> parameter subject))]
+               [(the .public (<name> parameter subject)
+                     (-> It It
+                         <output>)
+                     (<extension> parameter subject))]
 
-  [[= .i64_=# Bit]
-   [+ .i64_+# It]
-   [- .i64_-# It]])
+               [[= .i64_=# Bit]
+                [+ .i64_+# It]
+                [- .i64_-# It]])
 
 (with_template [,value ,name]
-  [(the .public ,name
-     It
-     ,value)]
+               [(the .public ,name
+                     It
+                     ,value)]
 
-  [[0 zero]
-   [1 one]])
+               [[0 zero]
+                [1 one]])
 
 (the high
-  (-> (I64 Any)
-      I64)
-  (|>> (.i64_right# 32)))
+     (-> (I64 Any)
+         I64)
+     (|>> (.i64_right# 32)))
 
 (the low
-  (-> (I64 Any)
-      I64)
-  (let [mask (|> 1 (.i64_left# 32) (.i64_-# 1))]
-    (|>> (.i64_and# mask))))
+     (-> (I64 Any)
+         I64)
+     (let [mask (|> 1 (.i64_left# 32) (.i64_-# 1))]
+          (|>> (.i64_and# mask))))
 
 (the .public (< reference it)
-  (-> It It
-      Bit)
-  (let [referenceH (..high reference)
-        itH (..high it)]
-    (if (.int_<# referenceH itH)
-        true
-        (if (.i64_=# referenceH itH)
-            (.int_<#
-             (..low reference)
-             (..low it))
-            false))))
+     (-> It It
+         Bit)
+     (let [referenceH (..high reference)
+           itH (..high it)]
+          (if (.int_<# referenceH itH)
+              true
+              (if (.i64_=# referenceH itH)
+                  (.int_<#
+                   (..low reference)
+                   (..low it))
+                  false))))
 
 (the .public (<= reference it)
-  (-> It It
-      Bit)
-  (or (..< reference it)
-      (.i64_=# reference it)))
+     (-> It It
+         Bit)
+     (or (..< reference it)
+         (.i64_=# reference it)))
 
 (the .public (> reference it)
-  (-> It It
-      Bit)
-  (..< it reference))
+     (-> It It
+         Bit)
+     (..< it reference))
 
 (the .public (>= reference it)
-  (-> It It
-      Bit)
-  (or (..< it reference)
-      (.i64_=# reference it)))
+     (-> It It
+         Bit)
+     (or (..< it reference)
+         (.i64_=# reference it)))
 
 (with_template [<name> <test>]
-  [(the .public (<name> left right)
-     (-> It It
-         It)
-     (if (<test> right left)
-         left
-         right))]
+               [(the .public (<name> left right)
+                     (-> It It
+                         It)
+                     (if (<test> right left)
+                         left
+                         right))]
 
-  [[minor ..<]
-   [major ..>]])
+               [[minor ..<]
+                [major ..>]])
 
 (the .public (x parameter subject)
-  (-> It It
-      It)
-  (.natural (.int_x# (.integer parameter)
-                     (.integer subject))))
+     (-> It It
+         It)
+     (.natural (.int_x# (.integer parameter)
+                        (.integer subject))))
 
 (the .public (/ parameter subject)
-  (-> It It
-      It)
-  (if (.int_<# +0 (.integer parameter))
-      (if (..< parameter subject)
-          0
-          1)
-      (let [quotient (|> subject
-                         (.i64_right# 1)
-                         (.int_/# (.integer parameter))
-                         (.i64_left# 1))
-            flat (.int_x# (.integer parameter)
-                          (.integer quotient))
-            remainder (.i64_-# flat subject)]
-        (if (..< parameter remainder)
-            quotient
-            (.i64_+# 1 quotient)))))
+     (-> It It
+         It)
+     (if (.int_<# +0 (.integer parameter))
+         (if (..< parameter subject)
+             0
+             1)
+         (let [quotient (|> subject
+                            (.i64_right# 1)
+                            (.int_/# (.integer parameter))
+                            (.i64_left# 1))
+               flat (.int_x# (.integer parameter)
+                             (.integer quotient))
+               remainder (.i64_-# flat subject)]
+              (if (..< parameter remainder)
+                  quotient
+                  (.i64_+# 1 quotient)))))
 
 (the .public (/% parameter subject)
-  (-> It It
-      [It It])
-  (let [quotient (../ parameter subject)
-        flat (.int_x# (.integer parameter)
-                      (.integer quotient))]
-    [quotient (.i64_-# flat subject)]))
+     (-> It It
+         [It It])
+     (let [quotient (../ parameter subject)
+           flat (.int_x# (.integer parameter)
+                         (.integer quotient))]
+          [quotient (.i64_-# flat subject)]))
 
 (the .public (% parameter subject)
-  (-> It It
-      It)
-  (let [flat (.int_x# (.integer parameter)
-                      (.integer (../ parameter subject)))]
-    (.i64_-# flat subject)))
+     (-> It It
+         It)
+     (let [flat (.int_x# (.integer parameter)
+                         (.integer (../ parameter subject)))]
+          (.i64_-# flat subject)))
 
 (every .public Exponent
-  Natural)
+       Natural)
 
 ... https://en.wikipedia.org/wiki/Exponentiation
 ... https://en.wikipedia.org/wiki/Exponentiation_by_squaring
 (the .public (^ power base)
-  (-> Exponent
-      (Change It))
-  (loop (^ [power power
-            base base
-            it 1])
-    (if (.i64_=# 0 power)
-        it
-        (^ (.i64_right# 1 power)
-           (x base base)
-           (if (.i64_=# 1 (.i64_and# 1 power))
-               (x base it)
-               it)))))
+     (-> Exponent
+         (Change It))
+     (loop (^ [power power
+               base base
+               it 1])
+           (if (.i64_=# 0 power)
+               it
+               (^ (.i64_right# 1 power)
+                  (x base base)
+                  (if (.i64_=# 1 (.i64_and# 1 power))
+                      (x base it)
+                      it)))))
 
 ... https://en.wikipedia.org/wiki/Greatest_common_divisor
 (the .public (greatest_common_divisor a b)
-  (-> It It
-      It)
-  (when b
-    0 a
-    _ (greatest_common_divisor b (..% b a))))
+     (-> It It
+         It)
+     (when b
+           0 a
+           _ (greatest_common_divisor b (..% b a))))
 
 (alias [gcd]
        ..greatest_common_divisor)
 
 ... https://en.wikipedia.org/wiki/Coprime_integers
 (the .public (co_prime? a b)
-  (-> It
-      (Predicate It))
-  (..= 1 (..greatest_common_divisor a b)))
+     (-> It
+         (Predicate It))
+     (..= 1 (..greatest_common_divisor a b)))
 
 ... https://en.wikipedia.org/wiki/Least_common_multiple
 (the .public (least_common_multiple a b)
-  (-> It It
-      It)
-  (`` (when [a b]
-        (,, (with_template [<pattern>]
-              [<pattern>
-               0]
+     (-> It It
+         It)
+     (`` (when [a b]
+               (,, (with_template [<pattern>]
+                                  [<pattern>
+                                   0]
 
-              [[[_ 0]]
-               [[0 _]]]))
+                                  [[[_ 0]]
+                                   [[0 _]]]))
 
-        _
-        (|> a (../ (..greatest_common_divisor a b)) (..x b)))))
+               _
+               (|> a (../ (..greatest_common_divisor a b)) (..x b)))))
 
 (alias [lcm]
        ..least_common_multiple)
 
 (the .public real
-  (-> It
-      Real)
-  (|>> .integer
-       .int_f64#))
+     (-> It
+         Real)
+     (|>> .integer
+          .int_f64#))
 
 (the .public equality
-  (Equality It)
-  (implementation
-   (the = ..=)))
+     (Equality It)
+     (implementation
+      (the = ..=)))
 
 (the .public order
-  (Order It)
-  (implementation
-   (the equality ..equality)
-   (the < ..<)))
+     (Order It)
+     (implementation
+      (the equality ..equality)
+      (the < ..<)))
 
 (the .public enum
-  (Enum It)
-  (implementation
-   (the order ..order)
-   (the succ ++)
-   (the pred --)))
+     (Enum It)
+     (implementation
+      (the order ..order)
+      (the succ ++)
+      (the pred --)))
 
 (the .public interval
-  (Interval It)
-  (implementation
-   (the enum ..enum)
-   (the maximum (-- 0))
-   (the minimum 0)))
+     (Interval It)
+     (implementation
+      (the enum ..enum)
+      (the maximum (-- 0))
+      (the minimum 0)))
 
 (with_template [<name> <composite> <identity>]
-  [(the .public <name>
-     (Monoid It)
-     (implementation
-      (the identity <identity>)
-      (the composite <composite>)))]
+               [(the .public <name>
+                     (Monoid It)
+                     (implementation
+                      (the identity <identity>)
+                      (the composite <composite>)))]
 
-  [[addition       ..+     0]
-   [multiplication ..x     1]
-   [minimum        ..minor (by ..interval maximum)]
-   [maximum        ..major (by ..interval minimum)]])
+               [[addition       ..+     0]
+                [multiplication ..x     1]
+                [minimum        ..minor (by ..interval maximum)]
+                [maximum        ..major (by ..interval minimum)]])
 
 (with_template [,digit ,character ,value ,text]
-  [(the ,text
-     (its digit.:character ,digit))
+               [(the ,text
+                     (its digit.:character ,digit))
 
-   (the ,character
-     (`` (character (,, (static ,text)))))
+                (the ,character
+                     (`` (character (,, (static ,text)))))
 
-   (the ,value
-     (its digit.:value ,digit))]
+                (the ,value
+                     (its digit.:value ,digit))]
 
-  [[digit.the_00 character_of_00 value_of_00 text_of_00]
-   [digit.the_01 character_of_01 value_of_01 text_of_01]
+               [[digit.the_00 character_of_00 value_of_00 text_of_00]
+                [digit.the_01 character_of_01 value_of_01 text_of_01]
 
-   [digit.the_02 character_of_02 value_of_02 text_of_02]
-   [digit.the_03 character_of_03 value_of_03 text_of_03]
-   [digit.the_04 character_of_04 value_of_04 text_of_04]
-   [digit.the_05 character_of_05 value_of_05 text_of_05]
-   [digit.the_06 character_of_06 value_of_06 text_of_06]
-   [digit.the_07 character_of_07 value_of_07 text_of_07]
+                [digit.the_02 character_of_02 value_of_02 text_of_02]
+                [digit.the_03 character_of_03 value_of_03 text_of_03]
+                [digit.the_04 character_of_04 value_of_04 text_of_04]
+                [digit.the_05 character_of_05 value_of_05 text_of_05]
+                [digit.the_06 character_of_06 value_of_06 text_of_06]
+                [digit.the_07 character_of_07 value_of_07 text_of_07]
 
-   [digit.the_08 character_of_08 value_of_08 text_of_08]
-   [digit.the_09 character_of_09 value_of_09 text_of_09]
+                [digit.the_08 character_of_08 value_of_08 text_of_08]
+                [digit.the_09 character_of_09 value_of_09 text_of_09]
 
-   [digit.the_10 character_of_10 value_of_10 text_of_10]
-   [digit.the_11 character_of_11 value_of_11 text_of_11]
-   [digit.the_12 character_of_12 value_of_12 text_of_12]
-   [digit.the_13 character_of_13 value_of_13 text_of_13]
-   [digit.the_14 character_of_14 value_of_14 text_of_14]
-   [digit.the_15 character_of_15 value_of_15 text_of_15]])
+                [digit.the_10 character_of_10 value_of_10 text_of_10]
+                [digit.the_11 character_of_11 value_of_11 text_of_11]
+                [digit.the_12 character_of_12 value_of_12 text_of_12]
+                [digit.the_13 character_of_13 value_of_13 text_of_13]
+                [digit.the_14 character_of_14 value_of_14 text_of_14]
+                [digit.the_15 character_of_15 value_of_15 text_of_15]])
 
 (the (digit_for_base_02 it)
-  (-> It
-      Text)
-  (when it
-    ..value_of_00 ..text_of_00
-    ..value_of_01 ..text_of_01
-    _ (undefined)))
+     (-> It
+         Text)
+     (when it
+           ..value_of_00 ..text_of_00
+           ..value_of_01 ..text_of_01
+           _ (undefined)))
 
 (the (value_for_base_02 it)
-  (-> It
-      (Maybe It))
-  (when it
-    ..character_of_00 {.:Some ..value_of_00}
-    ..character_of_01 {.:Some ..value_of_01}
-    _ {.:None}))
+     (-> It
+         (Maybe It))
+     (when it
+           ..character_of_00 {.:Some ..value_of_00}
+           ..character_of_01 {.:Some ..value_of_01}
+           _ {.:None}))
 
 (the (digit_for_base_08 it)
-  (-> It
-      Text)
-  (when it
-    ..value_of_02 ..text_of_02
-    ..value_of_03 ..text_of_03
-    ..value_of_04 ..text_of_04
-    ..value_of_05 ..text_of_05
-    ..value_of_06 ..text_of_06
-    ..value_of_07 ..text_of_07
-    _ (digit_for_base_02 it)))
+     (-> It
+         Text)
+     (when it
+           ..value_of_02 ..text_of_02
+           ..value_of_03 ..text_of_03
+           ..value_of_04 ..text_of_04
+           ..value_of_05 ..text_of_05
+           ..value_of_06 ..text_of_06
+           ..value_of_07 ..text_of_07
+           _ (digit_for_base_02 it)))
 
 (the (value_for_base_08 it)
-  (-> It
-      (Maybe It))
-  (when it
-    ..character_of_02 {.:Some ..value_of_02}
-    ..character_of_03 {.:Some ..value_of_03}
-    ..character_of_04 {.:Some ..value_of_04}
-    ..character_of_05 {.:Some ..value_of_05}
-    ..character_of_06 {.:Some ..value_of_06}
-    ..character_of_07 {.:Some ..value_of_07}
-    _ (value_for_base_02 it)))
+     (-> It
+         (Maybe It))
+     (when it
+           ..character_of_02 {.:Some ..value_of_02}
+           ..character_of_03 {.:Some ..value_of_03}
+           ..character_of_04 {.:Some ..value_of_04}
+           ..character_of_05 {.:Some ..value_of_05}
+           ..character_of_06 {.:Some ..value_of_06}
+           ..character_of_07 {.:Some ..value_of_07}
+           _ (value_for_base_02 it)))
 
 (the (real_digit it)
-  (-> It
-      Text)
-  (when it
-    ..value_of_08 ..text_of_08
-    ..value_of_09 ..text_of_09
-    _ (digit_for_base_08 it)))
+     (-> It
+         Text)
+     (when it
+           ..value_of_08 ..text_of_08
+           ..value_of_09 ..text_of_09
+           _ (digit_for_base_08 it)))
 
 (the (real_value it)
-  (-> It
-      (Maybe It))
-  (when it
-    ..character_of_08 {.:Some ..value_of_08}
-    ..character_of_09 {.:Some ..value_of_09}
-    _ (value_for_base_08 it)))
+     (-> It
+         (Maybe It))
+     (when it
+           ..character_of_08 {.:Some ..value_of_08}
+           ..character_of_09 {.:Some ..value_of_09}
+           _ (value_for_base_08 it)))
 
 (the (digit_for_base_16 it)
-  (-> It
-      Text)
-  (when it
-    ..value_of_10 ..text_of_10
-    ..value_of_11 ..text_of_11
-    ..value_of_12 ..text_of_12
-    ..value_of_13 ..text_of_13
-    ..value_of_14 ..text_of_14
-    ..value_of_15 ..text_of_15
-    _ (real_digit it)))
+     (-> It
+         Text)
+     (when it
+           ..value_of_10 ..text_of_10
+           ..value_of_11 ..text_of_11
+           ..value_of_12 ..text_of_12
+           ..value_of_13 ..text_of_13
+           ..value_of_14 ..text_of_14
+           ..value_of_15 ..text_of_15
+           _ (real_digit it)))
 
 (the (value_for_base_16 it)
-  (-> It
-      (Maybe It))
-  (when it
-    ..character_of_10 {.:Some ..value_of_10}
-    ..character_of_11 {.:Some ..value_of_11}
-    ..character_of_12 {.:Some ..value_of_12}
-    ..character_of_13 {.:Some ..value_of_13}
-    ..character_of_14 {.:Some ..value_of_14}
-    ..character_of_15 {.:Some ..value_of_15}
-    _ (real_value it)))
+     (-> It
+         (Maybe It))
+     (when it
+           ..character_of_10 {.:Some ..value_of_10}
+           ..character_of_11 {.:Some ..value_of_11}
+           ..character_of_12 {.:Some ..value_of_12}
+           ..character_of_13 {.:Some ..value_of_13}
+           ..character_of_14 {.:Some ..value_of_14}
+           ..character_of_15 {.:Some ..value_of_15}
+           _ (real_value it)))
 
 (with_template [<shift> <struct> <to_digit> <to_value>]
-  [(the .public <struct>
-     (Format Text It)
-     (implementation
-      (the as
-        (let [mask (|> 1 (.i64_left# <shift>) --)]
-          (function (_ value)
-            (loop (of [input value
-                       output ""])
-              (let [output' (.text_composite# (<to_digit> (.i64_and# mask input))
-                                              output)]
-                (when (is It (.i64_right# <shift> input))
-                  0
-                  output'
+               [(the .public <struct>
+                     (Format Text It)
+                     (implementation
+                      (the as
+                           (let [mask (|> 1 (.i64_left# <shift>) --)]
+                                (function (_ value)
+                                          (loop (of [input value
+                                                     output ""])
+                                                (let [output' (.text_composite# (<to_digit> (.i64_and# mask input))
+                                                                                output)]
+                                                     (when (is It (.i64_right# <shift> input))
+                                                           0
+                                                           output'
 
-                  input'
-                  (of input' output')))))))
+                                                           input'
+                                                           (of input' output')))))))
 
-      (the (of repr)
-        (let [input_size (.text_size# repr)]
-          (if (..> 0 input_size)
-              (loop (of [idx 0
-                         output 0])
-                (if (..< input_size idx)
-                    (when (<to_value> (.text_char# idx repr))
-                      {.:Some digit_value}
-                      (of (++ idx)
-                          (|> output
-                              (.i64_left# <shift>)
-                              (.i64_or# digit_value)))
+                      (the (of repr)
+                           (let [input_size (.text_size# repr)]
+                                (if (..> 0 input_size)
+                                    (loop (of [idx 0
+                                               output 0])
+                                          (if (..< input_size idx)
+                                              (when (<to_value> (.text_char# idx repr))
+                                                    {.:Some digit_value}
+                                                    (of (++ idx)
+                                                        (|> output
+                                                            (.i64_left# <shift>)
+                                                            (.i64_or# digit_value)))
 
-                      _
-                      {try.:Failure error.not_valid})
-                    {try.:Success output}))
-              {try.:Failure error.not_valid})))))]
+                                                    _
+                                                    {try.:Failure error.not_valid})
+                                              {try.:Success output}))
+                                    {try.:Failure error.not_valid})))))]
 
-  [[1 base_02 digit_for_base_02 value_for_base_02]
-   [3 base_08 digit_for_base_08 value_for_base_08]
-   [4 base_16 digit_for_base_16 value_for_base_16]])
+               [[1 base_02 digit_for_base_02 value_for_base_02]
+                [3 base_08 digit_for_base_08 value_for_base_08]
+                [4 base_16 digit_for_base_16 value_for_base_16]])
 
 (the _expansion:let (.in_module# .prelude .expansion:let))
 
@@ -391,7 +391,7 @@
            ... else
            (these (the code:natural (.in_module# .prelude .code:natural))
                   (the code:text (.in_module# .prelude .code:text))
-                  (the natural:as (.in_module# .prelude .natural:as))
+                  (the natural:as_text (.in_module# .prelude .natural:as_text))
 
                   (the single_digit_range 10)
                   (the last_single_digit (-- single_digit_range))
@@ -403,148 +403,148 @@
                   (the last_triple_digit (-- triple_digit_range))
 
                   (with_template [,name ,last ,padding ,limit]
-                    [(the ,name
-                       (macro (_ _ lux)
-                         {.:Right [lux (loop (of [natural ,last
-                                                  output (is (List Code) (list))])
-                                         (let [output (.list_composite# (list (code:natural natural)
-                                                                              (code:text (.text_composite# ,padding (natural:as natural))))
-                                                                        output)]
-                                           (when natural
-                                             ,limit output
-                                             _ (of (-- natural) output))))]}))]
+                                 [(the ,name
+                                       (macro (_ _ lux)
+                                              {.:Right [lux (loop (of [natural ,last
+                                                                       output (is (List Code) (list))])
+                                                                  (let [output (.list_composite# (list (code:natural natural)
+                                                                                                       (code:text (.text_composite# ,padding (natural:as_text natural))))
+                                                                                                 output)]
+                                                                       (when natural
+                                                                             ,limit output
+                                                                             _ (of (-- natural) output))))]}))]
 
-                    [[leading_triple_base_10s ..last_triple_digit "" 0]
+                                 [[leading_triple_base_10s ..last_triple_digit "" 0]
 
-                     [non_leading_single_base_10s ..last_single_digit "00" 0]
-                     [non_leading_double_base_10s ..last_double_digit "0" ..single_digit_range]
-                     [non_leading_triple_base_10s ..last_triple_digit "" ..double_digit_range]])
+                                  [non_leading_single_base_10s ..last_single_digit "00" 0]
+                                  [non_leading_double_base_10s ..last_double_digit "0" ..single_digit_range]
+                                  [non_leading_triple_base_10s ..last_triple_digit "" ..double_digit_range]])
 
                   (the (leading_base_10s value)
-                    (-> It
-                        Text)
-                    (`` (when value
-                          (,, (leading_triple_base_10s))
+                       (-> It
+                           Text)
+                       (`` (when value
+                                 (,, (leading_triple_base_10s))
 
-                          _
-                          (undefined))))
+                                 _
+                                 (undefined))))
 
                   (the (non_leading_base_10s value)
-                    (-> It
-                        Text)
-                    (`` (when value
-                          (,, (non_leading_single_base_10s))
-                          (,, (non_leading_double_base_10s))
-                          (,, (non_leading_triple_base_10s))
+                       (-> It
+                           Text)
+                       (`` (when value
+                                 (,, (non_leading_single_base_10s))
+                                 (,, (non_leading_double_base_10s))
+                                 (,, (non_leading_triple_base_10s))
 
-                          _
-                          (undefined))))))
+                                 _
+                                 (undefined))))))
 
 (the .public base_10
-  (Format Text It)
-  (implementation
-   (the as
-     (target.if [target.python target.lua]
-                (.in_module# .prelude .natural:as)
+     (Format Text It)
+     (implementation
+      (the as
+           (target.if [target.python target.lua]
+                      (.in_module# .prelude .natural:as_text)
 
-                ... else
-                (function (_ value)
-                  (loop (code:text [input value
-                                    output ""])
-                    (if (..< ..triple_digit_range input)
-                        (.text_composite# (leading_base_10s input)
-                                          output)
-                        (code:text (../ ..triple_digit_range input)
-                                   (.text_composite# (non_leading_base_10s (..% ..triple_digit_range input))
-                                                     output)))))))
+                      ... else
+                      (function (_ value)
+                                (loop (code:text [input value
+                                                  output ""])
+                                      (if (..< ..triple_digit_range input)
+                                          (.text_composite# (leading_base_10s input)
+                                                            output)
+                                          (code:text (../ ..triple_digit_range input)
+                                                     (.text_composite# (non_leading_base_10s (..% ..triple_digit_range input))
+                                                                       output)))))))
 
-   (the (of repr)
-     (let [input_size (.text_size# repr)]
-       (<| (_expansion:let [<failure> {try.:Failure (.text_composite# "Invalid base 10 syntax: " repr)}])
-           (if (..> 0 input_size)
-               (loop (of [idx 0
-                          output 0])
-                 (if (..< input_size idx)
-                     (when (real_value (.text_char# idx repr))
-                       {.:None}
-                       <failure>
+      (the (of repr)
+           (let [input_size (.text_size# repr)]
+                (<| (_expansion:let [<failure> {try.:Failure (.text_composite# "Invalid base 10 syntax: " repr)}])
+                    (if (..> 0 input_size)
+                        (loop (of [idx 0
+                                   output 0])
+                              (if (..< input_size idx)
+                                  (when (real_value (.text_char# idx repr))
+                                        {.:None}
+                                        <failure>
 
-                       {.:Some digit_value}
-                       (of (++ idx)
-                           (|> output (..x 10) (..+ digit_value))))
-                     {try.:Success output}))
-               <failure>))))))
+                                        {.:Some digit_value}
+                                        (of (++ idx)
+                                            (|> output (..x 10) (..+ digit_value))))
+                                  {try.:Success output}))
+                        <failure>))))))
 
 (the .public hash
-  (Hash It)
-  (implementation
-   (the equality ..equality)
-   (the hash function.identity)))
+     (Hash It)
+     (implementation
+      (the equality ..equality)
+      (the hash function.identity)))
 
 (the .public (padded expected_size format)
-  (-> It (Format Text It)
-      (Format Text It))
-  (implementation
-   (the (as it)
-     (loop (of [it (by format as it)])
-       (if (< expected_size (.text_size# it))
-           (of (.text_composite# "0" it))
-           it)))
+     (-> It (Format Text It)
+         (Format Text It))
+     (implementation
+      (the (as it)
+           (loop (of [it (by format as it)])
+                 (if (< expected_size (.text_size# it))
+                     (of (.text_composite# "0" it))
+                     it)))
 
-   (the of
-     (by format of))))
+      (the of
+           (by format of))))
 
 (the .public (multiple? reference it)
-  (-> It
-      (Predicate It))
-  (|> it
-      (% reference)
-      (.i64_=# 0)))
+     (-> It
+         (Predicate It))
+     (|> it
+         (% reference)
+         (.i64_=# 0)))
 
 (the .public (divisor? reference it)
-  (-> It
-      (Predicate It))
-  (multiple? it reference))
+     (-> It
+         (Predicate It))
+     (multiple? it reference))
 
 (the .public even?
-  (Predicate It)
-  (multiple? 2))
+     (Predicate It)
+     (multiple? 2))
 
 (the .public odd?
-  (Predicate It)
-  (|>> ..even?
-       not))
+     (Predicate It)
+     (|>> ..even?
+          not))
 
 ... https://en.wikipedia.org/wiki/Primality_test
 (the .public (prime? it)
-  (Predicate It)
-  (or (< 4 it)
-      (if (or (multiple? 2 it)
-              (multiple? 3 it))
-          false
-          (loop (prime? [under 5])
-            (or (< (x under under) it)
-                (if (or (divisor? it under)
-                        (divisor? it (+ 2 under)))
-                    false
-                    (prime? (+ 6 under))))))))
+     (Predicate It)
+     (or (< 4 it)
+         (if (or (multiple? 2 it)
+                 (multiple? 3 it))
+             false
+             (loop (prime? [under 5])
+                   (or (< (x under under) it)
+                       (if (or (divisor? it under)
+                               (divisor? it (+ 2 under)))
+                           false
+                           (prime? (+ 6 under))))))))
 
 (the .public (opposite it)
-  (Change It)
-  (- it 0))
+     (Change It)
+     (- it 0))
 
 (the .public infinity
-  It
-  (.i64_left# 63 1))
+     It
+     (.i64_left# 63 1))
 
 (the .public (reflection origin it)
-  (-> It It
-      It)
-  (- (- origin it) origin))
+     (-> It It
+         It)
+     (- (- origin it) origin))
 
 (the .public (excess origin it)
-  (-> It
-      (Change It))
-  (if (< origin it)
-      (- it origin)
-      ..zero))
+     (-> It
+         (Change It))
+     (if (< origin it)
+         (- it origin)
+         ..zero))

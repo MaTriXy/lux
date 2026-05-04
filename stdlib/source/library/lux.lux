@@ -4462,6 +4462,10 @@
       {:Named (name ..Path)
               (type (for_any (Path _)
                              (Or (And Bit Path)
+                                 (List (And Natural Path))
+                                 (List (And Integer Path))
+                                 (List (And Revolution Path))
+                                 (List (And Real Path))
                                  (List (And Text Path))
 
                                  (List (Maybe Path))
@@ -4478,6 +4482,10 @@
 (the' .private every_tag_of_path
       (type (List Name))
       (list [..prelude ":Path/Bit"]
+            [..prelude ":Path/Natural"]
+            [..prelude ":Path/Integer"]
+            [..prelude ":Path/Revolution"]
+            [..prelude ":Path/Real"]
             [..prelude ":Path/Text"]
             
             [..prelude ":Path/Case"]
@@ -4490,19 +4498,39 @@
             [..prelude ":Path/Body"]
 
             [..prelude ":Path/Or"]))
-(the' .private :Path/Bit Tag (..tag [{:Some [0 0b ..every_tag_of_path]} Path]))
-(the' .private :Path/Text Tag (..tag [{:Some [1 0b ..every_tag_of_path]} Path]))
+(the' .private :Path/Bit Tag (..tag [{:Some [00 0b ..every_tag_of_path]} Path]))
+(the' .private :Path/Natural Tag (..tag [{:Some [01 0b ..every_tag_of_path]} Path]))
+(the' .private :Path/Integer Tag (..tag [{:Some [02 0b ..every_tag_of_path]} Path]))
+(the' .private :Path/Revolution Tag (..tag [{:Some [03 0b ..every_tag_of_path]} Path]))
+(the' .private :Path/Real Tag (..tag [{:Some [04 0b ..every_tag_of_path]} Path]))
+(the' .private :Path/Text Tag (..tag [{:Some [05 0b ..every_tag_of_path]} Path]))
 
-(the' .private :Path/Case Tag (..tag [{:Some [2 0b ..every_tag_of_path]} Path]))
-(the' .private :Path/Pair Tag (..tag [{:Some [3 0b ..every_tag_of_path]} Path]))
-(the' .private :Path/List Tag (..tag [{:Some [4 0b ..every_tag_of_path]} Path]))
-(the' .private :Path/Item Tag (..tag [{:Some [5 0b ..every_tag_of_path]} Path]))
+(the' .private :Path/Case Tag (..tag [{:Some [06 0b ..every_tag_of_path]} Path]))
+(the' .private :Path/Pair Tag (..tag [{:Some [07 0b ..every_tag_of_path]} Path]))
+(the' .private :Path/List Tag (..tag [{:Some [08 0b ..every_tag_of_path]} Path]))
+(the' .private :Path/Item Tag (..tag [{:Some [09 0b ..every_tag_of_path]} Path]))
 
-(the' .private :Path/Let Tag (..tag [{:Some [6 0b ..every_tag_of_path]} Path]))
-(the' .private :Path/Pop Tag (..tag [{:Some [7 0b ..every_tag_of_path]} Path]))
-(the' .private :Path/Body Tag (..tag [{:Some [8 0b ..every_tag_of_path]} Path]))
+(the' .private :Path/Let Tag (..tag [{:Some [10 0b ..every_tag_of_path]} Path]))
+(the' .private :Path/Pop Tag (..tag [{:Some [11 0b ..every_tag_of_path]} Path]))
+(the' .private :Path/Body Tag (..tag [{:Some [12 0b ..every_tag_of_path]} Path]))
 
-(the' .private :Path/Or Tag (..tag [{:Some [8 1b ..every_tag_of_path]} Path]))
+(the' .private :Path/Or Tag (..tag [{:Some [12 1b ..every_tag_of_path]} Path]))
+
+(the' .private (switch:as_text as_text path:as_text it)
+      (type (for_any (_ it)
+                     (-> (-> it
+                             Text)
+                         (-> Path
+                             Text)
+                         (-> (List [it Path])
+                             Text))))
+      (text "{" (|> it
+                    (list:each (<| (function' (_ expectation,then))
+                                   (let' [[expectation then] expectation,then])
+                                   (text (as_text expectation)
+                                         " " (path:as_text then))))
+                    (text:interposed " "))
+            "}"))
 
 (the' .private (path:as_text it)
       (-> Path
@@ -4513,14 +4541,20 @@
                     " " (path:as_text then)
                     ")")
 
+              {:Path/Natural it}
+              (switch:as_text natural:as_text path:as_text it)
+
+              {:Path/Integer it}
+              (switch:as_text integer:as_text path:as_text it)
+
+              {:Path/Revolution it}
+              "???"
+
+              {:Path/Real it}
+              "???"
+
               {:Path/Text it}
-              (text "{" (|> it
-                            (list:each (<| (function' (_ expectation,then))
-                                           (let' [[expectation then] expectation,then])
-                                           (text (text:as_text expectation)
-                                                 " " (path:as_text then))))
-                            (text:interposed " "))
-                    "}")
+              (switch:as_text text:as_text path:as_text it)
 
               {:Path/Case then}
               (let' [cohort (.list_size# then)
@@ -4630,6 +4664,18 @@
               {:Bit @ it}
               (meta:pure {:Path/Bit it
                                     body})
+
+              {:Natural @ it}
+              (meta:pure {:Path/Natural (list [it body])})
+
+              {:Integer @ it}
+              (meta:pure {:Path/Integer (list [it body])})
+
+              {:Revolution @ it}
+              (meta:pure {:Path/Revolution (list [it body])})
+
+              {:Real @ it}
+              (meta:pure {:Path/Real (list [it body])})
 
               {:Text @ it}
               (meta:pure {:Path/Text (list [it body])})
@@ -4840,6 +4886,33 @@
               else
               (failure "!!! path/case:as_code")))
 
+(the' .private (switch:as_code as_code
+                               path:as_code
+                               context else it)
+      (type (for_any (_ it)
+                     (-> (-> it Code)
+                         (-> (Stack Code) (Maybe Code) Path
+                             (Meta Code))
+                         (-> (Stack Code) (Maybe Code) (List [it Path])
+                             (Meta Code)))))
+      (monad:let meta:monad
+                 ['top,context (top context)
+                  .let' [['top context] 'top,context]
+                  it (monad:each meta:monad
+                                 (<| (function' (_ expectation,then))
+                                     (let' [[expectation then] expectation,then])
+                                     (monad:let meta:monad
+                                                ['then (path:as_code context else then)]
+                                                (pure (list (as_code expectation) 'then))))
+                                 it)
+                  'else (path:else else)
+                  '_ (generated_name "'_")]
+                 (pure (` (..when (, 'top)
+                                  (,* (list:conjoint it))
+
+                                  (, '_)
+                                  (, 'else))))))
+
 (the' .private (path:as_code context else it)
       (type (-> (Stack Code) (Maybe Code) Path
                 (Meta Code)))
@@ -4875,24 +4948,30 @@
                                         'else
                                         'then))))
 
-              {:Path/Text it}
-              (monad:let meta:monad
-                         ['top,context (top context)
-                          .let' [['top context] 'top,context]
-                          it (monad:each meta:monad
-                                         (<| (function' (_ expectation,then))
-                                             (let' [[expectation then] expectation,then])
-                                             (monad:let meta:monad
-                                                        ['then (path:as_code context else then)]
-                                                        (pure (list (code:text expectation) 'then))))
-                                         it)
-                          'else (path:else else)
-                          '_ (generated_name "'_")]
-                         (pure (` (..when (, 'top)
-                                          (,* (list:conjoint it))
+              {:Path/Natural it}
+              (switch:as_code code:natural
+                              path:as_code
+                              context else it)
 
-                                          (, '_)
-                                          (, 'else)))))
+              {:Path/Integer it}
+              (switch:as_code code:integer
+                              path:as_code
+                              context else it)
+
+              {:Path/Revolution it}
+              (switch:as_code code:revolution
+                              path:as_code
+                              context else it)
+
+              {:Path/Real it}
+              (switch:as_code code:real
+                              path:as_code
+                              context else it)
+
+              {:Path/Text it}
+              (switch:as_code code:text
+                              path:as_code
+                              context else it)
 
               {:Path/Case it}
               (path/case:as_code path:as_code context else (list:as_stack it))

@@ -1725,7 +1725,7 @@
               {:None}
               (.list_composite# it (list [key value]))))
 
-(the' ..private (name:as full_name)
+(the' ..private (name:as_text full_name)
       (-> Name
           Text)
       (.when# full_name
@@ -1761,14 +1761,14 @@
 
                                     {:Definition [type expression value]}
                                     (if (default? type)
-                                        {:Left (text "Unknown definition: " (name:as full_name))}
+                                        {:Left (text "Unknown definition: " (name:as_text full_name))}
                                         {:Right [state full_name]}))
 
                             {:None}
-                            {:Left (text "Unknown definition: " (name:as full_name))})
+                            {:Left (text "Unknown definition: " (name:as_text full_name))})
                     
                     {:None}
-                    {:Left (text "Unknown module: " module " @ " (name:as full_name))})))
+                    {:Left (text "Unknown module: " module " @ " (name:as_text full_name))})))
 
 (the' .private (untemplated_text value)
       (-> Text
@@ -1917,7 +1917,7 @@
               ..:eval _eval] state]
             (.when# (property:value expectation_for_module modules)
                     {:None}
-                    {:Left (text "Unknown definition: " (name:as name))}
+                    {:Left (text "Unknown definition: " (name:as_text name))}
 
                     {:Some [..:definitions definitions
                             ..:module_hash _
@@ -1926,7 +1926,7 @@
                             ..:module_state _]}
                     (.when# (property:value expectation_for_proper definitions)
                             {:None}
-                            {:Left (text "Unknown definition: " (name:as name))}
+                            {:Left (text "Unknown definition: " (name:as_text name))}
 
                             {:Some [exported? definition]}
                             (.when# definition
@@ -1935,10 +1935,10 @@
                                     
                                     {:Definition [def_type expression def_value]}
                                     (if (default? def_type)
-                                        {:Left (text "No value for default: " (name:as name))}
+                                        {:Left (text "No value for default: " (name:as_text name))}
                                         (if (available? expectation_for_module current_module exported?)
                                             {:Right [state [def_type def_value]]}
-                                            {:Left (text "Unavailable definition: " (name:as name))})))))))
+                                            {:Left (text "Unavailable definition: " (name:as_text name))})))))))
 
 (the' .private (global_value global lux)
       (-> Name
@@ -1950,7 +1950,7 @@
                                        (definition_value global lux)
                                        
                                        {:Some _}
-                                       {:Left (text "Not a global value: " (name:as global))})
+                                       {:Left (text "Not a global value: " (name:as_text global))})
 
                             _
                             (definition_value global lux))
@@ -2967,7 +2967,7 @@
               [7] "7" [8] "8" [9] "9"
               _ (.error# "@digit:injection Undefined behavior.")))
 
-(the' .private (natural:as value)
+(the' .private (natural:as_text value)
       (-> Natural
           Text)
       (.when# value
@@ -2987,7 +2987,7 @@
           (.int_x# -1 value)
           value))
 
-(the' .private (integer:as value)
+(the' .private (integer:as_text value)
       (-> Integer
           Text)
       (if (.i64_=# +0 value)
@@ -3047,7 +3047,7 @@
                                    {:Some _} 1b
                                    {:None}   0b))))
 
-(the' .private (text:as original)
+(the' .private (text:as_text original)
       (-> Text
           Text)
       (text \'' original \''))
@@ -3098,10 +3098,10 @@
               (bit:as_text value)
 
               {:Natural _ value}
-              (natural:as value)
+              (natural:as_text value)
 
               {:Integer _ value}
-              (integer:as value)
+              (integer:as_text value)
 
               {:Revolution _ value}
               (.error# "@code:as_text Undefined behavior.")
@@ -3110,10 +3110,10 @@
               (.error# "@code:as_text Undefined behavior.")
 
               {:Text _ value}
-              (text:as value)
+              (text:as_text value)
               
               {:Name _ [module name]}
-              (name:as [module name])
+              (name:as_text [module name])
               
               {:Form _ it}
               (|> ""
@@ -3447,7 +3447,7 @@
               {:Right [..:info info ..:source source ..:current_module _ ..:modules modules
                        ..:scopes   scopes   ..:type_context   types ..:seed   (.i64_+# 1 seed)
                        ..:expected expected ..:provenance provenance ..:eval _eval]
-                      (code:local (text "__gensym__" prefix (natural:as seed)))}))
+                      (code:local (text "__gensym__" prefix (natural:as_text seed)))}))
 
 (the' .public exec
       Macro
@@ -3478,7 +3478,7 @@
           Text)
       (.when# type
               {:Nominal name params}
-              (text "(Nominal " (text:as name)
+              (text "(Nominal " (text:as_text name)
                     (list:mix' (function' (_ _ left right) (text left right))
                                (|> params
                                    (list:each (function' (_ it)
@@ -3496,13 +3496,13 @@
               (text "(" (if parameter
                             "argument"
                             "abstraction")
-                    " " (natural:as id)
+                    " " (natural:as_text id)
                     ")")
               
               {:Variable quality id}
               (if (bit:= .general quality)
-                  (text "-" (natural:as id))
-                  (text "+" (natural:as id)))
+                  (text "-" (natural:as_text id))
+                  (text "+" (natural:as_text id)))
 
               {:Quantification quantification env body}
               (text "("
@@ -3525,7 +3525,7 @@
                           ")"))
               
               {:Named name _}
-              (name:as name)))
+              (name:as_text name)))
 
 (the' .private (meta:try it)
       (type (for_any (_ it)
@@ -4139,10 +4139,10 @@
                                   {:Some [exported {:Definition [type expression value]}]}
                                   (if (type:= ,type type)
                                       (meta:pure [exported (as (-> Any Label) value)])
-                                      (failure (text "Not a " ,description ": " (name:as [module name]))))
+                                      (failure (text "Not a " ,description ": " (name:as_text [module name]))))
 
                                   _
-                                  (failure (text "Unknown " ,description ": " (name:as [module name]))))))]
+                                  (failure (text "Unknown " ,description ": " (name:as_text [module name]))))))]
 
                [[tag_as_label Tag "tag"]
                 [slot_as_label Slot "slot"]])
@@ -4162,7 +4162,7 @@
       (type (-> (Property_List [(List Bundle) Code])
                 (-> Code Natural (Meta Code))))
       (function' (complete_if_case 'value case)
-                 (.when# (property:value (natural:as case) every_branch)
+                 (.when# (property:value (natural:as_text case) every_branch)
                          {:Some [bundle 'body]}
                          (if (natural:= (.i64_+# 1 case)
                                         (.list_size# every_branch))
@@ -4186,13 +4186,13 @@
                                                             (, 'case) (, 'else))))))
 
                          {:None}
-                         (failure (name:as [..prelude "complete_if_case"])))))
+                         (failure (name:as_text [..prelude "complete_if_case"])))))
 
 (the' .private (partial_if_case every_case every_branch 'else 'full_value)
       (type (-> Natural (Property_List [(List Bundle) Code]) Code Code
                 (-> Code Natural (Meta Code))))
       (function' (partial_if_case 'value case)
-                 (.when# (property:value (natural:as case) every_branch)
+                 (.when# (property:value (natural:as_text case) every_branch)
                          {:Some [bundle 'body]}
                          (if (natural:= (.i64_+# 1 case)
                                         every_case)
@@ -4339,13 +4339,13 @@
                                                                 {:Right [compiler implementation_type]}
 
                                                                 _
-                                                                {:Left (text "Unknown var: " (name:as full_name))}))
+                                                                {:Left (text "Unknown var: " (name:as_text full_name))}))
                                                 (.when# (type_of_definition full_name compiler)
                                                         {:Some implementation_type}
                                                         {:Right [compiler implementation_type]}
 
                                                         _
-                                                        {:Left (text "Unknown var: " (name:as full_name))})))]
+                                                        {:Left (text "Unknown var: " (name:as_text full_name))})))]
                                   (.when# temp
                                           {:Right [compiler temp]}
                                           (let' [[..:info _ ..:source _ ..:current_module _ ..:modules _
@@ -4443,9 +4443,9 @@
           Text)
       (.when# it
               [{:Some [every_left right? cohort]} type]
-              (natural:as (if right?
-                              (.i64_+# 1 every_left)
-                              every_left))
+              (natural:as_text (if right?
+                                   (.i64_+# 1 every_left)
+                                   every_left))
               
               [{:None} type]
               "0"))
@@ -4464,7 +4464,7 @@
                              (Or (And Bit Path)
                                  (And Text Path)
 
-                                 (And Bit Path)
+                                 (List (Maybe Path))
                                  Path
                                  (And Natural Path)
                                  (And Natural Path)
@@ -4504,6 +4504,82 @@
 
 (the' .private :Path/Or Tag (..tag [{:Some [8 1b ..every_tag_of_path]} Path]))
 
+(the' .private (path:as_text it)
+      (-> Path
+          Text)
+      (.when# it
+              {:Path/Bit expectation then}
+              (text "(" (bit:as_text expectation)
+                    " " (path:as_text then)
+                    ")")
+
+              {:Path/Text expectation then}
+              (text "(" (text:as_text expectation)
+                    " " (path:as_text then)
+                    ")")
+
+              {:Path/Case then}
+              (let' [cohort (.list_size# then)
+                     last (.i64_-# 1 cohort)]
+                    (text "{" (|> (list:enumeration then)
+                                  (list:each (<| (function' (_ tag,then))
+                                                 (let' [[tag then] tag,then
+                                                        right? (natural:= last tag)
+                                                        every_left (is Natural
+                                                                       (if right?
+                                                                           (.i64_-# 1 tag)
+                                                                           tag))])
+                                                 (text "[" (natural:as_text every_left)
+                                                       " " (bit:as_text right?)
+                                                       "]"
+                                                       " " (.when# then
+                                                                   {:Some then}
+                                                                   (path:as_text then)
+
+                                                                   {:None}
+                                                                   "???"))))
+                                  (text:interposed " "))
+                          "}"))
+
+              {:Path/Pair then}
+              (text "([]"
+                    " " (path:as_text then)
+                    ")")
+
+              {:Path/List size then}
+              (text "(LIST"
+                    " " (natural:as_text size)
+                    " " (path:as_text then)
+                    ")")
+
+              {:Path/Item item then}
+              (text "(ITEM"
+                    " " (natural:as_text item)
+                    " " (path:as_text then)
+                    ")")
+
+              {:Path/Let local then}
+              (text "(LET"
+                    " " local
+                    " " (path:as_text then)
+                    ")")
+
+              {:Path/Pop then}
+              (text "(POP"
+                    " " (path:as_text then)
+                    ")")
+
+              {:Path/Body then}
+              (text "(!"
+                    " " (code:as_text then)
+                    ")")
+
+              {:Path/Or head tail}
+              (text "(|"
+                    " " (path:as_text head)
+                    " " (path:as_text tail)
+                    ")")))
+
 (the' .private (path/failure it)
       (-> Code
           Meta)
@@ -4523,17 +4599,25 @@
               more_than_one
               (code:tuple more_than_one)))
 
-(the' .private (path_variant every_left right? it)
-      (-> Natural Bit Path
-          Path)
-      (.when# every_left
-              0
-              {:Path/Case right?
-                          it}
+(the' .private (list:repeated amount it)
+      (type (for_any (_ it)
+                     (-> Natural it
+                         (List it))))
+      (.when# amount
+              0 (list)
+              1 (list it)
+              _ (.list_composite# (list it) (list:repeated (.i64_-# 1 amount) it))))
 
-              else
-              {:Path/Case true
-                          (path_variant (.i64_-# 1else) right? it)}))
+(the' .private (path_variant cohort every_left right? it)
+      (-> Natural Natural Bit Path
+          Path)
+      (let' [every_left (is Natural
+                            (if right?
+                                (.i64_+# 1 every_left)
+                                every_left))]
+            {:Path/Case (list:conjoint (list (list:repeated every_left {:None})
+                                             (list {:Some it})
+                                             (list:repeated (.i64_-# (.i64_+# 1 every_left) cohort) {:None})))}))
 
 (the' .private (path pattern body)
       (type (-> Code Path
@@ -4558,7 +4642,10 @@
                                                path (path (tuple_in_variant value) body)]
                                               (.when# tag
                                                       [{:Some [every_left right? cohort]} type]
-                                                      (pure (path_variant every_left right? path))
+                                                      (pure (path_variant (.list_size# cohort)
+                                                                          every_left
+                                                                          right?
+                                                                          path))
 
                                                       [{:None} type]
                                                       (..path/failure pattern)))
@@ -4610,11 +4697,46 @@
               else
               (..path/failure pattern)))
 
-(the' .private (both then else)
+(the' .private (path:or head tail)
       (type (-> Path Path
                 (Maybe Path)))
-      {:Some {:Path/Or then
-                       else}})
+      (.when# [head tail]
+              [{:Path/Case head} {:Path/Case tail}]
+              (if (natural:= (.list_size# head) (.list_size# tail))
+                  (monad:let maybe:monad
+                             [it (monad:each maybe:monad
+                                             (function' (_ head,tail)
+                                                        (.when# head,tail
+                                                                [{:Some head} {:Some tail}]
+                                                                (monad:let maybe:monad
+                                                                           [it (path:or head tail)]
+                                                                           (pure {:Some it}))
+
+                                                                [head {:None}]
+                                                                (pure head)
+                                                                
+                                                                [{:None} tail]
+                                                                (pure tail)
+
+                                                                else
+                                                                (comment [{:None} {:None}]
+                                                                         (pure {:None}))))
+                                             (list:zipped_2 head tail))]
+                             (pure {:Path/Case it}))
+                  {:None})
+
+              [{:Path/Case head} {:Path/Or head' tail'}]
+              (.when# (path:or {:Path/Case head} head')
+                      {:Some {:Path/Case head}}
+                      {:Some {:Path/Or {:Path/Case head} tail'}}
+
+                      else
+                      {:Some {:Path/Or {:Path/Case head}
+                                       {:Path/Or head' tail'}}})
+              
+              else
+              {:Some {:Path/Or head
+                               tail}}))
 
 (the' .private (top context)
       (type (-> (Stack Code)
@@ -4624,7 +4746,7 @@
               (meta:pure [head tail])
 
               else
-              (failure "")))
+              (failure "!!! top")))
 
 (the' .private (path:else it)
       (type (-> (Maybe Code)
@@ -4634,7 +4756,55 @@
               (meta:pure it)
 
               {:None}
-              (failure "")))
+              (failure "!!! path:else")))
+
+(the' .private (path/case:more? it)
+      (type (Predicate (Stack (Maybe Path))))
+      (.when# it
+              {:Empty}
+              false
+              
+              {:Top {:Some then} tail}
+              true
+
+              {:Top {:None} tail}
+              (path/case:more? tail)))
+
+(the' .private (path/case:as_code path:as_code context else it)
+      (type (-> (-> (Stack Code) (Maybe Code) Path
+                    (Meta Code))
+                (-> (Stack Code) (Maybe Code) (Stack (Maybe Path))
+                    (Meta Code))))
+      (.when# it
+              {:Top {:Some then} {:Empty}}
+              (path:as_code context else then)
+
+              {:Top {:Some then} tail}
+              (monad:let meta:monad
+                         ['top,context (top context)
+                          .let' [['top context] 'top,context]
+                          @case (generated_name "@case")
+                          'then (path:as_code {:Top @case context} else then)
+                          'else (if (path/case:more? tail)
+                                    (path/case:as_code path:as_code {:Top @case context} else tail)
+                                    (path:else else))]
+                         (pure (` (.if_case# (, 'top)
+                                             (, @case) (, 'then)
+                                             (, @case) (, 'else)))))
+
+              {:Top {:None} tail}
+              (monad:let meta:monad
+                         ['top,context (top context)
+                          .let' [['top context] 'top,context]
+                          @case (generated_name "@case")
+                          'then (path/case:as_code path:as_code {:Top @case context} else tail)
+                          'else (path:else else)]
+                         (pure (` (.if_case# (, 'top)
+                                             (, @case) (, 'else)
+                                             (, @case) (, 'then)))))
+
+              else
+              (failure "!!! path/case:as_code")))
 
 (the' .private (path:as_code context else it)
       (type (-> (Stack Code) (Maybe Code) Path
@@ -4682,20 +4852,8 @@
                                     'then
                                     'else)))
 
-              {:Path/Case right? then}
-              (monad:let meta:monad
-                         ['top,context (top context)
-                          .let' [['top context] 'top,context]
-                          @case (generated_name "@case")
-                          'then (path:as_code {:Top @case context} else then)
-                          'else (path:else else)]
-                         (pure (if right?
-                                   (` (.if_case# (, 'top)
-                                                 (, @case) (, 'else)
-                                                 (, @case) (, 'then)))
-                                   (` (.if_case# (, 'top)
-                                                 (, @case) (, 'then)
-                                                 (, @case) (, 'else))))))
+              {:Path/Case it}
+              (path/case:as_code path:as_code context else (list:as_stack it))
 
               {:Path/Pair then}
               (monad:let meta:monad
@@ -4896,7 +5054,7 @@
                                                 (.when# (monad:each maybe:monad
                                                                     (function' (_ index)
                                                                                (let' [[index _] index]
-                                                                                     (property:value (natural:as index) in_order)))
+                                                                                     (property:value (natural:as_text index) in_order)))
                                                                     (list:enumeration in_order))
                                                         {:Some as_tuple}
                                                         (pure (list (` (..when (, 'term)
@@ -4911,7 +5069,7 @@
                                         (let' [in_order (is (type (Property_List Code))
                                                             (list:mix (function' (_ pattern,'body)
                                                                                  (let' [[pattern 'body] pattern,'body]
-                                                                                       (property:with (natural:as (.list_size# pattern))
+                                                                                       (property:with (natural:as_text (.list_size# pattern))
                                                                                                       'body)))
                                                                       every_clause
                                                                       (list)))]
@@ -4956,7 +5114,7 @@
                                                                          (.when# (list:split 1 (list:in_reverse every_path))
                                                                                  [(.list# else) every_then]
                                                                                  (.when# (monad:mix maybe:monad
-                                                                                                    ..both
+                                                                                                    ..path:or
                                                                                                     every_then
                                                                                                     else)
                                                                                          {:Some path}
@@ -4964,7 +5122,8 @@
                                                                                                     ['path (path:as_code (stack (code:local @term))
                                                                                                                          {:None}
                                                                                                                          path)]
-                                                                                                    (exec (.log!# (text "[[when]] " (code:as_text 'path)))
+                                                                                                    (exec (.log!# (text "[[when]] " (path:as_text path)))
+                                                                                                          (.log!# (text "[[when]] " (code:as_text 'path)))
                                                                                                           (pure (list 'path))))
                                                                                          
                                                                                          {:None}
@@ -5582,7 +5741,7 @@
 (the (alias_stand_in index)
      (-> Natural
          Text)
-     (text "[" (natural:as index) "]"))
+     (text "[" (natural:as_text index) "]"))
 
 (the Context_Of_Module
      (type (Stack Text)))
@@ -5794,10 +5953,10 @@
                      {:Right state (list:conjoint to_alias)})
                 
                 {:None}
-                {:Left (text "Unknown module: " (text:as module) \n
+                {:Left (text "Unknown module: " (text:as_text module) \n
                              "Current module: " (when current_module
                                                       {:Some current_module}
-                                                      (text:as current_module)
+                                                      (text:as_text current_module)
 
                                                       {:None}
                                                       "???") \n
@@ -6096,7 +6255,7 @@
                                  (pure (list:conjoint declarations)))
 
                       _
-                      (failure (text "Can only 'open' implementations: " (name:as implementation)
+                      (failure (text "Can only 'open' implementations: " (name:as_text implementation)
                                      " : " (type:as_text interface))))))
 
 (the (localized module global)
@@ -6517,7 +6676,7 @@
 
                                                                                                  _
                                                                                                  (failure (text "Incorrect expansion in expansion:let"
-                                                                                                                " | Binding: " (text:as var_name)
+                                                                                                                " | Binding: " (text:as_text var_name)
                                                                                                                 " | Expression: " (code:as_text expr))))]
                                                                                 (pure (property:with var_name expansion map))))
                                                            bindings
@@ -6540,16 +6699,16 @@
                   _
                   (failure ""))))
 
-(the (provenance:as it)
+(the (provenance:as_text it)
      (-> Provenance
          Text)
      (let [... https://en.wikipedia.org/wiki/Delimiter
            delimiter ","
            [file line column] it]
           (text "@"
-                (text:as file) delimiter
-                (natural:as line) delimiter
-                (natural:as column))))
+                (text:as_text file) delimiter
+                (natural:as_text line) delimiter
+                (natural:as_text column))))
 
 (the .public undefined
      (let [provenance (is (Meta Provenance)
@@ -6560,7 +6719,7 @@
                        (list)
                        (monad:let meta:monad
                                   [provenance provenance
-                                   .let [message (text "Undefined behavior at " (provenance:as provenance))]]
+                                   .let [message (text "Undefined behavior at " (provenance:as_text provenance))]]
                                   (exec
                                    (.log!# (text "WARNING: " message))
                                    (pure (list (` (..halt! (, (code:text message))))))))

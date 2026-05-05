@@ -1683,30 +1683,46 @@
       (for_any (_ it)
                ($ List (And Text it))))
 
-(the' .private (property:address expected it)
+(the' .private Equality
+      Type
       (for_any (_ it)
-               (-> Text ($ Property_List it)
+               (-> it
+                   (Predicate it))))
+
+(the' .private (text:= reference it)
+      ($ Equality Text)
+      (.text_=# reference it))
+
+(the' .private (property:address' = expected it)
+      (for_any (_ key it)
+               (-> ($ Equality key) key ($ List (And key it))
                    ($ Maybe Natural)))
       (let' [limit (.list_size# it)]
-            ((.is# (for_any (_ it)
-                            (-> ($ Property_List it) Natural
-                                ($ Maybe Natural)))
-                   (function' (_ it)
+            ((.is# (for_any (_ key it)
+                            (-> (-> key (Predicate key)) key ($ List (And key it))
+                                (-> Natural ($ Maybe Natural))))
+                   (function' (_ = expected it)
                               (function' (property:address item)
                                          (if (.int_<# (.as# (-> Natural Integer) limit)
                                                       (.as# (-> Natural Integer) item))
                                              (let' [[actual value] (.list_item# item it)]
-                                                   (if (.text_=# expected actual)
+                                                   (if (= expected actual)
                                                        {:Some item}
                                                        (property:address (.i64_+# 1 item))))
                                              {:None}))))
-             it 0)))
+             = expected it 0)))
 
-(the' .private (property:value expected it)
+(the' .private property:address
       (for_any (_ it)
                (-> Text ($ Property_List it)
+                   ($ Maybe Natural)))
+      (property:address' text:=))
+
+(the' .private (property:value' = expected it)
+      (for_any (_ key it)
+               (-> ($ Equality key) key ($ List (And key it))
                    ($ Maybe it)))
-      (.when# (property:address expected it)
+      (.when# (property:address' = expected it)
               {:Some address}
               (let' [[key value] (.list_item# address it)]
                     {:Some value})
@@ -1714,16 +1730,28 @@
               {:None}
               {:None}))
 
-(the' .private (property:with key value it)
+(the' .private property:value
       (for_any (_ it)
-               (-> Text it
-                   ($ Change ($ Property_List it))))
-      (.when# (property:address key it)
+               (-> Text ($ Property_List it)
+                   ($ Maybe it)))
+      (property:value' text:=))
+
+(the' .private (property:with' = key value it)
+      (for_any (_ key it)
+               (-> ($ Equality key) key it
+                   ($ Change ($ List (And key it)))))
+      (.when# (property:address' = key it)
               {:Some address}
               (list:of_array (.array_has# address [key value] (array:clone (list:as_array it))))
               
               {:None}
               (.list_composite# it (list [key value]))))
+
+(the' .private property:with
+      (for_any (_ it)
+               (-> Text it
+                   ($ Change ($ Property_List it))))
+      (property:with' text:=))
 
 (the' ..private (name:as_text full_name)
       (-> Name
@@ -4009,12 +4037,6 @@
            ?:when/if_list
            ?:when/let))
 
-(the' .private Equality
-      Type
-      (type (for_any (_ it)
-                     (-> it
-                         (Predicate it)))))
-
 (with_template [<nullary> <form> <name>]
                [(the' .public <name>
                       Macro
@@ -4065,8 +4087,7 @@
                [[natural:= Natural .i64_=#]
                 [integer:= Integer .i64_=#]
                 [revolution:= Revolution .i64_=#]
-                [real:= Real .f64_=#]
-                [text:= Text .text_=#]])
+                [real:= Real .f64_=#]])
 
 (with_template [,name ,type ,= ,'= ,code]
                [(the' .private (,name '_ value every_then variable 'else)
@@ -4470,7 +4491,7 @@
 
                                  (List (Maybe Path))
                                  Path
-                                 (And Natural Path)
+                                 (List (And Natural Path))
                                  (And Natural Path)
 
                                  (And Text Path)
@@ -4584,10 +4605,9 @@
                     " " (path:as_text then)
                     ")")
 
-              {:Path/List size then}
+              {:Path/List it}
               (text "(LIST"
-                    " " (natural:as_text size)
-                    " " (path:as_text then)
+                    " " (switch:as_text natural:as_text path:as_text it)
                     ")")
 
               {:Path/Item item then}
@@ -4735,7 +4755,7 @@
                                                                       (pure {:Path/Item item it})))
                                                 (list:in_reverse (list:enumeration every_term))
                                                 {:Path/Pop body})]
-                                 (pure {:Path/List (.list_size# every_term) it}))
+                                 (pure {:Path/List (list [(.list_size# every_term) it])}))
 
                       _
                       (..path/failure pattern))
@@ -4754,6 +4774,49 @@
               (monad:let maybe:monad
                          [it (path:or head tail)]
                          (pure {:Path/Pair it}))
+
+              [{:Path/Item item_of_head head} {:Path/Item item_of_tail tail}]
+              (if (natural:= item_of_head item_of_tail)
+                  (monad:let maybe:monad
+                             [it (path:or head tail)]
+                             (pure {:Path/Item item_of_head it}))
+                  {:Some {:Path/Or {:Path/Item item_of_head head}
+                                   {:Path/Item item_of_tail tail}}})
+
+              [{:Path/Let local_of_head head} {:Path/Let local_of_tail tail}]
+              (if (text:= local_of_head local_of_tail)
+                  (monad:let maybe:monad
+                             [it (path:or head tail)]
+                             (pure {:Path/Let local_of_head it}))
+                  {:Some {:Path/Or {:Path/Let local_of_head head}
+                                   {:Path/Let local_of_tail tail}}})
+
+              [{:Path/List head} {:Path/List tail}]
+              (monad:let maybe:monad
+                         [it (monad:mix maybe:monad
+                                        (<| (function' (_ expectation,then fork))
+                                            (let' [[expectation then] expectation,then])
+                                            (.when# (property:value' natural:= expectation fork)
+                                                    {:Some old}
+                                                    (monad:let maybe:monad
+                                                               [then (path:or then old)]
+                                                               (pure (property:with' natural:= expectation then fork)))
+                                                    
+                                                    {:None}
+                                                    (pure (property:with' natural:= expectation then fork))))
+                                        head
+                                        tail)]
+                         (pure {:Path/List it}))
+
+              [{:Path/List head} {:Path/Or head' tail'}]
+              (.when# (path:or {:Path/List head} head')
+                      {:Some {:Path/List head}}
+                      {:Some {:Path/Or {:Path/List head}
+                                       tail'}}
+
+                      else
+                      {:Some {:Path/Or {:Path/List head}
+                                       {:Path/Or head' tail'}}})
               
               [{:Path/Text head} {:Path/Text tail}]
               (monad:let maybe:monad
@@ -4768,14 +4831,15 @@
                                                     
                                                     {:None}
                                                     (pure (property:with expectation then fork))))
-                                        tail
-                                        head)]
+                                        head
+                                        tail)]
                          (pure {:Path/Text it}))
 
               [{:Path/Text head} {:Path/Or head' tail'}]
               (.when# (path:or {:Path/Text head} head')
                       {:Some {:Path/Text head}}
-                      {:Some {:Path/Or {:Path/Text head} tail'}}
+                      {:Some {:Path/Or {:Path/Text head}
+                                       tail'}}
 
                       else
                       {:Some {:Path/Or {:Path/Text head}
@@ -4808,7 +4872,8 @@
               [{:Path/Case head} {:Path/Or head' tail'}]
               (.when# (path:or {:Path/Case head} head')
                       {:Some {:Path/Case head}}
-                      {:Some {:Path/Or {:Path/Case head} tail'}}
+                      {:Some {:Path/Or {:Path/Case head}
+                                       tail'}}
 
                       else
                       {:Some {:Path/Or {:Path/Case head}
@@ -5014,17 +5079,37 @@
                                              (, @left) (, @right)
                                              (, 'then)))))
 
-              {:Path/List size then}
+              {:Path/List it}
               (monad:let meta:monad
-                         ['top,context (top context)
+                         [it (monad:each meta:monad
+                                         (<| (function' (_ size,then))
+                                             (let' [[size then] size,then])
+                                             (monad:let meta:monad
+                                                        ['then (path:as_code context else then)])
+                                             (pure (list (code:natural size) 'then)))
+                                         it)
+
+                          'top,context (top context)
                           .let' [['top _] 'top,context]
                           
-                          'then (path:as_code context else then)
-                          'else (path:else else)]
-                         (pure ('if (` (.i64_=# (, (code:natural size))
-                                                (.list_size# (, 'top))))
-                                    'then
-                                    'else)))
+                          'else (path:else else)
+                          '_ (generated_name "'_")]
+                         (pure (` (..when (.list_size# (, 'top))
+                                          (,* (list:conjoint it))
+
+                                          (, '_)
+                                          (, 'else)))))
+
+              {:Path/Item item {:Path/Let local then}}
+              (monad:let meta:monad
+                         [.let' ['local (code:local local)]
+
+                          'top,context (top context)
+                          .let' [['top _] 'top,context]
+                          
+                          'then (path:as_code context else then)]
+                         (pure ('let 'local (` (.list_item# (, (code:natural item)) (, 'top)))
+                                     'then)))
 
               {:Path/Item item then}
               (monad:let meta:monad

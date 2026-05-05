@@ -3132,10 +3132,10 @@
               (integer:as_text value)
 
               {:Revolution _ value}
-              (.error# "@code:as_text Undefined behavior.")
+              "[code:as_text :Revolution]"
               
               {:Real _ value}
-              (.error# "@code:as_text Undefined behavior.")
+              "[code:as_text :Real]"
 
               {:Text _ value}
               (text:as_text value)
@@ -4482,23 +4482,24 @@
       Type
       {:Named (name ..Path)
               (type (for_any (Path _)
-                             (Or (And Bit Path)
-                                 (List (And Natural Path))
-                                 (List (And Integer Path))
-                                 (List (And Revolution Path))
-                                 (List (And Real Path))
-                                 (List (And Text Path))
+                             (Or (Either (Either Path Path)
+                                         [Path Path])
+                                 (List [Natural Path])
+                                 (List [Integer Path])
+                                 (List [Revolution Path])
+                                 (List [Real Path])
+                                 (List [Text Path])
 
                                  (List (Maybe Path))
                                  Path
-                                 (List (And Natural Path))
-                                 (And Natural Path)
+                                 (List [Natural Path])
+                                 [Natural Path]
 
-                                 (And Text Path)
+                                 [Text Path]
                                  Path
                                  Code
 
-                                 (And Path Path))))})
+                                 [Path Path])))})
 
 (the' .private every_tag_of_path
       (type (List Name))
@@ -4557,10 +4558,29 @@
       (-> Path
           Text)
       (.when# it
-              {:Path/Bit expectation then}
-              (text "(" (bit:as_text expectation)
-                    " " (path:as_text then)
-                    ")")
+              {:Path/Bit it}
+              (.when# it
+                      {:Left it}
+                      (.when# it
+                              {:Left then}
+                              (text "{"
+                                    " " (bit:as_text 0b)
+                                    " " (path:as_text then)
+                                    "}")
+                              
+                              {:Right then}
+                              (text "{"
+                                    " " (bit:as_text 1b)
+                                    " " (path:as_text then)
+                                    "}"))
+                      
+                      {:Right [false_then true_then]}
+                      (text "{"
+                            " " (bit:as_text 0b)
+                            " " (path:as_text false_then)
+                            " " (bit:as_text 1b)
+                            " " (path:as_text true_then)
+                            "}"))
 
               {:Path/Natural it}
               (switch:as_text natural:as_text path:as_text it)
@@ -4682,8 +4702,9 @@
                 (Meta Path)))
       (.when# pattern
               {:Bit @ it}
-              (meta:pure {:Path/Bit it
-                                    body})
+              (meta:pure {:Path/Bit {:Left (if it
+                                               {:Right body}
+                                               {:Left body})}})
 
               {:Natural @ it}
               (meta:pure {:Path/Natural (list [it body])})
@@ -4725,7 +4746,7 @@
               {:Tuple @ it}
               (.when# (list:in_reverse it)
                       (.list#)
-                      (meta:pure body)
+                      (meta:pure {:Path/Pop body})
 
                       (.list# it)
                       (path it body)
@@ -4774,6 +4795,64 @@
               (monad:let maybe:monad
                          [it (path:or head tail)]
                          (pure {:Path/Pair it}))
+
+              [{:Path/Bit head} {:Path/Bit tail}]
+              (.when# head
+                      {:Left head}
+                      (.when# head
+                              {:Left head_false}
+                              (.when# tail
+                                      {:Left tail}
+                                      (.when# tail
+                                              {:Left tail_false}
+                                              (monad:let maybe:monad
+                                                         [it (path:or head_false tail_false)]
+                                                         (pure {:Path/Bit {:Left {:Left it}}}))
+                                              
+                                              {:Right tail_true}
+                                              {:Some {:Path/Bit {:Right [head_false tail_true]}}})
+                                      
+                                      {:Right [tail_false tail_true]}
+                                      (monad:let maybe:monad
+                                                 [it (path:or head_false tail_false)]
+                                                 (pure {:Path/Bit {:Right [it tail_true]}})))
+                              
+                              {:Right head_true}
+                              (.when# tail
+                                      {:Left tail}
+                                      (.when# tail
+                                              {:Left tail_false}
+                                              {:Some {:Path/Bit {:Right [tail_false head_true]}}}
+                                              
+                                              {:Right tail_true}
+                                              (monad:let maybe:monad
+                                                         [it (path:or head_true tail_true)]
+                                                         (pure {:Path/Bit {:Left {:Left it}}})))
+                                      
+                                      {:Right [tail_false tail_true]}
+                                      (monad:let maybe:monad
+                                                 [it (path:or head_true tail_true)]
+                                                 (pure {:Path/Bit {:Right [tail_false it]}}))))
+                      
+                      {:Right [head_false head_true]}
+                      (.when# tail
+                              {:Left tail}
+                              (.when# tail
+                                      {:Left tail_false}
+                                      (monad:let maybe:monad
+                                                 [it (path:or head_false tail_false)]
+                                                 (pure {:Path/Bit {:Right [it head_true]}}))
+                                      
+                                      {:Right tail_true}
+                                      (monad:let maybe:monad
+                                                 [it (path:or head_true tail_true)]
+                                                 (pure {:Path/Bit {:Right [head_false it]}})))
+                              
+                              {:Right [tail_false tail_true]}
+                              (monad:let maybe:monad
+                                         [then_false (path:or head_false tail_false)
+                                          then_true (path:or head_true tail_true)]
+                                         (pure {:Path/Bit {:Right [then_false then_true]}}))))
 
               [{:Path/Item item_of_head head} {:Path/Item item_of_tail tail}]
               (if (natural:= item_of_head item_of_tail)
@@ -4999,19 +5078,34 @@
                          (pure ('let (code:local local) 'top
                                      then)))
 
-              {:Path/Bit expectation then}
-              (monad:let meta:monad
-                         ['top,context (top context)
-                          .let' [['top context] 'top,context]
-                          'then (path:as_code context else then)
-                          'else (path:else else)]
-                         (pure (if expectation
-                                   ('if 'top
-                                        'then
-                                        'else)
-                                   ('if 'top
-                                        'else
-                                        'then))))
+              {:Path/Bit it}
+              (.when# it
+                      {:Left it}
+                      (monad:let meta:monad
+                                 [.let' [[expectation then] (.when# it
+                                                                    {:Left then} [false then]
+                                                                    {:Right then} [true then])]
+                                  'top,context (top context)
+                                  .let' [['top context] 'top,context]
+                                  'then (path:as_code context else then)
+                                  'else (path:else else)]
+                                 (pure (if expectation
+                                           ('if 'top
+                                                'then
+                                                'else)
+                                           ('if 'top
+                                                'else
+                                                'then))))
+                      
+                      {:Right [false_then true_then]}
+                      (monad:let meta:monad
+                                 ['top,context (top context)
+                                  .let' [['top context] 'top,context]
+                                  'false_then (path:as_code context else false_then)
+                                  'true_then (path:as_code context else true_then)]
+                                 (pure ('if 'top
+                                            'true_then
+                                            'false_then))))
 
               {:Path/Natural it}
               (switch:as_code code:natural
@@ -5350,11 +5444,11 @@
                                                                                                     else)
                                                                                          {:Some path}
                                                                                          (monad:let meta:monad
-                                                                                                    ['path (path:as_code (stack (code:local @term))
+                                                                                                    [.exec (.log!# (text "[[when]] " (path:as_text path)))
+                                                                                                     'path (path:as_code (stack (code:local @term))
                                                                                                                          {:None}
                                                                                                                          path)]
-                                                                                                    (exec (.log!# (text "[[when]] " (path:as_text path)))
-                                                                                                          (.log!# (text "[[when]] " (code:as_text 'path)))
+                                                                                                    (exec (.log!# (text "[[when]] " (code:as_text 'path)))
                                                                                                           (pure (list 'path))))
                                                                                          
                                                                                          {:None}

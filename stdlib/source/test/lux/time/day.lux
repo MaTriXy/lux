@@ -39,84 +39,84 @@
   ["[0]" /]])
 
 (the .public random
-  (Random /.Day)
-  (random.either (random.either (random.either (random:pure {/.:Sunday})
-                                               (random:pure {/.:Monday}))
-                                (random.either (random:pure {/.:Tuesday})
-                                               (random:pure {/.:Wednesday})))
-                 (random.either (random.either (random:pure {/.:Thursday})
-                                               (random:pure {/.:Friday}))
-                                (random:pure {/.:Saturday}))))
+     (Random /.Day)
+     (random.either (random.either (random.either (random:pure {/.:Sunday})
+                                                  (random:pure {/.:Monday}))
+                                   (random.either (random:pure {/.:Tuesday})
+                                                  (random:pure {/.:Wednesday})))
+                    (random.either (random.either (random:pure {/.:Thursday})
+                                                  (random:pure {/.:Friday}))
+                                   (random:pure {/.:Saturday}))))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (_.for [/.Day])
-      (monad.let random.monad
-        [expected ..random
-         invalid (random.only (predicate.or (n.< (/.number {/.:Sunday}))
-                                            (n.> (/.number {/.:Saturday})))
-                              random.natural)])
-      (`` (all _.and
-               (_.for [/.equality
-                       /.=]
-                      (static.when (identical? /.equality /.=)
-                        (equalityT.spec /.equality ..random)))
-               (_.for [/.hash]
-                      (hashT.spec /.hash ..random))
-               (_.for [/.order
-                       /.< /.<= /.> /.>=
-                       /.minor /.major]
-                      (orderT.spec /.order ..random))
-               (_.for [/.enum]
-                      (enumT.spec /.enum ..random))
-               (_.for [/.text]
-                      (formatT.spec /.equality /.text ..random))
+     Test
+     (<| (_.covering /._)
+         (_.for [/.Day])
+         (monad.let random.monad
+                    [expected ..random
+                     invalid (random.only (predicate.and/or (n.< (/.number {/.:Sunday}))
+                                                            (n.> (/.number {/.:Saturday})))
+                                          random.natural)])
+         (`` (all _.and
+                  (_.for [/.equality
+                          /.=]
+                         (static.when (identical? /.equality /.=)
+                                      (equalityT.spec /.equality ..random)))
+                  (_.for [/.hash]
+                         (hashT.spec /.hash ..random))
+                  (_.for [/.order
+                          /.< /.<= /.> /.>=
+                          /.minor /.major]
+                         (orderT.spec /.order ..random))
+                  (_.for [/.enum]
+                         (enumT.spec /.enum ..random))
+                  (_.for [/.text]
+                         (formatT.spec /.equality /.text ..random))
 
-               (,, (template.with [<before> <current> <after>]
-                     [(_.coverage [<current>]
-                        (and (by /.equality = {<before>} (by /.enum pred {<current>}))
-                             (by /.equality = {<after>} (by /.enum succ {<current>}))))]
+                  (,, (template.with [<before> <current> <after>]
+                                     [(_.coverage [<current>]
+                                                  (and (by /.equality = {<before>} (by /.enum pred {<current>}))
+                                                       (by /.equality = {<after>} (by /.enum succ {<current>}))))]
 
-                     [[/.:Saturday /.:Sunday /.:Monday]
-                      [/.:Sunday /.:Monday /.:Tuesday]
-                      [/.:Monday /.:Tuesday /.:Wednesday]
-                      [/.:Tuesday /.:Wednesday /.:Thursday]
-                      [/.:Wednesday /.:Thursday /.:Friday]
-                      [/.:Thursday /.:Friday /.:Saturday]
-                      [/.:Friday /.:Saturday /.:Sunday]]))
-               (_.coverage [/.number /.by_number]
-                 (|> expected
-                     /.number
-                     /.by_number
-                     (try:each (by /.equality = expected))
-                     (try.else false)))
-               (_.coverage [/.invalid_day]
-                 (when (/.by_number invalid)
-                   {try.:Failure error}
-                   (exception.is? /.invalid_day error)
-                   
-                   {try.:Success _}
-                   false))
-               (_.coverage [/.week]
-                 (let [all (list.size /.week)
-                       uniques (set.size (set.of_list /.hash /.week))]
-                   (and (n.= (/.number {/.:Saturday})
-                             all)
-                        (n.= all
-                             uniques))))
-               (monad.let random.monad
-                 [expected /.random]
-                 (_.coverage [/.as_text /.of_text]
-                   (|> expected
-                       /.as_text
-                       (?text.value /.of_text)
-                       (try:each (by /.equality = expected))
-                       (try.else false))))
-               (monad.let random.monad
-                 [expected /.random
-                  actual (random.only (|>> (by /.equality = expected) not)
-                                      /.random)]
-                 (_.coverage [/.random]
-                   (not (by /.equality = expected actual))))
-               ))))
+                                     [[/.:Saturday /.:Sunday /.:Monday]
+                                      [/.:Sunday /.:Monday /.:Tuesday]
+                                      [/.:Monday /.:Tuesday /.:Wednesday]
+                                      [/.:Tuesday /.:Wednesday /.:Thursday]
+                                      [/.:Wednesday /.:Thursday /.:Friday]
+                                      [/.:Thursday /.:Friday /.:Saturday]
+                                      [/.:Friday /.:Saturday /.:Sunday]]))
+                  (_.coverage [/.number /.by_number]
+                              (|> expected
+                                  /.number
+                                  /.by_number
+                                  (try:each (by /.equality = expected))
+                                  (try.else false)))
+                  (_.coverage [/.invalid_day]
+                              (when (/.by_number invalid)
+                                    {try.:Failure error}
+                                    (exception.is? /.invalid_day error)
+                                    
+                                    {try.:Success _}
+                                    false))
+                  (_.coverage [/.week]
+                              (let [all (list.size /.week)
+                                    uniques (set.size (set.of_list /.hash /.week))]
+                                   (and (n.= (/.number {/.:Saturday})
+                                             all)
+                                        (n.= all
+                                             uniques))))
+                  (monad.let random.monad
+                             [expected /.random]
+                             (_.coverage [/.as_text /.of_text]
+                                         (|> expected
+                                             /.as_text
+                                             (?text.value /.of_text)
+                                             (try:each (by /.equality = expected))
+                                             (try.else false))))
+                  (monad.let random.monad
+                             [expected /.random
+                              actual (random.only (|>> (by /.equality = expected) not)
+                                                  /.random)]
+                             (_.coverage [/.random]
+                                         (not (by /.equality = expected actual))))
+                  ))))

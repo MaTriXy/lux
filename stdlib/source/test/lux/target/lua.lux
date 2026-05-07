@@ -41,683 +41,683 @@
          (ffi.the (load [Text] "?" (-> Any Any))))
 
 (the (expression ??? it)
-  (-> (-> Any Bit) /.Expression Bit)
-  (|> it
-      /.code
-      (text "return ")
-      ..load
-      (maybe:each (|>> (function.of []) ???))
-      (maybe.else false)))
+     (-> (-> Any Bit) /.Expression Bit)
+     (|> it
+         /.code
+         (text "return ")
+         ..load
+         (maybe:each (|>> (function.of []) ???))
+         (maybe.else false)))
 
 (the test|literal
-  Test
-  (monad.let [! random.monad]
-    [boolean random.bit
-     int random.integer
-     float random.real
-     string (random.upper_cased 5)]
-    (all _.and
-         (_.coverage [/.nil]
-           (|> /.nil
-               /.code
-               ..load
-               (pipe.when
-                 {.:None} true
-                 {.:Some _} false)))
-         (_.coverage [/.boolean]
-           (expression (|>> (as (-> Any Bit)) (bit.= boolean))
-                       (/.boolean boolean)))
-         (_.coverage [/.int]
-           (expression (|>> (as (-> Any Integer)) (i.= int))
-                       (/.int int)))
-         (_.coverage [/.float]
-           (expression (|>> (as (-> Any Real)) (r.= float))
-                       (/.float float)))
-         (_.coverage [/.string]
-           (expression (|>> (as (-> Any Text)) (text.= string))
-                       (/.string string)))
-         )))
+     Test
+     (monad.let [! random.monad]
+                [boolean random.bit
+                 int random.integer
+                 float random.real
+                 string (random.upper_cased 5)]
+                (all _.and
+                     (_.coverage [/.nil]
+                                 (|> /.nil
+                                     /.code
+                                     ..load
+                                     (pipe.when
+                                      {.:None} true
+                                      {.:Some _} false)))
+                     (_.coverage [/.boolean]
+                                 (expression (|>> (as (-> Any Bit)) (bit.= boolean))
+                                             (/.boolean boolean)))
+                     (_.coverage [/.int]
+                                 (expression (|>> (as (-> Any Integer)) (i.= int))
+                                             (/.int int)))
+                     (_.coverage [/.float]
+                                 (expression (|>> (as (-> Any Real)) (r.= float))
+                                             (/.float float)))
+                     (_.coverage [/.string]
+                                 (expression (|>> (as (-> Any Text)) (text.= string))
+                                             (/.string string)))
+                     )))
 
 (the test|boolean
-  Test
-  (monad.let [! random.monad]
-    [left random.bit
-     right random.bit]
-    (`` (all _.and
-             (,, (template.with [</> <lux>]
-                   [(_.coverage [</>]
-                      (let [expected (<lux> left right)]
-                        (expression (|>> (as (-> Any Bit)) (bit.= expected))
-                                    (</> (/.boolean left) (/.boolean right)))))]
+     Test
+     (monad.let [! random.monad]
+                [left random.bit
+                 right random.bit]
+                (`` (all _.and
+                         (,, (template.with [</> <lux>]
+                                            [(_.coverage [</>]
+                                                         (let [expected (<lux> left right)]
+                                                              (expression (|>> (as (-> Any Bit)) (bit.= expected))
+                                                                          (</> (/.boolean left) (/.boolean right)))))]
 
-                   [[/.or .or]
-                    [/.and .and]]))
-             (_.coverage [/.not]
-               (expression (|>> (as (-> Any Bit)) (bit.= (not left)))
-                           (/.not (/.boolean left))))
-             ))))
+                                            [[/.or .or]
+                                             [/.and .and]]))
+                         (_.coverage [/.not]
+                                     (expression (|>> (as (-> Any Bit)) (bit.= (not left)))
+                                                 (/.not (/.boolean left))))
+                         ))))
 
 (template.with [<bits>]
-  [(`` (the (,, (template.name [int_ <bits>]))
-         (Random Integer)
-         (let [mask (|> 1 (/64.<< (-- <bits>)) --)]
-           (random:each (|>> (/64.and mask) .integer) random.natural))))]
+               [(`` (the (,, (template.name [int_ <bits>]))
+                         (Random Integer)
+                         (let [mask (|> 1 (/64.<< (-- <bits>)) --)]
+                              (random:each (|>> (/64.and mask) .integer) random.natural))))]
 
-  [[16]
-   [32]])
+               [[16]
+                [32]])
 
 (the test|int
-  Test
-  (monad.let [! random.monad]
-    [left random.integer
-     right random.integer
-     shift (by ! each (n.% 65) random.natural)
+     Test
+     (monad.let [! random.monad]
+                [left random.integer
+                 right random.integer
+                 shift (by ! each (n.% 65) random.natural)
 
-     parameter (random.only (|>> (i.= +0) not)
-                            random.integer)
-     subject random.integer]
-    (`` (all _.and
-             (,, (template.with [</> <lux>]
-                   [(_.coverage [</>]
-                      (let [expected (<lux> left right)]
-                        (expression (|>> (as (-> Any Integer)) (i.= expected))
-                                    (</> (/.int left) (/.int right)))))]
+                 parameter (random.only (|>> (i.= +0) not)
+                                        random.integer)
+                 subject random.integer]
+                (`` (all _.and
+                         (,, (template.with [</> <lux>]
+                                            [(_.coverage [</>]
+                                                         (let [expected (<lux> left right)]
+                                                              (expression (|>> (as (-> Any Integer)) (i.= expected))
+                                                                          (</> (/.int left) (/.int right)))))]
 
-                   [[/.bit_or /64.or]
-                    [/.bit_xor /64.xor]
-                    [/.bit_and /64.and]]))
-             (_.coverage [/.opposite]
-               (expression (|>> (as (-> Any Integer)) (i.= (i.- left +0)))
-                           (/.opposite (/.int left))))
-             (_.coverage [/.bit_shl]
-               (let [expected (/64.<< shift left)]
-                 (expression (|>> (as (-> Any Integer)) (i.= expected))
-                             (/.bit_shl (/.int (.integer shift))
-                                        (/.int left)))))
-             (_.coverage [/.bit_shr]
-               (let [expected (/64.>> shift left)]
-                 (expression (|>> (as (-> Any Integer)) (i.= expected))
-                             (/.bit_shr (/.int (.integer shift))
-                                        (/.int left)))))
-             (_.coverage [/.//]
-               (let [expected (if (or (i.= (i.signum parameter) (i.signum subject))
-                                      (i.= +0 (i.% parameter subject)))
-                                  (i./ parameter subject)
-                                  (-- (i./ parameter subject)))]
-                 (expression (|>> (as (-> Any Integer)) (i.= expected))
-                             (/.// (/.int parameter) (/.int subject)))))
-             ))))
+                                            [[/.bit_or /64.and/or]
+                                             [/.bit_xor /64.xor]
+                                             [/.bit_and /64.and]]))
+                         (_.coverage [/.opposite]
+                                     (expression (|>> (as (-> Any Integer)) (i.= (i.- left +0)))
+                                                 (/.opposite (/.int left))))
+                         (_.coverage [/.bit_shl]
+                                     (let [expected (/64.<< shift left)]
+                                          (expression (|>> (as (-> Any Integer)) (i.= expected))
+                                                      (/.bit_shl (/.int (.integer shift))
+                                                                 (/.int left)))))
+                         (_.coverage [/.bit_shr]
+                                     (let [expected (/64.>> shift left)]
+                                          (expression (|>> (as (-> Any Integer)) (i.= expected))
+                                                      (/.bit_shr (/.int (.integer shift))
+                                                                 (/.int left)))))
+                         (_.coverage [/.//]
+                                     (let [expected (if (and/or (i.= (i.signum parameter) (i.signum subject))
+                                                                (i.= +0 (i.% parameter subject)))
+                                                        (i./ parameter subject)
+                                                        (-- (i./ parameter subject)))]
+                                          (expression (|>> (as (-> Any Integer)) (i.= expected))
+                                                      (/.// (/.int parameter) (/.int subject)))))
+                         ))))
 
 (the test|float
-  Test
-  (monad.let [! random.monad]
-    [parameter (random.only (|>> (r.= +0.0) not)
-                            random.unit_real)
-     subject random.unit_real]
-    (`` (all _.and
-             (,, (template.with [</> <lux> <pre>]
-                   [(_.coverage [</>]
-                      (let [expected (<lux> (<pre> parameter) (<pre> subject))]
-                        (expression (|>> (as (-> Any Real)) (r.= expected))
-                                    (</> (/.float (<pre> parameter)) (/.float (<pre> subject))))))]
+     Test
+     (monad.let [! random.monad]
+                [parameter (random.only (|>> (r.= +0.0) not)
+                                        random.unit_real)
+                 subject random.unit_real]
+                (`` (all _.and
+                         (,, (template.with [</> <lux> <pre>]
+                                            [(_.coverage [</>]
+                                                         (let [expected (<lux> (<pre> parameter) (<pre> subject))]
+                                                              (expression (|>> (as (-> Any Real)) (r.= expected))
+                                                                          (</> (/.float (<pre> parameter)) (/.float (<pre> subject))))))]
 
-                   [[/.+ r.+ |>]
-                    [/.- r.- |>]
-                    [/.* r.x |>]
-                    [/./ r./ |>]
-                    [/.% r.modulo |>]
-                    [/.^ r.^ r.absolute]]))
-             (,, (template.with [</> <lux>]
-                   [(_.coverage [</>]
-                      (let [expected (<lux> parameter subject)]
-                        (expression (|>> (as (-> Any Bit)) (bit.= expected))
-                                    (</> (/.float parameter) (/.float subject)))))]
+                                            [[/.+ r.+ |>]
+                                             [/.- r.- |>]
+                                             [/.* r.x |>]
+                                             [/./ r./ |>]
+                                             [/.% r.modulo |>]
+                                             [/.^ r.^ r.absolute]]))
+                         (,, (template.with [</> <lux>]
+                                            [(_.coverage [</>]
+                                                         (let [expected (<lux> parameter subject)]
+                                                              (expression (|>> (as (-> Any Bit)) (bit.= expected))
+                                                                          (</> (/.float parameter) (/.float subject)))))]
 
-                   [[/.<  r.<]
-                    [/.<= r.<=]
-                    [/.>  r.>]
-                    [/.>= r.>=]
-                    [/.=  r.=]]))
-             ))))
+                                            [[/.<  r.<]
+                                             [/.<= r.<=]
+                                             [/.>  r.>]
+                                             [/.>= r.>=]
+                                             [/.=  r.=]]))
+                         ))))
 
 (the test|string
-  Test
-  (monad.let random.monad
-    [left (random.lower_cased 8)
-     right (random.lower_cased 8)
-     .let [expected (text left right)]]
-    (all _.and
-         (_.coverage [/.concatenation]
-           (expression (|>> (as (-> Any Text)) (text.= expected))
-                       (|> (/.string left)
-                           (/.concatenation (/.string right)))))
-         )))
+     Test
+     (monad.let random.monad
+                [left (random.lower_cased 8)
+                 right (random.lower_cased 8)
+                 .let [expected (text left right)]]
+                (all _.and
+                     (_.coverage [/.concatenation]
+                                 (expression (|>> (as (-> Any Text)) (text.= expected))
+                                             (|> (/.string left)
+                                                 (/.concatenation (/.string right)))))
+                     )))
 
 (the test|array
-  Test
-  (monad.let [! random.monad]
-    [size (by ! each (|>> (n.% 10) ++) random.natural)
-     index (by ! each (n.% size) random.natural)
-     items (random.list size random.unit_real)
-     .let [expected (|> items
-                        (list.item index)
-                        maybe.trusted)]]
-    (all _.and
-         (_.coverage [/.array /.item]
-           (and (expression (|>> (as (-> Any Real)) (r.= expected))
-                            (/.item (/.int (.integer (++ index)))
-                                    (/.array (list:each /.float items))))
-                (expression (|>> (as (-> Any Bit)))
-                            (|> (/.array (list:each /.float items))
-                                (/.item (/.int (.integer (++ size))))
-                                (/.= /.nil)))))
-         (_.coverage [/.length]
-           (expression (|>> (as (-> Any Integer)) (i.= (.integer size)))
-                       (/.length (/.array (list:each /.float items)))))
-         )))
+     Test
+     (monad.let [! random.monad]
+                [size (by ! each (|>> (n.% 10) ++) random.natural)
+                 index (by ! each (n.% size) random.natural)
+                 items (random.list size random.unit_real)
+                 .let [expected (|> items
+                                    (list.item index)
+                                    maybe.trusted)]]
+                (all _.and
+                     (_.coverage [/.array /.item]
+                                 (and (expression (|>> (as (-> Any Real)) (r.= expected))
+                                                  (/.item (/.int (.integer (++ index)))
+                                                          (/.array (list:each /.float items))))
+                                      (expression (|>> (as (-> Any Bit)))
+                                                  (|> (/.array (list:each /.float items))
+                                                      (/.item (/.int (.integer (++ size))))
+                                                      (/.= /.nil)))))
+                     (_.coverage [/.length]
+                                 (expression (|>> (as (-> Any Integer)) (i.= (.integer size)))
+                                             (/.length (/.array (list:each /.float items)))))
+                     )))
 
 (the test|table
-  Test
-  (monad.let [! random.monad]
-    [expected random.unit_real
-     dummy (random.only (|>> (r.= expected) not)
-                        random.unit_real)
+     Test
+     (monad.let [! random.monad]
+                [expected random.unit_real
+                 dummy (random.only (|>> (r.= expected) not)
+                                    random.unit_real)
 
-     size (by ! each (|>> (n.% 10) ++) random.natural)
-     index (by ! each (n.% size) random.natural)
-     items (random.list size random.unit_real)
+                 size (by ! each (|>> (n.% 10) ++) random.natural)
+                 index (by ! each (n.% size) random.natural)
+                 items (random.list size random.unit_real)
 
-     $self (by ! each /.var (random.lower_cased 10))
-     $table (by ! each /.var (random.lower_cased 11))
-     $arg (by ! each /.var (random.lower_cased 12))
-     field (random.upper_cased 5)
-     non_field (random.only (|>> (text.= field) not)
-                            (random.upper_cased 5))
-     method (random.upper_cased 6)]
-    (all _.and
-         (_.coverage [/.table /.its]
-           (and (expression (|>> (as (-> Any Real)) (r.= expected))
-                            (/.its field (/.table (list [field (/.float expected)]))))
-                (expression (|>> (as (-> Any Bit)))
-                            (|> (/.table (list [field (/.float expected)]))
-                                (/.its non_field)
-                                (/.= /.nil)))))
-         (_.coverage [/.do /.function]
-           (expression (|>> (as (-> Any Real)) (r.= expected))
-                       (|> (all /.then
-                                (/.local/1 $table (/.table (list [field (/.float expected)])))
-                                (/.function (/.its method $table) (list $self $arg)
-                                  (/.if (/.= (/.float dummy) $arg)
-                                        (/.return (/.its field $self))
-                                        (/.return $arg)))
-                                (/.return (/.do method (list (/.float dummy)) $table)))
-                           (/.closure (list))
-                           (/.of (list)))))
-         )))
+                 $self (by ! each /.var (random.lower_cased 10))
+                 $table (by ! each /.var (random.lower_cased 11))
+                 $arg (by ! each /.var (random.lower_cased 12))
+                 field (random.upper_cased 5)
+                 non_field (random.only (|>> (text.= field) not)
+                                        (random.upper_cased 5))
+                 method (random.upper_cased 6)]
+                (all _.and
+                     (_.coverage [/.table /.its]
+                                 (and (expression (|>> (as (-> Any Real)) (r.= expected))
+                                                  (/.its field (/.table (list [field (/.float expected)]))))
+                                      (expression (|>> (as (-> Any Bit)))
+                                                  (|> (/.table (list [field (/.float expected)]))
+                                                      (/.its non_field)
+                                                      (/.= /.nil)))))
+                     (_.coverage [/.do /.function]
+                                 (expression (|>> (as (-> Any Real)) (r.= expected))
+                                             (|> (all /.then
+                                                      (/.local/1 $table (/.table (list [field (/.float expected)])))
+                                                      (/.function (/.its method $table) (list $self $arg)
+                                                                  (/.if (/.= (/.float dummy) $arg)
+                                                                        (/.return (/.its field $self))
+                                                                        (/.return $arg)))
+                                                      (/.return (/.do method (list (/.float dummy)) $table)))
+                                                 (/.closure (list))
+                                                 (/.of (list)))))
+                     )))
 
 (the test|computation
-  Test
-  (monad.let [! random.monad]
-    [test random.bit
-     then random.unit_real
-     else random.unit_real
+     Test
+     (monad.let [! random.monad]
+                [test random.bit
+                 then random.unit_real
+                 else random.unit_real
 
-     boolean random.bit
-     int random.integer
-     float random.real
-     string (random.upper_cased 5)
+                 boolean random.bit
+                 int random.integer
+                 float random.real
+                 string (random.upper_cased 5)
 
-     comment (random.upper_cased 10)]
-    (all _.and
-         ..test|boolean
-         ..test|int
-         ..test|float
-         ..test|string
-         ..test|array
-         ..test|table
-         (_.coverage [/.type/1]
-           (and (expression (|>> (as (-> Any Text)) (text.= "boolean"))
-                            (/.type/1 (/.boolean boolean)))
-                (expression (|>> (as (-> Any Text)) (text.= "number"))
-                            (/.type/1 (/.int int)))
-                (expression (|>> (as (-> Any Text)) (text.= "number"))
-                            (/.type/1 (/.float float)))
-                (expression (|>> (as (-> Any Text)) (text.= "string"))
-                            (/.type/1 (/.string string)))
-                (expression (|>> (as (-> Any Text)) (text.= "nil"))
-                            (/.type/1 /.nil))
-                (expression (|>> (as (-> Any Text)) (text.= "table"))
-                            (/.type/1 (/.table (list [string (/.float float)]))))
-                (expression (|>> (as (-> Any Text)) (text.= "table"))
-                            (/.type/1 (/.array (list (/.boolean boolean)
-                                                     (/.float float)
-                                                     (/.string string)))))
-                ))
-         (_.coverage [/.require/1]
-           (expression (|>> (as (-> Any Integer)) (i.= (i.absolute int)))
-                       (|> (/.require/1 (/.string "math"))
-                           (/.its "abs")
-                           (/.of (list (/.int int))))))
-         (_.coverage [/.comment]
-           (expression (|>> (as (-> Any Real)) (r.= then))
-                       (/.comment comment
-                                  (/.float then))))
-         )))
+                 comment (random.upper_cased 10)]
+                (all _.and
+                     ..test|boolean
+                     ..test|int
+                     ..test|float
+                     ..test|string
+                     ..test|array
+                     ..test|table
+                     (_.coverage [/.type/1]
+                                 (and (expression (|>> (as (-> Any Text)) (text.= "boolean"))
+                                                  (/.type/1 (/.boolean boolean)))
+                                      (expression (|>> (as (-> Any Text)) (text.= "number"))
+                                                  (/.type/1 (/.int int)))
+                                      (expression (|>> (as (-> Any Text)) (text.= "number"))
+                                                  (/.type/1 (/.float float)))
+                                      (expression (|>> (as (-> Any Text)) (text.= "string"))
+                                                  (/.type/1 (/.string string)))
+                                      (expression (|>> (as (-> Any Text)) (text.= "nil"))
+                                                  (/.type/1 /.nil))
+                                      (expression (|>> (as (-> Any Text)) (text.= "table"))
+                                                  (/.type/1 (/.table (list [string (/.float float)]))))
+                                      (expression (|>> (as (-> Any Text)) (text.= "table"))
+                                                  (/.type/1 (/.array (list (/.boolean boolean)
+                                                                           (/.float float)
+                                                                           (/.string string)))))
+                                      ))
+                     (_.coverage [/.require/1]
+                                 (expression (|>> (as (-> Any Integer)) (i.= (i.absolute int)))
+                                             (|> (/.require/1 (/.string "math"))
+                                                 (/.its "abs")
+                                                 (/.of (list (/.int int))))))
+                     (_.coverage [/.comment]
+                                 (expression (|>> (as (-> Any Real)) (r.= then))
+                                             (/.comment comment
+                                                        (/.float then))))
+                     )))
 
 (the test|expression
-  Test
-  (`` (all _.and
-           (_.for [/.Literal]
-                  ..test|literal)
-           (_.for [/.Computation]
-                  ..test|computation)
-           )))
+     Test
+     (`` (all _.and
+              (_.for [/.Literal]
+                     ..test|literal)
+              (_.for [/.Computation]
+                     ..test|computation)
+              )))
 
 (the test/var
-  Test
-  (monad.let [! random.monad]
-    [float/0 random.unit_real
-     float/1 random.unit_real
-     float/2 random.unit_real
-     foreign (random.lower_cased 10)
-     local (random.only (|>> (text.= foreign) not)
-                        (random.lower_cased 10))
-     .let [$foreign (/.var foreign)
-           $local (/.var local)]]
-    (all _.and
-         (_.coverage [/.var]
-           (expression (|>> (as (-> Any Real)) (r.= float/0))
-                       (|> (/.return $foreign)
-                           (/.closure (list $foreign))
-                           (/.of (list (/.float float/0))))))
-         (_.coverage [/.let]
-           (expression (|>> (as (-> Any Real)) (r.= float/1))
-                       (|> (all /.then
-                                (/.let (list $local) (/.float float/1))
-                                (/.return $local))
-                           (/.closure (list $foreign))
-                           (/.of (list (/.float float/0))))))
-         (_.coverage [/.local/1]
-           (expression (|>> (as (-> Any Real)) (r.= float/1))
-                       (|> (all /.then
-                                (/.local/1 $local (/.float float/1))
-                                (/.return $local))
-                           (/.closure (list $foreign))
-                           (/.of (list (/.float float/0))))))
-         (_.coverage [/.local]
-           (expression (|>> (as (-> Any Real)) (r.= float/1))
-                       (|> (all /.then
-                                (/.local (list $local))
-                                (/.set (list $local) (/.float float/1))
-                                (/.return $local))
-                           (/.closure (list $foreign))
-                           (/.of (list (/.float float/0))))))
-         )))
+     Test
+     (monad.let [! random.monad]
+                [float/0 random.unit_real
+                 float/1 random.unit_real
+                 float/2 random.unit_real
+                 foreign (random.lower_cased 10)
+                 local (random.only (|>> (text.= foreign) not)
+                                    (random.lower_cased 10))
+                 .let [$foreign (/.var foreign)
+                       $local (/.var local)]]
+                (all _.and
+                     (_.coverage [/.var]
+                                 (expression (|>> (as (-> Any Real)) (r.= float/0))
+                                             (|> (/.return $foreign)
+                                                 (/.closure (list $foreign))
+                                                 (/.of (list (/.float float/0))))))
+                     (_.coverage [/.let]
+                                 (expression (|>> (as (-> Any Real)) (r.= float/1))
+                                             (|> (all /.then
+                                                      (/.let (list $local) (/.float float/1))
+                                                      (/.return $local))
+                                                 (/.closure (list $foreign))
+                                                 (/.of (list (/.float float/0))))))
+                     (_.coverage [/.local/1]
+                                 (expression (|>> (as (-> Any Real)) (r.= float/1))
+                                             (|> (all /.then
+                                                      (/.local/1 $local (/.float float/1))
+                                                      (/.return $local))
+                                                 (/.closure (list $foreign))
+                                                 (/.of (list (/.float float/0))))))
+                     (_.coverage [/.local]
+                                 (expression (|>> (as (-> Any Real)) (r.= float/1))
+                                             (|> (all /.then
+                                                      (/.local (list $local))
+                                                      (/.set (list $local) (/.float float/1))
+                                                      (/.return $local))
+                                                 (/.closure (list $foreign))
+                                                 (/.of (list (/.float float/0))))))
+                     )))
 
 (the test/location
-  Test
-  (monad.let [! random.monad]
-    [float/0 random.unit_real
-     float/1 random.unit_real
-     int/0 ..int_16
-     $foreign (by ! each /.var (random.lower_cased 10))
-     $arg/0 (by ! each /.var (random.lower_cased 11))
-     $arg/1 (by ! each /.var (random.lower_cased 12))
-     field (random.upper_cased 10)]
-    (all _.and
-         (_.coverage [/.set]
-           (expression (|>> (as (-> Any Real)) (r.= (r.+ float/0 float/0)))
-                       (|> (all /.then
-                                (/.set (list $foreign) (/.+ $foreign $foreign))
-                                (/.return $foreign))
-                           (/.closure (list $foreign))
-                           (/.of (list (/.float float/0))))))
-         (_.coverage [/.multi]
-           (and (expression (|>> (as (-> Any Real)) (r.= float/0))
-                            (|> (all /.then
-                                     (/.set (list $arg/0 $arg/1) (/.multi (list (/.float float/0) (/.float float/1))))
-                                     (/.return $arg/0))
-                                (/.closure (list))
-                                (/.of (list))))
-                (expression (|>> (as (-> Any Real)) (r.= float/1))
-                            (|> (all /.then
-                                     (/.set (list $arg/0 $arg/1) (/.multi (list (/.float float/0) (/.float float/1))))
-                                     (/.return $arg/1))
-                                (/.closure (list))
-                                (/.of (list))))))
-         (_.coverage [/.Access]
-           (and (expression (|>> (as (-> Any Real)) (r.= (r.+ float/0 float/0)))
-                            (let [@ (/.at (/.int +1) $foreign)]
-                              (|> (all /.then
-                                       (/.set (list $foreign) (/.array (list $foreign)))
-                                       (/.set (list @) (/.+ @ @))
-                                       (/.return @))
-                                  (/.closure (list $foreign))
-                                  (/.of (list (/.float float/0))))))
-                (expression (|>> (as (-> Any Real)) (r.= (r.+ float/0 float/0)))
-                            (let [@ (/.its field $foreign)]
-                              (|> (all /.then
-                                       (/.set (list $foreign) (/.table (list [field $foreign])))
-                                       (/.set (list @) (/.+ @ @))
-                                       (/.return @))
-                                  (/.closure (list $foreign))
-                                  (/.of (list (/.float float/0))))))))
-         (_.for [/.Var]
-                ..test/var)
-         )))
+     Test
+     (monad.let [! random.monad]
+                [float/0 random.unit_real
+                 float/1 random.unit_real
+                 int/0 ..int_16
+                 $foreign (by ! each /.var (random.lower_cased 10))
+                 $arg/0 (by ! each /.var (random.lower_cased 11))
+                 $arg/1 (by ! each /.var (random.lower_cased 12))
+                 field (random.upper_cased 10)]
+                (all _.and
+                     (_.coverage [/.set]
+                                 (expression (|>> (as (-> Any Real)) (r.= (r.+ float/0 float/0)))
+                                             (|> (all /.then
+                                                      (/.set (list $foreign) (/.+ $foreign $foreign))
+                                                      (/.return $foreign))
+                                                 (/.closure (list $foreign))
+                                                 (/.of (list (/.float float/0))))))
+                     (_.coverage [/.multi]
+                                 (and (expression (|>> (as (-> Any Real)) (r.= float/0))
+                                                  (|> (all /.then
+                                                           (/.set (list $arg/0 $arg/1) (/.multi (list (/.float float/0) (/.float float/1))))
+                                                           (/.return $arg/0))
+                                                      (/.closure (list))
+                                                      (/.of (list))))
+                                      (expression (|>> (as (-> Any Real)) (r.= float/1))
+                                                  (|> (all /.then
+                                                           (/.set (list $arg/0 $arg/1) (/.multi (list (/.float float/0) (/.float float/1))))
+                                                           (/.return $arg/1))
+                                                      (/.closure (list))
+                                                      (/.of (list))))))
+                     (_.coverage [/.Access]
+                                 (and (expression (|>> (as (-> Any Real)) (r.= (r.+ float/0 float/0)))
+                                                  (let [@ (/.at (/.int +1) $foreign)]
+                                                       (|> (all /.then
+                                                                (/.set (list $foreign) (/.array (list $foreign)))
+                                                                (/.set (list @) (/.+ @ @))
+                                                                (/.return @))
+                                                           (/.closure (list $foreign))
+                                                           (/.of (list (/.float float/0))))))
+                                      (expression (|>> (as (-> Any Real)) (r.= (r.+ float/0 float/0)))
+                                                  (let [@ (/.its field $foreign)]
+                                                       (|> (all /.then
+                                                                (/.set (list $foreign) (/.table (list [field $foreign])))
+                                                                (/.set (list @) (/.+ @ @))
+                                                                (/.return @))
+                                                           (/.closure (list $foreign))
+                                                           (/.of (list (/.float float/0))))))))
+                     (_.for [/.Var]
+                            ..test/var)
+                     )))
 
 (the test|label
-  Test
-  (monad.let [! random.monad]
-    [input ..int_16
+     Test
+     (monad.let [! random.monad]
+                [input ..int_16
 
-     full_iterations (by ! each (|>> (n.% 20) ++) random.natural)
-     expected_iterations (by ! each (|>> (n.% full_iterations) .integer) random.natural)
+                 full_iterations (by ! each (|>> (n.% 20) ++) random.natural)
+                 expected_iterations (by ! each (|>> (n.% full_iterations) .integer) random.natural)
 
-     $input (by ! each /.var (random.lower_cased 10))
-     $output (by ! each /.var (random.lower_cased 11))
-     $index (by ! each /.var (random.lower_cased 12))
+                 $input (by ! each /.var (random.lower_cased 10))
+                 $output (by ! each /.var (random.lower_cased 11))
+                 $index (by ! each /.var (random.lower_cased 12))
 
-     @loop (by ! each /.label (random.lower_cased 13))
-     
-     .let [expected (i.x expected_iterations input)
-           expected_iterations (/.int expected_iterations)]]
-    (all _.and
-         (_.coverage [/.break]
-           (let [=for_in (expression (|>> (as (-> Any Integer)) (i.= expected))
-                                     (|> (all /.then
-                                              (/.local/1 $output (/.int +0))
-                                              (/.for_in (list $index $input) (/.ipairs/1 (/.array (list.repeated full_iterations $input)))
-                                                        (all /.then
-                                                             (/.when (/.> expected_iterations $index)
-                                                               /.break)
-                                                             (/.set (list $output) (/.+ $input $output))))
-                                              (/.return $output))
-                                         (/.closure (list $input))
-                                         (/.of (list (/.int input)))))
+                 @loop (by ! each /.label (random.lower_cased 13))
                  
-                 full_iterations (/.int (.integer full_iterations))
-                 =while (expression (|>> (as (-> Any Integer)) (i.= expected))
-                                    (|> (all /.then
-                                             (/.local/1 $index (/.int +0))
-                                             (/.local/1 $output (/.int +0))
-                                             (/.while (/.< full_iterations $index)
-                                                      (all /.then
-                                                           (/.when (/.= expected_iterations $index)
-                                                             /.break)
-                                                           (/.set (list $output) (/.+ $input $output))
-                                                           (/.set (list $index) (/.+ (/.int +1) $index))
-                                                           ))
-                                             (/.return $output))
-                                        (/.closure (list $input))
-                                        (/.of (list (/.int input)))))
-                 =repeat (expression (|>> (as (-> Any Integer)) (i.= expected))
-                                     (|> (all /.then
-                                              (/.local/1 $index (/.int +0))
-                                              (/.local/1 $output (/.int +0))
-                                              (/.repeat (/.= full_iterations $index)
-                                                        (all /.then
-                                                             (/.when (/.= expected_iterations $index)
-                                                               /.break)
-                                                             (/.set (list $output) (/.+ $input $output))
-                                                             (/.set (list $index) (/.+ (/.int +1) $index))
-                                                             ))
-                                              (/.return $output))
-                                         (/.closure (list $input))
-                                         (/.of (list (/.int input)))))
-                 =for_step (expression (|>> (as (-> Any Integer)) (i.= expected))
-                                       (|> (all /.then
-                                                (/.local/1 $output (/.int +0))
-                                                (/.for_step $index (/.int +0) full_iterations (/.int +1)
+                 .let [expected (i.x expected_iterations input)
+                       expected_iterations (/.int expected_iterations)]]
+                (all _.and
+                     (_.coverage [/.break]
+                                 (let [=for_in (expression (|>> (as (-> Any Integer)) (i.= expected))
+                                                           (|> (all /.then
+                                                                    (/.local/1 $output (/.int +0))
+                                                                    (/.for_in (list $index $input) (/.ipairs/1 (/.array (list.repeated full_iterations $input)))
+                                                                              (all /.then
+                                                                                   (/.when (/.> expected_iterations $index)
+                                                                                           /.break)
+                                                                                   (/.set (list $output) (/.+ $input $output))))
+                                                                    (/.return $output))
+                                                               (/.closure (list $input))
+                                                               (/.of (list (/.int input)))))
+                                       
+                                       full_iterations (/.int (.integer full_iterations))
+                                       =while (expression (|>> (as (-> Any Integer)) (i.= expected))
+                                                          (|> (all /.then
+                                                                   (/.local/1 $index (/.int +0))
+                                                                   (/.local/1 $output (/.int +0))
+                                                                   (/.while (/.< full_iterations $index)
+                                                                            (all /.then
+                                                                                 (/.when (/.= expected_iterations $index)
+                                                                                         /.break)
+                                                                                 (/.set (list $output) (/.+ $input $output))
+                                                                                 (/.set (list $index) (/.+ (/.int +1) $index))
+                                                                                 ))
+                                                                   (/.return $output))
+                                                              (/.closure (list $input))
+                                                              (/.of (list (/.int input)))))
+                                       =repeat (expression (|>> (as (-> Any Integer)) (i.= expected))
+                                                           (|> (all /.then
+                                                                    (/.local/1 $index (/.int +0))
+                                                                    (/.local/1 $output (/.int +0))
+                                                                    (/.repeat (/.= full_iterations $index)
+                                                                              (all /.then
+                                                                                   (/.when (/.= expected_iterations $index)
+                                                                                           /.break)
+                                                                                   (/.set (list $output) (/.+ $input $output))
+                                                                                   (/.set (list $index) (/.+ (/.int +1) $index))
+                                                                                   ))
+                                                                    (/.return $output))
+                                                               (/.closure (list $input))
+                                                               (/.of (list (/.int input)))))
+                                       =for_step (expression (|>> (as (-> Any Integer)) (i.= expected))
+                                                             (|> (all /.then
+                                                                      (/.local/1 $output (/.int +0))
+                                                                      (/.for_step $index (/.int +0) full_iterations (/.int +1)
+                                                                                  (all /.then
+                                                                                       (/.when (/.= expected_iterations $index)
+                                                                                               /.break)
+                                                                                       (/.set (list $output) (/.+ $input $output))))
+                                                                      (/.return $output))
+                                                                 (/.closure (list $input))
+                                                                 (/.of (list (/.int input)))))]
+                                      (and =while
+                                           =repeat
+                                           =for_step
+                                           =for_in)))
+                     (_.coverage [/.label /.set_label /.go_to]
+                                 (expression (|>> (as (-> Any Integer)) (i.= expected))
+                                             (|> (all /.then
+                                                      (/.local/1 $index (/.int +0))
+                                                      (/.local/1 $output (/.int +0))
+                                                      (/.set_label @loop)
+                                                      (/.if (/.< expected_iterations $index)
                                                             (all /.then
-                                                                 (/.when (/.= expected_iterations $index)
-                                                                   /.break)
-                                                                 (/.set (list $output) (/.+ $input $output))))
-                                                (/.return $output))
-                                           (/.closure (list $input))
-                                           (/.of (list (/.int input)))))]
-             (and =while
-                  =repeat
-                  =for_step
-                  =for_in)))
-         (_.coverage [/.label /.set_label /.go_to]
-           (expression (|>> (as (-> Any Integer)) (i.= expected))
-                       (|> (all /.then
-                                (/.local/1 $index (/.int +0))
-                                (/.local/1 $output (/.int +0))
-                                (/.set_label @loop)
-                                (/.if (/.< expected_iterations $index)
-                                      (all /.then
-                                           (/.set (list $output) (/.+ $input $output))
-                                           (/.set (list $index) (/.+ (/.int +1) $index))
-                                           (/.go_to @loop))
-                                      (/.return $output)))
-                           (/.closure (list $input))
-                           (/.of (list (/.int input))))))
-         )))
+                                                                 (/.set (list $output) (/.+ $input $output))
+                                                                 (/.set (list $index) (/.+ (/.int +1) $index))
+                                                                 (/.go_to @loop))
+                                                            (/.return $output)))
+                                                 (/.closure (list $input))
+                                                 (/.of (list (/.int input))))))
+                     )))
 
 (the test|loop
-  Test
-  (monad.let [! random.monad]
-    [input ..int_16
-     iterations (by ! each (n.% 10) random.natural)
-     .let [$input (/.var "input")
-           $output (/.var "output")
-           $index (/.var "index")
-           expected (i.x (.integer iterations) input)]]
-    (all _.and
-         (_.coverage [/.while]
-           (expression (|>> (as (-> Any Integer)) (i.= expected))
-                       (|> (all /.then
-                                (/.local/1 $index (/.int +0))
-                                (/.local/1 $output (/.int +0))
-                                (/.while (/.< (/.int (.integer iterations)) $index)
-                                         (all /.then
-                                              (/.set (list $output) (/.+ $input $output))
-                                              (/.set (list $index) (/.+ (/.int +1) $index))
-                                              ))
-                                (/.return $output))
-                           (/.closure (list $input))
-                           (/.of (list (/.int input))))))
-         (_.coverage [/.repeat]
-           (expression (|>> (as (-> Any Integer)) (i.= expected))
-                       (|> (all /.then
-                                (/.local/1 $index (/.int +0))
-                                (/.local/1 $output (/.int +0))
-                                (/.repeat (/.= (/.int (.integer iterations)) $index)
-                                          (all /.then
-                                               (/.set (list $output) (/.+ $input $output))
-                                               (/.set (list $index) (/.+ (/.int +1) $index))
-                                               ))
-                                (/.return $output))
-                           (/.closure (list $input))
-                           (/.of (list (/.int input))))))
-         (_.coverage [/.for_step]
-           (expression (|>> (as (-> Any Integer)) (i.= expected))
-                       (|> (all /.then
-                                (/.local/1 $output (/.int +0))
-                                (/.for_step $index (/.int +0) (/.int (.integer (-- iterations))) (/.int +1)
-                                            (/.set (list $output) (/.+ $input $output)))
-                                (/.return $output))
-                           (/.closure (list $input))
-                           (/.of (list (/.int input))))))
-         (_.coverage [/.for_in /.ipairs/1]
-           (expression (|>> (as (-> Any Integer)) (i.= expected))
-                       (|> (all /.then
-                                (/.local/1 $output (/.int +0))
-                                (/.for_in (list $index $input) (/.ipairs/1 (/.array (list.repeated iterations $input)))
-                                          (/.set (list $output) (/.+ $input $output)))
-                                (/.return $output))
-                           (/.closure (list $input))
-                           (/.of (list (/.int input))))))
-         (_.for [/.Label]
-                ..test|label)
-         )))
+     Test
+     (monad.let [! random.monad]
+                [input ..int_16
+                 iterations (by ! each (n.% 10) random.natural)
+                 .let [$input (/.var "input")
+                       $output (/.var "output")
+                       $index (/.var "index")
+                       expected (i.x (.integer iterations) input)]]
+                (all _.and
+                     (_.coverage [/.while]
+                                 (expression (|>> (as (-> Any Integer)) (i.= expected))
+                                             (|> (all /.then
+                                                      (/.local/1 $index (/.int +0))
+                                                      (/.local/1 $output (/.int +0))
+                                                      (/.while (/.< (/.int (.integer iterations)) $index)
+                                                               (all /.then
+                                                                    (/.set (list $output) (/.+ $input $output))
+                                                                    (/.set (list $index) (/.+ (/.int +1) $index))
+                                                                    ))
+                                                      (/.return $output))
+                                                 (/.closure (list $input))
+                                                 (/.of (list (/.int input))))))
+                     (_.coverage [/.repeat]
+                                 (expression (|>> (as (-> Any Integer)) (i.= expected))
+                                             (|> (all /.then
+                                                      (/.local/1 $index (/.int +0))
+                                                      (/.local/1 $output (/.int +0))
+                                                      (/.repeat (/.= (/.int (.integer iterations)) $index)
+                                                                (all /.then
+                                                                     (/.set (list $output) (/.+ $input $output))
+                                                                     (/.set (list $index) (/.+ (/.int +1) $index))
+                                                                     ))
+                                                      (/.return $output))
+                                                 (/.closure (list $input))
+                                                 (/.of (list (/.int input))))))
+                     (_.coverage [/.for_step]
+                                 (expression (|>> (as (-> Any Integer)) (i.= expected))
+                                             (|> (all /.then
+                                                      (/.local/1 $output (/.int +0))
+                                                      (/.for_step $index (/.int +0) (/.int (.integer (-- iterations))) (/.int +1)
+                                                                  (/.set (list $output) (/.+ $input $output)))
+                                                      (/.return $output))
+                                                 (/.closure (list $input))
+                                                 (/.of (list (/.int input))))))
+                     (_.coverage [/.for_in /.ipairs/1]
+                                 (expression (|>> (as (-> Any Integer)) (i.= expected))
+                                             (|> (all /.then
+                                                      (/.local/1 $output (/.int +0))
+                                                      (/.for_in (list $index $input) (/.ipairs/1 (/.array (list.repeated iterations $input)))
+                                                                (/.set (list $output) (/.+ $input $output)))
+                                                      (/.return $output))
+                                                 (/.closure (list $input))
+                                                 (/.of (list (/.int input))))))
+                     (_.for [/.Label]
+                            ..test|label)
+                     )))
 
 (the test|exception
-  Test
-  (monad.let [! random.monad]
-    [expected random.unit_real
-     dummy (random.only (|>> (r.= expected) not)
-                        random.unit_real)
-     $verdict (by ! each /.var (random.lower_cased 10))
-     $outcome (by ! each /.var (random.lower_cased 11))]
-    (all _.and
-         (_.coverage [/.pcall/1]
-           (expression (|>> (as (-> Any Real)) (r.= expected))
-                       (|> (all /.then
-                                (/.let (list $verdict $outcome) (/.pcall/1 (/.closure (list)
-                                                                                      (/.return (/.float expected)))))
-                                (/.if $verdict
-                                      (/.return $outcome)
-                                      (/.return (/.float dummy))))
-                           (/.closure (list))
-                           (/.of (list)))))
-         (_.coverage [/.error/1]
-           (expression (|>> (as (-> Any Real)) (r.= expected))
-                       (|> (all /.then
-                                (/.let (list $verdict $outcome) (/.pcall/1 (/.closure (list)
-                                                                                      (all /.then
-                                                                                           (/.; (/.error/1 (/.float expected)))
-                                                                                           (/.return (/.float dummy))))))
-                                (/.if $verdict
-                                      (/.return (/.float dummy))
-                                      (/.return $outcome)))
-                           (/.closure (list))
-                           (/.of (list)))))
-         (_.coverage [/.error/2]
-           (expression (|>> (as (-> Any Real)) (r.= expected))
-                       (|> (all /.then
-                                (/.let (list $verdict $outcome) (/.pcall/1 (/.closure (list)
-                                                                                      (all /.then
-                                                                                           (/.; (/.error/2 (/.float expected) (/.int +2)))
-                                                                                           (/.return (/.float dummy))))))
-                                (/.if $verdict
-                                      (/.return (/.float dummy))
-                                      (/.return $outcome)))
-                           (/.closure (list))
-                           (/.of (list)))))
-         )))
+     Test
+     (monad.let [! random.monad]
+                [expected random.unit_real
+                 dummy (random.only (|>> (r.= expected) not)
+                                    random.unit_real)
+                 $verdict (by ! each /.var (random.lower_cased 10))
+                 $outcome (by ! each /.var (random.lower_cased 11))]
+                (all _.and
+                     (_.coverage [/.pcall/1]
+                                 (expression (|>> (as (-> Any Real)) (r.= expected))
+                                             (|> (all /.then
+                                                      (/.let (list $verdict $outcome) (/.pcall/1 (/.closure (list)
+                                                                                                            (/.return (/.float expected)))))
+                                                      (/.if $verdict
+                                                            (/.return $outcome)
+                                                            (/.return (/.float dummy))))
+                                                 (/.closure (list))
+                                                 (/.of (list)))))
+                     (_.coverage [/.error/1]
+                                 (expression (|>> (as (-> Any Real)) (r.= expected))
+                                             (|> (all /.then
+                                                      (/.let (list $verdict $outcome) (/.pcall/1 (/.closure (list)
+                                                                                                            (all /.then
+                                                                                                                 (/.; (/.error/1 (/.float expected)))
+                                                                                                                 (/.return (/.float dummy))))))
+                                                      (/.if $verdict
+                                                            (/.return (/.float dummy))
+                                                            (/.return $outcome)))
+                                                 (/.closure (list))
+                                                 (/.of (list)))))
+                     (_.coverage [/.error/2]
+                                 (expression (|>> (as (-> Any Real)) (r.= expected))
+                                             (|> (all /.then
+                                                      (/.let (list $verdict $outcome) (/.pcall/1 (/.closure (list)
+                                                                                                            (all /.then
+                                                                                                                 (/.; (/.error/2 (/.float expected) (/.int +2)))
+                                                                                                                 (/.return (/.float dummy))))))
+                                                      (/.if $verdict
+                                                            (/.return (/.float dummy))
+                                                            (/.return $outcome)))
+                                                 (/.closure (list))
+                                                 (/.of (list)))))
+                     )))
 
 (the test|function
-  Test
-  (monad.let [! random.monad]
-    [float/0 random.unit_real
-     iterations (by ! each (n.% 10) random.natural)
-     $self (by ! each /.var (random.lower_cased 1))
-     $arg/0 (by ! each /.var (random.lower_cased 2))
-     field (random.lower_cased 3)
-     $class (by ! each /.var (random.upper_cased 4))]
-    (all _.and
-         (_.coverage [/.closure /.return]
-           (expression (|>> (as (-> Any Real)) (r.= float/0))
-                       (/.of (list)
-                             (/.closure (list) (/.return (/.float float/0))))))
-         (_.coverage [/.local_function]
-           (expression (|>> (as (-> Any Integer)) .natural (n.= iterations))
-                       (|> (all /.then
-                                (/.local_function $self (list $arg/0)
-                                                  (/.if (/.< (/.int (.integer iterations)) $arg/0)
-                                                        (/.return (/.of (list (/.+ (/.int +1) $arg/0)) $self))
-                                                        (/.return $arg/0)))
-                                (/.return (/.of (list (/.int +0)) $self)))
-                           (/.closure (list))
-                           (/.of (list)))))
-         (monad.let [! random.monad]
-           [float/0 random.unit_real
-            float/1 random.unit_real
-            float/2 random.unit_real
-            $arg/0 (by ! each /.var (random.lower_cased 10))
-            $arg/1 (by ! each /.var (random.lower_cased 11))
-            $arg/2 (by ! each /.var (random.lower_cased 12))]
-           (`` (all _.and
-                    (_.coverage [/.of]
-                      (expression (|>> (as (-> Any Real)) (r.= (all r.+ float/0 float/1 float/2)))
-                                  (/.of (list (/.float float/0)
-                                              (/.float float/1)
-                                              (/.float float/2))
-                                        (/.closure (list $arg/0 $arg/1 $arg/2) (/.return (all /.+ $arg/0 $arg/1 $arg/2))))))
-                    )))
-         )))
+     Test
+     (monad.let [! random.monad]
+                [float/0 random.unit_real
+                 iterations (by ! each (n.% 10) random.natural)
+                 $self (by ! each /.var (random.lower_cased 1))
+                 $arg/0 (by ! each /.var (random.lower_cased 2))
+                 field (random.lower_cased 3)
+                 $class (by ! each /.var (random.upper_cased 4))]
+                (all _.and
+                     (_.coverage [/.closure /.return]
+                                 (expression (|>> (as (-> Any Real)) (r.= float/0))
+                                             (/.of (list)
+                                                   (/.closure (list) (/.return (/.float float/0))))))
+                     (_.coverage [/.local_function]
+                                 (expression (|>> (as (-> Any Integer)) .natural (n.= iterations))
+                                             (|> (all /.then
+                                                      (/.local_function $self (list $arg/0)
+                                                                        (/.if (/.< (/.int (.integer iterations)) $arg/0)
+                                                                              (/.return (/.of (list (/.+ (/.int +1) $arg/0)) $self))
+                                                                              (/.return $arg/0)))
+                                                      (/.return (/.of (list (/.int +0)) $self)))
+                                                 (/.closure (list))
+                                                 (/.of (list)))))
+                     (monad.let [! random.monad]
+                                [float/0 random.unit_real
+                                 float/1 random.unit_real
+                                 float/2 random.unit_real
+                                 $arg/0 (by ! each /.var (random.lower_cased 10))
+                                 $arg/1 (by ! each /.var (random.lower_cased 11))
+                                 $arg/2 (by ! each /.var (random.lower_cased 12))]
+                                (`` (all _.and
+                                         (_.coverage [/.of]
+                                                     (expression (|>> (as (-> Any Real)) (r.= (all r.+ float/0 float/1 float/2)))
+                                                                 (/.of (list (/.float float/0)
+                                                                             (/.float float/1)
+                                                                             (/.float float/2))
+                                                                       (/.closure (list $arg/0 $arg/1 $arg/2) (/.return (all /.+ $arg/0 $arg/1 $arg/2))))))
+                                         )))
+                     )))
 
 (the test|branching
-  Test
-  (monad.let [! random.monad]
-    [float/0 random.unit_real
-     float/1 random.unit_real
-     ??? random.bit]
-    (all _.and
-         (_.coverage [/.if]
-           (expression (|>> (as (-> Any Real)) (r.= (if ??? float/0 float/1)))
-                       (|> (/.if (/.boolean ???)
-                                 (/.return (/.float float/0))
-                                 (/.return (/.float float/1)))
-                           (/.closure (list))
-                           (/.of (list)))))
-         (_.coverage [/.when]
-           (expression (|>> (as (-> Any Real)) (r.= (if ??? float/0 float/1)))
-                       (|> (all /.then
-                                (/.when (/.boolean ???)
-                                  (/.return (/.float float/0)))
-                                (/.return (/.float float/1)))
-                           (/.closure (list))
-                           (/.of (list)))))
-         )))
+     Test
+     (monad.let [! random.monad]
+                [float/0 random.unit_real
+                 float/1 random.unit_real
+                 ??? random.bit]
+                (all _.and
+                     (_.coverage [/.if]
+                                 (expression (|>> (as (-> Any Real)) (r.= (if ??? float/0 float/1)))
+                                             (|> (/.if (/.boolean ???)
+                                                       (/.return (/.float float/0))
+                                                       (/.return (/.float float/1)))
+                                                 (/.closure (list))
+                                                 (/.of (list)))))
+                     (_.coverage [/.when]
+                                 (expression (|>> (as (-> Any Real)) (r.= (if ??? float/0 float/1)))
+                                             (|> (all /.then
+                                                      (/.when (/.boolean ???)
+                                                              (/.return (/.float float/0)))
+                                                      (/.return (/.float float/1)))
+                                                 (/.closure (list))
+                                                 (/.of (list)))))
+                     )))
 
 (the test|binding
-  Test
-  (all _.and
-       ..test|function
-       (_.for [/.Location]
-              ..test/location)
-       ))
+     Test
+     (all _.and
+          ..test|function
+          (_.for [/.Location]
+                 ..test/location)
+          ))
 
 (the test|control
-  Test
-  (all _.and
-       ..test|branching
-       ..test|loop
-       ..test|exception
-       ))
+     Test
+     (all _.and
+          ..test|branching
+          ..test|loop
+          ..test|exception
+          ))
 
 (the test|statement
-  Test
-  (monad.let [! random.monad]
-    [float/0 random.unit_real
-     float/1 random.unit_real
-     $arg/0 (by ! each /.var (random.lower_cased 10))
-     $arg/1 (by ! each /.var (random.lower_cased 11))]
-    (`` (all _.and
-             (_.coverage [/.; /.then /.print/1]
-               (expression (|>> (as (-> Any Real)) (r.= float/0))
-                           (|> (all /.then
-                                    (/.; (/.print/1 $arg/0))
-                                    (/.return $arg/0))
-                               (/.closure (list $arg/0))
-                               (/.of (list (/.float float/0))))))
-             ..test|binding
-             ..test|control
-             ))))
+     Test
+     (monad.let [! random.monad]
+                [float/0 random.unit_real
+                 float/1 random.unit_real
+                 $arg/0 (by ! each /.var (random.lower_cased 10))
+                 $arg/1 (by ! each /.var (random.lower_cased 11))]
+                (`` (all _.and
+                         (_.coverage [/.; /.then /.print/1]
+                                     (expression (|>> (as (-> Any Real)) (r.= float/0))
+                                                 (|> (all /.then
+                                                          (/.; (/.print/1 $arg/0))
+                                                          (/.return $arg/0))
+                                                     (/.closure (list $arg/0))
+                                                     (/.of (list (/.float float/0))))))
+                         ..test|binding
+                         ..test|control
+                         ))))
 
 (the .public test
-  Test
-  (monad.let [! random.monad]
-    [.let [random (is (Random (/.Code Any))
-                      (by ! each /.int random.integer))]
-     expected random.integer]
-    (<| (_.covering /._)
-        (_.for [/.Code /.code])
-        (`` (all _.and
-                 (_.for [/.equality]
-                        (equalityT.spec /.equality random))
-                 (_.for [/.hash]
-                        (hashT.spec /.hash random))
-                 
-                 (_.coverage [/.manual]
-                   (expression (|>> (as (-> Any Integer)) (i.= expected))
-                               (/.manual (/.code (/.int expected)))))
-                 (_.for [/.Expression]
-                        ..test|expression)
-                 (_.for [/.Statement]
-                        ..test|statement)
-                 )))))
+     Test
+     (monad.let [! random.monad]
+                [.let [random (is (Random (/.Code Any))
+                                  (by ! each /.int random.integer))]
+                 expected random.integer]
+                (<| (_.covering /._)
+                    (_.for [/.Code /.code])
+                    (`` (all _.and
+                             (_.for [/.equality]
+                                    (equalityT.spec /.equality random))
+                             (_.for [/.hash]
+                                    (hashT.spec /.hash random))
+                             
+                             (_.coverage [/.manual]
+                                         (expression (|>> (as (-> Any Integer)) (i.= expected))
+                                                     (/.manual (/.code (/.int expected)))))
+                             (_.for [/.Expression]
+                                    ..test|expression)
+                             (_.for [/.Statement]
+                                    ..test|statement)
+                             )))))

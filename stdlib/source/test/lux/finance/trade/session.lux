@@ -33,128 +33,128 @@
       ["[1]T" \\test]]]]]])
 
 (the .public (random $ max_sub_units)
-  (for_any (_ $)
-    (-> (Currency $) Natural
-        (Random (/.Session $))))
-  (let [random_natural (is (Random Natural)
-                           (random:each (n.% max_sub_units) random.natural))]
-    (all random.and
-         (moneyT.random $ max_sub_units)
-         random_natural
-         (random:each (i.% (.integer max_sub_units)) random.integer)
-         random_natural
-         (volumeT.random $ max_sub_units))))
+     (for_any (_ $)
+              (-> (Currency $) Natural
+                  (Random (/.Session $))))
+     (let [random_natural (is (Random Natural)
+                              (random:each (n.% max_sub_units) random.natural))]
+          (all random.and
+               (moneyT.random $ max_sub_units)
+               random_natural
+               (random:each (i.% (.integer max_sub_units)) random.integer)
+               random_natural
+               (volumeT.random $ max_sub_units))))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (monad.let [! random.monad]
-        [before (..random currency.usd 1000,00)
-         after (..random currency.usd 1000,00)])
-      (_.for [/.Session
-              /.:low /.:to_minimum /.:real_body /.:to_high /.:volume])
-      (all _.and
-           (_.for [/.equality /.=]
-                  (static.when (identical? /.equality /.=)
-                    (equalityT.spec /.equality (..random currency.usd 1000,00))))
+     Test
+     (<| (_.covering /._)
+         (monad.let [! random.monad]
+                    [before (..random currency.usd 1000,00)
+                     after (..random currency.usd 1000,00)])
+         (_.for [/.Session
+                 /.:low /.:to_minimum /.:real_body /.:to_high /.:volume])
+         (all _.and
+              (_.for [/.equality /.=]
+                     (static.when (identical? /.equality /.=)
+                                  (equalityT.spec /.equality (..random currency.usd 1000,00))))
 
-           (_.coverage [/.open]
-             (and (money.<= (/.high before)
-                            (/.open before))
-                  (money.>= (/.low before)
-                            (/.open before))))
-           (_.coverage [/.high]
-             (and (money.>= (/.open before)
-                            (/.high before))
-                  (money.>= (/.close before)
-                            (/.high before))
-                  (money.>= (/.low before)
-                            (/.high before))))
-           (_.coverage [/.low]
-             (and (money.<= (/.open before)
-                            (/.low before))
-                  (money.<= (/.close before)
-                            (/.low before))
-                  (money.<= (/.high before)
-                            (/.low before))))
-           (_.coverage [/.close]
-             (and (money.<= (/.high before)
-                            (/.close before))
-                  (money.>= (/.low before)
-                            (/.close before))))
-           (_.coverage [/.ohlc]
-             (let [expected before]
-               (|> (/.ohlc (/.open expected)
-                           (/.high expected)
-                           (/.low expected)
-                           (/.close expected)
-                           (its /.:volume expected))
-                   (try:each (/.= expected))
-                   (try.else false))))
-           (_.coverage [/.invalid]
-             (let [expected before]
-               (when (/.ohlc (/.open expected)
-                             (/.low expected)
-                             (/.high expected)
-                             (/.close expected)
-                             (its /.:volume expected))
-                 {try.:Failure error}
-                 (exception.is? /.invalid error)
+              (_.coverage [/.open]
+                          (and (money.<= (/.high before)
+                                         (/.open before))
+                               (money.>= (/.low before)
+                                         (/.open before))))
+              (_.coverage [/.high]
+                          (and (money.>= (/.open before)
+                                         (/.high before))
+                               (money.>= (/.close before)
+                                         (/.high before))
+                               (money.>= (/.low before)
+                                         (/.high before))))
+              (_.coverage [/.low]
+                          (and (money.<= (/.open before)
+                                         (/.low before))
+                               (money.<= (/.close before)
+                                         (/.low before))
+                               (money.<= (/.high before)
+                                         (/.low before))))
+              (_.coverage [/.close]
+                          (and (money.<= (/.high before)
+                                         (/.close before))
+                               (money.>= (/.low before)
+                                         (/.close before))))
+              (_.coverage [/.ohlc]
+                          (let [expected before]
+                               (|> (/.ohlc (/.open expected)
+                                           (/.high expected)
+                                           (/.low expected)
+                                           (/.close expected)
+                                           (its /.:volume expected))
+                                   (try:each (/.= expected))
+                                   (try.else false))))
+              (_.coverage [/.invalid]
+                          (let [expected before]
+                               (when (/.ohlc (/.open expected)
+                                             (/.low expected)
+                                             (/.high expected)
+                                             (/.close expected)
+                                             (its /.:volume expected))
+                                     {try.:Failure error}
+                                     (exception.is? /.invalid error)
 
-                 success
-                 false)))
-           (_.coverage [/.minimum /.maximum]
-             (or (bit.= (money.= (/.open before)
-                                 (/.minimum before))
-                        (money.= (/.close before)
-                                 (/.maximum before)))
-                 (bit.= (money.= (/.close before)
-                                 (/.minimum before))
-                        (money.= (/.open before)
-                                 (/.maximum before)))))
-           (_.coverage [/.currency]
-             (and (identical? (money.currency (/.open before))
-                              (/.currency before))
-                  (identical? (money.currency (/.high before))
-                              (/.currency before))
-                  (identical? (money.currency (/.low before))
-                              (/.currency before))
-                  (identical? (money.currency (/.close before))
-                              (/.currency before))))
-           (_.coverage [/.composite]
-             (let [both (/.composite before after)]
-               (and (money.= (/.open before)
-                             (/.open both))
-                    (and (money.>= (/.high before)
-                                   (/.high both))
-                         (money.>= (/.high after)
-                                   (/.high both)))
-                    (and (money.<= (/.low before)
-                                   (/.low both))
-                         (money.<= (/.low after)
-                                   (/.low both)))
-                    (money.= (/.close after)
-                             (/.close both))
-                    (and (n.>= (its [/.:volume volume.:in] before)
-                               (its [/.:volume volume.:in] both))
-                         (n.>= (its [/.:volume volume.:in] after)
-                               (its [/.:volume volume.:in] both))
+                                     success
+                                     false)))
+              (_.coverage [/.minimum /.maximum]
+                          (and/or (bit.= (money.= (/.open before)
+                                                  (/.minimum before))
+                                         (money.= (/.close before)
+                                                  (/.maximum before)))
+                                  (bit.= (money.= (/.close before)
+                                                  (/.minimum before))
+                                         (money.= (/.open before)
+                                                  (/.maximum before)))))
+              (_.coverage [/.currency]
+                          (and (identical? (money.currency (/.open before))
+                                           (/.currency before))
+                               (identical? (money.currency (/.high before))
+                                           (/.currency before))
+                               (identical? (money.currency (/.low before))
+                                           (/.currency before))
+                               (identical? (money.currency (/.close before))
+                                           (/.currency before))))
+              (_.coverage [/.composite]
+                          (let [both (/.composite before after)]
+                               (and (money.= (/.open before)
+                                             (/.open both))
+                                    (and (money.>= (/.high before)
+                                                   (/.high both))
+                                         (money.>= (/.high after)
+                                                   (/.high both)))
+                                    (and (money.<= (/.low before)
+                                                   (/.low both))
+                                         (money.<= (/.low after)
+                                                   (/.low both)))
+                                    (money.= (/.close after)
+                                             (/.close both))
+                                    (and (n.>= (its [/.:volume volume.:in] before)
+                                               (its [/.:volume volume.:in] both))
+                                         (n.>= (its [/.:volume volume.:in] after)
+                                               (its [/.:volume volume.:in] both))
 
-                         (money.>= (its [/.:volume volume.:out] before)
-                                   (its [/.:volume volume.:out] both))
-                         (money.>= (its [/.:volume volume.:out] after)
-                                   (its [/.:volume volume.:out] both))))))
-           (_.coverage [/.as_text]
-             (bit.= (by /.equality =
-                        before
-                        after)
-                    (text.= (/.as_text before)
-                            (/.as_text after))))
-           (_.coverage [/.typical_price]
-             (let [session before
-                   it (/.typical_price session)]
-               (and (money.<= (/.high session)
-                              it)
-                    (money.>= (/.low session)
-                              it))))
-           )))
+                                         (money.>= (its [/.:volume volume.:out] before)
+                                                   (its [/.:volume volume.:out] both))
+                                         (money.>= (its [/.:volume volume.:out] after)
+                                                   (its [/.:volume volume.:out] both))))))
+              (_.coverage [/.as_text]
+                          (bit.= (by /.equality =
+                                     before
+                                     after)
+                                 (text.= (/.as_text before)
+                                         (/.as_text after))))
+              (_.coverage [/.typical_price]
+                          (let [session before
+                                it (/.typical_price session)]
+                               (and (money.<= (/.high session)
+                                              it)
+                                    (money.>= (/.low session)
+                                              it))))
+              )))

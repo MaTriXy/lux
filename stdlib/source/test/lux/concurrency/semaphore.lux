@@ -33,159 +33,159 @@
     ["[0]" atom (.only Atom)]]]])
 
 (the delay
-  (target.if target.js
-             (/64.<< 4 1)
-             (/64.<< 3 1)))
+     (target.if target.js
+                (/64.<< 4 1)
+                (/64.<< 3 1)))
 
 (the semaphore
-  Test
-  (_.for [/.Semaphore]
-         (all _.and
-              (monad.let [! random.monad]
-                [initial_open_positions (|> random.natural (by ! each (|>> (n.% 10) (n.major 1))))
-                 .let [semaphore (/.semaphore initial_open_positions)]]
-                (pure (monad.let future.monad
-                        [it (future.within ..delay (/.wait! semaphore))]
-                        (unit.coverage [/.semaphore]
-                          (when it
-                            {.:Some _}
-                            true
+     Test
+     (_.for [/.Semaphore]
+            (all _.and
+                 (monad.let [! random.monad]
+                            [initial_open_positions (|> random.natural (by ! each (|>> (n.% 10) (n.major 1))))
+                             .let [semaphore (/.semaphore initial_open_positions)]]
+                            (pure (monad.let future.monad
+                                             [it (future.within ..delay (/.wait! semaphore))]
+                                             (unit.coverage [/.semaphore]
+                                                            (when it
+                                                                  {.:Some _}
+                                                                  true
 
-                            {.:None}
-                            false)))))
-              (monad.let [! random.monad]
-                [initial_open_positions (|> random.natural (by ! each (|>> (n.% 10) (n.major 1))))
-                 .let [semaphore (/.semaphore initial_open_positions)]]
-                (pure (monad.let [! future.monad]
-                        [_ (list.each' ! /.wait! (list.repeated initial_open_positions semaphore))
-                         it (future.within ..delay (/.wait! semaphore))]
-                        (unit.coverage [/.wait!]
-                          (when it
-                            {.:Some _}
-                            false
+                                                                  {.:None}
+                                                                  false)))))
+                 (monad.let [! random.monad]
+                            [initial_open_positions (|> random.natural (by ! each (|>> (n.% 10) (n.major 1))))
+                             .let [semaphore (/.semaphore initial_open_positions)]]
+                            (pure (monad.let [! future.monad]
+                                             [_ (list.each' ! /.wait! (list.repeated initial_open_positions semaphore))
+                                              it (future.within ..delay (/.wait! semaphore))]
+                                             (unit.coverage [/.wait!]
+                                                            (when it
+                                                                  {.:Some _}
+                                                                  false
 
-                            {.:None}
-                            true)))))
-              (monad.let [! random.monad]
-                [initial_open_positions (|> random.natural (by ! each (|>> (n.% 10) (n.major 1))))
-                 .let [semaphore (/.semaphore initial_open_positions)]]
-                (pure (monad.let [! future.monad]
-                        [_ (list.each' ! /.wait! (list.repeated initial_open_positions semaphore))
-                         .let [block (/.wait! semaphore)]
-                         result/0 (future.within ..delay block)
-                         open_positions (/.signal! semaphore)
-                         result/1 (future.within ..delay block)]
-                        (unit.coverage [/.signal!]
-                          (when [result/0 result/1 open_positions]
-                            [{.:None} {.:Some _} {try.:Success +0}]
-                            true
+                                                                  {.:None}
+                                                                  true)))))
+                 (monad.let [! random.monad]
+                            [initial_open_positions (|> random.natural (by ! each (|>> (n.% 10) (n.major 1))))
+                             .let [semaphore (/.semaphore initial_open_positions)]]
+                            (pure (monad.let [! future.monad]
+                                             [_ (list.each' ! /.wait! (list.repeated initial_open_positions semaphore))
+                                              .let [block (/.wait! semaphore)]
+                                              result/0 (future.within ..delay block)
+                                              open_positions (/.signal! semaphore)
+                                              result/1 (future.within ..delay block)]
+                                             (unit.coverage [/.signal!]
+                                                            (when [result/0 result/1 open_positions]
+                                                                  [{.:None} {.:Some _} {try.:Success +0}]
+                                                                  true
 
-                            _
-                            false)))))
-              (monad.let [! random.monad]
-                [initial_open_positions (|> random.natural (by ! each (|>> (n.% 10) (n.major 1))))
-                 .let [semaphore (/.semaphore initial_open_positions)]]
-                (pure (monad.let future.monad
-                        [outcome (/.signal! semaphore)]
-                        (unit.coverage [/.semaphore_is_maxed_out]
-                          (when outcome
-                            {try.:Failure error}
-                            (exception.is? /.semaphore_is_maxed_out error)
+                                                                  _
+                                                                  false)))))
+                 (monad.let [! random.monad]
+                            [initial_open_positions (|> random.natural (by ! each (|>> (n.% 10) (n.major 1))))
+                             .let [semaphore (/.semaphore initial_open_positions)]]
+                            (pure (monad.let future.monad
+                                             [outcome (/.signal! semaphore)]
+                                             (unit.coverage [/.semaphore_is_maxed_out]
+                                                            (when outcome
+                                                                  {try.:Failure error}
+                                                                  (exception.is? /.semaphore_is_maxed_out error)
 
-                            _
-                            false)))))
-              )))
+                                                                  _
+                                                                  false)))))
+                 )))
 
 (the mutex
-  Test
-  (_.for [/.Mutex]
-         (all _.and
-              (monad.let [! random.monad]
-                [repetitions (|> random.natural (by ! each (|>> (n.% 100) (n.major 10))))
-                 .let [resource (atom.atom "")
-                       expected_As (text.together (list.repeated repetitions "A"))
-                       expected_Bs (text.together (list.repeated repetitions "B"))
-                       mutex (/.mutex [])
-                       processA (<| (/.synchronize! mutex)
-                                    io.io
-                                    future.soon
-                                    (monad.let [! io.monad]
-                                      [_ (<| (list.complete !)
-                                             (list.repeated repetitions)
-                                             (atom.update! (|>> (text "A")) resource))]
-                                      (pure [])))
-                       processB (<| (/.synchronize! mutex)
-                                    io.io
-                                    future.soon
-                                    (monad.let [! io.monad]
-                                      [_ (<| (list.complete !)
-                                             (list.repeated repetitions)
-                                             (atom.update! (|>> (text "B")) resource))]
-                                      (pure [])))]]
-                (pure (monad.let future.monad
-                        [_ processA
-                         _ processB
-                         .let [outcome (io.value (atom.read! resource))]]
-                        (unit.coverage [/.mutex /.synchronize!]
-                          (or (text.= (text expected_As expected_Bs)
-                                      outcome)
-                              (text.= (text expected_Bs expected_As)
-                                      outcome))))))
-              )))
+     Test
+     (_.for [/.Mutex]
+            (all _.and
+                 (monad.let [! random.monad]
+                            [repetitions (|> random.natural (by ! each (|>> (n.% 100) (n.major 10))))
+                             .let [resource (atom.atom "")
+                                   expected_As (text.together (list.repeated repetitions "A"))
+                                   expected_Bs (text.together (list.repeated repetitions "B"))
+                                   mutex (/.mutex [])
+                                   processA (<| (/.synchronize! mutex)
+                                                io.io
+                                                future.soon
+                                                (monad.let [! io.monad]
+                                                           [_ (<| (list.complete !)
+                                                                  (list.repeated repetitions)
+                                                                  (atom.update! (|>> (text "A")) resource))]
+                                                           (pure [])))
+                                   processB (<| (/.synchronize! mutex)
+                                                io.io
+                                                future.soon
+                                                (monad.let [! io.monad]
+                                                           [_ (<| (list.complete !)
+                                                                  (list.repeated repetitions)
+                                                                  (atom.update! (|>> (text "B")) resource))]
+                                                           (pure [])))]]
+                            (pure (monad.let future.monad
+                                             [_ processA
+                                              _ processB
+                                              .let [outcome (io.value (atom.read! resource))]]
+                                             (unit.coverage [/.mutex /.synchronize!]
+                                                            (and/or (text.= (text expected_As expected_Bs)
+                                                                            outcome)
+                                                                    (text.= (text expected_Bs expected_As)
+                                                                            outcome))))))
+                 )))
 
 (the (waiter resource barrier id)
-  (-> (Atom Text) /.Barrier Natural (Future Any))
-  (monad.let future.monad
-    [_ (/.block! barrier)
-     _ (future.soon (atom.update! (|>> (text (%.natural id))) resource))]
-    (pure [])))
+     (-> (Atom Text) /.Barrier Natural (Future Any))
+     (monad.let future.monad
+                [_ (/.block! barrier)
+                 _ (future.soon (atom.update! (|>> (text (%.natural id))) resource))]
+                (pure [])))
 
 (the barrier
-  Test
-  (_.for [/.Barrier]
-         (all _.and
-              (monad.let random.monad
-                [raw random.natural]
-                (_.coverage [/.Limit /.limit]
-                  (when [raw (/.limit raw)]
-                    [0 {.:None}]
-                    true
-                    
-                    [_ {.:Some limit}]
-                    (and (n.> 0 raw)
-                         (n.= raw (refinement.value limit)))
+     Test
+     (_.for [/.Barrier]
+            (all _.and
+                 (monad.let random.monad
+                            [raw random.natural]
+                            (_.coverage [/.Limit /.limit]
+                                        (when [raw (/.limit raw)]
+                                              [0 {.:None}]
+                                              true
+                                              
+                                              [_ {.:Some limit}]
+                                              (and (n.> 0 raw)
+                                                   (n.= raw (refinement.value limit)))
 
-                    _
-                    false)))
-              (monad.let [! random.monad]
-                [limit (by ! each (|>> (n.% 9) ++) random.natural)
-                 .let [barrier (/.barrier (maybe.trusted (/.limit limit)))
-                       resource (atom.atom "")]]
-                (pure (monad.let [! future.monad]
-                        [.let [suffix "_"
-                               expected_ending (|> suffix
-                                                   (list.repeated limit)
-                                                   text.together)
-                               expected_ids (enum.range n.enum 0 (-- limit))]
-                         _ (|> expected_ids
-                               (list:each (function (_ id)
-                                            (exec
-                                              (io.value (atom.update! (|>> (text suffix)) resource))
-                                              (waiter resource barrier id))))
-                               (list.complete !))
-                         .let [outcome (io.value (atom.read! resource))]]
-                        (unit.coverage [/.barrier /.block!]
-                          (and (text.ends_with? expected_ending outcome)
-                               (list.every? (function (_ id)
-                                              (text.contains? (%.natural id) outcome))
-                                            expected_ids))))))
-              )))
+                                              _
+                                              false)))
+                 (monad.let [! random.monad]
+                            [limit (by ! each (|>> (n.% 9) ++) random.natural)
+                             .let [barrier (/.barrier (maybe.trusted (/.limit limit)))
+                                   resource (atom.atom "")]]
+                            (pure (monad.let [! future.monad]
+                                             [.let [suffix "_"
+                                                    expected_ending (|> suffix
+                                                                        (list.repeated limit)
+                                                                        text.together)
+                                                    expected_ids (enum.range n.enum 0 (-- limit))]
+                                              _ (|> expected_ids
+                                                    (list:each (function (_ id)
+                                                                         (exec
+                                                                          (io.value (atom.update! (|>> (text suffix)) resource))
+                                                                          (waiter resource barrier id))))
+                                                    (list.complete !))
+                                              .let [outcome (io.value (atom.read! resource))]]
+                                             (unit.coverage [/.barrier /.block!]
+                                                            (and (text.ends_with? expected_ending outcome)
+                                                                 (list.every? (function (_ id)
+                                                                                        (text.contains? (%.natural id) outcome))
+                                                                              expected_ids))))))
+                 )))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (all _.and
-           ..semaphore
-           ..mutex
-           ..barrier
-           )))
+     Test
+     (<| (_.covering /._)
+         (all _.and
+              ..semaphore
+              ..mutex
+              ..barrier
+              )))

@@ -1,7 +1,6 @@
 (.using
  [library
-  [lux (.except text natural integer revolution
-                or and)
+  [lux (.except text natural integer revolution and)
    [abstract
     [equality (.only Equality)]
     [functor (.only Functor)]
@@ -34,296 +33,296 @@
       ["[0]" object (.only Object object)]]]]]])
 
 (the .public natural
-  (Equality Natural)
-  natural.equality)
+     (Equality Natural)
+     natural.equality)
 
 (the .public integer
-  (Equality Integer)
-  integer.equality)
+     (Equality Integer)
+     integer.equality)
 
 (the .public revolution
-  (Equality Revolution)
-  revolution.equality)
+     (Equality Revolution)
+     revolution.equality)
 
 (the .public real
-  (Equality Real)
-  real.equality)
+     (Equality Real)
+     real.equality)
 
 (the .public text
-  (Equality Text)
-  text.equality)
+     (Equality Text)
+     text.equality)
 
 (every ID
-  Natural)
+       Natural)
 
 (every Binding
-  (for_some (_ it)
-    [(Equality it)
-     (Either ID it)]))
+       (for_some (_ it)
+                 [(Equality it)
+                  (Either ID it)]))
 
 (every Context
-  (Dictionary ID Binding))
+       (Dictionary ID Binding))
 
 (the empty
-  Context
-  (dictionary.empty natural.hash))
+     Context
+     (dictionary.empty natural.hash))
 
 (every .public Logic
-  (state.With Context List))
+       (state.With Context List))
 
 (the .public (values it)
-  (for_any (_ it)
-    (-> (Logic it)
-        (List it)))
-  (|> ..empty
-      it
-      (list:each pair.right)))
+     (for_any (_ it)
+              (-> (Logic it)
+                  (List it)))
+     (|> ..empty
+         it
+         (list:each pair.right)))
 
 (the .public failure
-  (Logic Nothing)
-  (function (_ context)
-    (list)))
+     (Logic Nothing)
+     (function (_ context)
+               (list)))
 
 (the .public success
-  (Logic Any)
-  (function (_ context)
-    (list [context []])))
+     (Logic Any)
+     (function (_ context)
+               (list [context []])))
 
 (the .public monad
-  (Monad Logic)
-  (state.with list.monad))
+     (Monad Logic)
+     (state.with list.monad))
 
 (the .public functor
-  (Functor Logic)
-  (by ..monad functor))
+     (Functor Logic)
+     (by ..monad functor))
 
 (the .public (or left right)
-  (for_any (_ it)
-    (-> (Logic it) (Logic it)
-        (Logic it)))
-  (function (_ context)
-    (all list:composite
-         (left context)
-         (right context))))
+     (for_any (_ it)
+              (-> (Logic it) (Logic it)
+                  (Logic it)))
+     (function (_ context)
+               (all list:composite
+                    (left context)
+                    (right context))))
 
 (the .public (and left right)
-  (for_any (_ left right)
-    (-> (Logic left) (Logic right)
-        (Logic right)))
-  (monad.let ..monad
-    [_ left]
-    right))
+     (for_any (_ left right)
+              (-> (Logic left) (Logic right)
+                  (Logic right)))
+     (monad.let ..monad
+                [_ left]
+                right))
 
 (expansion.let [,Term (these (Object (Term' it)))]
-  (these (object.every .public (Term' [it] _)
-           [:value (object.Method [] (Logic it))
-            :unified (object.Method [,Term] (Logic Any))])
+               (these (object.every .public (Term' [it] _)
+                                    [:value (object.Method [] (Logic it))
+                                     :unified (object.Method [,Term] (Logic Any))])
 
-         (.every .public (Term it)
-           ,Term)))
+                      (.every .public (Term it)
+                              ,Term)))
 
 (the .public (value it)
-  (for_any (_ it)
-    (-> ((Term it) Any)
-        (Logic it)))
-  (object.of :value [] it))
+     (for_any (_ it)
+              (-> ((Term it) Any)
+                  (Logic it)))
+     (object.of :value [] it))
 
 (the .public (= expected actual)
-  (for_any (_ it)
-    (-> (Term it) ((Term it) Any)
-        (Logic Any)))
-  (object.of :unified [expected] actual))
+     (for_any (_ it)
+              (-> (Term it) ((Term it) Any)
+                  (Logic Any)))
+     (object.of :unified [expected] actual))
 
 (every (Constant it)
-  [(Equality it) it])
+       [(Equality it) it])
 
 (the class_of_constant
-  (for_any (_ it)
-    ((Term' it) (Constant it)))
-  [:value (object.method
-            (function (_ next again [this []])
-              (let [[this:= this_value] (object.state this)]
-                (by ..monad pure this_value))))
-   :unified (object.method
-              (function (_ next again [this [expected]])
-                (when (object.as (object.class this) expected)
-                  {.:Some expected}
-                  (let [[expected:= expected_value] (object.state expected)
-                        [this:= this_value] (object.state this)]
-                    (if (this:= expected_value this_value)
-                        ..success
-                        ..failure))
+     (for_any (_ it)
+              ((Term' it) (Constant it)))
+     [:value (object.method
+              (function (_ next again [this []])
+                        (let [[this:= this_value] (object.state this)]
+                             (by ..monad pure this_value))))
+      :unified (object.method
+                (function (_ next again [this [expected]])
+                          (when (object.as (object.class this) expected)
+                                {.:Some expected}
+                                (let [[expected:= expected_value] (object.state expected)
+                                      [this:= this_value] (object.state this)]
+                                     (if (this:= expected_value this_value)
+                                         ..success
+                                         ..failure))
 
-                  {.:None}
-                  (= this expected))))])
+                                {.:None}
+                                (= this expected))))])
 
 (the .public (constant equality it)
-  (for_any (_ it)
-    (-> (Equality it) it
-        (Term it)))
-  (object ..class_of_constant [equality it]))
+     (for_any (_ it)
+              (-> (Equality it) it
+                  (Term it)))
+     (object ..class_of_constant [equality it]))
 
 (nominal.every (Variable it)
-  ID
+               ID
 
-  (the (binding id context)
-    (for_any (_ it)
-      (-> (Variable it) Context
-          (Try (Binding it))))
-    (|> context
-        (dictionary.value (nominal.as id))
-        (try:each (|>> as_expected))))
+               (the (binding id context)
+                    (for_any (_ it)
+                             (-> (Variable it) Context
+                                 (Try (Binding it))))
+                    (|> context
+                        (dictionary.value (nominal.as id))
+                        (try:each (|>> as_expected))))
 
-  (the (has_binding equality value id context)
-    (for_any (_ it)
-      (-> (Equality it) it ID Context
-          Context))
-    (dictionary.has id [equality {.:Right value}] context))
+               (the (has_binding equality value id context)
+                    (for_any (_ it)
+                             (-> (Equality it) it ID Context
+                                 Context))
+                    (dictionary.has id [equality {.:Right value}] context))
 
-  (every Ring
-    (List ID))
+               (every Ring
+                      (List ID))
 
-  (the (ring start context)
-    (-> ID Context
-        (Try Ring))
-    (loop (of [id start
-               output (is Ring (list))])
-      (monad.let try.monad
-        [[_ it] (dictionary.value id context)]
-        (when it
-          {.:Left link}
-          (if (natural.= start link)
-              (pure (list:composite (list start) output))
-              (of link (list:composite (list link) output)))
+               (the (ring start context)
+                    (-> ID Context
+                        (Try Ring))
+                    (loop (of [id start
+                               output (is Ring (list))])
+                          (monad.let try.monad
+                                     [[_ it] (dictionary.value id context)]
+                                     (when it
+                                           {.:Left link}
+                                           (if (natural.= start link)
+                                               (pure (list:composite (list start) output))
+                                               (of link (list:composite (list link) output)))
 
-          {.:Right value}
-          (undefined)))))
+                                           {.:Right value}
+                                           (undefined)))))
 
-  (the (connected left right context)
-    (-> Ring Ring Context
-        (Try Context))
-    (when [(list.split 1 left) (list.split 1 right)]
-      [[(list left) (list)]
-       [(list right) (list)]]
-      (|> context
-          (dictionary.revised left (function (_ [equality _])
-                                     [equality {.:Left right}]))
-          (dictionary.revised right (function (_ [equality _])
-                                      [equality {.:Left left}]))
-          try:pure)
+               (the (connected left right context)
+                    (-> Ring Ring Context
+                        (Try Context))
+                    (when [(list.split 1 left) (list.split 1 right)]
+                          [[(list left) (list)]
+                           [(list right) (list)]]
+                          (|> context
+                              (dictionary.revised left (function (_ [equality _])
+                                                                 [equality {.:Left right}]))
+                              (dictionary.revised right (function (_ [equality _])
+                                                                  [equality {.:Left left}]))
+                              try:pure)
 
-      (^.or [[(list head) tail]
-             [left' right']]
-            [[left' right']
-             [(list head) tail]])
-      (monad.let try.monad
-        [[_ head'] (dictionary.value head context)]
-        (when head'
-          {.:Left next}
-          (let [[last context] (list.mix (function (_ next [previous context])
-                                           (|> context
-                                               (dictionary.revised previous (function (_ [equality _])
-                                                                              [equality {.:Left next}]))
-                                               [next]))
-                                         (list:composite left' right')
-                                         [head context])]
-            (pure (dictionary.revised last (function (_ [equality _])
-                                             [equality {.:Left next}])
-                                      context)))
+                          (^.or [[(list head) tail]
+                                 [left' right']]
+                                [[left' right']
+                                 [(list head) tail]])
+                          (monad.let try.monad
+                                     [[_ head'] (dictionary.value head context)]
+                                     (when head'
+                                           {.:Left next}
+                                           (let [[last context] (list.mix (function (_ next [previous context])
+                                                                                    (|> context
+                                                                                        (dictionary.revised previous (function (_ [equality _])
+                                                                                                                               [equality {.:Left next}]))
+                                                                                        [next]))
+                                                                          (list:composite left' right')
+                                                                          [head context])]
+                                                (pure (dictionary.revised last (function (_ [equality _])
+                                                                                         [equality {.:Left next}])
+                                                                          context)))
 
-          {.:Right _}
-          (undefined)))
+                                           {.:Right _}
+                                           (undefined)))
 
-      _
-      (try:pure context)))
+                          _
+                          (try:pure context)))
 
-  (the (unified_variables expected_id this)
-    (for_any (_ it)
-      (-> (Variable it) ((Term it) (Variable it))
-          (Logic Any)))
-    (function (_ context)
-      (let [this_id (object.state this)]
-        (<| (try.else (list))
-            (is (Try (List [Context Any])))
-            (monad.let [! try.monad]
-              [[expected:= expected_value] (binding expected_id context)
-               [this:= this_value] (binding this_id context)]
-              (when [expected_value this_value]
-                [{.:Right expected_value}
-                 {.:Right this_value}]
-                (pure (if (by this:= = expected_value this_value)
-                          (list [context this_value])
-                          (list)))
+               (the (unified_variables expected_id this)
+                    (for_any (_ it)
+                             (-> (Variable it) ((Term it) (Variable it))
+                                 (Logic Any)))
+                    (function (_ context)
+                              (let [this_id (object.state this)]
+                                   (<| (try.else (list))
+                                       (is (Try (List [Context Any])))
+                                       (monad.let [! try.monad]
+                                                  [[expected:= expected_value] (binding expected_id context)
+                                                   [this:= this_value] (binding this_id context)]
+                                                  (when [expected_value this_value]
+                                                        [{.:Right expected_value}
+                                                         {.:Right this_value}]
+                                                        (pure (if (by this:= = expected_value this_value)
+                                                                  (list [context this_value])
+                                                                  (list)))
 
-                [{.:Right expected_value}
-                 {.:Left this_link}]
-                (monad.let !
-                  [ring (..ring this_link context)]
-                  (pure (list [(list.mix (has_binding this:= expected_value) ring context)
-                               []])))
+                                                        [{.:Right expected_value}
+                                                         {.:Left this_link}]
+                                                        (monad.let !
+                                                                   [ring (..ring this_link context)]
+                                                                   (pure (list [(list.mix (has_binding this:= expected_value) ring context)
+                                                                                []])))
 
-                [{.:Left expected_link}
-                 {.:Right this_value}]
-                (monad.let !
-                  [ring (..ring expected_link context)]
-                  (pure (list [(list.mix (has_binding expected:= this_value) ring context)
-                               []])))
+                                                        [{.:Left expected_link}
+                                                         {.:Right this_value}]
+                                                        (monad.let !
+                                                                   [ring (..ring expected_link context)]
+                                                                   (pure (list [(list.mix (has_binding expected:= this_value) ring context)
+                                                                                []])))
 
-                [{.:Left expected_link}
-                 {.:Left this_link}]
-                (monad.let !
-                  [this_ring (..ring this_link context)
-                   expected_ring (..ring expected_link context)
-                   context (connected this_ring expected_ring context)]
-                  (pure (list [context []])))))))))
+                                                        [{.:Left expected_link}
+                                                         {.:Left this_link}]
+                                                        (monad.let !
+                                                                   [this_ring (..ring this_link context)
+                                                                    expected_ring (..ring expected_link context)
+                                                                    context (connected this_ring expected_ring context)]
+                                                                   (pure (list [context []])))))))))
 
-  (the class_of_variable
-    (for_any (_ it)
-      ((Term' it) (Variable it)))
-    [:value (object.method
-              (function (_ next again [this []])
-                (function (_ context)
-                  (when (dictionary.value (nominal.as (object.state this))
-                                          context)
-                    {try.:Success [this:= {.:Right this_value}]}
-                    (list [context this_value])
+               (the class_of_variable
+                    (for_any (_ it)
+                             ((Term' it) (Variable it)))
+                    [:value (object.method
+                             (function (_ next again [this []])
+                                       (function (_ context)
+                                                 (when (dictionary.value (nominal.as (object.state this))
+                                                                         context)
+                                                       {try.:Success [this:= {.:Right this_value}]}
+                                                       (list [context this_value])
 
-                    _
-                    (list)))))
-     :unified (object.method
-                (function (_ next again [this [expected]])
-                  (when (object.as (object.class this) expected)
-                    {.:Some expected}
-                    (let [expected_id (object.state expected)]
-                      (unified_variables expected_id this))
+                                                       _
+                                                       (list)))))
+                     :unified (object.method
+                               (function (_ next again [this [expected]])
+                                         (when (object.as (object.class this) expected)
+                                               {.:Some expected}
+                                               (let [expected_id (object.state expected)]
+                                                    (unified_variables expected_id this))
 
-                    {.:None}
-                    (monad.let ..monad
-                      [expected_value (..value expected)]
-                      (function (_ context)
-                        (let [id (object.state this)]
-                          (<| (try.else (list))
-                              (is (Try (List [Context Any])))
-                              (monad.let try.monad
-                                [[this:= this_value] (binding id context)]
-                                (pure (when this_value
-                                        {.:Right this_value}
-                                        (if (by this:= = expected_value this_value)
-                                            (list [context this_value])
-                                            (list))
+                                               {.:None}
+                                               (monad.let ..monad
+                                                          [expected_value (..value expected)]
+                                                          (function (_ context)
+                                                                    (let [id (object.state this)]
+                                                                         (<| (try.else (list))
+                                                                             (is (Try (List [Context Any])))
+                                                                             (monad.let try.monad
+                                                                                        [[this:= this_value] (binding id context)]
+                                                                                        (pure (when this_value
+                                                                                                    {.:Right this_value}
+                                                                                                    (if (by this:= = expected_value this_value)
+                                                                                                        (list [context this_value])
+                                                                                                        (list))
 
-                                        {.:Left link}
-                                        (list [(dictionary.has (nominal.as id)
-                                                               [this:= {.:Right expected_value}]
-                                                               context)
-                                               []])))))))))))])
+                                                                                                    {.:Left link}
+                                                                                                    (list [(dictionary.has (nominal.as id)
+                                                                                                                           [this:= {.:Right expected_value}]
+                                                                                                                           context)
+                                                                                                           []])))))))))))])
 
-  (the .public (variable equality)
-    (for_any (_ it)
-      (-> (Equality it)
-          (Logic (Term it))))
-    (function (_ context)
-      (let [id (dictionary.size context)]
-        (list [(dictionary.has id [equality {.:Left id}] context)
-               (object ..class_of_variable (nominal.of id))]))))
-  )
+               (the .public (variable equality)
+                    (for_any (_ it)
+                             (-> (Equality it)
+                                 (Logic (Term it))))
+                    (function (_ context)
+                              (let [id (dictionary.size context)]
+                                   (list [(dictionary.has id [equality {.:Left id}] context)
+                                          (object ..class_of_variable (nominal.of id))]))))
+               )

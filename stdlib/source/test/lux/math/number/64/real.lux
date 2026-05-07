@@ -38,375 +38,375 @@
       ["[0]" unit]]]]]])
 
 (the (positive range)
-  (-> Natural
-      (Random Real))
-  (by random.monad each
-      (|>> (n.% (++ range))
-           n.real
-           (/./ (n.real range)))
-      random.natural))
+     (-> Natural
+         (Random Real))
+     (by random.monad each
+         (|>> (n.% (++ range))
+              n.real
+              (/./ (n.real range)))
+         random.natural))
 
 (the (random range)
-  (-> Natural
-      (Random Real))
-  (monad.let random.monad
-    [magnitude (..positive range)
-     positive? random.bit]
-    (pure (if positive?
-              magnitude
-              (/.opposite magnitude)))))
+     (-> Natural
+         (Random Real))
+     (monad.let random.monad
+                [magnitude (..positive range)
+                 positive? random.bit]
+                (pure (if positive?
+                          magnitude
+                          (/.opposite magnitude)))))
 
 (the constant
-  Test
-  (monad.let random.monad
-    [sample random.unit_real]
-    (all _.and
-         (_.coverage [/.biggest]
-           (/.<= /.biggest sample))
-         (_.coverage [/.positive_infinity]
-           (/.< /.positive_infinity sample))
-         (_.coverage [/.smallest]
-           (bit.= (/.positive? sample)
-                  (/.>= /.smallest sample)))
-         (_.coverage [/.negative_infinity]
-           (/.> /.negative_infinity sample))
-         (_.coverage [/.not_a_number /.not_a_number?]
-           (and (/.not_a_number? /.not_a_number)
-                (not (or (/.= /.not_a_number sample)
-                         (/.not_a_number? sample)))))
-         )))
+     Test
+     (monad.let random.monad
+                [sample random.unit_real]
+                (all _.and
+                     (_.coverage [/.biggest]
+                                 (/.<= /.biggest sample))
+                     (_.coverage [/.positive_infinity]
+                                 (/.< /.positive_infinity sample))
+                     (_.coverage [/.smallest]
+                                 (bit.= (/.positive? sample)
+                                        (/.>= /.smallest sample)))
+                     (_.coverage [/.negative_infinity]
+                                 (/.> /.negative_infinity sample))
+                     (_.coverage [/.not_a_number /.not_a_number?]
+                                 (and (/.not_a_number? /.not_a_number)
+                                      (not (and/or (/.= /.not_a_number sample)
+                                                   (/.not_a_number? sample)))))
+                     )))
 
 (the predicate
-  Test
-  (monad.let [! random.monad]
-    [sample (..random 1,000,000)
-     shift (by ! each /.absolute (..random 1,000,000))]
-    (all _.and
-         (_.coverage [/.negative?]
-           (bit.= (/.negative? sample)
-                  (/.< +0.0 sample)))
-         (_.coverage [/.positive?]
-           (bit.= (/.positive? sample)
-                  (/.> +0.0 sample)))
-         (_.coverage [/.zero?]
-           (bit.= (/.zero? sample)
-                  (/.= +0.0 sample)))
-         (_.coverage [/.approximately?]
-           (and (/.approximately? /.smallest sample sample)
-                (/.approximately? (/.+ +1.0 shift) sample (/.+ shift sample))))
-         (_.coverage [/.number?]
-           (and (not (/.number? /.not_a_number))
-                (not (/.number? /.positive_infinity))
-                (not (/.number? /.negative_infinity))
-                (/.number? sample)))
-         )))
+     Test
+     (monad.let [! random.monad]
+                [sample (..random 1,000,000)
+                 shift (by ! each /.absolute (..random 1,000,000))]
+                (all _.and
+                     (_.coverage [/.negative?]
+                                 (bit.= (/.negative? sample)
+                                        (/.< +0.0 sample)))
+                     (_.coverage [/.positive?]
+                                 (bit.= (/.positive? sample)
+                                        (/.> +0.0 sample)))
+                     (_.coverage [/.zero?]
+                                 (bit.= (/.zero? sample)
+                                        (/.= +0.0 sample)))
+                     (_.coverage [/.approximately?]
+                                 (and (/.approximately? /.smallest sample sample)
+                                      (/.approximately? (/.+ +1.0 shift) sample (/.+ shift sample))))
+                     (_.coverage [/.number?]
+                                 (and (not (/.number? /.not_a_number))
+                                      (not (/.number? /.positive_infinity))
+                                      (not (/.number? /.negative_infinity))
+                                      (/.number? sample)))
+                     )))
 
 (the conversion
-  Test
-  (all _.and
-       (monad.let [! random.monad]
-         [expected (by ! each (n.% 1,000,000) random.natural)]
-         (_.coverage [/.natural]
-           (|> expected n.real /.natural (n.= expected))))
-       (monad.let [! random.monad]
-         [expected (by ! each (i.% +1,000,000) random.integer)]
-         (_.coverage [/.integer]
-           (|> expected i.real /.integer (i.= expected))))
-       (monad.let [! random.monad]
-         [expected (by ! each (|>> (/64.<< 52) .revolution)
-                       random.natural)]
-         (_.coverage [/.revolution]
-           (|> expected r.real /.revolution (r.= expected))))
-       ))
+     Test
+     (all _.and
+          (monad.let [! random.monad]
+                     [expected (by ! each (n.% 1,000,000) random.natural)]
+                     (_.coverage [/.natural]
+                                 (|> expected n.real /.natural (n.= expected))))
+          (monad.let [! random.monad]
+                     [expected (by ! each (i.% +1,000,000) random.integer)]
+                     (_.coverage [/.integer]
+                                 (|> expected i.real /.integer (i.= expected))))
+          (monad.let [! random.monad]
+                     [expected (by ! each (|>> (/64.<< 52) .revolution)
+                                   random.natural)]
+                     (_.coverage [/.revolution]
+                                 (|> expected r.real /.revolution (r.= expected))))
+          ))
 
 (the signature
-  Test
-  (`` (all _.and
-           (_.for [/.equality]
-                  (equalityT.spec /.equality random.unit_real))
-           (_.for [/.hash]
-                  (hashT.spec /.hash random.real))
-           (_.for [/.order /.<]
-                  (orderT.spec /.order random.unit_real))
-           (,, (template.with [<composite> <monoid>]
-                 [(_.for [<monoid> <composite>]
-                         (monoidT.spec (/.approximately? +0.000001) <monoid>
-                                       (..random 1,000,000)))]
+     Test
+     (`` (all _.and
+              (_.for [/.equality]
+                     (equalityT.spec /.equality random.unit_real))
+              (_.for [/.hash]
+                     (hashT.spec /.hash random.real))
+              (_.for [/.order /.<]
+                     (orderT.spec /.order random.unit_real))
+              (,, (template.with [<composite> <monoid>]
+                                 [(_.for [<monoid> <composite>]
+                                         (monoidT.spec (/.approximately? +0.000001) <monoid>
+                                                       (..random 1,000,000)))]
 
-                 [[/.+ /.addition]
-                  [/.x /.multiplication]
+                                 [[/.+ /.addition]
+                                  [/.x /.multiplication]
 
-                  [/.minor /.minimum]
-                  [/.major /.maximum]]))
-           (,, (template.with [<format>]
-                 [(_.for [<format>]
-                         (formatT.spec /.equality <format> random.unit_real))]
+                                  [/.minor /.minimum]
+                                  [/.major /.maximum]]))
+              (,, (template.with [<format>]
+                                 [(_.for [<format>]
+                                         (formatT.spec /.equality <format> random.unit_real))]
 
-                 [[/.base_02]
-                  [/.base_08]
-                  [/.base_10]
-                  [/.base_16]]))
-           (monad.let random.monad
-             [it random.safe_real]
-             (all _.and
-                  (_.coverage [/.delimiter]
-                    (and (text.contains? /.delimiter (by /.base_02 as it))
-                         (text.contains? /.delimiter (by /.base_08 as it))
-                         (text.contains? /.delimiter (by /.base_10 as it))
-                         (text.contains? /.delimiter (by /.base_16 as it))))
-                  (_.coverage [/.delimiter_for_exponentiation]
-                    (and (text.contains? /.delimiter_for_exponentiation (by /.base_02 as it))
-                         (text.contains? /.delimiter_for_exponentiation (by /.base_08 as it))
-                         (text.contains? /.delimiter_for_exponentiation (by /.base_10 as it))
-                         (text.contains? /.delimiter_for_exponentiation (by /.base_16 as it))))))
-           (,, (template.with [<format> ,unit]
-                 [(_.for [<format>]
-                         (let [threshold (/./ (n.real (its unit.:factor ,unit)) +1.0)]
-                           (formatT.spec (/.approximately? threshold) <format>
-                                         (..random (its unit.:factor ,unit)))))]
+                                 [[/.base_02]
+                                  [/.base_08]
+                                  [/.base_10]
+                                  [/.base_16]]))
+              (monad.let random.monad
+                         [it random.safe_real]
+                         (all _.and
+                              (_.coverage [/.delimiter]
+                                          (and (text.contains? /.delimiter (by /.base_02 as it))
+                                               (text.contains? /.delimiter (by /.base_08 as it))
+                                               (text.contains? /.delimiter (by /.base_10 as it))
+                                               (text.contains? /.delimiter (by /.base_16 as it))))
+                              (_.coverage [/.delimiter_for_exponentiation]
+                                          (and (text.contains? /.delimiter_for_exponentiation (by /.base_02 as it))
+                                               (text.contains? /.delimiter_for_exponentiation (by /.base_08 as it))
+                                               (text.contains? /.delimiter_for_exponentiation (by /.base_10 as it))
+                                               (text.contains? /.delimiter_for_exponentiation (by /.base_16 as it))))))
+              (,, (template.with [<format> ,unit]
+                                 [(_.for [<format>]
+                                         (let [threshold (/./ (n.real (its unit.:factor ,unit)) +1.0)]
+                                              (formatT.spec (/.approximately? threshold) <format>
+                                                            (..random (its unit.:factor ,unit)))))]
 
-                 [[/.degree unit.degree]
-                  [/.gradian unit.gradian]
-                  [/.per_cent unit.per_cent]
-                  [/.per_mille unit.per_mille]
-                  [/.per_myriad unit.per_myriad]]))
-           )))
+                                 [[/.degree unit.degree]
+                                  [/.gradian unit.gradian]
+                                  [/.per_cent unit.per_cent]
+                                  [/.per_mille unit.per_mille]
+                                  [/.per_myriad unit.per_myriad]]))
+              )))
 
 (target.if target.jvm
            (ffi.the java/lang/Double
-             ("static" doubleToRawLongBits [double] long)
-             ("static" longBitsToDouble [long] double))
+                    ("static" doubleToRawLongBits [double] long)
+                    ("static" longBitsToDouble [long] double))
            (these))
 
 (the margin_of_error
-  +0.0000001)
+     +0.0000001)
 
 (the test|math
-  Test
-  (all _.and
-       (monad.let [! random.monad]
-         [sample (|> random.unit_real (by ! each (/.x +1000.0)))]
-         (all _.and
-              (_.coverage [/.ceil]
-                (let [ceil'd (/.ceil sample)]
-                  (and (|> ceil'd /.integer i.real (/.= ceil'd))
-                       (/.>= sample ceil'd)
-                       (/.<= +1.0 (/.- sample ceil'd)))))
-              (_.coverage [/.floor]
-                (let [floor'd (/.floor sample)]
-                  (and (|> floor'd /.integer i.real (/.= floor'd))
-                       (/.<= sample floor'd)
-                       (/.<= +1.0 (/.- floor'd sample)))))
-              (_.coverage [/.round]
-                (let [round'd (/.round sample)]
-                  (and (|> round'd /.integer i.real (/.= round'd))
-                       (/.<= +1.0 (/.absolute (/.- sample round'd))))))
-              (_.coverage [/.root_2]
-                (let [sample (/.absolute sample)]
-                  (|> sample
-                      /.root_2
-                      (/.^ +2.0)
-                      (/.approximately? ..margin_of_error sample))))
-              (_.coverage [/.root_3]
-                (|> sample
-                    /.root_3
-                    (/.^ +3.0)
-                    (/.approximately? ..margin_of_error sample)))
-              ))
-       (monad.let [! random.monad]
-         [.let [~= (/.approximately? ..margin_of_error)]
-          sample (by ! each (/.x +10.0) random.unit_real)
-          power (by ! each (|>> (n.% 10) ++ n.real) random.natural)]
-         (all _.and
-              (_.coverage [/.exp /.log]
-                (|> sample /.exp /.log (/.approximately? +0.000000000000001 sample)))
-              (_.coverage [/.e]
-                (~= +1.0 (/.log /.e)))
-              (_.coverage [/.^ /.log_by]
-                (let [sample (/.absolute sample)]
-                  (|> sample
-                      (/.^ power)
-                      (/.log_by sample)
-                      (~= power))))
-              ))
-       (monad.let [! random.monad]
-         [of (by ! each (|>> (n.% 10) ++) random.natural)]
-         (_.coverage [/.factorial]
-           (and (n.= 1 (/.factorial 0))
-                (|> (/.factorial of) (n.% of) (n.= 0)))))
-       ))
+     Test
+     (all _.and
+          (monad.let [! random.monad]
+                     [sample (|> random.unit_real (by ! each (/.x +1000.0)))]
+                     (all _.and
+                          (_.coverage [/.ceil]
+                                      (let [ceil'd (/.ceil sample)]
+                                           (and (|> ceil'd /.integer i.real (/.= ceil'd))
+                                                (/.>= sample ceil'd)
+                                                (/.<= +1.0 (/.- sample ceil'd)))))
+                          (_.coverage [/.floor]
+                                      (let [floor'd (/.floor sample)]
+                                           (and (|> floor'd /.integer i.real (/.= floor'd))
+                                                (/.<= sample floor'd)
+                                                (/.<= +1.0 (/.- floor'd sample)))))
+                          (_.coverage [/.round]
+                                      (let [round'd (/.round sample)]
+                                           (and (|> round'd /.integer i.real (/.= round'd))
+                                                (/.<= +1.0 (/.absolute (/.- sample round'd))))))
+                          (_.coverage [/.root_2]
+                                      (let [sample (/.absolute sample)]
+                                           (|> sample
+                                               /.root_2
+                                               (/.^ +2.0)
+                                               (/.approximately? ..margin_of_error sample))))
+                          (_.coverage [/.root_3]
+                                      (|> sample
+                                          /.root_3
+                                          (/.^ +3.0)
+                                          (/.approximately? ..margin_of_error sample)))
+                          ))
+          (monad.let [! random.monad]
+                     [.let [~= (/.approximately? ..margin_of_error)]
+                      sample (by ! each (/.x +10.0) random.unit_real)
+                      power (by ! each (|>> (n.% 10) ++ n.real) random.natural)]
+                     (all _.and
+                          (_.coverage [/.exp /.log]
+                                      (|> sample /.exp /.log (/.approximately? +0.000000000000001 sample)))
+                          (_.coverage [/.e]
+                                      (~= +1.0 (/.log /.e)))
+                          (_.coverage [/.^ /.log_by]
+                                      (let [sample (/.absolute sample)]
+                                           (|> sample
+                                               (/.^ power)
+                                               (/.log_by sample)
+                                               (~= power))))
+                          ))
+          (monad.let [! random.monad]
+                     [of (by ! each (|>> (n.% 10) ++) random.natural)]
+                     (_.coverage [/.factorial]
+                                 (and (n.= 1 (/.factorial 0))
+                                      (|> (/.factorial of) (n.% of) (n.= 0)))))
+          ))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (_.for [.Real .F64 .Double])
-      (monad.let random.monad
-        [expected random.safe_real])
-      (`` (all _.and
-               (_.coverage [/.Number]
-                 (identical? .Real /.Number))
-               (_.coverage [/.=]
-                 (and (not (/.= /.not_a_number /.not_a_number))
-                      (with /.equality
-                        (= /.not_a_number /.not_a_number))))
-               (_.coverage [/.zero]
-                 (/.= expected (/.+ /.zero expected)))
-               (_.coverage [/.positive_one]
-                 (/.= expected (/.x /.positive_one expected)))
-               (_.coverage [/.negative_one]
-                 (/.= (/.opposite /.positive_one)
-                      /.negative_one))
-               (_.coverage [/.reciprocal]
-                 (let [expected (if (or (/.= /.positive_infinity (/.reciprocal expected))
-                                        (/.= /.negative_infinity (/.reciprocal expected)))
-                                    (/.x (n.real (/64.<< 7 1)) expected)
-                                    expected)]
-                   (/.approximately? ..margin_of_error
-                                     /.positive_one 
-                                     (/.x expected (/.reciprocal expected)))))
-               (_.coverage [/.whole]
-                 (let [expected (/.% +1.0e+18 expected)]
-                   (/.= (i.real (/.integer expected))
-                        (/.whole expected))))
-               (_.coverage [/.partial]
-                 (/.= (/.- (/.whole expected) expected)
-                      (/.partial expected)))
-               (monad.let random.monad
-                 [left random.unit_real
-                  right random.unit_real]
-                 (all _.and
-                      (_.coverage [/.>]
-                        (bit.= (/.> left right)
-                               (/.< right left)))
-                      (_.coverage [/.<= /.>=]
-                        (bit.= (/.<= left right)
-                               (/.>= right left)))
-                      ))
-               (monad.let random.monad
-                 [sample random.unit_real]
-                 (all _.and
-                      (_.coverage [/.-]
-                        (and (/.= +0.0 (/.- sample sample))
-                             (/.= sample (/.- +0.0 sample))
-                             (/.= (/.opposite sample)
-                                  (/.- sample +0.0))))
-                      (_.coverage [/./]
-                        (and (/.= +1.0 (/./ sample sample))
-                             (/.= sample (/./ +1.0 sample))))
-                      (_.coverage [/.absolute]
-                        (bit.= (/.> sample (/.absolute sample))
-                               (/.negative? sample)))
-                      (_.coverage [/.signum]
-                        (/.= (/.absolute sample)
-                             (/.x (/.signum sample) sample)))
-                      ))
-               (monad.let random.monad
-                 [left (random.only (|>> (/.= +0.0) not)
-                                    (..random 1,000,000))
-                  right (..random 1,000,000)]
-                 (all _.and
-                      (_.coverage [/.%]
-                        (let [rem (/.% left right)
-                              div (|> right (/.- rem) (/./ left))]
-                          (/.approximately? +0.0000000001
-                                            right
-                                            (|> div (/.x left) (/.+ rem)))))
-                      (_.coverage [/./%]
-                        (let [[div rem] (/./% left right)]
-                          (and (/.= div (/./ left right))
-                               (/.= rem (/.% left right)))))
-                      (_.coverage [/.modulo]
-                        (or (and (/.= +0.0 (/.% left right))
-                                 (/.= +0.0 (/.modulo left right)))
-                            (and (/.= (/.signum left)
-                                      (/.signum (/.modulo left right)))
-                                 (/.= (/.signum right)
-                                      (/.signum (/.% left right)))
-                                 (if (/.= (/.signum left) (/.signum right))
-                                     (/.= (/.% left right)
-                                          (/.modulo left right))
-                                     (/.= (/.+ left (/.% left right))
-                                          (/.modulo left right))))))
-                      ))
-               (target.if target.jvm
-                          (all _.and
-                               (let [test (is (-> Real Bit)
-                                              (function (_ value)
-                                                (n.= (.natural (ffi.of_long (java/lang/Double:doubleToRawLongBits [(ffi.as_double value)])))
-                                                     (/.bits value))))]
-                                 (monad.let random.monad
-                                   [sample random.real]
-                                   (_.coverage [/.bits]
-                                     (and (test sample)
-                                          (test /.biggest)
-                                          (test /.smallest)
-                                          (test /.not_a_number)
-                                          (test /.positive_infinity)
-                                          (test /.negative_infinity)))))
-                               (monad.let random.monad
-                                 [sample random.i64]
-                                 (_.coverage [/.of_bits]
-                                   (let [expected (ffi.of_double (java/lang/Double:longBitsToDouble [(ffi.as_long sample)]))
-                                         actual (/.of_bits sample)]
-                                     (or (/.= expected actual)
-                                         (and (/.not_a_number? expected)
-                                              (/.not_a_number? actual))))))
-                               )
-                          (let [test (is (-> Real Bit)
-                                         (function (_ expected)
-                                           (let [actual (|> expected /.bits /.of_bits)]
-                                             (or (/.= expected actual)
-                                                 (and (/.not_a_number? expected)
-                                                      (/.not_a_number? actual))))))]
-                            (monad.let random.monad
-                              [sample random.real]
-                              (_.coverage [/.bits /.of_bits]
-                                (and (test sample)
-                                     (test /.biggest)
-                                     (test /.smallest)
-                                     (test /.not_a_number)
-                                     (test /.positive_infinity)
-                                     (test /.negative_infinity))))))
-               (monad.let random.monad
-                 [expected random.unit_real]
-                 (_.coverage [/.opposite]
-                   (let [subtraction!
-                         (/.= +0.0 (/.+ (/.opposite expected) expected))
+     Test
+     (<| (_.covering /._)
+         (_.for [.Real .F64 .Double])
+         (monad.let random.monad
+                    [expected random.safe_real])
+         (`` (all _.and
+                  (_.coverage [/.Number]
+                              (identical? .Real /.Number))
+                  (_.coverage [/.=]
+                              (and (not (/.= /.not_a_number /.not_a_number))
+                                   (with /.equality
+                                         (= /.not_a_number /.not_a_number))))
+                  (_.coverage [/.zero]
+                              (/.= expected (/.+ /.zero expected)))
+                  (_.coverage [/.positive_one]
+                              (/.= expected (/.x /.positive_one expected)))
+                  (_.coverage [/.negative_one]
+                              (/.= (/.opposite /.positive_one)
+                                   /.negative_one))
+                  (_.coverage [/.reciprocal]
+                              (let [expected (if (and/or (/.= /.positive_infinity (/.reciprocal expected))
+                                                         (/.= /.negative_infinity (/.reciprocal expected)))
+                                                 (/.x (n.real (/64.<< 7 1)) expected)
+                                                 expected)]
+                                   (/.approximately? ..margin_of_error
+                                                     /.positive_one 
+                                                     (/.x expected (/.reciprocal expected)))))
+                  (_.coverage [/.whole]
+                              (let [expected (/.% +1.0e+18 expected)]
+                                   (/.= (i.real (/.integer expected))
+                                        (/.whole expected))))
+                  (_.coverage [/.partial]
+                              (/.= (/.- (/.whole expected) expected)
+                                   (/.partial expected)))
+                  (monad.let random.monad
+                             [left random.unit_real
+                              right random.unit_real]
+                             (all _.and
+                                  (_.coverage [/.>]
+                                              (bit.= (/.> left right)
+                                                     (/.< right left)))
+                                  (_.coverage [/.<= /.>=]
+                                              (bit.= (/.<= left right)
+                                                     (/.>= right left)))
+                                  ))
+                  (monad.let random.monad
+                             [sample random.unit_real]
+                             (all _.and
+                                  (_.coverage [/.-]
+                                              (and (/.= +0.0 (/.- sample sample))
+                                                   (/.= sample (/.- +0.0 sample))
+                                                   (/.= (/.opposite sample)
+                                                        (/.- sample +0.0))))
+                                  (_.coverage [/./]
+                                              (and (/.= +1.0 (/./ sample sample))
+                                                   (/.= sample (/./ +1.0 sample))))
+                                  (_.coverage [/.absolute]
+                                              (bit.= (/.> sample (/.absolute sample))
+                                                     (/.negative? sample)))
+                                  (_.coverage [/.signum]
+                                              (/.= (/.absolute sample)
+                                                   (/.x (/.signum sample) sample)))
+                                  ))
+                  (monad.let random.monad
+                             [left (random.only (|>> (/.= +0.0) not)
+                                                (..random 1,000,000))
+                              right (..random 1,000,000)]
+                             (all _.and
+                                  (_.coverage [/.%]
+                                              (let [rem (/.% left right)
+                                                    div (|> right (/.- rem) (/./ left))]
+                                                   (/.approximately? +0.0000000001
+                                                                     right
+                                                                     (|> div (/.x left) (/.+ rem)))))
+                                  (_.coverage [/./%]
+                                              (let [[div rem] (/./% left right)]
+                                                   (and (/.= div (/./ left right))
+                                                        (/.= rem (/.% left right)))))
+                                  (_.coverage [/.modulo]
+                                              (and/or (and (/.= +0.0 (/.% left right))
+                                                           (/.= +0.0 (/.modulo left right)))
+                                                      (and (/.= (/.signum left)
+                                                                (/.signum (/.modulo left right)))
+                                                           (/.= (/.signum right)
+                                                                (/.signum (/.% left right)))
+                                                           (if (/.= (/.signum left) (/.signum right))
+                                                               (/.= (/.% left right)
+                                                                    (/.modulo left right))
+                                                               (/.= (/.+ left (/.% left right))
+                                                                    (/.modulo left right))))))
+                                  ))
+                  (target.if target.jvm
+                             (all _.and
+                                  (let [test (is (-> Real Bit)
+                                                 (function (_ value)
+                                                           (n.= (.natural (ffi.of_long (java/lang/Double:doubleToRawLongBits [(ffi.as_double value)])))
+                                                                (/.bits value))))]
+                                       (monad.let random.monad
+                                                  [sample random.real]
+                                                  (_.coverage [/.bits]
+                                                              (and (test sample)
+                                                                   (test /.biggest)
+                                                                   (test /.smallest)
+                                                                   (test /.not_a_number)
+                                                                   (test /.positive_infinity)
+                                                                   (test /.negative_infinity)))))
+                                  (monad.let random.monad
+                                             [sample random.i64]
+                                             (_.coverage [/.of_bits]
+                                                         (let [expected (ffi.of_double (java/lang/Double:longBitsToDouble [(ffi.as_long sample)]))
+                                                               actual (/.of_bits sample)]
+                                                              (and/or (/.= expected actual)
+                                                                      (and (/.not_a_number? expected)
+                                                                           (/.not_a_number? actual))))))
+                                  )
+                             (let [test (is (-> Real Bit)
+                                            (function (_ expected)
+                                                      (let [actual (|> expected /.bits /.of_bits)]
+                                                           (and/or (/.= expected actual)
+                                                                   (and (/.not_a_number? expected)
+                                                                        (/.not_a_number? actual))))))]
+                                  (monad.let random.monad
+                                             [sample random.real]
+                                             (_.coverage [/.bits /.of_bits]
+                                                         (and (test sample)
+                                                              (test /.biggest)
+                                                              (test /.smallest)
+                                                              (test /.not_a_number)
+                                                              (test /.positive_infinity)
+                                                              (test /.negative_infinity))))))
+                  (monad.let random.monad
+                             [expected random.unit_real]
+                             (_.coverage [/.opposite]
+                                         (let [subtraction!
+                                               (/.= +0.0 (/.+ (/.opposite expected) expected))
 
-                         inverse!
-                         (|> expected /.opposite /.opposite (/.= expected))]
-                     (and subtraction!
-                          inverse!))))
-               (,, (template.with [<as> <of> ,unit]
-                     [(monad.let [! random.monad]
-                        [expected (random.only (|>> /.zero? not)
-                                               (..random (its unit.:factor ,unit)))
-                         .let [threshold (/./ (n.real (its unit.:factor ,unit)) +1.0)
+                                               inverse!
+                                               (|> expected /.opposite /.opposite (/.= expected))]
+                                              (and subtraction!
+                                                   inverse!))))
+                  (,, (template.with [<as> <of> ,unit]
+                                     [(monad.let [! random.monad]
+                                                 [expected (random.only (|>> /.zero? not)
+                                                                        (..random (its unit.:factor ,unit)))
+                                                  .let [threshold (/./ (n.real (its unit.:factor ,unit)) +1.0)
 
-                               change_of_scale!
-                               (|> expected
-                                   <as>
-                                   (/.approximately? threshold expected)
-                                   not)
+                                                        change_of_scale!
+                                                        (|> expected
+                                                            <as>
+                                                            (/.approximately? threshold expected)
+                                                            not)
 
-                               iso_morphism!
-                               (|> expected
-                                   <as>
-                                   <of>
-                                   (/.approximately? threshold expected))]]
-                        (_.coverage [<as> <of>]
-                          (and change_of_scale!
-                               iso_morphism!)))]
+                                                        iso_morphism!
+                                                        (|> expected
+                                                            <as>
+                                                            <of>
+                                                            (/.approximately? threshold expected))]]
+                                                 (_.coverage [<as> <of>]
+                                                             (and change_of_scale!
+                                                                  iso_morphism!)))]
 
-                     [[/.as_degree /.of_degree unit.degree]
-                      [/.as_gradian /.of_gradian unit.gradian]
-                      [/.as_per_cent /.of_per_cent unit.per_cent]
-                      [/.as_per_mille /.of_per_mille unit.per_mille]
-                      [/.as_per_myriad /.of_per_myriad unit.per_myriad]]))
+                                     [[/.as_degree /.of_degree unit.degree]
+                                      [/.as_gradian /.of_gradian unit.gradian]
+                                      [/.as_per_cent /.of_per_cent unit.per_cent]
+                                      [/.as_per_mille /.of_per_mille unit.per_mille]
+                                      [/.as_per_myriad /.of_per_myriad unit.per_myriad]]))
 
-               ..constant
-               ..predicate
-               ..conversion
-               ..signature
-               ..test|math
-               ))))
+                  ..constant
+                  ..predicate
+                  ..conversion
+                  ..signature
+                  ..test|math
+                  ))))

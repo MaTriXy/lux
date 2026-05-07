@@ -39,630 +39,630 @@
 (the array_delimiters ..capture_delimiters)
 
 (nominal.every .public (Code it)
-  Text
+               Text
 
-  (the .public equality
-    (for_any (_ it)
-      (Equality (Code it)))
-    (implementation
-     (the (= refererence it)
-       (text.= (%> refererence)
-               (%> it)))))
+               (the .public equality
+                    (for_any (_ it)
+                             (Equality (Code it)))
+                    (implementation
+                     (the (= refererence it)
+                          (text.= (%> refererence)
+                                  (%> it)))))
 
-  (the .public manual
-    (for_any (_ it)
-      (-> Text
-          (Code it)))
-    (|>> <%))
+               (the .public manual
+                    (for_any (_ it)
+                             (-> Text
+                                 (Code it)))
+                    (|>> <%))
 
-  (the .public code
-    (-> (Code Any)
-        Text)
-    (|>> %>))
+               (the .public code
+                    (-> (Code Any)
+                        Text)
+                    (|>> %>))
 
-  (template.with [<super> <type>+]
-    [(template.with [<type> <parameter>*']
-       [(expansion.let [<parameter>* (template.spliced <parameter>*')
-                        <brand> (template.name [<type> "'"])]
-          (these (nominal.every (<brand> <parameter>*)
-                   Any)
-                 
-                 (.every .public <type>
-                   (for_some (_ <parameter>*)
-                     (<super> (<brand> <parameter>*))))))]
+               (template.with [<super> <type>+]
+                              [(template.with [<type> <parameter>*']
+                                              [(expansion.let [<parameter>* (template.spliced <parameter>*')
+                                                               <brand> (template.name [<type> "'"])]
+                                                              (these (nominal.every (<brand> <parameter>*)
+                                                                                    Any)
+                                                                     
+                                                                     (.every .public <type>
+                                                                             (for_some (_ <parameter>*)
+                                                                                       (<super> (<brand> <parameter>*))))))]
 
-       <type>+)]
+                                              <type>+)]
 
-    [[Code
-      [[Capture []]
-       [Parameter [it]]
-       [Value [it]]
-       [Statement [it]]
-       [Label [it]]]]
+                              [[Code
+                                [[Capture []]
+                                 [Parameter [it]]
+                                 [Value [it]]
+                                 [Statement [it]]
+                                 [Label [it]]]]
 
-     [Parameter
-      [[Type [it]]]]
-     
-     [Type
-      [[Type_Name []]]]
+                               [Parameter
+                                [[Type [it]]]]
+                               
+                               [Type
+                                [[Type_Name []]]]
 
-     [Value
-      [[LValue [it]]
-       [RValue [it]]]]
+                               [Value
+                                [[LValue [it]]
+                                 [RValue [it]]]]
 
-     [LValue
-      [[Local []]
-       [Global []]]]
+                               [LValue
+                                [[Local []]
+                                 [Global []]]]
 
-     [RValue
-      [[PRValue []]
-       [Instantiation []]
-       [Initializer_List []]]]
+                               [RValue
+                                [[PRValue []]
+                                 [Instantiation []]
+                                 [Initializer_List []]]]
 
-     [Statement
-      [[Declaration [it]]
-       [Block []]]]
+                               [Statement
+                                [[Declaration [it]]
+                                 [Block []]]]
 
-     [Declaration
-      [[Definition [it]]]]])
+                               [Declaration
+                                [[Definition [it]]]]])
 
-  (the .public Expression
-    Value)
+               (the .public Expression
+                    Value)
 
-  (the .public Address
-    LValue)
+               (the .public Address
+                    LValue)
 
-  (the .public Computation
-    RValue)
+               (the .public Computation
+                    RValue)
 
-  (the .public Pure
-    PRValue)
+               (the .public Pure
+                    PRValue)
 
-  (the .public null
-    Pure
-    (<% "nullptr"))
+               (the .public null
+                    Pure
+                    (<% "nullptr"))
 
-  (the .public this
-    Pure
-    (<% "this"))
+               (the .public this
+                    Pure
+                    (<% "this"))
 
-  (the .public bool
-    (-> Bit
-        Pure)
-    (|>> (|.when
-           .false "false"
-           .true "true")
-         <%))
+               (the .public bool
+                    (-> Bit
+                        Pure)
+                    (|>> (|.when
+                          .false "false"
+                          .true "true")
+                         <%))
 
-  (the .public double
-    (-> Real
-        Pure)
-    (|>> (|.if [(r.= r.positive_infinity)]
-               [(|.new "(+1.0/0.0)" [])]
-               
-               [(r.= r.negative_infinity)]
-               [(|.new "(-1.0/0.0)" [])]
-               
-               [(r.= r.not_a_number)]
-               [(|.new "(0.0/0.0)" [])]
+               (the .public double
+                    (-> Real
+                        Pure)
+                    (|>> (|.if [(r.= r.positive_infinity)]
+                               [(|.new "(+1.0/0.0)" [])]
+                               
+                               [(r.= r.negative_infinity)]
+                               [(|.new "(-1.0/0.0)" [])]
+                               
+                               [(r.= r.not_a_number)]
+                               [(|.new "(0.0/0.0)" [])]
 
-               ... else
-               [%.real])
-         <%))
+                               ... else
+                               [%.real])
+                         <%))
 
-  (.every .public Namespace
-    Text)
+               (.every .public Namespace
+                       Text)
 
-  (the .public standard
-    Namespace
-    "std")
+               (the .public standard
+                    Namespace
+                    "std")
 
-  (the .public local
-    (-> Text
-        Local)
-    (|>> <%))
+               (the .public local
+                    (-> Text
+                        Local)
+                    (|>> <%))
 
-  (the instantiation
-    (-> (List Parameter)
-        Text)
-    (|>> (|.when
-           (list)
-           ""
+               (the instantiation
+                    (-> (List Parameter)
+                        Text)
+                    (|>> (|.when
+                          (list)
+                          ""
 
-           it
-           (|> it
-               (list:each ..code)
-               (text.interposed ..parameter_delimiter)
-               (text.enclosed ..template_delimiters)))))
+                          it
+                          (|> it
+                              (list:each ..code)
+                              (text.interposed ..parameter_delimiter)
+                              (text.inside ..template_delimiters)))))
 
-  (the .public (global [ns/* name] parameters)
-    (-> [(List Namespace) Text] (List Parameter)
-        Global)
-    (<% (let [instance (text name (instantiation parameters))]
-          (when ns/*
-            (list) instance
-            _ (text (text.interposed ..namespace_delimiter ns/*)
-                    ..namespace_delimiter
-                    instance)))))
+               (the .public (global [ns/* name] parameters)
+                    (-> [(List Namespace) Text] (List Parameter)
+                        Global)
+                    (<% (let [instance (text name (instantiation parameters))]
+                             (when ns/*
+                                   (list) instance
+                                   _ (text (text.interposed ..namespace_delimiter ns/*)
+                                           ..namespace_delimiter
+                                           instance)))))
 
-  (the .public type
-    (-> Address
-        Type)
-    (|>> nominal.transmutation))
+               (the .public type
+                    (-> Address
+                        Type)
+                    (|>> nominal.transmutation))
 
-  (the .public type_name
-    (-> Text
-        Type_Name)
-    (|>> <%))
+               (the .public type_name
+                    (-> Text
+                        Type_Name)
+                    (|>> <%))
 
-  (template.with [<prefix> <type> <name>]
-    [(the .public <name>
-       (-> Expression
-           <type>)
-       (|>> %>
-            (text.prefix <prefix>)
-            <%))]
+               (template.with [<prefix> <type> <name>]
+                              [(the .public <name>
+                                    (-> Expression
+                                        <type>)
+                                    (|>> %>
+                                         (text.prefix <prefix>)
+                                         <%))]
 
-    [["*" Address at]
-     ["&" Pure address]])
+                              [["*" Address at]
+                               ["&" Pure address]])
 
-  (the term
-    (-> Text
-        Text)
-    (text.enclosed ..term_delimiters))
+               (the term
+                    (-> Text
+                        Text)
+                    (text.inside ..term_delimiters))
 
-  (the term?
-    (Predicate Expression)
-    (|>> %>
-         (text.enclosed? ..term_delimiters)))
+               (the term?
+                    (Predicate Expression)
+                    (|>> %>
+                         (text.inside? ..term_delimiters)))
 
-  (the .public (is type term)
-    (-> Type Expression
-        Computation)
-    (<| <%
-        ..term
-        (text (..term (%> type))
-              " " (%> term))))
+               (the .public (is type term)
+                    (-> Type Expression
+                        Computation)
+                    (<| <%
+                        ..term
+                        (text (..term (%> type))
+                              " " (%> term))))
 
-  (the .public int
-    (-> Integer
-        Pure)
-    (|>> %.integer
-         <%))
+               (the .public int
+                    (-> Integer
+                        Pure)
+                    (|>> %.integer
+                         <%))
 
-  (the application
-    (-> (List Expression)
-        Text)
-    (|>> (list:each ..code)
-         (text.interposed ..parameter_delimiter)
-         (text.enclosed ..term_delimiters)))
-
-  (the .public (of parameters function)
-    (-> (List Expression) Expression
-        Expression)
-    (<% (text (%> function) (application parameters))))
-
-  (the .public (of parameters constructor)
-    (-> (List Expression) Type
-        Instantiation)
-    (<% (text (%> constructor) (application parameters))))
-
-  (the .public initializer_list
-    (-> (List Expression)
-        Initializer_List)
-    (|>> (list:each ..code)
-         (text.interposed ..parameter_delimiter)
-         (text.enclosed ..initializer_list_delimiters)
-         <%))
-
-  (the .public (structure name parameters)
-    (-> Type (List Expression)
-        Instantiation)
-    (<% (text (%> name)
-              (%> (initializer_list parameters)))))
-
-  (the .public (array type arity initials)
-    (-> Type Expression (List Expression)
-        Instantiation)
-    (<% (text (%> type)
-              (text.enclosed ..array_delimiters (%> arity))
-              " " (%> (initializer_list initials)))))
-
-  (the .public (new it)
-    (-> Instantiation
-        Expression)
-    (<% (text "new " (%> it))))
-
-  (the .public (do method types parameters object)
-    (-> Text (List Type) (List Expression) Expression
-        Expression)
-    (<% (text (%> object) "." method (instantiation types) (application parameters))))
-
-  (the .public (<< it to)
-    (-> Expression Expression
-        Expression)
-    (<% (text (%> to) " << " (%> it))))
-
-  (the .public (include it)
-    (-> Text
-        Declaration)
-    (<% (text "#include <" it ">")))
-
-  (template.with [<name> <type>]
-    [(the .public (<name> before after)
-       (-> <type> <type>
-           <type>)
-       (<% (text (%> before)
-                 \n (%> after))))]
-
-    [[then Statement]
-     [also Declaration]])
-
-  (the .public (, before after)
-    (-> Expression Expression
-        Expression)
-    (<| <%
-        (text.enclosed ..term_delimiters)
-        (text (%> before)
-              ..parameter_delimiter
-              (%> after))))
-
-  (the statement
-    (for_any (_ it)
-      (-> Text
-          (Statement it)))
-    (|>> (text.suffix ..statement_delimiter)
-         <%))
-
-  (the .public ;
-    (-> Expression
-        Statement)
-    (|>> %>
-         ..statement))
-
-  (the .public return
-    (-> Expression
-        Statement)
-    (|>> %>
-         (text "return ")
-         ..statement))
-
-  (template.with [<name> <command>]
-    [(the .public <name>
-       (-> Expression
-           Statement)
-       (|>> %>
-            (text <command> " ")
-            ..statement))]
-
-    [[delete "delete"]
-     [delete_array "delete[]"]])
-
-  (.every Argument
-    [Local Type])
-
-  (the (argument [it type])
-    (-> Argument
-        Text)
-    (text (%> type) " " (%> it)))
-
-  (the arguments
-    (-> (List Argument)
-        Text)
-    (|>> (list:each ..argument)
-         (text.interposed ..parameter_delimiter)
-         (text.enclosed ..term_delimiters)))
-
-  (the .public block
-    (-> Statement
-        Block)
-    (let [\n\t (text \n \t)
-          <| (text "{" \n\t)
-          |> (text \n "}")]
-      (|>> %>
-           (text.replaced \n \n\t)
-           (text.enclosed [<| |>])
-           <%)))
-
-  (the template
-    (-> (List Type_Name)
-        Text)
-    (|>> (|.when
-           (list)
-           ""
-           
-           it
-           (text "template"
-                 " " (|> it
-                         (list:each (|>> %> (text "typename ")))
+               (the application
+                    (-> (List Expression)
+                        Text)
+                    (|>> (list:each ..code)
                          (text.interposed ..parameter_delimiter)
-                         (text.enclosed ..template_delimiters))
-                 " "))))
+                         (text.inside ..term_delimiters)))
 
-  (the .public (function name types inputs output body)
-    (-> Local (List Type_Name) (List Argument) Type Statement
-        Definition)
-    (<% (text (..template types)
-              (%> output) " " (%> name) (..arguments inputs)
-              " " (%> (..block body)))))
+               (the .public (of parameters function)
+                    (-> (List Expression) Expression
+                        Expression)
+                    (<% (text (%> function) (application parameters))))
 
-  (the .public (namespace it body)
-    (-> (Maybe Namespace) Declaration
-        Declaration)
-    (<% (text "namespace"
-              (when it
-                {.:Some it}
-                (text " " it)
+               (the .public (of parameters constructor)
+                    (-> (List Expression) Type
+                        Instantiation)
+                    (<% (text (%> constructor) (application parameters))))
 
-                _
-                "")
-              " " (%> (..block body)))))
+               (the .public initializer_list
+                    (-> (List Expression)
+                        Initializer_List)
+                    (|>> (list:each ..code)
+                         (text.interposed ..parameter_delimiter)
+                         (text.inside ..initializer_list_delimiters)
+                         <%))
 
-  (template.with [<name>]
-    [(the .public (<name> it)
-       (-> Expression
-           Expression)
-       (..of (list it)
-             (<% (template.text [<name>]))))]
+               (the .public (structure name parameters)
+                    (-> Type (List Expression)
+                        Instantiation)
+                    (<% (text (%> name)
+                              (%> (initializer_list parameters)))))
 
-    [[int64_t]])
+               (the .public (array type arity initials)
+                    (-> Type Expression (List Expression)
+                        Instantiation)
+                    (<% (text (%> type)
+                              (text.inside ..array_delimiters (%> arity))
+                              " " (%> (initializer_list initials)))))
 
-  (the safe
-    (-> Text
-        Text)
-    (let [\\'' (text "\" text.\'')]
-      (`` (|>> (,, (template.with [<find> <replace>]
-                     [(text.replaced <find> <replace>)]
+               (the .public (new it)
+                    (-> Instantiation
+                        Expression)
+                    (<% (text "new " (%> it))))
 
-                     [["\" "\\"]
-                      [text.\t "\t"]
-                      [text.\v "\v"]
-                      [text.\0 "\0"]
-                      [text.\b "\b"]
-                      [text.\f "\f"]
-                      [text.\n "\n"]
-                      [text.\r "\r"]
-                      [text.\'' \\'']]))
-               ))))
+               (the .public (do method types parameters object)
+                    (-> Text (List Type) (List Expression) Expression
+                        Expression)
+                    (<% (text (%> object) "." method (instantiation types) (application parameters))))
 
-  (template.with [<name> <prefix>]
-    [(the .public <name>
-       (-> Text
-           Address)
-       (|>> ..safe
-            %.text
-            <prefix>
-            <%))]
+               (the .public (<< it to)
+                    (-> Expression Expression
+                        Expression)
+                    (<% (text (%> to) " << " (%> it))))
 
-    [[u32_string (text "U")]
-     [u16_string (text "u")]
-     [string <|]])
+               (the .public (include it)
+                    (-> Text
+                        Declaration)
+                    (<% (text "#include <" it ">")))
 
-  (.every Method
-    (-> Local
-        Definition))
+               (template.with [<name> <type>]
+                              [(the .public (<name> before after)
+                                    (-> <type> <type>
+                                        <type>)
+                                    (<% (text (%> before)
+                                              \n (%> after))))]
 
-  (the .public (destructor body)
-    (-> Statement
-        Method)
-    (.function (_ of)
-      (<% (text "~" (%> of) "()"
-                " " (%> (block body))))))
+                              [[then Statement]
+                               [also Declaration]])
 
-  (the .public (var_declaration name type)
-    (-> Local Type
-        Declaration)
-    (|> (text (%> type) " " (%> name))
-        ..statement))
+               (the .public (, before after)
+                    (-> Expression Expression
+                        Expression)
+                    (<| <%
+                        (text.inside ..term_delimiters)
+                        (text (%> before)
+                              ..parameter_delimiter
+                              (%> after))))
 
-  (the .public (constant name type value)
-    (-> Local Type Expression
-        Definition)
-    (..statement (text (%> type) " const " (%> name) " = " (%> value))))
+               (the statement
+                    (for_any (_ it)
+                             (-> Text
+                                 (Statement it)))
+                    (|>> (text.suffix ..statement_delimiter)
+                         <%))
 
-  (the .public (constant_array name type size value)
-    (-> Local Type Pure Expression
-        Definition)
-    (..statement (text (%> type) " const " (%> name)
-                       (text.enclosed ..array_delimiters (%> size))
-                       " = " (%> value))))
+               (the .public ;
+                    (-> Expression
+                        Statement)
+                    (|>> %>
+                         ..statement))
 
-  (the .public (variable name type value)
-    (-> Local Type Expression
-        Definition)
-    (..statement (text (%> type) " " (%> name) " = " (%> value))))
+               (the .public return
+                    (-> Expression
+                        Statement)
+                    (|>> %>
+                         (text "return ")
+                         ..statement))
 
-  (the .public (:= location value)
-    (-> Address Expression
-        Address)
-    (<% (text (%> location) " = " (%> value))))
+               (template.with [<name> <command>]
+                              [(the .public <name>
+                                    (-> Expression
+                                        Statement)
+                                    (|>> %>
+                                         (text <command> " ")
+                                         ..statement))]
 
-  (the .public (structure_definition name types [fields methods])
-    (-> Local (List Type_Name) [(List [Local Type]) (List Method)]
-        Definition)
-    (..statement
-     (text (..template types) "struct"
-           " " (%> name)
-           " " (|> (all list:composite
-                        (list:each (.function (_ [name type])
-                                     (%> (var_declaration name type)))
-                                   fields)
-                        (list:each (.function (_ it)
-                                     (..code (it name)))
-                                   methods))
-                   (text.interposed \n)
-                   <%
-                   ..block
-                   %>))))
+                              [[delete "delete"]
+                               [delete_array "delete[]"]])
 
-  (the .public (enum_definition name options)
-    (-> Local (List Local)
-        Definition)
-    (..statement
-     (text "enum"
-           " " (%> name)
-           " " (|> options
-                   (list:each ..code)
-                   (text.interposed ..parameter_delimiter)
-                   <%
-                   ..block
-                   %>))))
+               (.every Argument
+                       [Local Type])
 
-  (the captures
-    (-> (List Capture)
-        Text)
-    (|>> (list:each ..code)
-         (text.interposed ..parameter_delimiter)
-         (text.enclosed ..capture_delimiters)))
-  
-  (template.with [<sigil> <name>]
-    [(the .public <name>
-       Capture
-       (<% <sigil>))]
+               (the (argument [it type])
+                    (-> Argument
+                        Text)
+                    (text (%> type) " " (%> it)))
 
-    [["=" all_by_value]
-     ["&" all_by_reference]])
+               (the arguments
+                    (-> (List Argument)
+                        Text)
+                    (|>> (list:each ..argument)
+                         (text.interposed ..parameter_delimiter)
+                         (text.inside ..term_delimiters)))
 
-  (the .public (alias name original)
-    (-> Local Local
-        Capture)
-    (<% (text (%> name) " = " (%> original))))
+               (the .public block
+                    (-> Statement
+                        Block)
+                    (let [\n\t (text \n \t)
+                          <| (text "{" \n\t)
+                          |> (text \n "}")]
+                         (|>> %>
+                              (text.replaced \n \n\t)
+                              (text.inside [<| |>])
+                              <%)))
 
-  (the .public (lambda captures inputs output body)
-    (-> (List Capture) (List Argument) (Maybe Type) Statement
-        Expression)
-    (<| <%
-        ..term
-        (text (..captures captures) (..arguments inputs)
-              (|> output
-                  (maybe:each (|>> %> (text " -> ")))
-                  (maybe.else ""))
-              " " (%> (..block body)))))
+               (the template
+                    (-> (List Type_Name)
+                        Text)
+                    (|>> (|.when
+                          (list)
+                          ""
+                          
+                          it
+                          (text "template"
+                                " " (|> it
+                                        (list:each (|>> %> (text "typename ")))
+                                        (text.interposed ..parameter_delimiter)
+                                        (text.inside ..template_delimiters))
+                                " "))))
 
-  (the .public (? when then else)
-    (-> Expression Expression Expression
-        Expression)
-    (<| <%
-        ..term
-        (text (%> when)
-              " ? " (%> then)
-              " : " (%> else))))
+               (the .public (function name types inputs output body)
+                    (-> Local (List Type_Name) (List Argument) Type Statement
+                        Definition)
+                    (<% (text (..template types)
+                              (%> output) " " (%> name) (..arguments inputs)
+                              " " (%> (..block body)))))
 
-  (template.with [<delimiter> <name>]
-    [(the .public (<name> field owner)
-       (-> Text Expression
-           Expression)
-       (<% (text (%> owner) <delimiter> field)))]
+               (the .public (namespace it body)
+                    (-> (Maybe Namespace) Declaration
+                        Declaration)
+                    (<% (text "namespace"
+                              (when it
+                                    {.:Some it}
+                                    (text " " it)
 
-    [["." its]
-     ["->" its*]])
+                                    _
+                                    "")
+                              " " (%> (..block body)))))
 
-  (the .public (item index array)
-    (-> Expression Expression
-        Address)
-    (<% (text (%> array)
-              (text.enclosed ..array_delimiters (%> index)))))
+               (template.with [<name>]
+                              [(the .public (<name> it)
+                                    (-> Expression
+                                        Expression)
+                                    (..of (list it)
+                                          (<% (template.text [<name>]))))]
 
-  (template.with [<name> <operator>]
-    [(the .public (<name> parameter subject)
-       (-> Expression Expression
-           Pure)
-       (|> (text (%> subject) <operator> (%> parameter))
-           ..term
-           <%))]
+                              [[int64_t]])
 
-    [[+ " + "]
-     [- " - "]
-     ... [* " * "]
-     [/ " / "]
-     [% " % "]
-     
-     [= " == "]
-     [< " < "]
-     [> " > "]
-     [<= " <= "]
-     [>= " >= "]])
+               (the safe
+                    (-> Text
+                        Text)
+                    (let [\\'' (text "\" text.\'')]
+                         (`` (|>> (,, (template.with [<find> <replace>]
+                                                     [(text.replaced <find> <replace>)]
 
-  (the .public not
-    (-> Expression
-        Expression)
-    (|>> %>
-         (text "!")
-         ..term
-         <%))
+                                                     [["\" "\\"]
+                                                      [text.\t "\t"]
+                                                      [text.\v "\v"]
+                                                      [text.\0 "\0"]
+                                                      [text.\b "\b"]
+                                                      [text.\f "\f"]
+                                                      [text.\n "\n"]
+                                                      [text.\r "\r"]
+                                                      [text.\'' \\'']]))
+                                  ))))
 
-  (the .public (if when then else)
-    (-> Expression Statement (Maybe Statement)
-        Statement)
-    (<% (text "if" (.if (term? when)
-                        (%> when)
-                        (..term (%> when)))
-              " " (%> (..block then))
-              (.when else
-                {.:Some else}
-                (text " else " (%> (..block else)))
-                
-                {.:None}
-                ""))))
+               (template.with [<name> <prefix>]
+                              [(the .public <name>
+                                    (-> Text
+                                        Address)
+                                    (|>> ..safe
+                                         %.text
+                                         <prefix>
+                                         <%))]
 
-  (the (for_initialization [variable type value])
-    (-> [Local Type Expression]
-        Text)
-    (text (%> type) " " (%> variable) " = " (%> value)))
+                              [[u32_string (text "U")]
+                               [u16_string (text "u")]
+                               [string <|]])
 
-  (the for_initializations
-    (-> (List [Local Type Expression])
-        Text)
-    (|>> (list:each ..for_initialization)
-         (text.interposed ..parameter_delimiter)))
+               (.every Method
+                       (-> Local
+                           Definition))
 
-  (the .public (for inits when after body)
-    (-> (List [Local Type Expression]) Expression Statement Statement
-        Statement)
-    (let [setup (|> (list (for_initializations inits)
-                          (%> when)
-                          (|> (%> after)
-                              (text.replaced_once ..statement_delimiter "")))
-                    (text.interposed (text ..statement_delimiter " "))
-                    (text.enclosed ..term_delimiters))]
-      (<% (text "for" setup
-                " " (%> (..block body))))))
+               (the .public (destructor body)
+                    (-> Statement
+                        Method)
+                    (.function (_ of)
+                               (<% (text "~" (%> of) "()"
+                                         " " (%> (block body))))))
 
-  (the .public (for_each it of body)
-    (-> Local Expression Statement
-        Statement)
-    (<% (text "for(auto " (%> it) " : " (%> of) ")"
-              " " (%> (..block body)))))
+               (the .public (var_declaration name type)
+                    (-> Local Type
+                        Declaration)
+                    (|> (text (%> type) " " (%> name))
+                        ..statement))
 
-  (the .public label
-    (-> Text
-        Label)
-    (|>> <%))
+               (the .public (constant name type value)
+                    (-> Local Type Expression
+                        Definition)
+                    (..statement (text (%> type) " const " (%> name) " = " (%> value))))
 
-  (the .public set_label
-    (-> Label
-        Statement)
-    (|>> %>
-         (text.suffix ":")
-         <%))
+               (the .public (constant_array name type size value)
+                    (-> Local Type Pure Expression
+                        Definition)
+                    (..statement (text (%> type) " const " (%> name)
+                                       (text.inside ..array_delimiters (%> size))
+                                       " = " (%> value))))
 
-  (the .public go_to
-    (-> Label
-        Statement)
-    (|>> %>
-         (text.prefix "goto ")
-         ..statement))
+               (the .public (variable name type value)
+                    (-> Local Type Expression
+                        Definition)
+                    (..statement (text (%> type) " " (%> name) " = " (%> value))))
 
-  (the .public throw
-    (-> Expression
-        Statement)
-    (|>> %>
-         (text.prefix "throw ")
-         ..statement))
+               (the .public (:= location value)
+                    (-> Address Expression
+                        Address)
+                    (<% (text (%> location) " = " (%> value))))
 
-  (the .public (while when then)
-    (-> Expression Statement
-        Statement)
-    (<% (text "while" (..term (%> when))
-              " " (%> (..block then)))))
-  )
+               (the .public (structure_definition name types [fields methods])
+                    (-> Local (List Type_Name) [(List [Local Type]) (List Method)]
+                        Definition)
+                    (..statement
+                     (text (..template types) "struct"
+                           " " (%> name)
+                           " " (|> (all list:composite
+                                        (list:each (.function (_ [name type])
+                                                              (%> (var_declaration name type)))
+                                                   fields)
+                                        (list:each (.function (_ it)
+                                                              (..code (it name)))
+                                                   methods))
+                                   (text.interposed \n)
+                                   <%
+                                   ..block
+                                   %>))))
+
+               (the .public (enum_definition name options)
+                    (-> Local (List Local)
+                        Definition)
+                    (..statement
+                     (text "enum"
+                           " " (%> name)
+                           " " (|> options
+                                   (list:each ..code)
+                                   (text.interposed ..parameter_delimiter)
+                                   <%
+                                   ..block
+                                   %>))))
+
+               (the captures
+                    (-> (List Capture)
+                        Text)
+                    (|>> (list:each ..code)
+                         (text.interposed ..parameter_delimiter)
+                         (text.inside ..capture_delimiters)))
+               
+               (template.with [<sigil> <name>]
+                              [(the .public <name>
+                                    Capture
+                                    (<% <sigil>))]
+
+                              [["=" all_by_value]
+                               ["&" all_by_reference]])
+
+               (the .public (alias name original)
+                    (-> Local Local
+                        Capture)
+                    (<% (text (%> name) " = " (%> original))))
+
+               (the .public (lambda captures inputs output body)
+                    (-> (List Capture) (List Argument) (Maybe Type) Statement
+                        Expression)
+                    (<| <%
+                        ..term
+                        (text (..captures captures) (..arguments inputs)
+                              (|> output
+                                  (maybe:each (|>> %> (text " -> ")))
+                                  (maybe.else ""))
+                              " " (%> (..block body)))))
+
+               (the .public (? when then else)
+                    (-> Expression Expression Expression
+                        Expression)
+                    (<| <%
+                        ..term
+                        (text (%> when)
+                              " ? " (%> then)
+                              " : " (%> else))))
+
+               (template.with [<delimiter> <name>]
+                              [(the .public (<name> field owner)
+                                    (-> Text Expression
+                                        Expression)
+                                    (<% (text (%> owner) <delimiter> field)))]
+
+                              [["." its]
+                               ["->" its*]])
+
+               (the .public (item index array)
+                    (-> Expression Expression
+                        Address)
+                    (<% (text (%> array)
+                              (text.inside ..array_delimiters (%> index)))))
+
+               (template.with [<name> <operator>]
+                              [(the .public (<name> parameter subject)
+                                    (-> Expression Expression
+                                        Pure)
+                                    (|> (text (%> subject) <operator> (%> parameter))
+                                        ..term
+                                        <%))]
+
+                              [[+ " + "]
+                               [- " - "]
+                               ... [* " * "]
+                               [/ " / "]
+                               [% " % "]
+                               
+                               [= " == "]
+                               [< " < "]
+                               [> " > "]
+                               [<= " <= "]
+                               [>= " >= "]])
+
+               (the .public not
+                    (-> Expression
+                        Expression)
+                    (|>> %>
+                         (text "!")
+                         ..term
+                         <%))
+
+               (the .public (if when then else)
+                    (-> Expression Statement (Maybe Statement)
+                        Statement)
+                    (<% (text "if" (.if (term? when)
+                                        (%> when)
+                                        (..term (%> when)))
+                              " " (%> (..block then))
+                              (.when else
+                                     {.:Some else}
+                                     (text " else " (%> (..block else)))
+                                     
+                                     {.:None}
+                                     ""))))
+
+               (the (for_initialization [variable type value])
+                    (-> [Local Type Expression]
+                        Text)
+                    (text (%> type) " " (%> variable) " = " (%> value)))
+
+               (the for_initializations
+                    (-> (List [Local Type Expression])
+                        Text)
+                    (|>> (list:each ..for_initialization)
+                         (text.interposed ..parameter_delimiter)))
+
+               (the .public (for inits when after body)
+                    (-> (List [Local Type Expression]) Expression Statement Statement
+                        Statement)
+                    (let [setup (|> (list (for_initializations inits)
+                                          (%> when)
+                                          (|> (%> after)
+                                              (text.replaced_once ..statement_delimiter "")))
+                                    (text.interposed (text ..statement_delimiter " "))
+                                    (text.inside ..term_delimiters))]
+                         (<% (text "for" setup
+                                   " " (%> (..block body))))))
+
+               (the .public (for_each it of body)
+                    (-> Local Expression Statement
+                        Statement)
+                    (<% (text "for(auto " (%> it) " : " (%> of) ")"
+                              " " (%> (..block body)))))
+
+               (the .public label
+                    (-> Text
+                        Label)
+                    (|>> <%))
+
+               (the .public set_label
+                    (-> Label
+                        Statement)
+                    (|>> %>
+                         (text.suffix ":")
+                         <%))
+
+               (the .public go_to
+                    (-> Label
+                        Statement)
+                    (|>> %>
+                         (text.prefix "goto ")
+                         ..statement))
+
+               (the .public throw
+                    (-> Expression
+                        Statement)
+                    (|>> %>
+                         (text.prefix "throw ")
+                         ..statement))
+
+               (the .public (while when then)
+                    (-> Expression Statement
+                        Statement)
+                    (<% (text "while" (..term (%> when))
+                              " " (%> (..block then)))))
+               )

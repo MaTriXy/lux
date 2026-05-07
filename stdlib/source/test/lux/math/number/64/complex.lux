@@ -25,310 +25,310 @@
 
 (comment "This margin of error is necessary because floating-point arithmetic is not exact."
          (the margin_of_error
-           +0.000,000,000,1))
+              +0.000,000,000,1))
 
 (the dimension
-  (Random Real)
-  (let [side_range +1,000
-        full_range (i.x side_range side_range)]
-    (|> random.integer
-        (random:each (|>> (i.% full_range)
-                          i.real
-                          (r./ (i.real side_range)))))))
+     (Random Real)
+     (let [side_range +1,000
+           full_range (i.x side_range side_range)]
+          (|> random.integer
+              (random:each (|>> (i.% full_range)
+                                i.real
+                                (r./ (i.real side_range)))))))
 
 (the .public random
-  (Random /.Complex)
-  (monad.let random.monad
-    [real ..dimension
-     imaginary ..dimension]
-    (pure (/.complex real imaginary))))
+     (Random /.Complex)
+     (monad.let random.monad
+                [real ..dimension
+                 imaginary ..dimension]
+                (pure (/.complex real imaginary))))
 
 (the angle
-  (Random /.Complex)
-  (by random.monad each
-      (|>> r.absolute
-           (r.x circle.tau)
-           (/.polar +1.0))
-      random.unit_real))
+     (Random /.Complex)
+     (by random.monad each
+         (|>> r.absolute
+              (r.x circle.tau)
+              (/.polar +1.0))
+         random.unit_real))
 
 (the construction
-  Test
-  (monad.let random.monad
-    [real ..dimension
-     imaginary ..dimension]
-    (all _.and
-         (_.coverage [/.complex]
-           (and (let [r+i (/.complex real imaginary)]
-                  (and (r.= real (its /.:real r+i))
-                       (r.= imaginary (its /.:imaginary r+i))))
-                (let [r+i (/.complex real)]
-                  (and (r.= real (its /.:real r+i))
-                       (r.= +0.0 (its /.:imaginary r+i))))))
-         (_.coverage [/.approximately?]
-           (/.approximately? ..margin_of_error
-                             (/.complex real imaginary)
-                             (/.complex real imaginary)))
-         (_.coverage [/.not_a_number?]
-           (and (/.not_a_number? (/.complex r.not_a_number imaginary))
-                (/.not_a_number? (/.complex real r.not_a_number))))
-         )))
+     Test
+     (monad.let random.monad
+                [real ..dimension
+                 imaginary ..dimension]
+                (all _.and
+                     (_.coverage [/.complex]
+                                 (and (let [r+i (/.complex real imaginary)]
+                                           (and (r.= real (its /.:real r+i))
+                                                (r.= imaginary (its /.:imaginary r+i))))
+                                      (let [r+i (/.complex real)]
+                                           (and (r.= real (its /.:real r+i))
+                                                (r.= +0.0 (its /.:imaginary r+i))))))
+                     (_.coverage [/.approximately?]
+                                 (/.approximately? ..margin_of_error
+                                                   (/.complex real imaginary)
+                                                   (/.complex real imaginary)))
+                     (_.coverage [/.not_a_number?]
+                                 (and (/.not_a_number? (/.complex r.not_a_number imaginary))
+                                      (/.not_a_number? (/.complex real r.not_a_number))))
+                     )))
 
 (the constant
-  Test
-  (monad.let random.monad
-    [sample ..random
-     dimension ..dimension]
-    (all _.and
-         (_.coverage [/.zero]
-           (/.= /.zero (/.x /.zero sample)))
-         (_.coverage [/.positive_one]
-           (/.= sample (/.x /.positive_one sample)))
-         (_.coverage [/.negative_one]
-           (and (/.= /.zero
-                     (/.+ sample
-                          (/.x /.negative_one sample)))
-                (/.= sample (/.x /.negative_one (/.x /.negative_one sample)))))
-         (_.coverage [/.i]
-           (and (/.= (/.complex +0.0 dimension)
-                     (/.x /.i (/.complex dimension)))
-                (/.= (/.x /.negative_one sample)
-                     (/.x /.i (/.x /.i sample)))))
-         )))
+     Test
+     (monad.let random.monad
+                [sample ..random
+                 dimension ..dimension]
+                (all _.and
+                     (_.coverage [/.zero]
+                                 (/.= /.zero (/.x /.zero sample)))
+                     (_.coverage [/.positive_one]
+                                 (/.= sample (/.x /.positive_one sample)))
+                     (_.coverage [/.negative_one]
+                                 (and (/.= /.zero
+                                           (/.+ sample
+                                                (/.x /.negative_one sample)))
+                                      (/.= sample (/.x /.negative_one (/.x /.negative_one sample)))))
+                     (_.coverage [/.i]
+                                 (and (/.= (/.complex +0.0 dimension)
+                                           (/.x /.i (/.complex dimension)))
+                                      (/.= (/.x /.negative_one sample)
+                                           (/.x /.i (/.x /.i sample)))))
+                     )))
 
 (the absolute_value&argument
-  Test
-  (monad.let random.monad
-    [real ..dimension
-     imaginary ..dimension]
-    (all _.and
-         (_.coverage [/.absolute]
-           (let [normal!
-                 (let [r+i (/.complex real imaginary)]
-                   (and (r.>= (r.absolute real) (/.absolute r+i))
-                        (r.>= (r.absolute imaginary) (/.absolute r+i))))
+     Test
+     (monad.let random.monad
+                [real ..dimension
+                 imaginary ..dimension]
+                (all _.and
+                     (_.coverage [/.absolute]
+                                 (let [normal!
+                                       (let [r+i (/.complex real imaginary)]
+                                            (and (r.>= (r.absolute real) (/.absolute r+i))
+                                                 (r.>= (r.absolute imaginary) (/.absolute r+i))))
 
-                 not_a_number!
-                 (and (r.not_a_number? (/.absolute (/.complex r.not_a_number imaginary)))
-                      (r.not_a_number? (/.absolute (/.complex real r.not_a_number))))
+                                       not_a_number!
+                                       (and (r.not_a_number? (/.absolute (/.complex r.not_a_number imaginary)))
+                                            (r.not_a_number? (/.absolute (/.complex real r.not_a_number))))
 
-                 infinity!
-                 (and (r.= r.positive_infinity (/.absolute (/.complex r.positive_infinity imaginary)))
-                      (r.= r.positive_infinity (/.absolute (/.complex real r.positive_infinity)))
-                      (r.= r.positive_infinity (/.absolute (/.complex r.negative_infinity imaginary)))
-                      (r.= r.positive_infinity (/.absolute (/.complex real r.negative_infinity))))]
-             (and normal!
-                  not_a_number!
-                  infinity!)))
-         (comment "https://en.wikipedia.org/wiki/Argument_(complex_analysis)#Identities"
-                  (_.coverage [/.argument]
-                    (let [sample (/.complex real imaginary)]
-                      (or (/.= /.zero sample)
-                          (/.approximately? ..margin_of_error
-                                            sample
-                                            (/.x' (/.absolute sample)
-                                                  (/.exp (/.x /.i (/.complex (/.argument sample))))))))))
-         )))
+                                       infinity!
+                                       (and (r.= r.positive_infinity (/.absolute (/.complex r.positive_infinity imaginary)))
+                                            (r.= r.positive_infinity (/.absolute (/.complex real r.positive_infinity)))
+                                            (r.= r.positive_infinity (/.absolute (/.complex r.negative_infinity imaginary)))
+                                            (r.= r.positive_infinity (/.absolute (/.complex real r.negative_infinity))))]
+                                      (and normal!
+                                           not_a_number!
+                                           infinity!)))
+                     (comment "https://en.wikipedia.org/wiki/Argument_(complex_analysis)#Identities"
+                              (_.coverage [/.argument]
+                                          (let [sample (/.complex real imaginary)]
+                                               (and/or (/.= /.zero sample)
+                                                       (/.approximately? ..margin_of_error
+                                                                         sample
+                                                                         (/.x' (/.absolute sample)
+                                                                               (/.exp (/.x /.i (/.complex (/.argument sample))))))))))
+                     )))
 
 (the number
-  Test
-  (monad.let random.monad
-    [x ..random
-     y ..random
-     factor ..dimension]
-    (all _.and
-         (_.coverage [/.+]
-           (let [z (/.+ y x)]
-             (and (/.= z
-                       (/.complex (r.+ (its /.:real y)
-                                       (its /.:real x))
-                                  (r.+ (its /.:imaginary y)
-                                       (its /.:imaginary x)))))))
-         (_.coverage [/.-]
-           (let [normal!
-                 (let [z (/.- y x)]
-                   (and (/.= z
-                             (/.complex (r.- (its /.:real y)
-                                             (its /.:real x))
-                                        (r.- (its /.:imaginary y)
-                                             (its /.:imaginary x))))))
+     Test
+     (monad.let random.monad
+                [x ..random
+                 y ..random
+                 factor ..dimension]
+                (all _.and
+                     (_.coverage [/.+]
+                                 (let [z (/.+ y x)]
+                                      (and (/.= z
+                                                (/.complex (r.+ (its /.:real y)
+                                                                (its /.:real x))
+                                                           (r.+ (its /.:imaginary y)
+                                                                (its /.:imaginary x)))))))
+                     (_.coverage [/.-]
+                                 (let [normal!
+                                       (let [z (/.- y x)]
+                                            (and (/.= z
+                                                      (/.complex (r.- (its /.:real y)
+                                                                      (its /.:real x))
+                                                                 (r.- (its /.:imaginary y)
+                                                                      (its /.:imaginary x))))))
 
-                 inverse!
-                 (and (|> x (/.+ y) (/.- y) (/.approximately? ..margin_of_error x))
-                      (|> x (/.- y) (/.+ y) (/.approximately? ..margin_of_error x)))]
-             (and normal!
-                  inverse!)))
-         (_.coverage [/.x /./]
-           (|> x
-               (/.x y)
-               (/./ y)
-               (/.approximately? ..margin_of_error x)))
-         (_.coverage [/.x' /./']
-           (|> x
-               (/.x' factor)
-               (/./' factor)
-               (/.approximately? ..margin_of_error x)))
-         (_.coverage [/.%]
-           (let [rem (/.% y x)
-                 quotient (|> x (/.- rem) (/./ y))
-                 floored (|> quotient
-                             (revised /.:real r.floor)
-                             (revised /.:imaginary r.floor))]
-             (/.approximately? +0.000000000001
-                               x
-                               (|> quotient (/.x y) (/.+ rem)))))
-         )))
+                                       inverse!
+                                       (and (|> x (/.+ y) (/.- y) (/.approximately? ..margin_of_error x))
+                                            (|> x (/.- y) (/.+ y) (/.approximately? ..margin_of_error x)))]
+                                      (and normal!
+                                           inverse!)))
+                     (_.coverage [/.x /./]
+                                 (|> x
+                                     (/.x y)
+                                     (/./ y)
+                                     (/.approximately? ..margin_of_error x)))
+                     (_.coverage [/.x' /./']
+                                 (|> x
+                                     (/.x' factor)
+                                     (/./' factor)
+                                     (/.approximately? ..margin_of_error x)))
+                     (_.coverage [/.%]
+                                 (let [rem (/.% y x)
+                                       quotient (|> x (/.- rem) (/./ y))
+                                       floored (|> quotient
+                                                   (revised /.:real r.floor)
+                                                   (revised /.:imaginary r.floor))]
+                                      (/.approximately? +0.000000000001
+                                                        x
+                                                        (|> quotient (/.x y) (/.+ rem)))))
+                     )))
 
 (the conjugate&reciprocal&signum&negation
-  Test
-  (monad.let random.monad
-    [x ..random]
-    (all _.and
-         (_.coverage [/.conjugate]
-           (let [cx (/.conjugate x)]
-             (and (r.= (its /.:real x)
-                       (its /.:real cx))
-                  (r.= (r.opposite (its /.:imaginary x))
-                       (its /.:imaginary cx)))))
-         (_.coverage [/.reciprocal]
-           (let [reciprocal!
-                 (|> x (/.x (/.reciprocal x)) (/.approximately? ..margin_of_error /.positive_one))
-                 
-                 own_inverse!
-                 (|> x /.reciprocal /.reciprocal (/.approximately? ..margin_of_error x))]
-             (and reciprocal!
-                  own_inverse!)))
-         (_.coverage [/.signum]
-           (comment "Absolute value of signum is always root_2(2), 1 or 0."
-                    (let [signum_absolute (|> x /.signum /.absolute)]
-                      (or (r.= +0.0 signum_absolute)
-                          (r.= +1.0 signum_absolute)
-                          (r.= (r.^ +0.5 +2.0) signum_absolute)))))
-         (_.coverage [/.opposite]
-           (let [own_inverse!
-                 (let [there (/.opposite x)
-                       back_again (/.opposite there)]
-                   (and (not (/.= there x))
-                        (/.= back_again x)))
+     Test
+     (monad.let random.monad
+                [x ..random]
+                (all _.and
+                     (_.coverage [/.conjugate]
+                                 (let [cx (/.conjugate x)]
+                                      (and (r.= (its /.:real x)
+                                                (its /.:real cx))
+                                           (r.= (r.opposite (its /.:imaginary x))
+                                                (its /.:imaginary cx)))))
+                     (_.coverage [/.reciprocal]
+                                 (let [reciprocal!
+                                       (|> x (/.x (/.reciprocal x)) (/.approximately? ..margin_of_error /.positive_one))
+                                       
+                                       own_inverse!
+                                       (|> x /.reciprocal /.reciprocal (/.approximately? ..margin_of_error x))]
+                                      (and reciprocal!
+                                           own_inverse!)))
+                     (_.coverage [/.signum]
+                                 (comment "Absolute value of signum is always root_2(2), 1 or 0."
+                                          (let [signum_absolute (|> x /.signum /.absolute)]
+                                               (and/or (r.= +0.0 signum_absolute)
+                                                       (r.= +1.0 signum_absolute)
+                                                       (r.= (r.^ +0.5 +2.0) signum_absolute)))))
+                     (_.coverage [/.opposite]
+                                 (let [own_inverse!
+                                       (let [there (/.opposite x)
+                                             back_again (/.opposite there)]
+                                            (and (not (/.= there x))
+                                                 (/.= back_again x)))
 
-                 absolute!
-                 (r.= (/.absolute x)
-                      (/.absolute (/.opposite x)))]
-             (and own_inverse!
-                  absolute!)))
-         )))
+                                       absolute!
+                                       (r.= (/.absolute x)
+                                            (/.absolute (/.opposite x)))]
+                                      (and own_inverse!
+                                           absolute!)))
+                     )))
 
 (the (trigonometric_symmetry? forward backward angle)
-  (-> (-> /.Complex /.Complex) (-> /.Complex /.Complex) /.Complex
-      Bit)
-  (let [normal (|> angle forward backward)]
-    (|> normal
-        forward
-        backward
-        (/.approximately? ..margin_of_error normal))))
+     (-> (-> /.Complex /.Complex) (-> /.Complex /.Complex) /.Complex
+         Bit)
+     (let [normal (|> angle forward backward)]
+          (|> normal
+              forward
+              backward
+              (/.approximately? ..margin_of_error normal))))
 
 (the trigonometry
-  Test
-  (monad.let [! random.monad]
-    [angle ..angle]
-    (all _.and
-         (_.coverage [/.sin /.asin]
-           (trigonometric_symmetry? /.sin /.asin angle))
-         (_.coverage [/.cos /.acos]
-           (trigonometric_symmetry? /.cos /.acos angle))
-         (_.coverage [/.tan /.atan]
-           (trigonometric_symmetry? /.tan /.atan angle))
-         )))
+     Test
+     (monad.let [! random.monad]
+                [angle ..angle]
+                (all _.and
+                     (_.coverage [/.sin /.asin]
+                                 (trigonometric_symmetry? /.sin /.asin angle))
+                     (_.coverage [/.cos /.acos]
+                                 (trigonometric_symmetry? /.cos /.acos angle))
+                     (_.coverage [/.tan /.atan]
+                                 (trigonometric_symmetry? /.tan /.atan angle))
+                     )))
 
 (the hyperbolic
-  Test
-  (monad.let [! random.monad]
-    [angle ..angle]
-    (all _.and
-         (_.coverage [/.sinh]
-           (/.approximately? ..margin_of_error
-                             (|> angle (/.x /.i) /.sin (/.x /.i) (/.x /.negative_one))
-                             (/.sinh angle)))
-         (_.coverage [/.cosh]
-           (/.approximately? ..margin_of_error
-                             (|> angle (/.x /.i) /.cos)
-                             (/.cosh angle)))
-         (_.coverage [/.tanh]
-           (/.approximately? ..margin_of_error
-                             (|> angle (/.x /.i) /.tan (/.x /.i) (/.x /.negative_one))
-                             (/.tanh angle)))
-         )))
+     Test
+     (monad.let [! random.monad]
+                [angle ..angle]
+                (all _.and
+                     (_.coverage [/.sinh]
+                                 (/.approximately? ..margin_of_error
+                                                   (|> angle (/.x /.i) /.sin (/.x /.i) (/.x /.negative_one))
+                                                   (/.sinh angle)))
+                     (_.coverage [/.cosh]
+                                 (/.approximately? ..margin_of_error
+                                                   (|> angle (/.x /.i) /.cos)
+                                                   (/.cosh angle)))
+                     (_.coverage [/.tanh]
+                                 (/.approximately? ..margin_of_error
+                                                   (|> angle (/.x /.i) /.tan (/.x /.i) (/.x /.negative_one))
+                                                   (/.tanh angle)))
+                     )))
 
 (the exponentiation&logarithm
-  Test
-  (monad.let random.monad
-    [it ..random]
-    (all _.and
-         (_.coverage [/.^ /.root_2]
-           (|> it
-               /.root_2
-               (/.^ (/.complex +2.0))
-               (/.approximately? ..margin_of_error it)))
-         (_.coverage [/.^']
-           (|> it
-               (/.^' +0.5)
-               (/.^' +2.0)
-               (/.approximately? ..margin_of_error it)))
-         (_.coverage [/.log /.exp]
-           (|> it
-               /.log
-               /.exp
-               (/.approximately? ..margin_of_error it)))
-         )))
+     Test
+     (monad.let random.monad
+                [it ..random]
+                (all _.and
+                     (_.coverage [/.^ /.root_2]
+                                 (|> it
+                                     /.root_2
+                                     (/.^ (/.complex +2.0))
+                                     (/.approximately? ..margin_of_error it)))
+                     (_.coverage [/.^']
+                                 (|> it
+                                     (/.^' +0.5)
+                                     (/.^' +2.0)
+                                     (/.approximately? ..margin_of_error it)))
+                     (_.coverage [/.log /.exp]
+                                 (|> it
+                                     /.log
+                                     /.exp
+                                     (/.approximately? ..margin_of_error it)))
+                     )))
 
 (the root
-  Test
-  (monad.let [! random.monad]
-    [sample ..random
-     degree (|> random.natural (by ! each (|>> (n.major 1) (n.% 5))))]
-    (_.coverage [/.roots]
-      (|> sample
-          (/.roots degree)
-          (list:each (/.^' (|> degree .integer i.real)))
-          (list.every? (/.approximately? ..margin_of_error sample))))))
+     Test
+     (monad.let [! random.monad]
+                [sample ..random
+                 degree (|> random.natural (by ! each (|>> (n.major 1) (n.% 5))))]
+                (_.coverage [/.roots]
+                            (|> sample
+                                (/.roots degree)
+                                (list:each (/.^' (|> degree .integer i.real)))
+                                (list.every? (/.approximately? ..margin_of_error sample))))))
 
 (the polar
-  Test
-  (monad.let [! random.monad]
-    [it ..random]
-    (all _.and
-         (_.coverage [/.magnitude]
-           (r.>= +0.0 (/.magnitude it)))
-         (_.coverage [/.phase]
-           (and (r.>= (r.x -1.0 circle.pi) (/.phase it))
-                (r.<= circle.pi (/.phase it))))
-         (_.coverage [/.polar]
-           (/.approximately? ..margin_of_error
-                             it
-                             (/.polar (/.magnitude it) (/.phase it))))
-         )))
+     Test
+     (monad.let [! random.monad]
+                [it ..random]
+                (all _.and
+                     (_.coverage [/.magnitude]
+                                 (r.>= +0.0 (/.magnitude it)))
+                     (_.coverage [/.phase]
+                                 (and (r.>= (r.x -1.0 circle.pi) (/.phase it))
+                                      (r.<= circle.pi (/.phase it))))
+                     (_.coverage [/.polar]
+                                 (/.approximately? ..margin_of_error
+                                                   it
+                                                   (/.polar (/.magnitude it) (/.phase it))))
+                     )))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (_.for [/.Number
-              /.:imaginary /.:real])
-      (all _.and
-           (_.for [/.= /.equality]
-                  (equalityT.spec /.equality ..random))
-           (_.for [/.text]
-                  (formatT.spec /.equality /.text ..random))
+     Test
+     (<| (_.covering /._)
+         (_.for [/.Number
+                 /.:imaginary /.:real])
+         (all _.and
+              (_.for [/.= /.equality]
+                     (equalityT.spec /.equality ..random))
+              (_.for [/.text]
+                     (formatT.spec /.equality /.text ..random))
 
-           (_.coverage [/.Complex /.C]
-             (and (identical? /.Number /.Complex)
-                  (identical? /.Number /.C)))
-           ..construction
-           ..constant
-           ..absolute_value&argument
-           ..number
-           ..conjugate&reciprocal&signum&negation
-           ..trigonometry
-           ..hyperbolic
-           ..exponentiation&logarithm
-           ..root
-           ..polar
-           )))
+              (_.coverage [/.Complex /.C]
+                          (and (identical? /.Number /.Complex)
+                               (identical? /.Number /.C)))
+              ..construction
+              ..constant
+              ..absolute_value&argument
+              ..number
+              ..conjugate&reciprocal&signum&negation
+              ..trigonometry
+              ..hyperbolic
+              ..exponentiation&logarithm
+              ..root
+              ..polar
+              )))

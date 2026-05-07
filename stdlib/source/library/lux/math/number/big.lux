@@ -1,6 +1,6 @@
 (.using
  [library
-  [lux (.except not and or)
+  [lux (.except not and)
    [abstract
     [equality (.only Equality)]]
    [control
@@ -18,200 +18,200 @@
     ["[0]" template]]]])
 
 (every .public Digit
-  Natural)
+       Natural)
 
 (every .public Number
-  (List Digit))
+       (List Digit))
 
 (the .public equality
-  (Equality Number)
-  (list.equality /64.equality))
+     (Equality Number)
+     (list.equality /64.equality))
 
 (alias [=]
        ..equality)
 
 (the zero_digit
-  Digit
-  0)
+     Digit
+     0)
 
 (the .public zero
-  Number
-  (list))
+     Number
+     (list))
 
 (every .public Address
-  Natural)
+       Natural)
 
 (the digits
-  (template.macro (_ ,it)
-    [(.list_size# ,it)]))
+     (template.macro (_ ,it)
+                     [(.list_size# ,it)]))
 
 (the digit'
-  (template.macro (_ ,address ,it)
-    [(.list_item# ,address ,it)]))
+     (template.macro (_ ,address ,it)
+                     [(.list_item# ,address ,it)]))
 
 (the (digit address it)
-  (-> Address Number
-      Digit)
-  (if (n.< (digits it) address)
-      (digit' address it)
-      zero_digit))
+     (-> Address Number
+         Digit)
+     (if (n.< (digits it) address)
+         (digit' address it)
+         zero_digit))
 
 (the .public (bit address it)
-  (-> Address Number
-      Bit)
-  (let [[address_of_digit address_of_bit] (n./% /64.width address)]
-    (|> it
-        (digit address_of_digit)
-        (/64.one? address_of_bit))))
+     (-> Address Number
+         Bit)
+     (let [[address_of_digit address_of_bit] (n./% /64.width address)]
+          (|> it
+              (digit address_of_digit)
+              (/64.one? address_of_bit))))
 
 (the end
-  Address
-  (-- 0))
+     Address
+     (-- 0))
 
 (the (normal it)
-  (Change Number)
-  (when (digits it)
-    0
-    it
+     (Change Number)
+     (when (digits it)
+           0
+           it
 
-    digits_of_origin
-    (loop (normal [digits digits_of_origin])
-      (when (-- digits)
-        ..end
-        ..zero
+           digits_of_origin
+           (loop (normal [digits digits_of_origin])
+                 (when (-- digits)
+                       ..end
+                       ..zero
 
-        last
-        (when (digit' last it)
-          ..zero_digit
-          (normal last)
+                       last
+                       (when (digit' last it)
+                             ..zero_digit
+                             (normal last)
 
-          else
-          (if (n.= digits_of_origin digits)
-              it
-              (list.first digits it)))))))
+                             else
+                             (if (n.= digits_of_origin digits)
+                                 it
+                                 (list.first digits it)))))))
 
 (template.with [<name> <op>]
-  [(the .public (<name> address it)
-     (-> Address
-         (Change Number))
-     (let [[address_of_digit address_of_bit] (n./% /64.width address)
-           current_digits (digits it)]
-       (normal (if (n.< current_digits address_of_digit)
-                   (list.revised address_of_digit (<op> address_of_bit) it)
-                   (let [padding (list.repeated (n.- current_digits address_of_digit)
-                                                ..zero_digit)
-                         lead (<op> address_of_bit ..zero_digit)]
-                     (all list:composite
-                          it
-                          padding
-                          (list lead)))))))]
+               [(the .public (<name> address it)
+                     (-> Address
+                         (Change Number))
+                     (let [[address_of_digit address_of_bit] (n./% /64.width address)
+                           current_digits (digits it)]
+                          (normal (if (n.< current_digits address_of_digit)
+                                      (list.revised address_of_digit (<op> address_of_bit) it)
+                                      (let [padding (list.repeated (n.- current_digits address_of_digit)
+                                                                   ..zero_digit)
+                                            lead (<op> address_of_bit ..zero_digit)]
+                                           (all list:composite
+                                                it
+                                                padding
+                                                (list lead)))))))]
 
-  [[with_one /64.one]
-   [with_zero /64.zero]
-   [with_flipped /64.flipped]])
+               [[with_one /64.one]
+                [with_zero /64.zero]
+                [with_flipped /64.flipped]])
 
 (the .public not
-  (Change Number)
-  (|>> (list:each /64.not)
-       normal))
+     (Change Number)
+     (|>> (list:each /64.not)
+          normal))
 
 (template.with [<name> <op>]
-  [(the .public (<name> param subject)
-     (-> Number Number
-         Number)
-     (let [digits_of_param (digits param)
-           digits_of_subject (digits subject)
-           common_composite (list:each (function (_ [param subject])
-                                         (<op> param subject))
-                                       (list.zipped_2 param subject))]
-       (normal (if (.or (n.= digits_of_param digits_of_subject)
-                        (identical? /64.and <op>))
-                   common_composite
-                   (let [common (n.minor digits_of_param digits_of_subject)
-                         complete (n.major digits_of_param digits_of_subject)
-                         excess (if (identical? digits_of_param complete)
-                                    param
-                                    subject)]
-                     (list:composite common_composite
-                                     (list.after common excess)))))))]
+               [(the .public (<name> param subject)
+                     (-> Number Number
+                         Number)
+                     (let [digits_of_param (digits param)
+                           digits_of_subject (digits subject)
+                           common_composite (list:each (function (_ [param subject])
+                                                                 (<op> param subject))
+                                                       (list.zipped_2 param subject))]
+                          (normal (if (.and/or (n.= digits_of_param digits_of_subject)
+                                               (identical? /64.and <op>))
+                                      common_composite
+                                      (let [common (n.minor digits_of_param digits_of_subject)
+                                            complete (n.major digits_of_param digits_of_subject)
+                                            excess (if (identical? digits_of_param complete)
+                                                       param
+                                                       subject)]
+                                           (list:composite common_composite
+                                                           (list.after common excess)))))))]
 
-  [[and /64.and]
-   [or  /64.or]
-   [xor /64.xor]])
+               [[and /64.and]
+                [or  /64.and/or]
+                [xor /64.xor]])
 
 (the .public (<< shift it)
-  (-> Natural
-      (Change Number))
-  (when shift
-    0
-    it
+     (-> Natural
+         (Change Number))
+     (when shift
+           0
+           it
 
-    else
-    (let [[big_digits binary_digits] (n./% /64.width shift)
-          opposite_binary_digits (n.- binary_digits /64.width)
-          little_digits (when binary_digits
-                          0
-                          it
-                          
-                          else
-                          (let [[[_ overflow] mid_digits] (list.static (list.size it)
-                                                                       (function (_ [position_of_digit overflow])
-                                                                         (let [digit (.list_item# position_of_digit it)]
-                                                                           [[(++ position_of_digit)
-                                                                             (/64.>> opposite_binary_digits digit)]
-                                                                            (|> digit
-                                                                                (/64.<< binary_digits)
-                                                                                (/64.or overflow))]))
-                                                                       [0 0])]
-                            (when overflow
-                              0
-                              mid_digits
+           else
+           (let [[big_digits binary_digits] (n./% /64.width shift)
+                 opposite_binary_digits (n.- binary_digits /64.width)
+                 little_digits (when binary_digits
+                                     0
+                                     it
+                                     
+                                     else
+                                     (let [[[_ overflow] mid_digits] (list.static (list.size it)
+                                                                                  (function (_ [position_of_digit overflow])
+                                                                                            (let [digit (.list_item# position_of_digit it)]
+                                                                                                 [[(++ position_of_digit)
+                                                                                                   (/64.>> opposite_binary_digits digit)]
+                                                                                                  (|> digit
+                                                                                                      (/64.<< binary_digits)
+                                                                                                      (/64.and/or overflow))]))
+                                                                                  [0 0])]
+                                          (when overflow
+                                                0
+                                                mid_digits
 
-                              else
-                              (list:composite mid_digits (list overflow)))))]
-      (when big_digits
-        0
-        little_digits
+                                                else
+                                                (list:composite mid_digits (list overflow)))))]
+                (when big_digits
+                      0
+                      little_digits
 
-        else
-        (list:composite (list.repeated big_digits 0)
-                        little_digits)))))
+                      else
+                      (list:composite (list.repeated big_digits 0)
+                                      little_digits)))))
 
 (the superfluous
-  Digit
-  zero_digit)
+     Digit
+     zero_digit)
 
 (the .public (>> shift it)
-  (-> Natural
-      (Change Number))
-  (when shift
-    0
-    it
+     (-> Natural
+         (Change Number))
+     (when shift
+           0
+           it
 
-    else
-    (let [[big_digits binary_digits] (n./% /64.width shift)
-          it (list.after big_digits it)]
-      (when binary_digits
-        0
-        it
+           else
+           (let [[big_digits binary_digits] (n./% /64.width shift)
+                 it (list.after big_digits it)]
+                (when binary_digits
+                      0
+                      it
 
-        else
-        (let [limit (list.size it)
-              [beyond_last_digit digits] (list.static limit
-                                                      (function (_ position_of_digit)
-                                                        [(++ position_of_digit)
-                                                         (/64.or (/64.<< (n.- binary_digits /64.width)
-                                                                         (let [position_of_next_digit (++ position_of_digit)]
-                                                                           (if (n.< limit position_of_next_digit)
-                                                                               (.list_item# position_of_next_digit it)
-                                                                               ..zero_digit)))
-                                                                 (/64.>> binary_digits
-                                                                         (.list_item# position_of_digit it)))])
-                                                      0)
-              last_digit (-- beyond_last_digit)]
-          (when (.list_item# last_digit digits)
-            ..superfluous
-            (list.first last_digit digits)
+                      else
+                      (let [limit (list.size it)
+                            [beyond_last_digit digits] (list.static limit
+                                                                    (function (_ position_of_digit)
+                                                                              [(++ position_of_digit)
+                                                                               (/64.and/or (/64.<< (n.- binary_digits /64.width)
+                                                                                                   (let [position_of_next_digit (++ position_of_digit)]
+                                                                                                        (if (n.< limit position_of_next_digit)
+                                                                                                            (.list_item# position_of_next_digit it)
+                                                                                                            ..zero_digit)))
+                                                                                           (/64.>> binary_digits
+                                                                                                   (.list_item# position_of_digit it)))])
+                                                                    0)
+                            last_digit (-- beyond_last_digit)]
+                           (when (.list_item# last_digit digits)
+                                 ..superfluous
+                                 (list.first last_digit digits)
 
-            else
-            digits))))))
+                                 else
+                                 digits))))))

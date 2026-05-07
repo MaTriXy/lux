@@ -44,11 +44,11 @@
       ["[0]" artifact (.only Registry)]]]]]])
 
 (.the module_id
-  0)
+      0)
 
 (template.with [<name> <base>]
                [(every .public <name>
-                  (<base> _.SVar _.Expression _.Expression))]
+                       (<base> _.SVar _.Expression _.Expression))]
 
                [[Operation /////translation.Operation]
                 [Phase /////translation.Phase]
@@ -56,172 +56,172 @@
                 [Bundle /////translation.Bundle]])
 
 (every .public (Expression i)
-  (-> Phase Archive i
-      (Operation Expression)))
+       (-> Phase Archive i
+           (Operation Expression)))
 
 (.the .public unit
-  Expression
-  (_.string /////synthesis.unit))
+      Expression
+      (_.string /////synthesis.unit))
 
 (.the full_32 (number.base_16 "FFFFFFFF"))
 (.the half_32 (number.base_16 "7FFFFFFF"))
 (.the post_32 (number.base_16 "100000000"))
 
 (.the (cap_32 input)
-  (-> Natural Integer)
-  (if (n.> full_32 input)
-      (|> input (/64.and full_32) cap_32)
-      
-      (n.> half_32 input)
-      (|> post_32 (n.- input) .integer (i.x -1))
-      
-      (.integer input)))
+      (-> Natural Integer)
+      (if (n.> full_32 input)
+          (|> input (/64.and full_32) cap_32)
+          
+          (n.> half_32 input)
+          (|> post_32 (n.- input) .integer (i.x -1))
+          
+          (.integer input)))
 
 (syntax.the .public (with_vars [vars (<code>.tuple (<>.some <code>.local))
                                 body ?list.any])
-  (monad.let [! meta.monad]
-    [ids (list.complete ! (list.repeated (list.size vars) meta.seed))]
-    (pure (list (` (let [(,* (|> vars
-                                 (list.zipped_2 ids)
-                                 (list:each (function (_ [id var])
-                                              (list (code.local var)
-                                                    (` (_.var (, (code.text (text "v" (%.natural id)))))))))
-                                 list:conjoint))]
-                     (, body)))))))
+            (monad.let [! meta.monad]
+                       [ids (list.complete ! (list.repeated (list.size vars) meta.seed))]
+                       (pure (list (` (let [(,* (|> vars
+                                                    (list.zipped_2 ids)
+                                                    (list:each (function (_ [id var])
+                                                                         (list (code.local var)
+                                                                               (` (_.var (, (code.text (text "v" (%.natural id)))))))))
+                                                    list:conjoint))]
+                                           (, body)))))))
 
 (syntax.the (the [declaration (<>.or <code>.local
                                      (<code>.form (<>.and <code>.local
                                                           (<>.some <code>.local))))
                   code ?list.any])
-  (monad.let meta.monad
-    [runtime_id meta.seed]
-    (macro.with_names ['_]
-                      (let [runtime (code.local (///reference.artifact [..module_id runtime_id]))
-                            runtime_name (` (_.var (, (code.text (code.as_text runtime)))))]
-                        (when declaration
-                          {.:Left name}
-                          (let ['name (code.local name)]
-                            (pure (list (` (.the .public (, 'name)
-                                             _.SVar
-                                             (, runtime_name)))
-                                        
-                                        (` (.the (, (code.local (text "@" name)))
-                                             _.Expression
-                                             (_.set! (, runtime_name) (, code)))))))
-                          
-                          {.:Right [name inputs]}
-                          (let ['name (code.local name)
-                                inputsC (list:each code.local inputs)
-                                inputs_typesC (list:each (function.constant (` _.Expression))
-                                                         inputs)]
-                            (pure (list (` (.the .public ((, 'name) (,* inputsC))
-                                             (-> (,* inputs_typesC) _.Expression)
-                                             (_.of (list (,* inputsC)) (, runtime_name))))
+            (monad.let meta.monad
+                       [runtime_id meta.seed]
+                       (macro.with_names ['_]
+                                         (let [runtime (code.local (///reference.artifact [..module_id runtime_id]))
+                                               runtime_name (` (_.var (, (code.text (code.as_text runtime)))))]
+                                              (when declaration
+                                                    {.:Left name}
+                                                    (let ['name (code.local name)]
+                                                         (pure (list (` (.the .public (, 'name)
+                                                                              _.SVar
+                                                                              (, runtime_name)))
+                                                                     
+                                                                     (` (.the (, (code.local (text "@" name)))
+                                                                              _.Expression
+                                                                              (_.set! (, runtime_name) (, code)))))))
+                                                    
+                                                    {.:Right [name inputs]}
+                                                    (let ['name (code.local name)
+                                                          inputsC (list:each code.local inputs)
+                                                          inputs_typesC (list:each (function.constant (` _.Expression))
+                                                                                   inputs)]
+                                                         (pure (list (` (.the .public ((, 'name) (,* inputsC))
+                                                                              (-> (,* inputs_typesC) _.Expression)
+                                                                              (_.of (list (,* inputsC)) (, runtime_name))))
 
-                                        (` (.the (, (code.local (text "@" name)))
-                                             _.Expression
-                                             (..with_vars [(,* inputsC)]
-                                                          (_.set! (, runtime_name)
-                                                                  (_.function (list (,* inputsC))
-                                                                    (, code))))))))))))))
+                                                                     (` (.the (, (code.local (text "@" name)))
+                                                                              _.Expression
+                                                                              (..with_vars [(,* inputsC)]
+                                                                                           (_.set! (, runtime_name)
+                                                                                                   (_.function (list (,* inputsC))
+                                                                                                               (, code))))))))))))))
 
 (.the .public variant_tag_field "luxVT")
 (.the .public variant_flag_field "luxVF")
 (.the .public variant_value_field "luxVV")
 
 (.the .public (flag value)
-  (-> Bit Expression)
-  (if value
-      (_.string "")
-      _.null))
+      (-> Bit Expression)
+      (if value
+          (_.string "")
+          _.null))
 
 (the (adt:variant tag last? value)
-  (_.named_list (list [..variant_tag_field (_.as:integer tag)]
-                      [..variant_flag_field last?]
-                      [..variant_value_field value])))
+     (_.named_list (list [..variant_tag_field (_.as:integer tag)]
+                         [..variant_flag_field last?]
+                         [..variant_value_field value])))
 
 (.the .public (variant tag last? value)
-  (-> Natural Bit Expression Expression)
-  (adt:variant (_.int (.integer tag))
-               (flag last?)
-               value))
+      (-> Natural Bit Expression Expression)
+      (adt:variant (_.int (.integer tag))
+                   (flag last?)
+                   value))
 
 (.the .public none
-  Expression
-  (variant 0 0b ..unit))
+      Expression
+      (variant 0 0b ..unit))
 
 (.the .public some
-  (-> Expression Expression)
-  (variant 1 1b))
+      (-> Expression Expression)
+      (variant 1 1b))
 
 (.the .public left
-  (-> Expression Expression)
-  (variant 0 0b))
+      (-> Expression Expression)
+      (variant 0 0b))
 
 (.the .public right
-  (-> Expression Expression)
-  (variant 1 1b))
+      (-> Expression Expression)
+      (variant 1 1b))
 
 (.the high_shift (_.bit_shl (_.int +32)))
 
 (template.with [<name> <power>]
                [(the <name>
-                  (|> (_.as:integer (_.int +2))
-                      (_.** (_.as:integer (_.int <power>)))))]
+                     (|> (_.as:integer (_.int +2))
+                         (_.** (_.as:integer (_.int <power>)))))]
 
                [[f2^32 +32]
                 [f2^63 +63]])
 
 (.the (as_double value)
-  (-> Expression Expression)
-  (_.of (list value) (_.var "as.double")))
+      (-> Expression Expression)
+      (_.of (list value) (_.var "as.double")))
 
 (.the .public i64_high_field "luxIH")
 (.the .public i64_low_field "luxIL")
 
 (the (i64:unsigned_low input)
-  (with_vars [low]
-             (all _.then
-                  (_.set! low (_.item (_.string ..i64_low_field) input))
-                  (_.if (_.< (_.int +0) low)
-                        (_.+ f2^32 low)
-                        low))))
+     (with_vars [low]
+                (all _.then
+                     (_.set! low (_.item (_.string ..i64_low_field) input))
+                     (_.if (_.< (_.int +0) low)
+                           (_.+ f2^32 low)
+                           low))))
 
 (the (i64:float input)
-  (let [high (|> input
-                 (_.item (_.string ..i64_high_field))
-                 high_shift)
-        low (|> input
-                i64:unsigned_low)]
-    (|> high (_.+ low) as_double)))
+     (let [high (|> input
+                    (_.item (_.string ..i64_high_field))
+                    high_shift)
+           low (|> input
+                   i64:unsigned_low)]
+          (|> high (_.+ low) as_double)))
 
 (the (i64:new high low)
-  (_.named_list (list [..i64_high_field (_.as:integer high)]
-                      [..i64_low_field (_.as:integer low)])))
+     (_.named_list (list [..i64_high_field (_.as:integer high)]
+                         [..i64_low_field (_.as:integer low)])))
 
 (.the high_32
-  (-> Natural Natural)
-  (/64.>> 32))
+      (-> Natural Natural)
+      (/64.>> 32))
 
 (.the low_32
-  (-> Natural Natural)
-  (|>> (/64.and (number.base_16 "FFFFFFFF"))))
+      (-> Natural Natural)
+      (|>> (/64.and (number.base_16 "FFFFFFFF"))))
 
 (.the .public (i64 value)
-  (-> Integer Expression)
-  (let [value (.natural value)]
-    (i64:new (|> value ..high_32 ..cap_32 _.int)
-             (|> value ..low_32 ..cap_32 _.int))))
+      (-> Integer Expression)
+      (let [value (.natural value)]
+           (i64:new (|> value ..high_32 ..cap_32 _.int)
+                    (|> value ..low_32 ..cap_32 _.int))))
 
 (.the .public (lux_i64 high low)
-  (-> Integer Integer Integer)
-  (|> high
-      (/64.<< 32)
-      (/64.or low)))
+      (-> Integer Integer Integer)
+      (|> high
+          (/64.<< 32)
+          (/64.and/or low)))
 
 (template.with [<name> <value>]
                [(the <name>
-                  (..i64 <value>))]
+                     (..i64 <value>))]
 
                [[i64:zero +0]
                 [i64:one +1]
@@ -232,614 +232,614 @@
 (.the .public i64_low (_.item (_.string ..i64_low_field)))
 
 (the (i64:not input)
-  (i64:new (|> input i64_high _.bit_not)
-           (|> input i64_low _.bit_not)))
+     (i64:new (|> input i64_high _.bit_not)
+              (|> input i64_low _.bit_not)))
 
 (the (i64:+ param subject)
-  (with_vars [sH sL pH pL
-              x00 x16 x32 x48]
-             (all _.then
-                  (_.set! sH (|> subject i64_high))
-                  (_.set! sL (|> subject i64_low))
-                  (_.set! pH (|> param i64_high))
-                  (_.set! pL (|> param i64_low))
-                  (let [bits16 (_.manual "0xFFFF")
-                        move_maximum_16 (_.bit_shl (_.int +16))
-                        maximum_16 (_.bit_ushr (_.int +16))
-                        minimum_16 (_.bit_and bits16)
-                        split_16 (function (_ source)
-                                   [(|> source maximum_16)
-                                    (|> source minimum_16)])
-                        split_integer (function (_ high low)
-                                        [(split_16 high)
-                                         (split_16 low)])
-                        
-                        [[s48 s32] [s16 s00]] (split_integer sH sL)
-                        [[p48 p32] [p16 p00]] (split_integer pH pL)
-                        new_half (function (_ maximum minimum)
-                                   (|> maximum minimum_16 move_maximum_16
-                                       (_.bit_or (minimum_16 minimum))))]
-                    (all _.then
-                         (_.set! x00 (|> s00 (_.+ p00)))
-                         (_.set! x16 (|> x00 maximum_16 (_.+ s16) (_.+ p16)))
-                         (_.set! x32 (|> x16 maximum_16 (_.+ s32) (_.+ p32)))
-                         (_.set! x48 (|> x32 maximum_16 (_.+ s48) (_.+ p48)))
-                         (i64:new (new_half x48 x32)
-                                  (new_half x16 x00)))))))
+     (with_vars [sH sL pH pL
+                 x00 x16 x32 x48]
+                (all _.then
+                     (_.set! sH (|> subject i64_high))
+                     (_.set! sL (|> subject i64_low))
+                     (_.set! pH (|> param i64_high))
+                     (_.set! pL (|> param i64_low))
+                     (let [bits16 (_.manual "0xFFFF")
+                           move_maximum_16 (_.bit_shl (_.int +16))
+                           maximum_16 (_.bit_ushr (_.int +16))
+                           minimum_16 (_.bit_and bits16)
+                           split_16 (function (_ source)
+                                              [(|> source maximum_16)
+                                               (|> source minimum_16)])
+                           split_integer (function (_ high low)
+                                                   [(split_16 high)
+                                                    (split_16 low)])
+                           
+                           [[s48 s32] [s16 s00]] (split_integer sH sL)
+                           [[p48 p32] [p16 p00]] (split_integer pH pL)
+                           new_half (function (_ maximum minimum)
+                                              (|> maximum minimum_16 move_maximum_16
+                                                  (_.bit_or (minimum_16 minimum))))]
+                          (all _.then
+                               (_.set! x00 (|> s00 (_.+ p00)))
+                               (_.set! x16 (|> x00 maximum_16 (_.+ s16) (_.+ p16)))
+                               (_.set! x32 (|> x16 maximum_16 (_.+ s32) (_.+ p32)))
+                               (_.set! x48 (|> x32 maximum_16 (_.+ s48) (_.+ p48)))
+                               (i64:new (new_half x48 x32)
+                                        (new_half x16 x00)))))))
 
 (the (i64:= expected actual)
-  (let [n/a? (function (_ value)
-               (_.of (list value) (_.var "is.na")))
-        isTRUE? (function (_ value)
-                  (_.of (list value) (_.var "isTRUE")))
-        comparison (is (-> (-> Expression Expression) Expression)
-                       (function (_ field)
-                         (|> (|> (field actual) (_.= (field expected)))
-                             (_.or (|> (n/a? (field actual))
-                                       (_.and (n/a? (field expected))))))))]
-    (|> (comparison i64_high)
-        (_.and (comparison i64_low))
-        isTRUE?)))
+     (let [n/a? (function (_ value)
+                          (_.of (list value) (_.var "is.na")))
+           isTRUE? (function (_ value)
+                             (_.of (list value) (_.var "isTRUE")))
+           comparison (is (-> (-> Expression Expression) Expression)
+                          (function (_ field)
+                                    (|> (|> (field actual) (_.= (field expected)))
+                                        (_.or (|> (n/a? (field actual))
+                                                  (_.and (n/a? (field expected))))))))]
+          (|> (comparison i64_high)
+              (_.and (comparison i64_low))
+              isTRUE?)))
 
 (the (i64:opposite input)
-  (_.if (|> input (i64:= i64:minimum))
-        i64:minimum
-        (|> input i64:not (i64:+ i64:one))))
+     (_.if (|> input (i64:= i64:minimum))
+           i64:minimum
+           (|> input i64:not (i64:+ i64:one))))
 
 (the i64:-one
-  (i64:opposite i64:one))
+     (i64:opposite i64:one))
 
 (the (i64:- param subject)
-  (i64:+ (i64:opposite param) subject))
+     (i64:+ (i64:opposite param) subject))
 
 (the (i64:< reference it)
-  (with_vars [r_? s_?]
-             (all _.then
-                  (_.set! s_? (|> it ..i64_high (_.< (_.int +0))))
-                  (_.set! r_? (|> reference ..i64_high (_.< (_.int +0))))
-                  (|> (|> s_? (_.and (_.not r_?)))
-                      (_.or (|> (_.not s_?) (_.and r_?) _.not))
-                      (_.or (|> it
-                                (i64:- reference)
-                                ..i64_high
-                                (_.< (_.int +0))))))))
+     (with_vars [r_? s_?]
+                (all _.then
+                     (_.set! s_? (|> it ..i64_high (_.< (_.int +0))))
+                     (_.set! r_? (|> reference ..i64_high (_.< (_.int +0))))
+                     (|> (|> s_? (_.and (_.not r_?)))
+                         (_.or (|> (_.not s_?) (_.and r_?) _.not))
+                         (_.or (|> it
+                                   (i64:- reference)
+                                   ..i64_high
+                                   (_.< (_.int +0))))))))
 
 (the (i64:of_float input)
-  (_.cond (list [(_.of (list input) (_.var "is.nan"))
-                 i64:zero]
-                [(|> input (_.<= (_.opposite f2^63)))
-                 i64:minimum]
-                [(|> input (_.+ (_.float +1.0)) (_.>= f2^63))
-                 i64:maximum]
-                [(|> input (_.< (_.float +0.0)))
-                 (|> input _.opposite i64:of_float i64:opposite)])
-          (i64:new (|> input (_./ f2^32))
-                   (|> input (_.%% f2^32)))))
+     (_.cond (list [(_.of (list input) (_.var "is.nan"))
+                    i64:zero]
+                   [(|> input (_.<= (_.opposite f2^63)))
+                    i64:minimum]
+                   [(|> input (_.+ (_.float +1.0)) (_.>= f2^63))
+                    i64:maximum]
+                   [(|> input (_.< (_.float +0.0)))
+                    (|> input _.opposite i64:of_float i64:opposite)])
+             (i64:new (|> input (_./ f2^32))
+                      (|> input (_.%% f2^32)))))
 
 (the (i64:x param subject)
-  (with_vars [sH sL pH pL
-              x00 x16 x32 x48]
-             (all _.then
-                  (_.set! sH (|> subject i64_high))
-                  (_.set! pH (|> param i64_high))
-                  (let [negative_subject? (|> sH (_.< (_.int +0)))
-                        negative_param? (|> pH (_.< (_.int +0)))]
-                    (_.cond (list [negative_subject?
-                                   (_.if negative_param?
-                                         (i64:x (i64:opposite param)
-                                                (i64:opposite subject))
-                                         (i64:opposite (i64:x param
-                                                              (i64:opposite subject))))]
+     (with_vars [sH sL pH pL
+                 x00 x16 x32 x48]
+                (all _.then
+                     (_.set! sH (|> subject i64_high))
+                     (_.set! pH (|> param i64_high))
+                     (let [negative_subject? (|> sH (_.< (_.int +0)))
+                           negative_param? (|> pH (_.< (_.int +0)))]
+                          (_.cond (list [negative_subject?
+                                         (_.if negative_param?
+                                               (i64:x (i64:opposite param)
+                                                      (i64:opposite subject))
+                                               (i64:opposite (i64:x param
+                                                                    (i64:opposite subject))))]
 
-                                  [negative_param?
-                                   (i64:opposite (i64:x (i64:opposite param)
-                                                        subject))])
-                            (all _.then
-                                 (_.set! sL (|> subject i64_low))
-                                 (_.set! pL (|> param i64_low))
-                                 (let [bits16 (_.manual "0xFFFF")
-                                       move_maximum_16 (_.bit_shl (_.int +16))
-                                       maximum_16 (_.bit_ushr (_.int +16))
-                                       minimum_16 (_.bit_and bits16)
-                                       split_16 (function (_ source)
-                                                  [(|> source maximum_16)
-                                                   (|> source minimum_16)])
-                                       split_integer (function (_ high low)
-                                                       [(split_16 high)
-                                                        (split_16 low)])
-                                       new_half (function (_ maximum minimum)
-                                                  (|> maximum minimum_16 move_maximum_16
-                                                      (_.bit_or (minimum_16 minimum))))
-                                       x16_maximum (|> x16 maximum_16)
-                                       x32_maximum (|> x32 maximum_16)]
-                                   (with_vars [s48 s32 s16 s00
-                                               p48 p32 p16 p00]
-                                              (let [[[_s48 _s32] [_s16 _s00]] (split_integer sH sL)
-                                                    [[_p48 _p32] [_p16 _p00]] (split_integer pH pL)
-                                                    set_subject_chunks! (all _.then (_.set! s48 _s48) (_.set! s32 _s32) (_.set! s16 _s16) (_.set! s00 _s00))
-                                                    set_param_chunks! (all _.then (_.set! p48 _p48) (_.set! p32 _p32) (_.set! p16 _p16) (_.set! p00 _p00))]
-                                                (all _.then
-                                                     set_subject_chunks!
-                                                     set_param_chunks!
-                                                     (_.set! x00 (|> s00 (_.* p00)))
-                                                     (_.set! x16 (|> x00 maximum_16 (_.+ (|> s16 (_.* p00)))))
-                                                     (_.set! x32 x16_maximum)
-                                                     (_.set! x16 (|> x16 minimum_16 (_.+ (|> s00 (_.* p16)))))
-                                                     (_.set! x32 (|> x32 (_.+ x16_maximum) (_.+ (|> s32 (_.* p00)))))
-                                                     (_.set! x48 x32_maximum)
-                                                     (_.set! x32 (|> x32 minimum_16 (_.+ (|> s16 (_.* p16)))))
-                                                     (_.set! x48 (|> x48 (_.+ x32_maximum)))
-                                                     (_.set! x32 (|> x32 minimum_16 (_.+ (|> s00 (_.* p32)))))
-                                                     (_.set! x48 (|> x48 (_.+ x32_maximum)
-                                                                     (_.+ (|> s48 (_.* p00)))
-                                                                     (_.+ (|> s32 (_.* p16)))
-                                                                     (_.+ (|> s16 (_.* p32)))
-                                                                     (_.+ (|> s00 (_.* p48)))))
-                                                     (i64:new (new_half x48 x32)
-                                                              (new_half x16 x00)))))
-                                   )))))))
+                                        [negative_param?
+                                         (i64:opposite (i64:x (i64:opposite param)
+                                                              subject))])
+                                  (all _.then
+                                       (_.set! sL (|> subject i64_low))
+                                       (_.set! pL (|> param i64_low))
+                                       (let [bits16 (_.manual "0xFFFF")
+                                             move_maximum_16 (_.bit_shl (_.int +16))
+                                             maximum_16 (_.bit_ushr (_.int +16))
+                                             minimum_16 (_.bit_and bits16)
+                                             split_16 (function (_ source)
+                                                                [(|> source maximum_16)
+                                                                 (|> source minimum_16)])
+                                             split_integer (function (_ high low)
+                                                                     [(split_16 high)
+                                                                      (split_16 low)])
+                                             new_half (function (_ maximum minimum)
+                                                                (|> maximum minimum_16 move_maximum_16
+                                                                    (_.bit_or (minimum_16 minimum))))
+                                             x16_maximum (|> x16 maximum_16)
+                                             x32_maximum (|> x32 maximum_16)]
+                                            (with_vars [s48 s32 s16 s00
+                                                        p48 p32 p16 p00]
+                                                       (let [[[_s48 _s32] [_s16 _s00]] (split_integer sH sL)
+                                                             [[_p48 _p32] [_p16 _p00]] (split_integer pH pL)
+                                                             set_subject_chunks! (all _.then (_.set! s48 _s48) (_.set! s32 _s32) (_.set! s16 _s16) (_.set! s00 _s00))
+                                                             set_param_chunks! (all _.then (_.set! p48 _p48) (_.set! p32 _p32) (_.set! p16 _p16) (_.set! p00 _p00))]
+                                                            (all _.then
+                                                                 set_subject_chunks!
+                                                                 set_param_chunks!
+                                                                 (_.set! x00 (|> s00 (_.* p00)))
+                                                                 (_.set! x16 (|> x00 maximum_16 (_.+ (|> s16 (_.* p00)))))
+                                                                 (_.set! x32 x16_maximum)
+                                                                 (_.set! x16 (|> x16 minimum_16 (_.+ (|> s00 (_.* p16)))))
+                                                                 (_.set! x32 (|> x32 (_.+ x16_maximum) (_.+ (|> s32 (_.* p00)))))
+                                                                 (_.set! x48 x32_maximum)
+                                                                 (_.set! x32 (|> x32 minimum_16 (_.+ (|> s16 (_.* p16)))))
+                                                                 (_.set! x48 (|> x48 (_.+ x32_maximum)))
+                                                                 (_.set! x32 (|> x32 minimum_16 (_.+ (|> s00 (_.* p32)))))
+                                                                 (_.set! x48 (|> x48 (_.+ x32_maximum)
+                                                                                 (_.+ (|> s48 (_.* p00)))
+                                                                                 (_.+ (|> s32 (_.* p16)))
+                                                                                 (_.+ (|> s16 (_.* p32)))
+                                                                                 (_.+ (|> s00 (_.* p48)))))
+                                                                 (i64:new (new_half x48 x32)
+                                                                          (new_half x16 x00)))))
+                                            )))))))
 
 (.the (limit_shift! shift)
-  (-> SVar Expression)
-  (_.set! shift (|> shift (_.bit_and (_.as:integer (_.int +63))))))
+      (-> SVar Expression)
+      (_.set! shift (|> shift (_.bit_and (_.as:integer (_.int +63))))))
 
 (.the (no_shift_clause shift input)
-  (-> SVar SVar [Expression Expression])
-  [(|> shift (_.= (_.int +0)))
-   input])
+      (-> SVar SVar [Expression Expression])
+      [(|> shift (_.= (_.int +0)))
+       input])
 
 (the (i64:<< shift input)
-  (all _.then
-       (limit_shift! shift)
-       (_.cond (list (no_shift_clause shift input)
-                     [(|> shift (_.< (_.int +32)))
-                      (let [mid (|> (i64_low input) (_.bit_ushr (|> (_.int +32) (_.- shift))))
-                            high (|> (i64_high input)
-                                     (_.bit_shl shift)
-                                     (_.bit_or mid))
-                            low (|> (i64_low input)
-                                    (_.bit_shl shift))]
-                        (i64:new high low))])
-               (let [high (|> (i64_high input)
-                              (_.bit_shl (|> shift (_.- (_.int +32)))))]
-                 (i64:new high (_.int +0))))))
+     (all _.then
+          (limit_shift! shift)
+          (_.cond (list (no_shift_clause shift input)
+                        [(|> shift (_.< (_.int +32)))
+                         (let [mid (|> (i64_low input) (_.bit_ushr (|> (_.int +32) (_.- shift))))
+                               high (|> (i64_high input)
+                                        (_.bit_shl shift)
+                                        (_.bit_or mid))
+                               low (|> (i64_low input)
+                                       (_.bit_shl shift))]
+                              (i64:new high low))])
+                  (let [high (|> (i64_high input)
+                                 (_.bit_shl (|> shift (_.- (_.int +32)))))]
+                       (i64:new high (_.int +0))))))
 
 (the (i64:arithmetic_>>_32 shift input)
-  (let [maximum_bit (|> input (_.bit_and (_.as:integer (_.int (number.base_16 "+80000000")))))]
-    (|> input
-        (_.bit_ushr shift)
-        (_.bit_or maximum_bit))))
+     (let [maximum_bit (|> input (_.bit_and (_.as:integer (_.int (number.base_16 "+80000000")))))]
+          (|> input
+              (_.bit_ushr shift)
+              (_.bit_or maximum_bit))))
 
 (the (i64:arithmetic_>> shift input)
-  (all _.then
-       (limit_shift! shift)
-       (_.cond (list (no_shift_clause shift input)
-                     [(|> shift (_.< (_.int +32)))
-                      (let [mid (|> (i64_high input) (_.bit_shl (|> (_.int +32) (_.- shift))))
-                            high (|> (i64_high input)
-                                     (i64:arithmetic_>>_32 shift))
-                            low (|> (i64_low input)
-                                    (_.bit_ushr shift)
-                                    (_.bit_or mid))]
-                        (i64:new high low))])
-               (let [low (|> (i64_high input)
-                             (i64:arithmetic_>>_32 (|> shift (_.- (_.int +32)))))
-                     high (_.if (_.< (_.int +0)
-                                     (i64_high input))
-                                (_.int -1)
-                                (_.int +0))]
-                 (i64:new high low)))))
+     (all _.then
+          (limit_shift! shift)
+          (_.cond (list (no_shift_clause shift input)
+                        [(|> shift (_.< (_.int +32)))
+                         (let [mid (|> (i64_high input) (_.bit_shl (|> (_.int +32) (_.- shift))))
+                               high (|> (i64_high input)
+                                        (i64:arithmetic_>>_32 shift))
+                               low (|> (i64_low input)
+                                       (_.bit_ushr shift)
+                                       (_.bit_or mid))]
+                              (i64:new high low))])
+                  (let [low (|> (i64_high input)
+                                (i64:arithmetic_>>_32 (|> shift (_.- (_.int +32)))))
+                        high (_.if (_.< (_.int +0)
+                                        (i64_high input))
+                                   (_.int -1)
+                                   (_.int +0))]
+                       (i64:new high low)))))
 
 (the (i64:/ param subject)
-  (let [negative? (|>> (i64:< i64:zero))
-        valid_division_check [(|> param (i64:= i64:zero))
-                              (_.stop (_.string "Cannot divide by zero!"))]
-        short_circuit_check [(|> subject (i64:= i64:zero))
-                             i64:zero]]
-    (_.cond (list valid_division_check
-                  short_circuit_check
+     (let [negative? (|>> (i64:< i64:zero))
+           valid_division_check [(|> param (i64:= i64:zero))
+                                 (_.stop (_.string "Cannot divide by zero!"))]
+           short_circuit_check [(|> subject (i64:= i64:zero))
+                                i64:zero]]
+          (_.cond (list valid_division_check
+                        short_circuit_check
 
-                  [(|> subject (i64:= i64:minimum))
-                   (_.cond (list [(|> (|> param (i64:= i64:one))
-                                      (_.or (|> param (i64:= i64:-one))))
-                                  i64:minimum]
-                                 [(|> param (i64:= i64:minimum))
-                                  i64:one])
-                           (with_vars [approximation]
-                                      (all _.then
-                                           (_.set! approximation
-                                                   (|> subject
-                                                       (i64:arithmetic_>> (_.int +1))
-                                                       (i64:/ param)
-                                                       (i64:<< (_.int +1))))
-                                           (_.if (|> approximation (i64:= i64:zero))
-                                                 (_.if (negative? param)
-                                                       i64:one
-                                                       i64:-one)
-                                                 (let [remainder (i64:- (i64:x param approximation)
-                                                                        subject)]
-                                                   (|> remainder
-                                                       (i64:/ param)
-                                                       (i64:+ approximation)))))))]
-                  [(|> param (i64:= i64:minimum))
-                   i64:zero]
+                        [(|> subject (i64:= i64:minimum))
+                         (_.cond (list [(|> (|> param (i64:= i64:one))
+                                            (_.or (|> param (i64:= i64:-one))))
+                                        i64:minimum]
+                                       [(|> param (i64:= i64:minimum))
+                                        i64:one])
+                                 (with_vars [approximation]
+                                            (all _.then
+                                                 (_.set! approximation
+                                                         (|> subject
+                                                             (i64:arithmetic_>> (_.int +1))
+                                                             (i64:/ param)
+                                                             (i64:<< (_.int +1))))
+                                                 (_.if (|> approximation (i64:= i64:zero))
+                                                       (_.if (negative? param)
+                                                             i64:one
+                                                             i64:-one)
+                                                       (let [remainder (i64:- (i64:x param approximation)
+                                                                              subject)]
+                                                            (|> remainder
+                                                                (i64:/ param)
+                                                                (i64:+ approximation)))))))]
+                        [(|> param (i64:= i64:minimum))
+                         i64:zero]
 
-                  [(negative? subject)
-                   (_.if (negative? param)
-                         (|> (i64:opposite subject)
-                             (i64:/ (i64:opposite param)))
-                         (|> (i64:opposite subject)
-                             (i64:/ param)
-                             i64:opposite))]
+                        [(negative? subject)
+                         (_.if (negative? param)
+                               (|> (i64:opposite subject)
+                                   (i64:/ (i64:opposite param)))
+                               (|> (i64:opposite subject)
+                                   (i64:/ param)
+                                   i64:opposite))]
 
-                  [(negative? param)
-                   (|> param
-                       i64:opposite
-                       (i64:/ subject)
-                       i64:opposite)])
-            (with_vars [result remainder approximate approximate_result log2 approximate_remainder]
-                       (all _.then
-                            (_.set! result i64:zero)
-                            (_.set! remainder subject)
-                            (_.while (|> (|> remainder (i64:< param))
-                                         (_.or (|> remainder (i64:= param))))
-                                     (let [calc_rough_estimate (_.of (list (|> (i64:float remainder) (_./ (i64:float param))))
-                                                                     (_.var "floor"))
-                                           calc_approximate_result (i64:of_float approximate)
-                                           calc_approximate_remainder (|> approximate_result (i64:x param))
-                                           delta (_.if (_.> log2 (_.float +48.0))
-                                                       (_.** (|> log2 (_.- (_.float +48.0)))
-                                                             (_.float +2.0))
-                                                       (_.float +1.0))]
-                                       (all _.then
-                                            (_.set! approximate (_.of (list (_.float +1.0) calc_rough_estimate)
-                                                                      (_.var "max")))
-                                            (_.set! log2 (let [log (function (_ input)
-                                                                     (_.of (list input) (_.var "log")))]
-                                                           (_.of (list (|> (log (_.int +2))
-                                                                           (_./ (log approximate))))
-                                                                 (_.var "ceil"))))
-                                            (_.set! approximate_result calc_approximate_result)
-                                            (_.set! approximate_remainder calc_approximate_remainder)
-                                            (_.while (|> (negative? approximate_remainder)
-                                                         (_.or (|> approximate_remainder (i64:< remainder))))
-                                                     (all _.then
-                                                          (_.set! approximate (|> delta (_.- approximate)))
-                                                          (_.set! approximate_result calc_approximate_result)
-                                                          (_.set! approximate_remainder calc_approximate_remainder)))
-                                            (_.set! result (|> (_.if (|> approximate_result (i64:= i64:zero))
-                                                                     i64:one
-                                                                     approximate_result)
-                                                               (i64:+ result)))
-                                            (_.set! remainder (|> remainder (i64:- approximate_remainder))))))
-                            result))
-            )))
+                        [(negative? param)
+                         (|> param
+                             i64:opposite
+                             (i64:/ subject)
+                             i64:opposite)])
+                  (with_vars [result remainder approximate approximate_result log2 approximate_remainder]
+                             (all _.then
+                                  (_.set! result i64:zero)
+                                  (_.set! remainder subject)
+                                  (_.while (|> (|> remainder (i64:< param))
+                                               (_.or (|> remainder (i64:= param))))
+                                           (let [calc_rough_estimate (_.of (list (|> (i64:float remainder) (_./ (i64:float param))))
+                                                                           (_.var "floor"))
+                                                 calc_approximate_result (i64:of_float approximate)
+                                                 calc_approximate_remainder (|> approximate_result (i64:x param))
+                                                 delta (_.if (_.> log2 (_.float +48.0))
+                                                             (_.** (|> log2 (_.- (_.float +48.0)))
+                                                                   (_.float +2.0))
+                                                             (_.float +1.0))]
+                                                (all _.then
+                                                     (_.set! approximate (_.of (list (_.float +1.0) calc_rough_estimate)
+                                                                               (_.var "max")))
+                                                     (_.set! log2 (let [log (function (_ input)
+                                                                                      (_.of (list input) (_.var "log")))]
+                                                                       (_.of (list (|> (log (_.int +2))
+                                                                                       (_./ (log approximate))))
+                                                                             (_.var "ceil"))))
+                                                     (_.set! approximate_result calc_approximate_result)
+                                                     (_.set! approximate_remainder calc_approximate_remainder)
+                                                     (_.while (|> (negative? approximate_remainder)
+                                                                  (_.or (|> approximate_remainder (i64:< remainder))))
+                                                              (all _.then
+                                                                   (_.set! approximate (|> delta (_.- approximate)))
+                                                                   (_.set! approximate_result calc_approximate_result)
+                                                                   (_.set! approximate_remainder calc_approximate_remainder)))
+                                                     (_.set! result (|> (_.if (|> approximate_result (i64:= i64:zero))
+                                                                              i64:one
+                                                                              approximate_result)
+                                                                        (i64:+ result)))
+                                                     (_.set! remainder (|> remainder (i64:- approximate_remainder))))))
+                                  result))
+                  )))
 
 (the (i64:% param subject)
-  (let [flat (|> subject (i64:/ param) (i64:x param))]
-    (|> subject (i64:- flat))))
+     (let [flat (|> subject (i64:/ param) (i64:x param))]
+          (|> subject (i64:- flat))))
 
 (the (lux:try op)
-  (with_vars [error value]
-             (_.try (all _.then
-                         (_.set! value (_.of (list ..unit) op))
-                         (..right value))
-                    {.:None}
-                    {.:Some (_.function (list error)
-                              (..left (_.item (_.string "message")
-                                              error)))}
-                    {.:None})))
+     (with_vars [error value]
+                (_.try (all _.then
+                            (_.set! value (_.of (list ..unit) op))
+                            (..right value))
+                       {.:None}
+                       {.:Some (_.function (list error)
+                                           (..left (_.item (_.string "message")
+                                                           error)))}
+                       {.:None})))
 
 (the (lux:program_args program_args)
-  (with_vars [inputs value]
-             (all _.then
-                  (_.set! inputs ..none)
-                  (<| (_.for_in value program_args)
-                      (_.set! inputs (..some (_.list (list value inputs)))))
-                  inputs)))
+     (with_vars [inputs value]
+                (all _.then
+                     (_.set! inputs ..none)
+                     (<| (_.for_in value program_args)
+                         (_.set! inputs (..some (_.list (list value inputs)))))
+                     inputs)))
 
 (.the runtime//lux
-  Expression
-  (all _.then
-       @lux:try
-       @lux:program_args
-       ))
+      Expression
+      (all _.then
+           @lux:try
+           @lux:program_args
+           ))
 
 (.the current_time_float
-  Expression
-  (let [raw_time (_.of (list) (_.var "Sys.time"))]
-    (_.of (list raw_time) (_.var "as.numeric"))))
+      Expression
+      (let [raw_time (_.of (list) (_.var "Sys.time"))]
+           (_.of (list raw_time) (_.var "as.numeric"))))
 
 (the (io:current_time! _)
-  (|> current_time_float
-      (_.* (_.float +1,000.0))
-      i64:of_float))
+     (|> current_time_float
+         (_.* (_.float +1,000.0))
+         i64:of_float))
 
 (.the runtime//io
-  Expression
-  (all _.then
-       @io:current_time!
-       ))
+      Expression
+      (all _.then
+           @io:current_time!
+           ))
 
 (.the minimum_index_length
-  (-> SVar Expression)
-  (|>> (_.+ (_.int +1))))
+      (-> SVar Expression)
+      (|>> (_.+ (_.int +1))))
 
 (.the (product_element product index)
-  (-> Expression Expression Expression)
-  (|> product (_.item (|> index (_.+ (_.int +1))))))
+      (-> Expression Expression Expression)
+      (|> product (_.item (|> index (_.+ (_.int +1))))))
 
 (.the (product_tail product)
-  (-> SVar Expression)
-  (|> product (_.item (_.length product))))
+      (-> SVar Expression)
+      (|> product (_.item (_.length product))))
 
 (.the (updated_index min_length product)
-  (-> Expression Expression Expression)
-  (|> min_length (_.- (_.length product))))
+      (-> Expression Expression Expression)
+      (|> min_length (_.- (_.length product))))
 
 (the (tuple:left index product)
-  (let [$index_min_length (_.var "index_min_length")]
-    (all _.then
-         (_.set! $index_min_length (minimum_index_length index))
-         (_.if (|> (_.length product) (_.> $index_min_length))
-               (comment "No need for recursion"
-                        (product_element product index))
-               (comment "Needs recursion"
-                        (tuple:left (updated_index $index_min_length product)
-                                    (product_tail product)))))))
+     (let [$index_min_length (_.var "index_min_length")]
+          (all _.then
+               (_.set! $index_min_length (minimum_index_length index))
+               (_.if (|> (_.length product) (_.> $index_min_length))
+                     (comment "No need for recursion"
+                              (product_element product index))
+                     (comment "Needs recursion"
+                              (tuple:left (updated_index $index_min_length product)
+                                          (product_tail product)))))))
 
 (the (tuple:right index product)
-  (let [$index_min_length (_.var "index_min_length")]
-    (all _.then
-         (_.set! $index_min_length (minimum_index_length index))
-         (_.cond (list [(|> (_.length product) (_.= $index_min_length))
-                        (comment "Last element."
-                                 (product_element product index))]
-                       [(|> (_.length product) (_.< $index_min_length))
-                        (comment "Needs recursion"
-                                 (tuple:right (updated_index $index_min_length product)
-                                              (product_tail product)))])
-                 (comment "Must slice"
-                          (|> product (_.slice_from index)))))))
+     (let [$index_min_length (_.var "index_min_length")]
+          (all _.then
+               (_.set! $index_min_length (minimum_index_length index))
+               (_.cond (list [(|> (_.length product) (_.= $index_min_length))
+                              (comment "Last element."
+                                       (product_element product index))]
+                             [(|> (_.length product) (_.< $index_min_length))
+                              (comment "Needs recursion"
+                                       (tuple:right (updated_index $index_min_length product)
+                                                    (product_tail product)))])
+                       (comment "Must slice"
+                                (|> product (_.slice_from index)))))))
 
 (the (sum:get sum wants_last? wanted_tag)
-  (let [no_match _.null
-        sum_tag (|> sum (_.item (_.string ..variant_tag_field)))
-        sum_flag (|> sum (_.item (_.string ..variant_flag_field)))
-        sum_value (|> sum (_.item (_.string ..variant_value_field)))
-        is_last? (|> sum_flag (_.= (_.string "")))
-        test_recursion (_.if is_last?
-                             (comment "Must recurse."
-                                      (|> wanted_tag
-                                          (_.- sum_tag)
-                                          (sum:get sum_value wants_last?)))
-                             no_match)]
-    (_.cond (list [(_.= sum_tag wanted_tag)
-                   (_.if (_.= wants_last? sum_flag)
-                         sum_value
-                         test_recursion)]
+     (let [no_match _.null
+           sum_tag (|> sum (_.item (_.string ..variant_tag_field)))
+           sum_flag (|> sum (_.item (_.string ..variant_flag_field)))
+           sum_value (|> sum (_.item (_.string ..variant_value_field)))
+           is_last? (|> sum_flag (_.= (_.string "")))
+           test_recursion (_.if is_last?
+                                (comment "Must recurse."
+                                         (|> wanted_tag
+                                             (_.- sum_tag)
+                                             (sum:get sum_value wants_last?)))
+                                no_match)]
+          (_.cond (list [(_.= sum_tag wanted_tag)
+                         (_.if (_.= wants_last? sum_flag)
+                               sum_value
+                               test_recursion)]
 
-                  [(|> wanted_tag (_.> sum_tag))
-                   test_recursion]
+                        [(|> wanted_tag (_.> sum_tag))
+                         test_recursion]
 
-                  [(|> (|> wants_last? (_.= (_.string "")))
-                       (_.and (|> wanted_tag (_.< sum_tag))))
-                   (adt:variant (|> sum_tag (_.- wanted_tag)) sum_flag sum_value)])
+                        [(|> (|> wants_last? (_.= (_.string "")))
+                             (_.and (|> wanted_tag (_.< sum_tag))))
+                         (adt:variant (|> sum_tag (_.- wanted_tag)) sum_flag sum_value)])
 
-            no_match)))
+                  no_match)))
 
 (.the runtime//adt
-  Expression
-  (all _.then
-       @tuple:left
-       @tuple:right
-       @sum:get
-       @adt:variant
-       ))
+      Expression
+      (all _.then
+           @tuple:left
+           @tuple:right
+           @sum:get
+           @adt:variant
+           ))
 
 (template.with [<name> <op>]
                [(the (<name> mask input)
-                  (i64:new (<op> (i64_high mask)
-                                 (i64_high input))
-                           (<op> (i64_low mask)
-                                 (i64_low input))))]
+                     (i64:new (<op> (i64_high mask)
+                                    (i64_high input))
+                              (<op> (i64_low mask)
+                                    (i64_low input))))]
 
                [[i64:and _.bit_and]
                 [i64:or  _.bit_or]
                 [i64:xor _.bit_xor]])
 
 (the (i64:>> shift input)
-  (all _.then
-       (limit_shift! shift)
-       (_.cond (list (no_shift_clause shift input)
-                     [(|> shift (_.< (_.int +32)))
-                      (with_vars [$mid]
-                                 (let [mid (|> (i64_high input) (_.bit_shl (|> (_.int +32) (_.- shift))))
-                                       high (|> (i64_high input) (_.bit_ushr shift))
-                                       low (|> (i64_low input)
-                                               (_.bit_ushr shift)
-                                               (_.bit_or (_.if (_.of (list $mid) (_.var "is.na"))
-                                                               (_.as:integer (_.int +0))
-                                                               $mid)))]
-                                   (all _.then
-                                        (_.set! $mid mid)
-                                        (i64:new high low))))]
-                     [(|> shift (_.= (_.int +32)))
-                      (let [high (i64_high input)]
-                        (i64:new (_.int +0) high))])
-               (let [low (|> (i64_high input) (_.bit_ushr (|> shift (_.- (_.int +32)))))]
-                 (i64:new (_.int +0) low)))))
+     (all _.then
+          (limit_shift! shift)
+          (_.cond (list (no_shift_clause shift input)
+                        [(|> shift (_.< (_.int +32)))
+                         (with_vars [$mid]
+                                    (let [mid (|> (i64_high input) (_.bit_shl (|> (_.int +32) (_.- shift))))
+                                          high (|> (i64_high input) (_.bit_ushr shift))
+                                          low (|> (i64_low input)
+                                                  (_.bit_ushr shift)
+                                                  (_.bit_or (_.if (_.of (list $mid) (_.var "is.na"))
+                                                                  (_.as:integer (_.int +0))
+                                                                  $mid)))]
+                                         (all _.then
+                                              (_.set! $mid mid)
+                                              (i64:new high low))))]
+                        [(|> shift (_.= (_.int +32)))
+                         (let [high (i64_high input)]
+                              (i64:new (_.int +0) high))])
+                  (let [low (|> (i64_high input) (_.bit_ushr (|> shift (_.- (_.int +32)))))]
+                       (i64:new (_.int +0) low)))))
 
 (.the runtime//i64
-  Expression
-  (all _.then
-       @f2^32
-       @f2^63
-       
-       @i64:new
-       @i64:of_float
-       
-       @i64:and
-       @i64:or
-       @i64:xor
-       @i64:not
-       @i64:<<
-       @i64:arithmetic_>>_32
-       @i64:arithmetic_>>
-       @i64:>>
+      Expression
+      (all _.then
+           @f2^32
+           @f2^63
+           
+           @i64:new
+           @i64:of_float
+           
+           @i64:and
+           @i64:or
+           @i64:xor
+           @i64:not
+           @i64:<<
+           @i64:arithmetic_>>_32
+           @i64:arithmetic_>>
+           @i64:>>
 
-       @i64:zero
-       @i64:one
-       @i64:minimum
-       @i64:maximum
-       @i64:=
-       @i64:<
-       @i64:+
-       @i64:-
-       @i64:opposite
-       @i64:-one
-       @i64:unsigned_low
-       @i64:float
-       @i64:x
-       @i64:/
-       @i64:%
-       ))
+           @i64:zero
+           @i64:one
+           @i64:minimum
+           @i64:maximum
+           @i64:=
+           @i64:<
+           @i64:+
+           @i64:-
+           @i64:opposite
+           @i64:-one
+           @i64:unsigned_low
+           @i64:float
+           @i64:x
+           @i64:/
+           @i64:%
+           ))
 
 (the (real:decode input)
-  (with_vars [output]
-             (all _.then
-                  (_.set! output (_.of (list input) (_.var "as.numeric")))
-                  (_.if (|> output (_.= _.n/a))
-                        ..none
-                        (..some output)))))
+     (with_vars [output]
+                (all _.then
+                     (_.set! output (_.of (list input) (_.var "as.numeric")))
+                     (_.if (|> output (_.= _.n/a))
+                           ..none
+                           (..some output)))))
 
 (.the runtime//real
-  Expression
-  (all _.then
-       @real:decode
-       ))
+      Expression
+      (all _.then
+           @real:decode
+           ))
 
 (.the ++
-  (-> Expression Expression)
-  (|>> (_.+ (_.int +1))))
+      (-> Expression Expression)
+      (|>> (_.+ (_.int +1))))
 
 (.the (text_clip start end text)
-  (-> Expression Expression Expression Expression)
-  (_.of (list text start end)
-        (_.var "substr")))
+      (-> Expression Expression Expression Expression)
+      (_.of (list text start end)
+            (_.var "substr")))
 
 (.the (text_length text)
-  (-> Expression Expression)
-  (_.of (list text) (_.var "nchar")))
+      (-> Expression Expression)
+      (_.of (list text) (_.var "nchar")))
 
 (the (text:index subject param start)
-  (with_vars [idx startF subjectL]
-             (all _.then
-                  (_.set! startF (i64:float start))
-                  (_.set! subjectL (text_length subject))
-                  (_.if (_.< subjectL startF)
-                        (all _.then
-                             (_.set! idx (|> (_.of_kw (list param (_.if (|> startF (_.= (_.int +0)))
-                                                                        subject
-                                                                        (text_clip (++ startF)
-                                                                                   (++ subjectL)
-                                                                                   subject)))
-                                                      (list ["fixed" (_.bool 1b)])
-                                                      (_.var "regexpr"))
-                                             (_.item (_.int +1))))
-                             (_.if (|> idx (_.= (_.int -1)))
-                                   ..none
-                                   (..some (i64:of_float (|> idx (_.+ startF))))))
-                        ..none))))
+     (with_vars [idx startF subjectL]
+                (all _.then
+                     (_.set! startF (i64:float start))
+                     (_.set! subjectL (text_length subject))
+                     (_.if (_.< subjectL startF)
+                           (all _.then
+                                (_.set! idx (|> (_.of_kw (list param (_.if (|> startF (_.= (_.int +0)))
+                                                                           subject
+                                                                           (text_clip (++ startF)
+                                                                                      (++ subjectL)
+                                                                                      subject)))
+                                                         (list ["fixed" (_.bool 1b)])
+                                                         (_.var "regexpr"))
+                                                (_.item (_.int +1))))
+                                (_.if (|> idx (_.= (_.int -1)))
+                                      ..none
+                                      (..some (i64:of_float (|> idx (_.+ startF))))))
+                           ..none))))
 
 (the (text:clip text minimum additional)
-  (with_vars [length]
-             (all _.then
-                  (_.set! length (_.length text))
-                  (_.set! to (_.+ additional minimum))
-                  (_.if (_.< length to)
-                        (..some (text_clip (++ minimum) (++ to) text))
-                        ..none))))
+     (with_vars [length]
+                (all _.then
+                     (_.set! length (_.length text))
+                     (_.set! to (_.+ additional minimum))
+                     (_.if (_.< length to)
+                           (..some (text_clip (++ minimum) (++ to) text))
+                           ..none))))
 
 (.the (char_at idx text)
-  (-> Expression Expression Expression)
-  (_.of (list (text_clip idx idx text))
-        (_.var "utf8ToInt")))
+      (-> Expression Expression Expression)
+      (_.of (list (text_clip idx idx text))
+            (_.var "utf8ToInt")))
 
 (the (text:char text idx)
-  (_.if (_.< (_.length text) idx)
-        (all _.then
-             (_.set! idx (++ idx))
-             (..some (i64:of_float (char_at idx text))))
-        ..none))
+     (_.if (_.< (_.length text) idx)
+           (all _.then
+                (_.set! idx (++ idx))
+                (..some (i64:of_float (char_at idx text))))
+           ..none))
 
 (.the runtime//text
-  Expression
-  (all _.then
-       @text:index
-       @text:clip
-       @text:char
-       ))
+      Expression
+      (all _.then
+           @text:index
+           @text:clip
+           @text:char
+           ))
 
 (.the (check_index_out_of_bounds array idx body)
-  (-> Expression Expression Expression Expression)
-  (_.if (_.> (_.length array) idx)
-        (_.stop (_.string "Array index out of bounds!"))
-        body))
+      (-> Expression Expression Expression Expression)
+      (_.if (_.> (_.length array) idx)
+            (_.stop (_.string "Array index out of bounds!"))
+            body))
 
 (the (array:new size)
-  (with_vars [output]
-             (all _.then
-                  (_.set! output (_.list (list)))
-                  (_.set_item! (|> size (_.+ (_.int +1)))
-                               _.null
-                               output)
-                  output)))
+     (with_vars [output]
+                (all _.then
+                     (_.set! output (_.list (list)))
+                     (_.set_item! (|> size (_.+ (_.int +1)))
+                                  _.null
+                                  output)
+                     output)))
 
 (the (array:get array idx)
-  (with_vars [temp]
-             (<| (check_index_out_of_bounds array idx)
-                 (all _.then
-                      (_.set! temp (|> array (_.item (_.+ (_.int +1) idx))))
-                      (_.if (|> temp (_.= _.null))
-                            ..none
-                            (..some temp))))))
+     (with_vars [temp]
+                (<| (check_index_out_of_bounds array idx)
+                    (all _.then
+                         (_.set! temp (|> array (_.item (_.+ (_.int +1) idx))))
+                         (_.if (|> temp (_.= _.null))
+                               ..none
+                               (..some temp))))))
 
 (the (array:put array idx value)
-  (<| (check_index_out_of_bounds array idx)
-      (all _.then
-           (_.set_item! (_.+ (_.int +1) idx) value array)
-           array)))
+     (<| (check_index_out_of_bounds array idx)
+         (all _.then
+              (_.set_item! (_.+ (_.int +1) idx) value array)
+              array)))
 
 (.the runtime//array
-  Expression
-  (all _.then
-       @array:new
-       @array:get
-       @array:put
-       ))
+      Expression
+      (all _.then
+           @array:new
+           @array:get
+           @array:put
+           ))
 
 (.the full_runtime
-  Expression
-  (all _.then
-       runtime//lux
-       runtime//i64
-       runtime//adt
-       runtime//real
-       runtime//text
-       runtime//array
-       runtime//io
-       ))
+      Expression
+      (all _.then
+           runtime//lux
+           runtime//i64
+           runtime//adt
+           runtime//real
+           runtime//text
+           runtime//array
+           runtime//io
+           ))
 
 (.the .public translate
-  (Operation [Registry Output])
-  (monad.let ///////phase.monad
-    [_ (/////translation.execute! ..full_runtime)
-     _ (/////translation.save! (%.natural ..module_id) ..full_runtime)]
-    (pure [(|> artifact.empty
-               artifact.resource
-               pair.right)
-           (sequence.new [(%.natural ..module_id)
-                          (|> ..full_runtime
-                              _.code
-                              (by utf8.binary as))])])))
+      (Operation [Registry Output])
+      (monad.let ///////phase.monad
+                 [_ (/////translation.execute! ..full_runtime)
+                  _ (/////translation.save! (%.natural ..module_id) ..full_runtime)]
+                 (pure [(|> artifact.empty
+                            artifact.resource
+                            pair.right)
+                        (sequence.new [(%.natural ..module_id)
+                                       (|> ..full_runtime
+                                           _.code
+                                           (by utf8.binary as))])])))

@@ -32,149 +32,149 @@
 (exception.the oops)
 
 (the (success? it)
-  (for_any (_ it)
-    (Predicate (Try it)))
-  (when it
-    {try.:Success _}
-    true
-    
-    {try.:Failure _}
-    false))
+     (for_any (_ it)
+              (Predicate (Try it)))
+     (when it
+           {try.:Success _}
+           true
+           
+           {try.:Failure _}
+           false))
 
 (the (throws? exception it)
-  (for_any (_ e it)
-    (-> (Exception e)
-        (Predicate (Try it))))
-  (when it
-    {try.:Success _}
-    false
-    
-    {try.:Failure error}
-    (exception.is? exception error)))
+     (for_any (_ e it)
+              (-> (Exception e)
+                  (Predicate (Try it))))
+     (when it
+           {try.:Success _}
+           false
+           
+           {try.:Failure error}
+           (exception.is? exception error)))
 
 (the (injection value)
-  (Injection (for_any (_ it thread)
-               (/.Region (thread.Thread thread) it)))
-  (function (_ [region scope])
-    (function (_ thread)
-      [scope
-       {try.:Success value}])))
+     (Injection (for_any (_ it thread)
+                         (/.Region (thread.Thread thread) it)))
+     (function (_ [region scope])
+               (function (_ thread)
+                         [scope
+                          {try.:Success value}])))
 
 (the comparison
-  (Comparison (for_any (_ it thread)
-                (/.Region (thread.Thread thread) it)))
-  (function (_ == left right)
-    (when [(thread.value (/.value thread.monad left))
-           (thread.value (/.value thread.monad right))]
-      [{try.:Success left} {try.:Success right}]
-      (== left right)
+     (Comparison (for_any (_ it thread)
+                          (/.Region (thread.Thread thread) it)))
+     (function (_ == left right)
+               (when [(thread.value (/.value thread.monad left))
+                      (thread.value (/.value thread.monad right))]
+                     [{try.:Success left} {try.:Success right}]
+                     (== left right)
 
-      _
-      false)))
+                     _
+                     false)))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (_.for [/.Region])
-      (monad.let [! random.monad]
-        [expected_clean_ups (|> random.natural (by ! each (|>> (n.% 100) (n.major 1))))]
-        (all _.and
-             (_.for [/.functor]
-                    (functorT.spec ..injection ..comparison (is (for_any (_ thread)
-                                                                  (Functor (/.Region (thread.Thread thread))))
-                                                                (/.functor thread.functor))))
-             (_.for [/.monad]
-                    (monadT.spec ..injection ..comparison (is (for_any (_ thread)
-                                                                (Monad (/.Region (thread.Thread thread))))
-                                                              (/.monad thread.monad))))
-             
-             (_.coverage [/.value]
-               (thread.value
-                (monad.let [! thread.monad]
-                  [clean_up_counter (thread.box 0)
-                   .let [//@ !
-                         count_clean_up (function (_ value)
-                                          (monad.let !
-                                            [_ (thread.update! ++ clean_up_counter)]
-                                            (pure {try.:Success []})))]
-                   outcome (/.value !
-                                    (monad.let [! (/.monad !)]
-                                      [_ (list.each' ! (/.acquire! //@ count_clean_up)
-                                                     (enum.range n.enum 1 expected_clean_ups))]
-                                      (pure [])))
-                   actual_clean_ups (thread.read! clean_up_counter)]
-                  (pure (and (..success? outcome)
-                             (n.= expected_clean_ups
-                                  actual_clean_ups))))))
-             (_.coverage [/.failure]
-               (thread.value
-                (monad.let [! thread.monad]
-                  [clean_up_counter (thread.box 0)
-                   .let [//@ !
-                         count_clean_up (function (_ value)
-                                          (monad.let !
-                                            [_ (thread.update! ++ clean_up_counter)]
-                                            (pure {try.:Success []})))]
-                   outcome (/.value !
-                                    (monad.let [! (/.monad !)]
-                                      [_ (list.each' ! (/.acquire! //@ count_clean_up)
-                                                     (enum.range n.enum 1 expected_clean_ups))
-                                       _ (/.failure //@ (exception.error ..oops []))]
-                                      (pure [])))
-                   actual_clean_ups (thread.read! clean_up_counter)]
-                  (pure (and (..throws? ..oops outcome)
-                             (n.= expected_clean_ups
-                                  actual_clean_ups))))))
-             (_.coverage [/.except]
-               (thread.value
-                (monad.let [! thread.monad]
-                  [clean_up_counter (thread.box 0)
-                   .let [//@ !
-                         count_clean_up (function (_ value)
-                                          (monad.let !
-                                            [_ (thread.update! ++ clean_up_counter)]
-                                            (pure {try.:Success []})))]
-                   outcome (/.value !
-                                    (monad.let [! (/.monad !)]
-                                      [_ (list.each' ! (/.acquire! //@ count_clean_up)
-                                                     (enum.range n.enum 1 expected_clean_ups))
-                                       _ (/.except //@ ..oops [])]
-                                      (pure [])))
-                   actual_clean_ups (thread.read! clean_up_counter)]
-                  (pure (and (..throws? ..oops outcome)
-                             (n.= expected_clean_ups
-                                  actual_clean_ups))))))
-             (_.coverage [/.acquire! /.clean_up_error]
-               (thread.value
-                (monad.let [! thread.monad]
-                  [clean_up_counter (thread.box 0)
-                   .let [//@ !
-                         count_clean_up (function (_ value)
-                                          (monad.let !
-                                            [_ (thread.update! ++ clean_up_counter)]
-                                            (pure (is (Try Any)
-                                                      (exception.except ..oops [])))))]
-                   outcome (/.value !
-                                    (monad.let [! (/.monad !)]
-                                      [_ (list.each' ! (/.acquire! //@ count_clean_up)
-                                                     (enum.range n.enum 1 expected_clean_ups))]
-                                      (pure [])))
-                   actual_clean_ups (thread.read! clean_up_counter)]
-                  (pure (and (or (n.= 0 expected_clean_ups)
-                                 (..throws? /.clean_up_error outcome))
-                             (n.= expected_clean_ups
-                                  actual_clean_ups))))))
-             (_.coverage [/.lifted]
-               (thread.value
-                (monad.let [! thread.monad]
-                  [clean_up_counter (thread.box 0)
-                   .let [//@ !]
-                   outcome (/.value !
-                                    (monad.let (/.monad !)
-                                      [_ (/.lifted //@ (thread.write! expected_clean_ups clean_up_counter))]
-                                      (pure [])))
-                   actual_clean_ups (thread.read! clean_up_counter)]
-                  (pure (and (..success? outcome)
-                             (n.= expected_clean_ups
-                                  actual_clean_ups))))))
-             ))))
+     Test
+     (<| (_.covering /._)
+         (_.for [/.Region])
+         (monad.let [! random.monad]
+                    [expected_clean_ups (|> random.natural (by ! each (|>> (n.% 100) (n.major 1))))]
+                    (all _.and
+                         (_.for [/.functor]
+                                (functorT.spec ..injection ..comparison (is (for_any (_ thread)
+                                                                                     (Functor (/.Region (thread.Thread thread))))
+                                                                            (/.functor thread.functor))))
+                         (_.for [/.monad]
+                                (monadT.spec ..injection ..comparison (is (for_any (_ thread)
+                                                                                   (Monad (/.Region (thread.Thread thread))))
+                                                                          (/.monad thread.monad))))
+                         
+                         (_.coverage [/.value]
+                                     (thread.value
+                                      (monad.let [! thread.monad]
+                                                 [clean_up_counter (thread.box 0)
+                                                  .let [//@ !
+                                                        count_clean_up (function (_ value)
+                                                                                 (monad.let !
+                                                                                            [_ (thread.update! ++ clean_up_counter)]
+                                                                                            (pure {try.:Success []})))]
+                                                  outcome (/.value !
+                                                                   (monad.let [! (/.monad !)]
+                                                                              [_ (list.each' ! (/.acquire! //@ count_clean_up)
+                                                                                             (enum.range n.enum 1 expected_clean_ups))]
+                                                                              (pure [])))
+                                                  actual_clean_ups (thread.read! clean_up_counter)]
+                                                 (pure (and (..success? outcome)
+                                                            (n.= expected_clean_ups
+                                                                 actual_clean_ups))))))
+                         (_.coverage [/.failure]
+                                     (thread.value
+                                      (monad.let [! thread.monad]
+                                                 [clean_up_counter (thread.box 0)
+                                                  .let [//@ !
+                                                        count_clean_up (function (_ value)
+                                                                                 (monad.let !
+                                                                                            [_ (thread.update! ++ clean_up_counter)]
+                                                                                            (pure {try.:Success []})))]
+                                                  outcome (/.value !
+                                                                   (monad.let [! (/.monad !)]
+                                                                              [_ (list.each' ! (/.acquire! //@ count_clean_up)
+                                                                                             (enum.range n.enum 1 expected_clean_ups))
+                                                                               _ (/.failure //@ (exception.error ..oops []))]
+                                                                              (pure [])))
+                                                  actual_clean_ups (thread.read! clean_up_counter)]
+                                                 (pure (and (..throws? ..oops outcome)
+                                                            (n.= expected_clean_ups
+                                                                 actual_clean_ups))))))
+                         (_.coverage [/.except]
+                                     (thread.value
+                                      (monad.let [! thread.monad]
+                                                 [clean_up_counter (thread.box 0)
+                                                  .let [//@ !
+                                                        count_clean_up (function (_ value)
+                                                                                 (monad.let !
+                                                                                            [_ (thread.update! ++ clean_up_counter)]
+                                                                                            (pure {try.:Success []})))]
+                                                  outcome (/.value !
+                                                                   (monad.let [! (/.monad !)]
+                                                                              [_ (list.each' ! (/.acquire! //@ count_clean_up)
+                                                                                             (enum.range n.enum 1 expected_clean_ups))
+                                                                               _ (/.except //@ ..oops [])]
+                                                                              (pure [])))
+                                                  actual_clean_ups (thread.read! clean_up_counter)]
+                                                 (pure (and (..throws? ..oops outcome)
+                                                            (n.= expected_clean_ups
+                                                                 actual_clean_ups))))))
+                         (_.coverage [/.acquire! /.clean_up_error]
+                                     (thread.value
+                                      (monad.let [! thread.monad]
+                                                 [clean_up_counter (thread.box 0)
+                                                  .let [//@ !
+                                                        count_clean_up (function (_ value)
+                                                                                 (monad.let !
+                                                                                            [_ (thread.update! ++ clean_up_counter)]
+                                                                                            (pure (is (Try Any)
+                                                                                                      (exception.except ..oops [])))))]
+                                                  outcome (/.value !
+                                                                   (monad.let [! (/.monad !)]
+                                                                              [_ (list.each' ! (/.acquire! //@ count_clean_up)
+                                                                                             (enum.range n.enum 1 expected_clean_ups))]
+                                                                              (pure [])))
+                                                  actual_clean_ups (thread.read! clean_up_counter)]
+                                                 (pure (and (and/or (n.= 0 expected_clean_ups)
+                                                                    (..throws? /.clean_up_error outcome))
+                                                            (n.= expected_clean_ups
+                                                                 actual_clean_ups))))))
+                         (_.coverage [/.lifted]
+                                     (thread.value
+                                      (monad.let [! thread.monad]
+                                                 [clean_up_counter (thread.box 0)
+                                                  .let [//@ !]
+                                                  outcome (/.value !
+                                                                   (monad.let (/.monad !)
+                                                                              [_ (/.lifted //@ (thread.write! expected_clean_ups clean_up_counter))]
+                                                                              (pure [])))
+                                                  actual_clean_ups (thread.read! clean_up_counter)]
+                                                 (pure (and (..success? outcome)
+                                                            (n.= expected_clean_ups
+                                                                 actual_clean_ups))))))
+                         ))))

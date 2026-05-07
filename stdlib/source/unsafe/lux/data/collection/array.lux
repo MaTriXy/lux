@@ -14,281 +14,281 @@
 (the macro (.in_module# .prelude .template:macro))
 
 (the name_of_type
-  (.type_name# "array"))
+     (.type_name# "array"))
 
 (every .public Index
-  Natural)
+       Natural)
 
 (the .public empty
-  (macro (_ ,size)
-    [((.is (.-> ..Index
-                .Array)
-           (.|>> .array#))
-      ,size)]))
+     (macro (_ ,size)
+            [((.is (.-> ..Index
+                        .Array)
+                   (.|>> .array#))
+              ,size)]))
 
 (the .public size
-  (macro (_ ,it)
-    [(.array_size# ,it)]))
+     (macro (_ ,it)
+            [(.array_size# ,it)]))
 
 (the n:<
-  (macro (_ ,reference ,it)
-    [(.int_<# (.integer ,reference) (.integer ,it))]))
+     (macro (_ ,reference ,it)
+            [(.int_<# (.integer ,reference) (.integer ,it))]))
 
 (the n:after
-  (macro (_ ,offset ,it)
-    [(.i64_+# ,offset ,it)]))
+     (macro (_ ,offset ,it)
+            [(.i64_+# ,offset ,it)]))
 
 (`` (the n:next
-      (macro (_ ,it)
-        [(,, (n:after 1 ,it))])))
+         (macro (_ ,it)
+                [(,, (n:after 1 ,it))])))
 
 (the n:previous
-  (macro (_ ,it)
-    [(.i64_-# 1 ,it)]))
+     (macro (_ ,it)
+            [(.i64_-# 1 ,it)]))
 
 (`` (the .public lacks?
-      (macro (_ ,index ,it)
-        [((.is (.for_any (_ to_write to_read)
-                 (.-> ..Index
-                      (predicate.Predicate (.Array' to_write to_read))))
-               (.function (_ index it)
-                 (.or (.not (,, (n:< (..size it) index)))
-                      (.array_lacks?# index it))))
-          ,index ,it)])))
+         (macro (_ ,index ,it)
+                [((.is (.for_any (_ to_write to_read)
+                                 (.-> ..Index
+                                      (predicate.Predicate (.Array' to_write to_read))))
+                       (.function (_ index it)
+                                  (.and/or (.not (,, (n:< (..size it) index)))
+                                           (.array_lacks?# index it))))
+                  ,index ,it)])))
 
 (the .public has?
-  (macro (_ ,index ,it)
-    [(.not (..lacks? ,index ,it))]))
+     (macro (_ ,index ,it)
+            [(.not (..lacks? ,index ,it))]))
 
 (the .public item
-  (macro (_ ,index ,it)
-    [(.array_its# ,index ,it)]))
+     (macro (_ ,index ,it)
+            [(.array_its# ,index ,it)]))
 
 (the .public has!
-  (macro (_ ,index ,value ,it)
-    [(.array_has# ,index ,value ,it)]))
+     (macro (_ ,index ,value ,it)
+            [(.array_has# ,index ,value ,it)]))
 
 (the .public lacks!
-  (macro (_ ,index ,it)
-    [(.array_lacks# ,index ,it)]))
+     (macro (_ ,index ,it)
+            [(.array_lacks# ,index ,it)]))
 
 (the .public revised!
-  (macro (revised! <index> <$> <array>)
-    [((.is (.for_any (_ to_write to_read)
-             (.-> ..Index (.-> to_read to_write)
-                  (.Change (.Array' to_write to_read))))
-           (.function (revised! index $ array)
-             (.if (..lacks? index array)
-                  array
-                  (..has! index ($ (..item index array)) array))))
-      <index> <$> <array>)]))
+     (macro (revised! <index> <$> <array>)
+            [((.is (.for_any (_ to_write to_read)
+                             (.-> ..Index (.-> to_read to_write)
+                                  (.Change (.Array' to_write to_read))))
+                   (.function (revised! index $ array)
+                              (.if (..lacks? index array)
+                                   array
+                                   (..has! index ($ (..item index array)) array))))
+              <index> <$> <array>)]))
 
 (the .public upsert!
-  (macro (upsert! <index> <default> <$> <array>)
-    [((.is (.for_any (_ to_write to_read)
-             (.-> ..Index to_read (.-> to_read to_write)
-                  (.Change (.Array' to_write to_read))))
-           (.function (upsert! index default $ array)
-             (..has! index
-                     ($ (.if (..lacks? index array)
-                             default
-                             (..item index array)))
-                     array)))
-      <index> <default> <$> <array>)]))
+     (macro (upsert! <index> <default> <$> <array>)
+            [((.is (.for_any (_ to_write to_read)
+                             (.-> ..Index to_read (.-> to_read to_write)
+                                  (.Change (.Array' to_write to_read))))
+                   (.function (upsert! index default $ array)
+                              (..has! index
+                                      ($ (.if (..lacks? index array)
+                                              default
+                                              (..item index array)))
+                                      array)))
+              <index> <default> <$> <array>)]))
 
 (`` (the .public copy!
-      (macro (copy! <length> <src_start> <src_array> <dest_start> <dest_array>)
-        [((.is (.for_any (_ to_write to_read any)
-                 (.-> ..Index ..Index (.Array' any to_write) ..Index
-                      (.Change (.Array' to_write to_read))))
-               (.function (copy! length src_start src_array dest_start dest_array)
-                 (.loop (again [offset 0])
-                   (.if (,, (n:< length offset))
-                        (.exec
-                          (.if (..lacks? (,, (n:after offset src_start)) src_array)
-                               (..lacks! (,, (n:after offset dest_start)) dest_array)
-                               (..has! (,, (n:after offset dest_start))
-                                       (..item (,, (n:after offset src_start)) src_array)
-                                       dest_array))
-                          (again (,, (n:next offset))))
-                        dest_array))))
-          <length> <src_start> <src_array> <dest_start> <dest_array>)])))
+         (macro (copy! <length> <src_start> <src_array> <dest_start> <dest_array>)
+                [((.is (.for_any (_ to_write to_read any)
+                                 (.-> ..Index ..Index (.Array' any to_write) ..Index
+                                      (.Change (.Array' to_write to_read))))
+                       (.function (copy! length src_start src_array dest_start dest_array)
+                                  (.loop (again [offset 0])
+                                         (.if (,, (n:< length offset))
+                                              (.exec
+                                               (.if (..lacks? (,, (n:after offset src_start)) src_array)
+                                                    (..lacks! (,, (n:after offset dest_start)) dest_array)
+                                                    (..has! (,, (n:after offset dest_start))
+                                                            (..item (,, (n:after offset src_start)) src_array)
+                                                            dest_array))
+                                               (again (,, (n:next offset))))
+                                              dest_array))))
+                  <length> <src_start> <src_array> <dest_start> <dest_array>)])))
 
 (with_template [<name> <when_lacks> <when_has>]
                [(`` (the .public <name>
-                      (macro (<name> <array>)
-                        [((.is (.for_any (_ to_write to_read)
-                                 (.-> (.Array' to_write to_read)
-                                      ..Index))
-                               (.function (occupancy array)
-                                 (.let [size (..size array)]
-                                   (.loop (again [index 0
-                                                  it 0])
-                                     (.if (,, (n:< size index))
-                                          (again (,, (n:next index)) (.if (..lacks? index array)
-                                                                          <when_lacks>
-                                                                          <when_has>))
-                                          it)))))
-                          <array>)])))]
+                         (macro (<name> <array>)
+                                [((.is (.for_any (_ to_write to_read)
+                                                 (.-> (.Array' to_write to_read)
+                                                      ..Index))
+                                       (.function (occupancy array)
+                                                  (.let [size (..size array)]
+                                                        (.loop (again [index 0
+                                                                       it 0])
+                                                               (.if (,, (n:< size index))
+                                                                    (again (,, (n:next index)) (.if (..lacks? index array)
+                                                                                                    <when_lacks>
+                                                                                                    <when_has>))
+                                                                    it)))))
+                                  <array>)])))]
 
                [[occupancy it (,, (n:next it))]
                 [vacancy (,, (n:next it)) it]]
                )
 
 (`` (the .public only!
-      (macro (only! <?> <it>)
-        [((.is (.for_any (_ to_write to_read)
-                 (.-> (predicate.Predicate to_read)
-                      (.Change (.Array' to_write to_read))))
-               (.function (only! ? it)
-                 (.let [size (..size it)]
-                   (.loop (again [index 0])
-                     (.if (,, (n:< size index))
-                          (.exec
-                            (.if (.or (..lacks? index it)
-                                      (? (..item index it)))
-                                 it
-                                 (..lacks! index it))
-                            (again (,, (n:next index))))
-                          it)))))
-          <?> <it>)])))
+         (macro (only! <?> <it>)
+                [((.is (.for_any (_ to_write to_read)
+                                 (.-> (predicate.Predicate to_read)
+                                      (.Change (.Array' to_write to_read))))
+                       (.function (only! ? it)
+                                  (.let [size (..size it)]
+                                        (.loop (again [index 0])
+                                               (.if (,, (n:< size index))
+                                                    (.exec
+                                                     (.if (.and/or (..lacks? index it)
+                                                                   (? (..item index it)))
+                                                          it
+                                                          (..lacks! index it))
+                                                     (again (,, (n:next index))))
+                                                    it)))))
+                  <?> <it>)])))
 
 (error.the .public no_example)
 
 (with_template [<name> <predicate> <test> <type> <term>]
                [(`` (the .public <name>
-                      (macro (<name> <?> <it>)
-                        [((.is (.for_any (_ to_write to_read)
-                                 (.-> <predicate> (.Array' to_write to_read)
-                                      (try.Try <type>)))
-                               (.function (<name> ? it)
-                                 (.let [size (..size it)]
-                                   (.loop (again [index 0])
-                                     (.if (,, (n:< size index))
-                                          (.if (..lacks? index it)
-                                               (again (,, (n:next index)))
-                                               (.let [it (..item index it)]
-                                                 (.if <test>
-                                                      {try.:Success <term>}
-                                                      (again (,, (n:next index))))))
-                                          {try.:Failure ..no_example})))))
-                          <?> <it>)])))]
+                         (macro (<name> <?> <it>)
+                                [((.is (.for_any (_ to_write to_read)
+                                                 (.-> <predicate> (.Array' to_write to_read)
+                                                      (try.Try <type>)))
+                                       (.function (<name> ? it)
+                                                  (.let [size (..size it)]
+                                                        (.loop (again [index 0])
+                                                               (.if (,, (n:< size index))
+                                                                    (.if (..lacks? index it)
+                                                                         (again (,, (n:next index)))
+                                                                         (.let [it (..item index it)]
+                                                                               (.if <test>
+                                                                                    {try.:Success <term>}
+                                                                                    (again (,, (n:next index))))))
+                                                                    {try.:Failure ..no_example})))))
+                                  <?> <it>)])))]
 
                [[example (predicate.Predicate to_read) (? it) to_read it]
                 [example' (.-> ..Index (predicate.Predicate to_read)) (? index it) [..Index to_read] [index it]]]
                )
 
 (the .public clone
-  (macro (clone <it>)
-    [((.is (.for_any (_ it)
-             (.Change (.Array it)))
-           (.function (clone it)
-             (.let [size (..size it)]
-               (..copy! size 0 it 0 (..empty size)))))
-      <it>)]))
+     (macro (clone <it>)
+            [((.is (.for_any (_ it)
+                             (.Change (.Array it)))
+                   (.function (clone it)
+                              (.let [size (..size it)]
+                                    (..copy! size 0 it 0 (..empty size)))))
+              <it>)]))
 
 (`` (the .public =
-      (macro (= <//:=> <left/*> <right/*>)
-        [((.is (.for_any (_ any_left any_right to_read)
-                 (.-> (equality.Equality to_read)
-                      (.-> (.Array' any_left to_read) (.Array' any_right to_read)
-                           .Bit)))
-               (.function (= //:= left/* right/*)
-                 (.let [size (..size left/*)]
-                   (.and (.i64_=# (..size right/*) size)
-                         (.loop (again [index 0])
-                           (.if (,, (n:< size index))
-                                (.if (..lacks? index left/*)
-                                     (..lacks? index right/*)
+         (macro (= <//:=> <left/*> <right/*>)
+                [((.is (.for_any (_ any_left any_right to_read)
+                                 (.-> (equality.Equality to_read)
+                                      (.-> (.Array' any_left to_read) (.Array' any_right to_read)
+                                           .Bit)))
+                       (.function (= //:= left/* right/*)
+                                  (.let [size (..size left/*)]
+                                        (.and (.i64_=# (..size right/*) size)
+                                              (.loop (again [index 0])
+                                                     (.if (,, (n:< size index))
+                                                          (.if (..lacks? index left/*)
+                                                               (..lacks? index right/*)
 
-                                     (..lacks? index right/*)
-                                     .false
-                                     
-                                     (.and (//:= (..item index left/*)
-                                                 (..item index right/*))
-                                           (again (,, (n:next index)))))
-                                true))))))
-          <//:=> <left/*> <right/*>)])))
+                                                               (..lacks? index right/*)
+                                                               .false
+                                                               
+                                                               (.and (//:= (..item index left/*)
+                                                                           (..item index right/*))
+                                                                     (again (,, (n:next index)))))
+                                                          true))))))
+                  <//:=> <left/*> <right/*>)])))
 
 (`` (the .public composite
-      (macro (composite <left/*> <right/*>)
-        [((.is (.for_any (_ any_left any_right to_read)
-                 (.-> (.Array' any_left to_read) (.Array' any_right to_read)
-                      (.Array to_read)))
-               (.function (composite left/* right/*)
-                 (.let [|left| (..size left/*)
-                        |right| (..size right/*)]
-                   (.|> (..empty (,, (n:after |left| |right|)))
-                        (..copy! |left| 0 left/* 0)
-                        (..copy! |right| 0 right/* |left|)))))
-          <left/*> <right/*>)])))
+         (macro (composite <left/*> <right/*>)
+                [((.is (.for_any (_ any_left any_right to_read)
+                                 (.-> (.Array' any_left to_read) (.Array' any_right to_read)
+                                      (.Array to_read)))
+                       (.function (composite left/* right/*)
+                                  (.let [|left| (..size left/*)
+                                         |right| (..size right/*)]
+                                        (.|> (..empty (,, (n:after |left| |right|)))
+                                             (..copy! |left| 0 left/* 0)
+                                             (..copy! |right| 0 right/* |left|)))))
+                  <left/*> <right/*>)])))
 
 (`` (the .public mix
-      (macro (mix <$> <it> <init>)
-        [((.is (.for_any (_ to_write to_read state)
-                 (.-> (.-> ..Index to_read (.Change state))
-                      (.-> (.Array' to_write to_read) state state)))
-               (.function (mix $ it init)
-                 (.let [size (..size it)]
-                   (.loop (again [index 0
-                                  so_far init])
-                     (.if (,, (n:< size index))
-                          (again (,, (n:next index)) (.if (..lacks? index it)
-                                                          so_far
-                                                          ($ index (..item index it) so_far)))
-                          so_far)))))
-          <$> <it> <init>)])))
+         (macro (mix <$> <it> <init>)
+                [((.is (.for_any (_ to_write to_read state)
+                                 (.-> (.-> ..Index to_read (.Change state))
+                                      (.-> (.Array' to_write to_read) state state)))
+                       (.function (mix $ it init)
+                                  (.let [size (..size it)]
+                                        (.loop (again [index 0
+                                                       so_far init])
+                                               (.if (,, (n:< size index))
+                                                    (again (,, (n:next index)) (.if (..lacks? index it)
+                                                                                    so_far
+                                                                                    ($ index (..item index it) so_far)))
+                                                    so_far)))))
+                  <$> <it> <init>)])))
 
 (the .public each
-  (macro (each <$> <input>)
-    [((.is (functor.Functor .Array)
-           (.function (each $ input)
-             (..mix (.function (_ index item output)
-                      (..has! index ($ item) output))
-                    input
-                    (..empty (..size input)))))
-      <$> <input>)]))
+     (macro (each <$> <input>)
+            [((.is (functor.Functor .Array)
+                   (.function (each $ input)
+                              (..mix (.function (_ index item output)
+                                                (..has! index ($ item) output))
+                                     input
+                                     (..empty (..size input)))))
+              <$> <input>)]))
 
 (with_template [<name> <init> <op>]
                [(`` (the .public <name>
-                      (macro (<name> <?> <it>)
-                        [((.is (.for_any (_ to_write to_read)
-                                 (.-> (predicate.Predicate to_read)
-                                      (predicate.Predicate (.Array' to_write to_read))))
-                               (.function (<name> ? it)
-                                 (.let [size (..size it)]
-                                   (.loop (again [index 0])
-                                     (.if (,, (n:< size index))
-                                          (.if (..lacks? index it)
-                                               (again (,, (n:next index)))
-                                               (<op> (? (..item index it))
-                                                     (again (,, (n:next index)))))
-                                          <init>)))))
-                          <?> <it>)])))]
+                         (macro (<name> <?> <it>)
+                                [((.is (.for_any (_ to_write to_read)
+                                                 (.-> (predicate.Predicate to_read)
+                                                      (predicate.Predicate (.Array' to_write to_read))))
+                                       (.function (<name> ? it)
+                                                  (.let [size (..size it)]
+                                                        (.loop (again [index 0])
+                                                               (.if (,, (n:< size index))
+                                                                    (.if (..lacks? index it)
+                                                                         (again (,, (n:next index)))
+                                                                         (<op> (? (..item index it))
+                                                                               (again (,, (n:next index)))))
+                                                                    <init>)))))
+                                  <?> <it>)])))]
 
-               [[every? .true  and]
-                [any?   .false or]]
+               [[every? .true  .and]
+                [any?   .false .and/or]]
                )
 
 (error.the .public no_one)
 
 (`` (the .public one
-      (macro (one <?> <it>)
-        [((.is (.for_any (_ to_write to_read to_read')
-                 (.-> (.-> to_read (.Maybe to_read')) (.Array' to_write to_read)
-                      (try.Try to_read')))
-               (.function (one ? it)
-                 (.let [size (..size it)]
-                   (.loop (again [index 0])
-                     (.if (,, (n:< size index))
-                          (<| (..expansion:let [<again> (again (,, (n:next index)))])
-                              (.if (..lacks? index it)
-                                   <again>
-                                   (.when (? (..item index it))
-                                     {.:None}
-                                     <again>
+         (macro (one <?> <it>)
+                [((.is (.for_any (_ to_write to_read to_read')
+                                 (.-> (.-> to_read (.Maybe to_read')) (.Array' to_write to_read)
+                                      (try.Try to_read')))
+                       (.function (one ? it)
+                                  (.let [size (..size it)]
+                                        (.loop (again [index 0])
+                                               (.if (,, (n:< size index))
+                                                    (<| (..expansion:let [<again> (again (,, (n:next index)))])
+                                                        (.if (..lacks? index it)
+                                                             <again>
+                                                             (.when (? (..item index it))
+                                                                    {.:None}
+                                                                    <again>
 
-                                     {.:Some output}
-                                     {try.:Success output})))
-                          {try.:Failure ..no_one})))))
-          <?> <it>)])))
+                                                                    {.:Some output}
+                                                                    {try.:Success output})))
+                                                    {try.:Failure ..no_one})))))
+                  <?> <it>)])))

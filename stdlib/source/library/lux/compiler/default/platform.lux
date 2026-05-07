@@ -80,722 +80,722 @@
 
 (expansion.let [<type_vars> (these anchor expression declaration)
                 <Operation> (these ///translation.Operation <type_vars>)]
-  (these (every .public (Platform <type_vars>)
-           (Record
-            [:file_system (file.System Future)
-             :host (///translation.Host expression declaration)
-             :phase (-> extension.Extender @type.Lux (///translation.Phase <type_vars>))
-             :runtime (<Operation> [Registry Output])
-             :phase_wrapper phase.Wrapper
-             :write (-> declaration Binary)]))
+               (these (every .public (Platform <type_vars>)
+                             (Record
+                              [:file_system (file.System Future)
+                               :host (///translation.Host expression declaration)
+                               :phase (-> extension.Extender @type.Lux (///translation.Phase <type_vars>))
+                               :runtime (<Operation> [Registry Output])
+                               :phase_wrapper phase.Wrapper
+                               :write (-> declaration Binary)]))
 
-         (comment "TODO: Get rid of this"
-                  (every (Action it)
-                    (Future (Try it))))
+                      (comment "TODO: Get rid of this"
+                               (every (Action it)
+                                      (Future (Try it))))
 
-         (comment "TODO: Get rid of this"
-                  (the monad
-                    (try.with future.monad)))
+                      (comment "TODO: Get rid of this"
+                               (the monad
+                                    (try.with future.monad)))
 
-         (expansion.let [<Platform> (these (Platform <type_vars>))
-                         <State> (these (///declaration.State <type_vars>))]
+                      (expansion.let [<Platform> (these (Platform <type_vars>))
+                                      <State> (these (///declaration.State <type_vars>))]
 
-           (these (the (as_binary //)
-                    (for_any (_ a)
-                      (-> (Injection a)
-                          (Injection [(moduleM.Module a) Registry])))
-                    (all _.and
-                         (all _.and
-                              _.natural
-                              descriptor.as_binary
-                              (document.as_binary //))
-                         registry.as_binary
-                         ))
+                                     (these (the (as_binary //)
+                                                 (for_any (_ a)
+                                                          (-> (Injection a)
+                                                              (Injection [(moduleM.Module a) Registry])))
+                                                 (all _.and
+                                                      (all _.and
+                                                           _.natural
+                                                           descriptor.as_binary
+                                                           (document.as_binary //))
+                                                      registry.as_binary
+                                                      ))
 
-                  (the (cache_module context platform @module key as_binary entry)
-                    (for_any (_ <type_vars> document)
-                      (-> context.Context <Platform> moduleM.ID (Key document) (Injection document) (archive.Entry document)
-                          (Future (Try Any))))
-                    (let [system (its :file_system platform)
-                          write_artifact! (is (-> [artifact.ID (Maybe Text) Binary]
-                                                  (Action Any))
-                                              (function (_ [artifact_id custom content])
-                                                (is (Future (Try Any))
-                                                    (cache/artifact.cache! system context @module artifact_id content))))]
-                      (monad.let [! ..monad]
-                        [_ (is (Future (Try Any))
-                               (cache/module.enable! future.monad system @module))
-                         _ (target.if target.python
-                                      (|> entry
-                                          (its archive.:output)
-                                          sequence.as_list
-                                          (list.sub 128)
-                                          (list.each' ! (list.each' ! write_artifact!))
-                                          (is (Action (List (List Any)))))
+                                            (the (cache_module context platform @module key as_binary entry)
+                                                 (for_any (_ <type_vars> document)
+                                                          (-> context.Context <Platform> moduleM.ID (Key document) (Injection document) (archive.Entry document)
+                                                              (Future (Try Any))))
+                                                 (let [system (its :file_system platform)
+                                                       write_artifact! (is (-> [artifact.ID (Maybe Text) Binary]
+                                                                               (Action Any))
+                                                                           (function (_ [artifact_id custom content])
+                                                                                     (is (Future (Try Any))
+                                                                                         (cache/artifact.cache! system context @module artifact_id content))))]
+                                                      (monad.let [! ..monad]
+                                                                 [_ (is (Future (Try Any))
+                                                                        (cache/module.enable! future.monad system @module))
+                                                                  _ (target.if target.python
+                                                                               (|> entry
+                                                                                   (its archive.:output)
+                                                                                   sequence.as_list
+                                                                                   (list.sub 128)
+                                                                                   (list.each' ! (list.each' ! write_artifact!))
+                                                                                   (is (Action (List (List Any)))))
 
-                                      (|> entry
-                                          (its archive.:output)
-                                          sequence.as_list
-                                          (list.each' ..monad write_artifact!)
-                                          (is (Action (List Any)))))
-                         document (by future.monad pure
-                                      (document.marked? key (its [archive.:module moduleM.:document] entry)))]
-                        (is (Future (Try Any))
-                            (|> [(|> entry
-                                     (its archive.:module)
-                                     (has moduleM.:document document))
-                                 (its archive.:registry entry)]
-                                (_.value (..as_binary as_binary))
-                                (cache/module.cache! system @module))))))
+                                                                               (|> entry
+                                                                                   (its archive.:output)
+                                                                                   sequence.as_list
+                                                                                   (list.each' ..monad write_artifact!)
+                                                                                   (is (Action (List Any)))))
+                                                                  document (by future.monad pure
+                                                                               (document.marked? key (its [archive.:module moduleM.:document] entry)))]
+                                                                 (is (Future (Try Any))
+                                                                     (|> [(|> entry
+                                                                              (its archive.:module)
+                                                                              (has moduleM.:document document))
+                                                                          (its archive.:registry entry)]
+                                                                         (_.value (..as_binary as_binary))
+                                                                         (cache/module.cache! system @module))))))
 
-                  (comment "TODO: Inline ASAP"
-                           (the initialize_buffer!
-                             (for_any (_ <type_vars>)
-                               (///translation.Operation <type_vars> Any))
-                             (///translation.set_buffer ///translation.empty_buffer)))
+                                            (comment "TODO: Inline ASAP"
+                                                     (the initialize_buffer!
+                                                          (for_any (_ <type_vars>)
+                                                                   (///translation.Operation <type_vars> Any))
+                                                          (///translation.set_buffer ///translation.empty_buffer)))
 
-                  (comment "TODO: Inline ASAP"
-                           (the (compile_runtime! platform)
-                             (for_any (_ <type_vars>)
-                               (-> <Platform>
-                                   (///translation.Operation <type_vars> [Registry Output])))
-                             (monad.let phase.monad
-                               [_ ..initialize_buffer!]
-                               (its :runtime platform))))
+                                            (comment "TODO: Inline ASAP"
+                                                     (the (compile_runtime! platform)
+                                                          (for_any (_ <type_vars>)
+                                                                   (-> <Platform>
+                                                                       (///translation.Operation <type_vars> [Registry Output])))
+                                                          (monad.let phase.monad
+                                                                     [_ ..initialize_buffer!]
+                                                                     (its :runtime platform))))
 
-                  (the runtime_descriptor
-                    Descriptor
-                    [descriptor.:hash 0
-                     descriptor.:name descriptor.runtime
-                     descriptor.:file ""
-                     descriptor.:references (set.empty text.hash)
-                     descriptor.:state {.:Compiled}])
-                  
-                  (the runtime_document
-                    (Document @type.Module)
-                    (document.document $.key (module.empty 0)))
+                                            (the runtime_descriptor
+                                                 Descriptor
+                                                 [descriptor.:hash 0
+                                                  descriptor.:name descriptor.runtime
+                                                  descriptor.:file ""
+                                                  descriptor.:references (set.empty text.hash)
+                                                  descriptor.:state {.:Compiled}])
+                                            
+                                            (the runtime_document
+                                                 (Document @type.Module)
+                                                 (document.document $.key (module.empty 0)))
 
-                  (the runtime_module
-                    (moduleM.Module @type.Module)
-                    [moduleM.:id moduleM.runtime
-                     moduleM.:descriptor runtime_descriptor
-                     moduleM.:document runtime_document])
+                                            (the runtime_module
+                                                 (moduleM.Module @type.Module)
+                                                 [moduleM.:id moduleM.runtime
+                                                  moduleM.:descriptor runtime_descriptor
+                                                  moduleM.:document runtime_document])
 
-                  (the (process_runtime archive platform)
-                    (for_any (_ <type_vars>)
-                      (-> Archive <Platform>
-                          (///declaration.Operation <type_vars>
-                                                    [Archive (archive.Entry @type.Module)])))
-                    (monad.let phase.monad
-                      [[registry payload] (///declaration.of_translation
-                                           (..compile_runtime! platform))
-                       .let [entry [..runtime_module payload registry]]
-                       archive (phase.of_try (if (archive.reserved? archive descriptor.runtime)
-                                                 (archive.has descriptor.runtime entry archive)
-                                                 (monad.let try.monad
-                                                   [[_ archive] (archive.reserve descriptor.runtime archive)]
-                                                   (archive.has descriptor.runtime entry archive))))]
-                      (pure [archive entry])))
+                                            (the (process_runtime archive platform)
+                                                 (for_any (_ <type_vars>)
+                                                          (-> Archive <Platform>
+                                                              (///declaration.Operation <type_vars>
+                                                                                        [Archive (archive.Entry @type.Module)])))
+                                                 (monad.let phase.monad
+                                                            [[registry payload] (///declaration.of_translation
+                                                                                 (..compile_runtime! platform))
+                                                             .let [entry [..runtime_module payload registry]]
+                                                             archive (phase.of_try (if (archive.reserved? archive descriptor.runtime)
+                                                                                       (archive.has descriptor.runtime entry archive)
+                                                                                       (monad.let try.monad
+                                                                                                  [[_ archive] (archive.reserve descriptor.runtime archive)]
+                                                                                                  (archive.has descriptor.runtime entry archive))))]
+                                                            (pure [archive entry])))
 
-                  (the (initialize_state analysis_state all_extensions)
-                    (for_any (_ <type_vars>)
-                      (-> analysis.State (//init.Extensions <type_vars>)
-                          (///declaration.Operation <type_vars> Any)))
-                    (monad.let [! phase.monad]
-                      [_ (///declaration.of_analysis
-                          (analysis.set_state analysis_state))]
-                      (//init.with_defaults .prelude all_extensions)))
+                                            (the (initialize_state analysis_state all_extensions)
+                                                 (for_any (_ <type_vars>)
+                                                          (-> analysis.State (//init.Extensions <type_vars>)
+                                                              (///declaration.Operation <type_vars> Any)))
+                                                 (monad.let [! phase.monad]
+                                                            [_ (///declaration.of_analysis
+                                                                (analysis.set_state analysis_state))]
+                                                            (//init.with_defaults .prelude all_extensions)))
 
-                  (the (with_extended_prelude state archive)
-                    (-> @type.Lux Archive
-                        Archive)
-                    (|> (monad.let try.monad
-                          [prelude (phase.value state (phase.by_name .prelude))
-                           entry (archive.find .prelude archive)
-                           .let [entry (has [archive.:module moduleM.:document]
-                                            (document.document $.key prelude)
-                                            entry)]]
-                          (archive.has! .prelude entry archive))
-                        (try.else archive)))
+                                            (the (with_extended_prelude state archive)
+                                                 (-> @type.Lux Archive
+                                                     Archive)
+                                                 (|> (monad.let try.monad
+                                                                [prelude (phase.value state (phase.by_name .prelude))
+                                                                 entry (archive.find .prelude archive)
+                                                                 .let [entry (has [archive.:module moduleM.:document]
+                                                                                  (document.document $.key prelude)
+                                                                                  entry)]]
+                                                                (archive.has! .prelude entry archive))
+                                                     (try.else archive)))
 
-                  (the .public (initialize context module expander platform program extender
-                                           import compilation_sources compilation_configuration
-                                           all_extensions)
-                    (for_any (_ <type_vars>)
-                      (-> context.Context
-                          descriptor.Module
-                          Expander
-                          <Platform>
-                          (Program expression declaration)
-                          extension.Extender
-                          Import (List _io.Context) Configuration
-                          (//init.Extensions <type_vars>)
-                          (Future (Try [<State> Archive phase.Wrapper]))))
-                    (monad.let [! ..monad]
-                      [.let [phase_wrapper (its :phase_wrapper platform)
-                             state (//init.state (its context.:host context)
-                                                 module
-                                                 compilation_configuration
-                                                 extender
-                                                 expander
-                                                 (its :host platform)
-                                                 (its :phase platform))]
-                       _ (is (Future (Try Any))
-                             (cache.enable! future.monad (its :file_system platform)))
-                       [archive analysis_state] (ioW.thaw (list) compilation_configuration (its :host platform) (its :file_system platform) context import compilation_sources)
-                       .let [with_missing_extensions
-                             (is (for_any (_ <type_vars>)
-                                   (-> (//init.Extensions <type_vars>) <State>
-                                       (Future (Try <State>))))
-                                 (function (_ all_extensions state)
-                                   (|> (initialize_state analysis_state all_extensions)
-                                       (phase.value' state)
-                                       (try:each pair.left)
-                                       future:pure)))]]
-                      (if (archive.archived? archive descriptor.runtime)
-                          (monad.let !
-                            [state (with_missing_extensions all_extensions state)
-                             .let [archive (with_extended_prelude (its [///declaration.:analysis ///declaration.:state] state) archive)]]
-                            (pure [state archive phase_wrapper]))
-                          (monad.let !
-                            [[state [archive payload]] (|> (..process_runtime archive platform)
-                                                           (phase.value' state)
-                                                           future:pure)
-                             _ (..cache_module context platform 0 $.key $.as_binary payload)]
-                            (pure [state archive phase_wrapper])))))
+                                            (the .public (initialize context module expander platform program extender
+                                                                     import compilation_sources compilation_configuration
+                                                                     all_extensions)
+                                                 (for_any (_ <type_vars>)
+                                                          (-> context.Context
+                                                              descriptor.Module
+                                                              Expander
+                                                              <Platform>
+                                                              (Program expression declaration)
+                                                              extension.Extender
+                                                              Import (List _io.Context) Configuration
+                                                              (//init.Extensions <type_vars>)
+                                                              (Future (Try [<State> Archive phase.Wrapper]))))
+                                                 (monad.let [! ..monad]
+                                                            [.let [phase_wrapper (its :phase_wrapper platform)
+                                                                   state (//init.state (its context.:host context)
+                                                                                       module
+                                                                                       compilation_configuration
+                                                                                       extender
+                                                                                       expander
+                                                                                       (its :host platform)
+                                                                                       (its :phase platform))]
+                                                             _ (is (Future (Try Any))
+                                                                   (cache.enable! future.monad (its :file_system platform)))
+                                                             [archive analysis_state] (ioW.thaw (list) compilation_configuration (its :host platform) (its :file_system platform) context import compilation_sources)
+                                                             .let [with_missing_extensions
+                                                                   (is (for_any (_ <type_vars>)
+                                                                                (-> (//init.Extensions <type_vars>) <State>
+                                                                                    (Future (Try <State>))))
+                                                                       (function (_ all_extensions state)
+                                                                                 (|> (initialize_state analysis_state all_extensions)
+                                                                                     (phase.value' state)
+                                                                                     (try:each pair.left)
+                                                                                     future:pure)))]]
+                                                            (if (archive.archived? archive descriptor.runtime)
+                                                                (monad.let !
+                                                                           [state (with_missing_extensions all_extensions state)
+                                                                            .let [archive (with_extended_prelude (its [///declaration.:analysis ///declaration.:state] state) archive)]]
+                                                                           (pure [state archive phase_wrapper]))
+                                                                (monad.let !
+                                                                           [[state [archive payload]] (|> (..process_runtime archive platform)
+                                                                                                          (phase.value' state)
+                                                                                                          future:pure)
+                                                                            _ (..cache_module context platform 0 $.key $.as_binary payload)]
+                                                                           (pure [state archive phase_wrapper])))))
 
-                  (the empty
-                    (Set descriptor.Module)
-                    (set.empty text.hash))
+                                            (the empty
+                                                 (Set descriptor.Module)
+                                                 (set.empty text.hash))
 
-                  (every Mapping
-                    (Dictionary descriptor.Module (Set descriptor.Module)))
+                                            (every Mapping
+                                                   (Dictionary descriptor.Module (Set descriptor.Module)))
 
-                  (every Dependence
-                    (Record
-                     [:depends_on Mapping
-                      :depended_by Mapping]))
+                                            (every Dependence
+                                                   (Record
+                                                    [:depends_on Mapping
+                                                     :depended_by Mapping]))
 
-                  (the independence
-                    Dependence
-                    (let [empty (dictionary.empty text.hash)]
-                      [:depends_on empty
-                       :depended_by empty]))
+                                            (the independence
+                                                 Dependence
+                                                 (let [empty (dictionary.empty text.hash)]
+                                                      [:depends_on empty
+                                                       :depended_by empty]))
 
-                  (the (depend module import dependence)
-                    (-> descriptor.Module descriptor.Module Dependence
-                        Dependence)
-                    (let [transitive_dependency (is (-> (-> Dependence Mapping) descriptor.Module
-                                                        (Set descriptor.Module))
-                                                    (function (_ lens module)
+                                            (the (depend module import dependence)
+                                                 (-> descriptor.Module descriptor.Module Dependence
+                                                     Dependence)
+                                                 (let [transitive_dependency (is (-> (-> Dependence Mapping) descriptor.Module
+                                                                                     (Set descriptor.Module))
+                                                                                 (function (_ lens module)
+                                                                                           (|> dependence
+                                                                                               lens
+                                                                                               (dictionary.value module)
+                                                                                               (try.else ..empty))))
+                                                       transitive_depends_on (transitive_dependency (its :depends_on) import)
+                                                       transitive_depended_by (transitive_dependency (its :depended_by) module)
+                                                       update_dependence (is (-> [descriptor.Module (Set descriptor.Module)] [descriptor.Module (Set descriptor.Module)]
+                                                                                 (-> Mapping Mapping))
+                                                                             (function (_ [source forward] [target backward])
+                                                                                       (function (_ mapping)
+                                                                                                 (let [with_dependence+transitives
+                                                                                                       (|> mapping
+                                                                                                           (dictionary.revised' source ..empty (set.has target))
+                                                                                                           (dictionary.revised source (set.union forward)))]
+                                                                                                      (list.mix (function (_ previous)
+                                                                                                                          (dictionary.revised' previous ..empty (set.has target)))
+                                                                                                                (set.as_list backward)
+                                                                                                                with_dependence+transitives)))))]
                                                       (|> dependence
-                                                          lens
-                                                          (dictionary.value module)
-                                                          (try.else ..empty))))
-                          transitive_depends_on (transitive_dependency (its :depends_on) import)
-                          transitive_depended_by (transitive_dependency (its :depended_by) module)
-                          update_dependence (is (-> [descriptor.Module (Set descriptor.Module)] [descriptor.Module (Set descriptor.Module)]
-                                                    (-> Mapping Mapping))
-                                                (function (_ [source forward] [target backward])
-                                                  (function (_ mapping)
-                                                    (let [with_dependence+transitives
-                                                          (|> mapping
-                                                              (dictionary.revised' source ..empty (set.has target))
-                                                              (dictionary.revised source (set.union forward)))]
-                                                      (list.mix (function (_ previous)
-                                                                  (dictionary.revised' previous ..empty (set.has target)))
-                                                                (set.as_list backward)
-                                                                with_dependence+transitives)))))]
-                      (|> dependence
-                          (revised :depends_on
-                                   (update_dependence
-                                    [module transitive_depends_on]
-                                    [import transitive_depended_by]))
-                          (revised :depended_by
-                                   ((function.in_reverse update_dependence)
-                                    [module transitive_depends_on]
-                                    [import transitive_depended_by])))))
+                                                          (revised :depends_on
+                                                                   (update_dependence
+                                                                    [module transitive_depends_on]
+                                                                    [import transitive_depended_by]))
+                                                          (revised :depended_by
+                                                                   ((function.in_reverse update_dependence)
+                                                                    [module transitive_depends_on]
+                                                                    [import transitive_depended_by])))))
 
-                  (the (circular_dependency? module import dependence)
-                    (-> descriptor.Module descriptor.Module Dependence
-                        Bit)
-                    (let [dependence? (is (-> descriptor.Module (-> Dependence Mapping) descriptor.Module
-                                              Bit)
-                                          (function (_ from relationship to)
-                                            (let [targets (|> dependence
-                                                              relationship
-                                                              (dictionary.value from)
-                                                              (try.else ..empty))]
-                                              (set.member? targets to))))]
-                      (or (dependence? import (its :depends_on) module)
-                          (dependence? module (its :depended_by) import))))
+                                            (the (circular_dependency? module import dependence)
+                                                 (-> descriptor.Module descriptor.Module Dependence
+                                                     Bit)
+                                                 (let [dependence? (is (-> descriptor.Module (-> Dependence Mapping) descriptor.Module
+                                                                           Bit)
+                                                                       (function (_ from relationship to)
+                                                                                 (let [targets (|> dependence
+                                                                                                   relationship
+                                                                                                   (dictionary.value from)
+                                                                                                   (try.else ..empty))]
+                                                                                      (set.member? targets to))))]
+                                                      (and/or (dependence? import (its :depends_on) module)
+                                                              (dependence? module (its :depended_by) import))))
 
-                  (exception.the .public (module_cannot_import_itself module)
-                    (Exception descriptor.Module)
-                    (exception.report
-                     (list ["Module" (%.text module)])))
+                                            (exception.the .public (module_cannot_import_itself module)
+                                                           (Exception descriptor.Module)
+                                                           (exception.report
+                                                            (list ["Module" (%.text module)])))
 
-                  (exception.the .public (cannot_import_circular_dependency [importer importee])
-                    (Exception [descriptor.Module descriptor.Module])
-                    (exception.report
-                     (list ["Importer" (%.text importer)]
-                           ["Importee" (%.text importee)])))
+                                            (exception.the .public (cannot_import_circular_dependency [importer importee])
+                                                           (Exception [descriptor.Module descriptor.Module])
+                                                           (exception.report
+                                                            (list ["Importer" (%.text importer)]
+                                                                  ["Importee" (%.text importee)])))
 
-                  (exception.the .public (cannot_import_twice [importer duplicates])
-                    (Exception [descriptor.Module (Set descriptor.Module)])
-                    (exception.report
-                     (list ["Importer" (%.text importer)]
-                           ["Duplicates" (list.as_text %.text (set.as_list duplicates))])))
+                                            (exception.the .public (cannot_import_twice [importer duplicates])
+                                                           (Exception [descriptor.Module (Set descriptor.Module)])
+                                                           (exception.report
+                                                            (list ["Importer" (%.text importer)]
+                                                                  ["Duplicates" (list.as_text %.text (set.as_list duplicates))])))
 
-                  (the (verify_dependencies importer importee dependence)
-                    (-> descriptor.Module descriptor.Module Dependence
-                        (Try Any))
-                    (if (text.= importer importee)
-                        (exception.except ..module_cannot_import_itself [importer])
+                                            (the (verify_dependencies importer importee dependence)
+                                                 (-> descriptor.Module descriptor.Module Dependence
+                                                     (Try Any))
+                                                 (if (text.= importer importee)
+                                                     (exception.except ..module_cannot_import_itself [importer])
 
-                        (..circular_dependency? importer importee dependence)
-                        (exception.except ..cannot_import_circular_dependency [importer importee])
+                                                     (..circular_dependency? importer importee dependence)
+                                                     (exception.except ..cannot_import_circular_dependency [importer importee])
 
-                        {try.:Success []}))
+                                                     {try.:Success []}))
 
-                  (every (Context state)
-                    [Archive state])
+                                            (every (Context state)
+                                                   [Archive state])
 
-                  (every (Result state)
-                    (Try (Context state)))
+                                            (every (Result state)
+                                                   (Try (Context state)))
 
-                  (every (Return state)
-                    (Future (Result state)))
+                                            (every (Return state)
+                                                   (Future (Result state)))
 
-                  (every (Signal state)
-                    (Resolver (Result state)))
+                                            (every (Signal state)
+                                                   (Resolver (Result state)))
 
-                  (every (Pending state)
-                    [(Return state)
-                     (Signal state)])
+                                            (every (Pending state)
+                                                   [(Return state)
+                                                    (Signal state)])
 
-                  (every (Importer state)
-                    (-> (List ///.Custom) descriptor.Module descriptor.Module
-                        (Return state)))
+                                            (every (Importer state)
+                                                   (-> (List ///.Custom) descriptor.Module descriptor.Module
+                                                       (Return state)))
 
-                  (every (Compiler state)
-                    (-> (List ///.Custom) descriptor.Module (Importer state) moduleM.ID (Context state) descriptor.Module
-                        (Return state)))
-                  
-                  (expansion.let [Lux_Context (..Context <State>)
-                                  Lux_Return (..Return <State>)
-                                  Lux_Signal (..Signal <State>)
-                                  Lux_Pending (..Pending <State>)
-                                  Lux_Importer (..Importer <State>)
-                                  Lux_Compiler (..Compiler <State>)]
-                    (these (the (parallel initial)
-                             (for_any (_ <type_vars>)
-                               (-> Lux_Context
-                                   (-> Lux_Compiler
-                                       Lux_Importer)))
-                             (let [current (stm.var initial)
-                                   pending (sharing [<type_vars>]
-                                             (is Lux_Context
-                                                 initial)
-                                             (is (Var (Dictionary descriptor.Module Lux_Pending))
-                                                 (as_expected (stm.var (dictionary.empty text.hash)))))
-                                   dependence (is (Var Dependence)
-                                                  (stm.var ..independence))]
-                               (function (_ compile)
-                                 (function (import! customs importer module)
-                                   (monad.let [! future.monad]
-                                     [[return signal] (sharing [<type_vars>]
-                                                        (is Lux_Context
-                                                            initial)
-                                                        (is (Future [Lux_Return (Maybe [Lux_Context
-                                                                                        moduleM.ID
-                                                                                        Lux_Signal])])
-                                                            (as_expected
-                                                             (stm.commit!
-                                                              (monad.let [! stm.monad]
-                                                                [dependence (if (text.= descriptor.runtime importer)
-                                                                                (stm.read dependence)
-                                                                                (monad.let !
-                                                                                  [[_ dependence] (stm.update (..depend importer module) dependence)]
-                                                                                  (pure dependence)))]
-                                                                (when (..verify_dependencies importer module dependence)
-                                                                  {try.:Failure error}
-                                                                  (pure [(future.resolved {try.:Failure error})
-                                                                         {.:None}])
+                                            (every (Compiler state)
+                                                   (-> (List ///.Custom) descriptor.Module (Importer state) moduleM.ID (Context state) descriptor.Module
+                                                       (Return state)))
+                                            
+                                            (expansion.let [Lux_Context (..Context <State>)
+                                                            Lux_Return (..Return <State>)
+                                                            Lux_Signal (..Signal <State>)
+                                                            Lux_Pending (..Pending <State>)
+                                                            Lux_Importer (..Importer <State>)
+                                                            Lux_Compiler (..Compiler <State>)]
+                                                           (these (the (parallel initial)
+                                                                       (for_any (_ <type_vars>)
+                                                                                (-> Lux_Context
+                                                                                    (-> Lux_Compiler
+                                                                                        Lux_Importer)))
+                                                                       (let [current (stm.var initial)
+                                                                             pending (sharing [<type_vars>]
+                                                                                              (is Lux_Context
+                                                                                                  initial)
+                                                                                              (is (Var (Dictionary descriptor.Module Lux_Pending))
+                                                                                                  (as_expected (stm.var (dictionary.empty text.hash)))))
+                                                                             dependence (is (Var Dependence)
+                                                                                            (stm.var ..independence))]
+                                                                            (function (_ compile)
+                                                                                      (function (import! customs importer module)
+                                                                                                (monad.let [! future.monad]
+                                                                                                           [[return signal] (sharing [<type_vars>]
+                                                                                                                                     (is Lux_Context
+                                                                                                                                         initial)
+                                                                                                                                     (is (Future [Lux_Return (Maybe [Lux_Context
+                                                                                                                                                                     moduleM.ID
+                                                                                                                                                                     Lux_Signal])])
+                                                                                                                                         (as_expected
+                                                                                                                                          (stm.commit!
+                                                                                                                                           (monad.let [! stm.monad]
+                                                                                                                                                      [dependence (if (text.= descriptor.runtime importer)
+                                                                                                                                                                      (stm.read dependence)
+                                                                                                                                                                      (monad.let !
+                                                                                                                                                                                 [[_ dependence] (stm.update (..depend importer module) dependence)]
+                                                                                                                                                                                 (pure dependence)))]
+                                                                                                                                                      (when (..verify_dependencies importer module dependence)
+                                                                                                                                                            {try.:Failure error}
+                                                                                                                                                            (pure [(future.resolved {try.:Failure error})
+                                                                                                                                                                   {.:None}])
 
-                                                                  {try.:Success _}
-                                                                  (monad.let !
-                                                                    [[archive state] (stm.read current)]
-                                                                    (if (archive.archived? archive module)
-                                                                        (pure [(future:pure {try.:Success [archive state]})
-                                                                               {.:None}])
-                                                                        (monad.let !
-                                                                          [@pending (stm.read pending)]
-                                                                          (when (dictionary.value module @pending)
-                                                                            {try.:Success [return signal]}
-                                                                            (pure [return
-                                                                                   {.:None}])
-                                                                            
-                                                                            {try.:Failure _}
-                                                                            (when (if (archive.reserved? archive module)
-                                                                                      (monad.let try.monad
-                                                                                        [@module (archive.id module archive)]
-                                                                                        (pure [@module archive]))
-                                                                                      (archive.reserve module archive))
-                                                                              {try.:Success [@module archive]}
-                                                                              (monad.let !
-                                                                                [_ (stm.write [archive state] current)
-                                                                                 .let [[return signal] (sharing [<type_vars>]
-                                                                                                         (is Lux_Context
-                                                                                                             initial)
-                                                                                                         (is Lux_Pending
-                                                                                                             (future.future [])))]
-                                                                                 _ (stm.update (dictionary.has module [return signal]) pending)]
-                                                                                (pure [return
-                                                                                       {.:Some [[archive state]
-                                                                                                @module
-                                                                                                signal]}]))
-                                                                              
-                                                                              {try.:Failure error}
-                                                                              (pure [(future:pure {try.:Failure error})
-                                                                                     {.:None}]))))))))))))
-                                      _ (when signal
-                                          {.:None}
-                                          (pure [])
-                                          
-                                          {.:Some [context @module resolver]}
-                                          (monad.let !
-                                            [result (compile customs importer import! @module context module)
-                                             result (when result
-                                                      {try.:Failure error}
-                                                      (pure result)
+                                                                                                                                                            {try.:Success _}
+                                                                                                                                                            (monad.let !
+                                                                                                                                                                       [[archive state] (stm.read current)]
+                                                                                                                                                                       (if (archive.archived? archive module)
+                                                                                                                                                                           (pure [(future:pure {try.:Success [archive state]})
+                                                                                                                                                                                  {.:None}])
+                                                                                                                                                                           (monad.let !
+                                                                                                                                                                                      [@pending (stm.read pending)]
+                                                                                                                                                                                      (when (dictionary.value module @pending)
+                                                                                                                                                                                            {try.:Success [return signal]}
+                                                                                                                                                                                            (pure [return
+                                                                                                                                                                                                   {.:None}])
+                                                                                                                                                                                            
+                                                                                                                                                                                            {try.:Failure _}
+                                                                                                                                                                                            (when (if (archive.reserved? archive module)
+                                                                                                                                                                                                      (monad.let try.monad
+                                                                                                                                                                                                                 [@module (archive.id module archive)]
+                                                                                                                                                                                                                 (pure [@module archive]))
+                                                                                                                                                                                                      (archive.reserve module archive))
+                                                                                                                                                                                                  {try.:Success [@module archive]}
+                                                                                                                                                                                                  (monad.let !
+                                                                                                                                                                                                             [_ (stm.write [archive state] current)
+                                                                                                                                                                                                              .let [[return signal] (sharing [<type_vars>]
+                                                                                                                                                                                                                                             (is Lux_Context
+                                                                                                                                                                                                                                                 initial)
+                                                                                                                                                                                                                                             (is Lux_Pending
+                                                                                                                                                                                                                                                 (future.future [])))]
+                                                                                                                                                                                                              _ (stm.update (dictionary.has module [return signal]) pending)]
+                                                                                                                                                                                                             (pure [return
+                                                                                                                                                                                                                    {.:Some [[archive state]
+                                                                                                                                                                                                                             @module
+                                                                                                                                                                                                                             signal]}]))
+                                                                                                                                                                                                  
+                                                                                                                                                                                                  {try.:Failure error}
+                                                                                                                                                                                                  (pure [(future:pure {try.:Failure error})
+                                                                                                                                                                                                         {.:None}]))))))))))))
+                                                                                                            _ (when signal
+                                                                                                                    {.:None}
+                                                                                                                    (pure [])
+                                                                                                                    
+                                                                                                                    {.:Some [context @module resolver]}
+                                                                                                                    (monad.let !
+                                                                                                                               [result (compile customs importer import! @module context module)
+                                                                                                                                result (when result
+                                                                                                                                             {try.:Failure error}
+                                                                                                                                             (pure result)
 
-                                                      {try.:Success [resulting_archive resulting_state]}
-                                                      (stm.commit! (monad.let stm.monad
-                                                                     [[_ [merged_archive _]] (stm.update (function (_ [archive state])
-                                                                                                           [(archive.composite resulting_archive archive)
-                                                                                                            state])
-                                                                                                         current)]
-                                                                     (pure {try.:Success [merged_archive resulting_state]}))))]
-                                            (future.soon (resolver result))))]
-                                     return)))))
+                                                                                                                                             {try.:Success [resulting_archive resulting_state]}
+                                                                                                                                             (stm.commit! (monad.let stm.monad
+                                                                                                                                                                     [[_ [merged_archive _]] (stm.update (function (_ [archive state])
+                                                                                                                                                                                                                   [(archive.composite resulting_archive archive)
+                                                                                                                                                                                                                    state])
+                                                                                                                                                                                                         current)]
+                                                                                                                                                                     (pure {try.:Success [merged_archive resulting_state]}))))]
+                                                                                                                               (future.soon (resolver result))))]
+                                                                                                           return)))))
 
-                           (comment "TODO: Find a better way, as this only works for the Lux compiler."
-                                    (the (updated_state archive state)
-                                      (for_any (_ <type_vars>)
-                                        (-> Archive <State>
-                                            (Try <State>)))
-                                      (monad.let [! try.monad]
-                                        [modules (is (Try (property.List @type.Module))
-                                                     (list.each' ! (function (_ module)
-                                                                     (monad.let !
-                                                                       [entry (archive.find module archive)
-                                                                        it (|> entry
-                                                                               (its [archive.:module moduleM.:document])
-                                                                               (document.content $.key))]
-                                                                       (pure [module it])))
-                                                                 (archive.archived archive)))
-                                         .let [additions (|> modules
-                                                             (list:each pair.left)
-                                                             (set.of_list text.hash))
-                                               with_modules (is (for_any (_ <type_vars>)
-                                                                  (Change <State>))
-                                                                (revised [///declaration.:analysis
-                                                                          ///declaration.:state
-                                                                          @type.:modules]
-                                                                         (|>> (list.only (|>> pair.left
-                                                                                              (set.member? additions)
-                                                                                              not))
-                                                                              (list:composite modules))))]]
-                                        (pure (with_modules state)))))
+                                                                  (comment "TODO: Find a better way, as this only works for the Lux compiler."
+                                                                           (the (updated_state archive state)
+                                                                                (for_any (_ <type_vars>)
+                                                                                         (-> Archive <State>
+                                                                                             (Try <State>)))
+                                                                                (monad.let [! try.monad]
+                                                                                           [modules (is (Try (property.List @type.Module))
+                                                                                                        (list.each' ! (function (_ module)
+                                                                                                                                (monad.let !
+                                                                                                                                           [entry (archive.find module archive)
+                                                                                                                                            it (|> entry
+                                                                                                                                                   (its [archive.:module moduleM.:document])
+                                                                                                                                                   (document.content $.key))]
+                                                                                                                                           (pure [module it])))
+                                                                                                                    (archive.archived archive)))
+                                                                                            .let [additions (|> modules
+                                                                                                                (list:each pair.left)
+                                                                                                                (set.of_list text.hash))
+                                                                                                  with_modules (is (for_any (_ <type_vars>)
+                                                                                                                            (Change <State>))
+                                                                                                                   (revised [///declaration.:analysis
+                                                                                                                             ///declaration.:state
+                                                                                                                             @type.:modules]
+                                                                                                                            (|>> (list.only (|>> pair.left
+                                                                                                                                                 (set.member? additions)
+                                                                                                                                                 not))
+                                                                                                                                 (list:composite modules))))]]
+                                                                                           (pure (with_modules state)))))
 
-                           (the (set_current_module module state)
-                             (for_any (_ <type_vars>)
-                               (-> descriptor.Module <State>
-                                   <State>))
-                             (|> (///declaration.set_current_module module)
-                                 (phase.value' state)
-                                 try.trusted
-                                 pair.left))
+                                                                  (the (set_current_module module state)
+                                                                       (for_any (_ <type_vars>)
+                                                                                (-> descriptor.Module <State>
+                                                                                    <State>))
+                                                                       (|> (///declaration.set_current_module module)
+                                                                           (phase.value' state)
+                                                                           try.trusted
+                                                                           pair.left))
 
-                           (comment "TODO: Come up with a less hacky way to prevent duplicate imports."
-                                    "This currently assumes that all imports will be specified once in a single .using form."
-                                    "This might not be the case in the future."
-                                    (the (with_new_dependencies new_dependencies all_dependencies)
-                                      (-> (List descriptor.Module) (Set descriptor.Module)
-                                          [(Set descriptor.Module) (Set descriptor.Module)])
-                                      (let [[all_dependencies duplicates _] (is [(Set descriptor.Module) (Set descriptor.Module) Bit]
-                                                                                (list.mix (function (_ new [all duplicates seen_prelude?])
-                                                                                            (if (set.member? all new)
-                                                                                                (if (text.= .prelude new)
-                                                                                                    (if seen_prelude?
-                                                                                                        [all (set.has new duplicates) seen_prelude?]
-                                                                                                        [all duplicates true])
-                                                                                                    [all (set.has new duplicates) seen_prelude?])
-                                                                                                [(set.has new all) duplicates seen_prelude?]))
-                                                                                          new_dependencies
-                                                                                          (is [(Set descriptor.Module) (Set descriptor.Module) Bit]
-                                                                                              [all_dependencies ..empty (set.empty? all_dependencies)])))]
-                                        [all_dependencies duplicates])))
+                                                                  (comment "TODO: Come up with a less hacky way to prevent duplicate imports."
+                                                                           "This currently assumes that all imports will be specified once in a single .using form."
+                                                                           "This might not be the case in the future."
+                                                                           (the (with_new_dependencies new_dependencies all_dependencies)
+                                                                                (-> (List descriptor.Module) (Set descriptor.Module)
+                                                                                    [(Set descriptor.Module) (Set descriptor.Module)])
+                                                                                (let [[all_dependencies duplicates _] (is [(Set descriptor.Module) (Set descriptor.Module) Bit]
+                                                                                                                          (list.mix (function (_ new [all duplicates seen_prelude?])
+                                                                                                                                              (if (set.member? all new)
+                                                                                                                                                  (if (text.= .prelude new)
+                                                                                                                                                      (if seen_prelude?
+                                                                                                                                                          [all (set.has new duplicates) seen_prelude?]
+                                                                                                                                                          [all duplicates true])
+                                                                                                                                                      [all (set.has new duplicates) seen_prelude?])
+                                                                                                                                                  [(set.has new all) duplicates seen_prelude?]))
+                                                                                                                                    new_dependencies
+                                                                                                                                    (is [(Set descriptor.Module) (Set descriptor.Module) Bit]
+                                                                                                                                        [all_dependencies ..empty (set.empty? all_dependencies)])))]
+                                                                                     [all_dependencies duplicates])))
 
-                           (the (after_imports customs import! module duplicates new_dependencies archive)
-                             (for_any (_ <type_vars>
-                                         state)
-                               (-> (List ///.Custom) (..Importer state) descriptor.Module (Set descriptor.Module) (List descriptor.Module) Archive
-                                   (Future (Try [Archive (List state) (List Text)]))))
-                             (if (set.empty? duplicates)
-                                 (when new_dependencies
-                                   (list)
-                                   (by ..monad pure [archive (list) (list)])
+                                                                  (the (after_imports customs import! module duplicates new_dependencies archive)
+                                                                       (for_any (_ <type_vars>
+                                                                                   state)
+                                                                                (-> (List ///.Custom) (..Importer state) descriptor.Module (Set descriptor.Module) (List descriptor.Module) Archive
+                                                                                    (Future (Try [Archive (List state) (List Text)]))))
+                                                                       (if (set.empty? duplicates)
+                                                                           (when new_dependencies
+                                                                                 (list)
+                                                                                 (by ..monad pure [archive (list) (list)])
 
-                                   must_import!
-                                   (monad.let [! future.monad]
-                                     [attempts (|> new_dependencies
-                                                   (list:each (import! customs module))
-                                                   (list.complete !))
-                                      .let [[failures successes] (case.partition attempts)]]
-                                     (pure {try.:Success [(list.mix archive.composite
-                                                                    (list:each pair.left successes)
-                                                                    archive)
-                                                          (list:each pair.right successes)
-                                                          failures]})))
-                                 (future:pure (exception.except ..cannot_import_twice [module duplicates]))))
+                                                                                 must_import!
+                                                                                 (monad.let [! future.monad]
+                                                                                            [attempts (|> new_dependencies
+                                                                                                          (list:each (import! customs module))
+                                                                                                          (list.complete !))
+                                                                                             .let [[failures successes] (case.partition attempts)]]
+                                                                                            (pure {try.:Success [(list.mix archive.composite
+                                                                                                                           (list:each pair.left successes)
+                                                                                                                           archive)
+                                                                                                                 (list:each pair.right successes)
+                                                                                                                 failures]})))
+                                                                           (future:pure (exception.except ..cannot_import_twice [module duplicates]))))
 
-                           (the (after_lux_imports customs import! module duplicates new_dependencies [archive state])
-                             (for_any (_ <type_vars>)
-                               (-> (List ///.Custom) Lux_Importer descriptor.Module (Set descriptor.Module) (List descriptor.Module) Lux_Context
-                                   (..Return [<State> (List Text)])))
-                             (monad.let ..monad
-                               [[archive state/* errors] (after_imports customs import! module duplicates new_dependencies archive)]
-                               (when (list.item 0 errors)
-                                 {try.:Success error}
-                                 (future:pure {try.:Failure error})
+                                                                  (the (after_lux_imports customs import! module duplicates new_dependencies [archive state])
+                                                                       (for_any (_ <type_vars>)
+                                                                                (-> (List ///.Custom) Lux_Importer descriptor.Module (Set descriptor.Module) (List descriptor.Module) Lux_Context
+                                                                                    (..Return [<State> (List Text)])))
+                                                                       (monad.let ..monad
+                                                                                  [[archive state/* errors] (after_imports customs import! module duplicates new_dependencies archive)]
+                                                                                  (when (list.item 0 errors)
+                                                                                        {try.:Success error}
+                                                                                        (future:pure {try.:Failure error})
 
-                                 else
-                                 (pure [archive
-                                        (when state/*
-                                          (list)
-                                          state
+                                                                                        else
+                                                                                        (pure [archive
+                                                                                               (when state/*
+                                                                                                     (list)
+                                                                                                     state
 
-                                          else
-                                          (try.trusted (..updated_state archive state)))
-                                        errors]))))
+                                                                                                     else
+                                                                                                     (try.trusted (..updated_state archive state)))
+                                                                                               errors]))))
 
-                           (the (next_compilation module [archive state] compilation)
-                             (for_any (_ <type_vars>)
-                               (-> descriptor.Module Lux_Context (///.Compilation <State> @type.Module)
-                                   (Try [<State> (Either (///.Compilation <State> @type.Module)
-                                                         (archive.Entry Any))])))
-                             ((its ///.:process compilation)
-                              (comment "TODO: The '///declaration.set_current_module' below shouldn't be necessary. Remove it ASAP."
-                                       "TODO: The context shouldn't need to be re-set either."
-                                       (|> (///declaration.set_current_module module)
-                                           (phase.value' state)
-                                           try.trusted
-                                           pair.left))
-                              archive))
+                                                                  (the (next_compilation module [archive state] compilation)
+                                                                       (for_any (_ <type_vars>)
+                                                                                (-> descriptor.Module Lux_Context (///.Compilation <State> @type.Module)
+                                                                                    (Try [<State> (Either (///.Compilation <State> @type.Module)
+                                                                                                          (archive.Entry Any))])))
+                                                                       ((its ///.:process compilation)
+                                                                        (comment "TODO: The '///declaration.set_current_module' below shouldn't be necessary. Remove it ASAP."
+                                                                                 "TODO: The context shouldn't need to be re-set either."
+                                                                                 (|> (///declaration.set_current_module module)
+                                                                                     (phase.value' state)
+                                                                                     try.trusted
+                                                                                     pair.left))
+                                                                        archive))
 
-                           (the (compiler program global phase_wrapper extender expander platform program_module program_definition
-                                          all_extensions)
-                             (for_any (_ <type_vars>)
-                               (-> (Program expression declaration) (-> Archive Name (///translation.Operation <type_vars> expression))
-                                   phase.Wrapper (Extender <type_vars>) Expander <Platform> Text (Maybe Module)
-                                   (//init.Extensions <type_vars>)
-                                   (///.Compiler <State> @type.Module)))
-                             (let [instancer (//init.compiler program global phase_wrapper extender expander .prelude (its :write platform) program_module program_definition
-                                                              all_extensions)]
-                               (instancer $.key (list))))
+                                                                  (the (compiler program global phase_wrapper extender expander platform program_module program_definition
+                                                                                 all_extensions)
+                                                                       (for_any (_ <type_vars>)
+                                                                                (-> (Program expression declaration) (-> Archive Name (///translation.Operation <type_vars> expression))
+                                                                                    phase.Wrapper (Extender <type_vars>) Expander <Platform> Text (Maybe Module)
+                                                                                    (//init.Extensions <type_vars>)
+                                                                                    (///.Compiler <State> @type.Module)))
+                                                                       (let [instancer (//init.compiler program global phase_wrapper extender expander .prelude (its :write platform) program_module program_definition
+                                                                                                        all_extensions)]
+                                                                            (instancer $.key (list))))
 
-                           (the (custom_compiler import context platform compilation_sources configuration
-                                                 compiler custom_key custom_binary custom_compilation)
-                             (for_any (_ <type_vars>
-                                         state document)
-                               (-> Import context.Context <Platform> (List _io.Context) Configuration (///.Compiler <State> @type.Module)
-                                   (Key document) (Injection document) (///.Compilation state document)
-                                   (-> (List ///.Custom) descriptor.Module Lux_Importer moduleM.ID (..Context state) descriptor.Module
-                                       (..Return state))))
-                             (function (_ customs importer import! @module [archive state] module)
-                               (loop (of [[archive state] [archive state]
-                                          compilation custom_compilation
-                                          all_dependencies (is (Set descriptor.Module)
-                                                               (set.empty text.hash))])
-                                 (monad.let [! ..monad]
-                                   [.let [new_dependencies (its ///.:dependencies compilation)
-                                          [all_dependencies duplicates] (with_new_dependencies new_dependencies all_dependencies)]
-                                    [archive _ errors] (after_imports customs import! module duplicates new_dependencies archive)]
-                                   (expansion.let [<cache_and_fail> (these (monad.let !
-                                                                             [_ (cache/archive.cache! (its :file_system platform) configuration archive)]
-                                                                             (future:pure {try.:Failure error})))]
-                                     (when (list.item 0 errors)
-                                       {try.:Success error}
-                                       <cache_and_fail>
+                                                                  (the (custom_compiler import context platform compilation_sources configuration
+                                                                                        compiler custom_key custom_binary custom_compilation)
+                                                                       (for_any (_ <type_vars>
+                                                                                   state document)
+                                                                                (-> Import context.Context <Platform> (List _io.Context) Configuration (///.Compiler <State> @type.Module)
+                                                                                    (Key document) (Injection document) (///.Compilation state document)
+                                                                                    (-> (List ///.Custom) descriptor.Module Lux_Importer moduleM.ID (..Context state) descriptor.Module
+                                                                                        (..Return state))))
+                                                                       (function (_ customs importer import! @module [archive state] module)
+                                                                                 (loop (of [[archive state] [archive state]
+                                                                                            compilation custom_compilation
+                                                                                            all_dependencies (is (Set descriptor.Module)
+                                                                                                                 (set.empty text.hash))])
+                                                                                       (monad.let [! ..monad]
+                                                                                                  [.let [new_dependencies (its ///.:dependencies compilation)
+                                                                                                         [all_dependencies duplicates] (with_new_dependencies new_dependencies all_dependencies)]
+                                                                                                   [archive _ errors] (after_imports customs import! module duplicates new_dependencies archive)]
+                                                                                                  (expansion.let [<cache_and_fail> (these (monad.let !
+                                                                                                                                                     [_ (cache/archive.cache! (its :file_system platform) configuration archive)]
+                                                                                                                                                     (future:pure {try.:Failure error})))]
+                                                                                                                 (when (list.item 0 errors)
+                                                                                                                       {try.:Success error}
+                                                                                                                       <cache_and_fail>
 
-                                       else
-                                       (when ((its ///.:process compilation) state archive)
-                                         {try.:Success [state more|done]}
-                                         (when more|done
-                                           {.:Left more}
-                                           (of [archive state] more all_dependencies)
+                                                                                                                       else
+                                                                                                                       (when ((its ///.:process compilation) state archive)
+                                                                                                                             {try.:Success [state more|done]}
+                                                                                                                             (when more|done
+                                                                                                                                   {.:Left more}
+                                                                                                                                   (of [archive state] more all_dependencies)
 
-                                           {.:Right entry}
-                                           (monad.let !
-                                             [.let [entry (has [archive.:module moduleM.:descriptor descriptor.:references] all_dependencies entry)]
-                                              _ (..cache_module context platform @module custom_key custom_binary entry)]
-                                             (future:pure (monad.let try.monad
-                                                            [archive (archive.has module entry archive)]
-                                                            (pure [archive state])))))
+                                                                                                                                   {.:Right entry}
+                                                                                                                                   (monad.let !
+                                                                                                                                              [.let [entry (has [archive.:module moduleM.:descriptor descriptor.:references] all_dependencies entry)]
+                                                                                                                                               _ (..cache_module context platform @module custom_key custom_binary entry)]
+                                                                                                                                              (future:pure (monad.let try.monad
+                                                                                                                                                                      [archive (archive.has module entry archive)]
+                                                                                                                                                                      (pure [archive state])))))
 
-                                         {try.:Failure error}
-                                         <cache_and_fail>)))))))
+                                                                                                                             {try.:Failure error}
+                                                                                                                             <cache_and_fail>)))))))
 
-                           (the (complete_lux_compilation context platform
-                                                          all_dependencies
-                                                          @module module entry
-                                                          archive state)
-                             (for_any (_ <type_vars>)
-                               (-> context.Context <Platform>
-                                   (Set descriptor.Module)
-                                   moduleM.ID Text (archive.Entry Any)
-                                   Archive <State>
-                                   (Return <State>)))
-                             (monad.let ..monad
-                               [_ (expansion.let [<else> (pure (debug.log! module))]
-                                    (target.if target.js
-                                               (is (Future (Try Any))
-                                                   (when console.default
-                                                     {.:None}
-                                                     <else>
-                                                     
-                                                     {.:Some console}
-                                                     (console.write_line module console)))
+                                                                  (the (complete_lux_compilation context platform
+                                                                                                 all_dependencies
+                                                                                                 @module module entry
+                                                                                                 archive state)
+                                                                       (for_any (_ <type_vars>)
+                                                                                (-> context.Context <Platform>
+                                                                                    (Set descriptor.Module)
+                                                                                    moduleM.ID Text (archive.Entry Any)
+                                                                                    Archive <State>
+                                                                                    (Return <State>)))
+                                                                       (monad.let ..monad
+                                                                                  [_ (expansion.let [<else> (pure (debug.log! module))]
+                                                                                                    (target.if target.js
+                                                                                                               (is (Future (Try Any))
+                                                                                                                   (when console.default
+                                                                                                                         {.:None}
+                                                                                                                         <else>
+                                                                                                                         
+                                                                                                                         {.:Some console}
+                                                                                                                         (console.write_line module console)))
 
-                                               <else>))
-                                .let [entry (has [archive.:module moduleM.:descriptor descriptor.:references] all_dependencies entry)]
-                                _ (..cache_module context platform @module $.key $.as_binary (as (-> (archive.Entry Any)
-                                                                                                     (archive.Entry @type.Module))
-                                                                                                 entry))]
-                               (future:pure (monad.let try.monad
-                                              [archive (archive.has module entry archive)]
-                                              (pure [archive state])))))
+                                                                                                               <else>))
+                                                                                   .let [entry (has [archive.:module moduleM.:descriptor descriptor.:references] all_dependencies entry)]
+                                                                                   _ (..cache_module context platform @module $.key $.as_binary (as (-> (archive.Entry Any)
+                                                                                                                                                        (archive.Entry @type.Module))
+                                                                                                                                                    entry))]
+                                                                                  (future:pure (monad.let try.monad
+                                                                                                          [archive (archive.has module entry archive)]
+                                                                                                          (pure [archive state])))))
 
-                           (the (lux_compiler import context platform compilation_sources configuration compiler compilation)
-                             (for_any (_ <type_vars>)
-                               (-> Import context.Context <Platform> (List _io.Context) Configuration (///.Compiler <State> @type.Module)
-                                   (///.Compilation <State> @type.Module)
-                                   Lux_Compiler))
-                             (function (_ customs importer import! @module [archive state] module)
-                               (loop (of [[archive state] [archive (..set_current_module module state)]
-                                          compilation compilation
-                                          all_dependencies (is (Set descriptor.Module)
-                                                               (set.empty text.hash))])
-                                 (monad.let [! ..monad]
-                                   [.let [new_dependencies (its ///.:dependencies compilation)
-                                          [all_dependencies duplicates] (with_new_dependencies new_dependencies all_dependencies)]
-                                    [archive state errors] (after_lux_imports customs import! module duplicates new_dependencies [archive state])]
-                                   (expansion.let [<cache_and_fail> (these (monad.let !
-                                                                             [_ (cache/archive.cache! (its :file_system platform) configuration archive)]
-                                                                             (future:pure {try.:Failure error})))]
-                                     (when (list.item 0 errors)
-                                       {try.:Success error}
-                                       <cache_and_fail>
+                                                                  (the (lux_compiler import context platform compilation_sources configuration compiler compilation)
+                                                                       (for_any (_ <type_vars>)
+                                                                                (-> Import context.Context <Platform> (List _io.Context) Configuration (///.Compiler <State> @type.Module)
+                                                                                    (///.Compilation <State> @type.Module)
+                                                                                    Lux_Compiler))
+                                                                       (function (_ customs importer import! @module [archive state] module)
+                                                                                 (loop (of [[archive state] [archive (..set_current_module module state)]
+                                                                                            compilation compilation
+                                                                                            all_dependencies (is (Set descriptor.Module)
+                                                                                                                 (set.empty text.hash))])
+                                                                                       (monad.let [! ..monad]
+                                                                                                  [.let [new_dependencies (its ///.:dependencies compilation)
+                                                                                                         [all_dependencies duplicates] (with_new_dependencies new_dependencies all_dependencies)]
+                                                                                                   [archive state errors] (after_lux_imports customs import! module duplicates new_dependencies [archive state])]
+                                                                                                  (expansion.let [<cache_and_fail> (these (monad.let !
+                                                                                                                                                     [_ (cache/archive.cache! (its :file_system platform) configuration archive)]
+                                                                                                                                                     (future:pure {try.:Failure error})))]
+                                                                                                                 (when (list.item 0 errors)
+                                                                                                                       {try.:Success error}
+                                                                                                                       <cache_and_fail>
 
-                                       else
-                                       (when (next_compilation module [archive state] compilation)
-                                         {try.:Success [state more|done]}
-                                         (when more|done
-                                           {.:Left more}
-                                           (of [archive state] more all_dependencies)
+                                                                                                                       else
+                                                                                                                       (when (next_compilation module [archive state] compilation)
+                                                                                                                             {try.:Success [state more|done]}
+                                                                                                                             (when more|done
+                                                                                                                                   {.:Left more}
+                                                                                                                                   (of [archive state] more all_dependencies)
 
-                                           {.:Right entry}
-                                           (complete_lux_compilation context platform
-                                                                     all_dependencies
-                                                                     @module module entry
-                                                                     archive state))
+                                                                                                                                   {.:Right entry}
+                                                                                                                                   (complete_lux_compilation context platform
+                                                                                                                                                             all_dependencies
+                                                                                                                                                             @module module entry
+                                                                                                                                                             archive state))
 
-                                         {try.:Failure error}
-                                         <cache_and_fail>)))))))
+                                                                                                                             {try.:Failure error}
+                                                                                                                             <cache_and_fail>)))))))
 
-                           (the (serial_compiler import context platform compilation_sources configuration compiler)
-                             (for_any (_ <type_vars>)
-                               (-> Import context.Context <Platform> (List _io.Context) Configuration (///.Compiler <State> @type.Module)
-                                   Lux_Compiler))
-                             (function (_ all_customs importer import! @module [archive lux_state] module)
-                               (monad.let [! ..monad]
-                                 [input (io.read (its :file_system platform)
-                                                 importer
-                                                 import
-                                                 compilation_sources
-                                                 (its context.:host_module_extension context)
-                                                 module)]
-                                 (loop (of [customs (view.as list.stack all_customs)])
-                                   (when customs
-                                     {.:Empty}
-                                     ((..lux_compiler import context platform compilation_sources configuration compiler (compiler input))
-                                      all_customs importer import! @module [archive lux_state] module)
-                                     
-                                     {.:Top [custom_state custom_key custom_binary custom_of custom_compiler] tail}
-                                     (when (custom_compiler input)
-                                       {try.:Success custom_compilation}
-                                       (monad.let !
-                                         [[archive' custom_state'] ((..custom_compiler import context platform compilation_sources configuration
-                                                                                       compiler custom_key custom_binary custom_compilation)
-                                                                    all_customs importer import! @module [archive custom_state] module)]
-                                         (pure [archive' lux_state]))
+                                                                  (the (serial_compiler import context platform compilation_sources configuration compiler)
+                                                                       (for_any (_ <type_vars>)
+                                                                                (-> Import context.Context <Platform> (List _io.Context) Configuration (///.Compiler <State> @type.Module)
+                                                                                    Lux_Compiler))
+                                                                       (function (_ all_customs importer import! @module [archive lux_state] module)
+                                                                                 (monad.let [! ..monad]
+                                                                                            [input (io.read (its :file_system platform)
+                                                                                                            importer
+                                                                                                            import
+                                                                                                            compilation_sources
+                                                                                                            (its context.:host_module_extension context)
+                                                                                                            module)]
+                                                                                            (loop (of [customs (view.as list.stack all_customs)])
+                                                                                                  (when customs
+                                                                                                        {.:Empty}
+                                                                                                        ((..lux_compiler import context platform compilation_sources configuration compiler (compiler input))
+                                                                                                         all_customs importer import! @module [archive lux_state] module)
+                                                                                                        
+                                                                                                        {.:Top [custom_state custom_key custom_binary custom_of custom_compiler] tail}
+                                                                                                        (when (custom_compiler input)
+                                                                                                              {try.:Success custom_compilation}
+                                                                                                              (monad.let !
+                                                                                                                         [[archive' custom_state'] ((..custom_compiler import context platform compilation_sources configuration
+                                                                                                                                                                       compiler custom_key custom_binary custom_compilation)
+                                                                                                                                                    all_customs importer import! @module [archive custom_state] module)]
+                                                                                                                         (pure [archive' lux_state]))
 
-                                       {try.:Failure _}
-                                       (of tail)))))))
+                                                                                                              {try.:Failure _}
+                                                                                                              (of tail)))))))
 
-                           (the .public Custom
-                             Type
-                             (type (-> (List Text)
-                                       (Try ///.Custom))))
+                                                                  (the .public Custom
+                                                                       Type
+                                                                       (type (-> (List Text)
+                                                                                 (Try ///.Custom))))
 
-                           (exception.the .public (invalid_custom_compiler [definition type])
-                             (Exception [Name Type])
-                             (exception.report
-                              (list ["Definition" (name.as_text definition)]
-                                    ["Expected type" (type.as_text ..Custom)]
-                                    ["Actual type" (type.as_text type)])))
+                                                                  (exception.the .public (invalid_custom_compiler [definition type])
+                                                                                 (Exception [Name Type])
+                                                                                 (exception.report
+                                                                                  (list ["Definition" (name.as_text definition)]
+                                                                                        ["Expected type" (type.as_text ..Custom)]
+                                                                                        ["Actual type" (type.as_text type)])))
 
-                           (the (custom import! it)
-                             (for_any (_ <type_vars>)
-                               (-> Lux_Importer compiler.Compiler
-                                   (Future (Try [Lux_Context (List Text) Any]))))
-                             (let [/:definition (its compiler.:definition it)
-                                   [/:module /:name] /:definition]
-                               (monad.let ..monad
-                                 [context (import! (list) descriptor.runtime /:module)
-                                  .let [[archive state] context
-                                        analysis_state (its [///declaration.:analysis
-                                                             ///declaration.:state]
-                                                            state)]
-                                  [/:type /:value] (|> /:definition
-                                                       phase.export
-                                                       (phase.value analysis_state)
-                                                       future:pure)]
-                                 (future:pure (if (check.< ..Custom (@type.old /:type))
-                                                  {try.:Success [context (its compiler.:parameters it) /:value]}
-                                                  (exception.except ..invalid_custom_compiler [/:definition (@type.old /:type)]))))))
+                                                                  (the (custom import! it)
+                                                                       (for_any (_ <type_vars>)
+                                                                                (-> Lux_Importer compiler.Compiler
+                                                                                    (Future (Try [Lux_Context (List Text) Any]))))
+                                                                       (let [/:definition (its compiler.:definition it)
+                                                                             [/:module /:name] /:definition]
+                                                                            (monad.let ..monad
+                                                                                       [context (import! (list) descriptor.runtime /:module)
+                                                                                        .let [[archive state] context
+                                                                                              analysis_state (its [///declaration.:analysis
+                                                                                                                   ///declaration.:state]
+                                                                                                                  state)]
+                                                                                        [/:type /:value] (|> /:definition
+                                                                                                             phase.export
+                                                                                                             (phase.value analysis_state)
+                                                                                                             future:pure)]
+                                                                                       (future:pure (if (check.< ..Custom (@type.old /:type))
+                                                                                                        {try.:Success [context (its compiler.:parameters it) /:value]}
+                                                                                                        (exception.except ..invalid_custom_compiler [/:definition (@type.old /:type)]))))))
 
-                           (the .public (compile program global lux_compiler phase_wrapper import file_context extender expander platform compilation context
-                                                 all_extensions)
-                             (for_any (_ <type_vars>)
-                               (-> (Program expression declaration) (-> Archive Name (///translation.Operation <type_vars> expression))
-                                   (-> Any ..Custom) phase.Wrapper Import context.Context (Extender <type_vars>) Expander <Platform> Compilation Lux_Context
-                                   (//init.Extensions <type_vars>)
-                                   Lux_Return))
-                             (monad.let [! ..monad]
-                               [.let [import! (|> (..compiler program global phase_wrapper extender expander platform (its cli.:module compilation) (its cli.:program compilation)
-                                                              all_extensions)
-                                                  (serial_compiler import file_context platform (its cli.:sources compilation) (its cli.:configuration compilation))
-                                                  (..parallel context))]
-                                customs (|> (its cli.:compilers compilation)
-                                            (list:each (function (_ it)
-                                                         (monad.let !
-                                                           [[context parameters custom] (..custom import! it)]
-                                                           (future:pure (|> custom
-                                                                            lux_compiler
-                                                                            (function.of parameters))))))
-                                            (list.complete !))]
-                               (import! customs descriptor.runtime (its cli.:module compilation)))))
-                    )))))
+                                                                  (the .public (compile program global lux_compiler phase_wrapper import file_context extender expander platform compilation context
+                                                                                        all_extensions)
+                                                                       (for_any (_ <type_vars>)
+                                                                                (-> (Program expression declaration) (-> Archive Name (///translation.Operation <type_vars> expression))
+                                                                                    (-> Any ..Custom) phase.Wrapper Import context.Context (Extender <type_vars>) Expander <Platform> Compilation Lux_Context
+                                                                                    (//init.Extensions <type_vars>)
+                                                                                    Lux_Return))
+                                                                       (monad.let [! ..monad]
+                                                                                  [.let [import! (|> (..compiler program global phase_wrapper extender expander platform (its cli.:module compilation) (its cli.:program compilation)
+                                                                                                                 all_extensions)
+                                                                                                     (serial_compiler import file_context platform (its cli.:sources compilation) (its cli.:configuration compilation))
+                                                                                                     (..parallel context))]
+                                                                                   customs (|> (its cli.:compilers compilation)
+                                                                                               (list:each (function (_ it)
+                                                                                                                    (monad.let !
+                                                                                                                               [[context parameters custom] (..custom import! it)]
+                                                                                                                               (future:pure (|> custom
+                                                                                                                                                lux_compiler
+                                                                                                                                                (function.of parameters))))))
+                                                                                               (list.complete !))]
+                                                                                  (import! customs descriptor.runtime (its cli.:module compilation)))))
+                                                           )))))

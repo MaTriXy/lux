@@ -1,6 +1,6 @@
 (.using
  [library
-  [lux (.except try or and)
+  [lux (.except try and)
    [abstract
     [functor (.only Functor)]
     ["[0]" monad (.only Monad)]]
@@ -20,176 +20,176 @@
 ...       (Try [Lux it])))
 
 (the .public functor
-  (Functor Meta)
-  (implementation
-   (the (each f fa)
-     (function (_ lux)
-       (when (fa lux)
-         {try.:Success [lux' a]}
-         {try.:Success [lux' (f a)]}
+     (Functor Meta)
+     (implementation
+      (the (each f fa)
+           (function (_ lux)
+                     (when (fa lux)
+                           {try.:Success [lux' a]}
+                           {try.:Success [lux' (f a)]}
 
-         {try.:Failure msg}
-         {try.:Failure msg})))))
+                           {try.:Failure msg}
+                           {try.:Failure msg})))))
 
 (the .public monad
-  (Monad Meta)
-  (implementation
-   (the functor ..functor)
+     (Monad Meta)
+     (implementation
+      (the functor ..functor)
 
-   (the (pure x)
-     (function (_ lux)
-       {try.:Success [lux x]}))
-   
-   (the (conjoint mma)
-     (function (_ lux)
-       (when (mma lux)
-         {try.:Success [lux' ma]}
-         (ma lux')
+      (the (pure x)
+           (function (_ lux)
+                     {try.:Success [lux x]}))
+      
+      (the (conjoint mma)
+           (function (_ lux)
+                     (when (mma lux)
+                           {try.:Success [lux' ma]}
+                           (ma lux')
 
-         {try.:Failure msg}
-         {try.:Failure msg})))))
+                           {try.:Failure msg}
+                           {try.:Failure msg})))))
 
 (the .public (value' lux action)
-  (for_any (_ it)
-    (-> Lux (Meta it)
-        (Try [Lux it])))
-  (action lux))
+     (for_any (_ it)
+              (-> Lux (Meta it)
+                  (Try [Lux it])))
+     (action lux))
 
 (the .public (value lux action)
-  (for_any (_ it)
-    (-> Lux (Meta it)
-        (Try it)))
-  (when (action lux)
-    {try.:Success [_ output]}
-    {try.:Success output}
+     (for_any (_ it)
+              (-> Lux (Meta it)
+                  (Try it)))
+     (when (action lux)
+           {try.:Success [_ output]}
+           {try.:Success output}
 
-    {try.:Failure error}
-    {try.:Failure error}))
+           {try.:Failure error}
+           {try.:Failure error}))
 
 (the .public (or left right)
-  (for_any (_ left right)
-    (-> (Meta left) (Meta right)
-        (Meta (Or left right))))
-  (function (_ lux)
-    (when (left lux)
-      {try.:Success [lux it]}
-      {try.:Success [lux {.:Left it}]}
+     (for_any (_ left right)
+              (-> (Meta left) (Meta right)
+                  (Meta (Or left right))))
+     (function (_ lux)
+               (when (left lux)
+                     {try.:Success [lux it]}
+                     {try.:Success [lux {.:Left it}]}
 
-      {try.:Failure error}
-      (when (right lux)
-        {try.:Success [lux it]}
-        {try.:Success [lux {.:Right it}]}
+                     {try.:Failure error}
+                     (when (right lux)
+                           {try.:Success [lux it]}
+                           {try.:Success [lux {.:Right it}]}
 
-        {try.:Failure error}
-        {try.:Failure error}))))
+                           {try.:Failure error}
+                           {try.:Failure error}))))
 
 (the .public (either left right)
-  (for_any (_ it)
-    (-> (Meta it) (Meta it)
-        (Meta it)))
-  (function (_ lux)
-    (when (left lux)
-      {try.:Failure error}
-      (right lux)
-      
-      success
-      success)))
+     (for_any (_ it)
+              (-> (Meta it) (Meta it)
+                  (Meta it)))
+     (function (_ lux)
+               (when (left lux)
+                     {try.:Failure error}
+                     (right lux)
+                     
+                     success
+                     success)))
 
 (the .public (and left right)
-  (for_any (_ left right)
-    (-> (Meta left) (Meta right)
-        (Meta (And left right))))
-  (function (_ lux)
-    (monad.let try.monad
-      [[lux left] (left lux)
-       [lux right] (right lux)]
-      (pure [lux [left right]]))))
+     (for_any (_ left right)
+              (-> (Meta left) (Meta right)
+                  (Meta (And left right))))
+     (function (_ lux)
+               (monad.let try.monad
+                          [[lux left] (left lux)
+                           [lux right] (right lux)]
+                          (pure [lux [left right]]))))
 
 (the .public (failure error)
-  (-> Text
-      Meta)
-  (function (_ lux)
-    {try.:Failure (provenance.with (its .:provenance lux) error)}))
+     (-> Text
+         Meta)
+     (function (_ lux)
+               {try.:Failure (provenance.with (its .:provenance lux) error)}))
 
 (the .public (assertion message test)
-  (-> Text Bit
-      (Meta Any))
-  (function (_ lux)
-    (if test
-        {try.:Success [lux []]}
-        {try.:Failure message})))
+     (-> Text Bit
+         (Meta Any))
+     (function (_ lux)
+               (if test
+                   {try.:Success [lux []]}
+                   {try.:Failure message})))
 
 (the .public (of_try it)
-  (for_any (_ it)
-    (-> (Try it)
-        (Meta it)))
-  (when it
-    {try.:Success output}
-    (by ..monad pure output)
+     (for_any (_ it)
+              (-> (Try it)
+                  (Meta it)))
+     (when it
+           {try.:Success output}
+           (by ..monad pure output)
 
-    {try.:Failure error}
-    (..failure error)))
+           {try.:Failure error}
+           (..failure error)))
 
 (the .public (try computation)
-  (for_any (_ it)
-    (-> (Meta it)
-        (Meta (Try it))))
-  (function (_ lux)
-    {try.:Success
-     (when (computation lux)
-       {try.:Success [lux' output]}
-       [lux' {try.:Success output}]
+     (for_any (_ it)
+              (-> (Meta it)
+                  (Meta (Try it))))
+     (function (_ lux)
+               {try.:Success
+                (when (computation lux)
+                      {try.:Success [lux' output]}
+                      [lux' {try.:Success output}]
 
-       {try.:Failure error}
-       [lux {try.:Failure error}])}))
+                      {try.:Failure error}
+                      [lux {try.:Failure error}])}))
 
 (the .public seed
-  (Meta Natural)
-  (function (_ lux)
-    {try.:Success [(revised .:seed ++ lux)
-                   (its .:seed lux)]}))
+     (Meta Natural)
+     (function (_ lux)
+               {try.:Success [(revised .:seed ++ lux)
+                              (its .:seed lux)]}))
 
 (with_template [<name> <slot> <type>]
-  [(the .public <name>
-     (Meta <type>)
-     (function (_ lux)
-       {try.:Success [lux (its <slot> lux)]}))]
+               [(the .public <name>
+                     (Meta <type>)
+                     (function (_ lux)
+                               {try.:Success [lux (its <slot> lux)]}))]
 
-  [[compiler_state [] Lux]
-   
-   [type_context .:type_context Type_Context]
-   
-   [target [.:info .:target] Text]
-   [version [.:info .:version] Text]
-   [configuration [.:info .:configuration] (property.List Text)]])
+               [[compiler_state [] Lux]
+                
+                [type_context .:type_context Type_Context]
+                
+                [target [.:info .:target] Text]
+                [version [.:info .:version] Text]
+                [configuration [.:info .:configuration] (property.List Text)]])
 
 (the .public provenance
-  (Meta Provenance)
-  (function (_ lux)
-    {try.:Success [lux (its .:provenance lux)]}))
+     (Meta Provenance)
+     (function (_ lux)
+               {try.:Success [lux (its .:provenance lux)]}))
 
 (error.the .public not_expecting_any_type)
 
 (the .public expected_type
-  (Meta Type)
-  (function (_ lux)
-    (when (its .:expected lux)
-      {.:Some type}
-      {try.:Success [lux type]}
+     (Meta Type)
+     (function (_ lux)
+               (when (its .:expected lux)
+                     {.:Some type}
+                     {try.:Success [lux type]}
 
-      {.:None}
-      {try.:Failure ..not_expecting_any_type})))
+                     {.:None}
+                     {try.:Failure ..not_expecting_any_type})))
 
 (the Eval
-  ... (.type# "eval")
-  (type (-> ..Type ..Code
-            (Meta Any))))
+     ... (.type# "eval")
+     (type (-> ..Type ..Code
+               (Meta Any))))
 
 (the .public (eval type code)
-  (-> Type Code
-      (Meta Any))
-  (monad.let [! ..monad]
-    [eval (by ! each (|>> (its .:eval)
-                          (as (-> Any Eval)))
-              ..compiler_state)]
-    (eval type code)))
+     (-> Type Code
+         (Meta Any))
+     (monad.let [! ..monad]
+                [eval (by ! each (|>> (its .:eval)
+                                      (as (-> Any Eval)))
+                          ..compiler_state)]
+                (eval type code)))

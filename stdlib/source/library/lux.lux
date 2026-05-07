@@ -4052,7 +4052,7 @@
                                                       else
                                                       (` <nullary>))))))]
 
-               [[0b (if (, pre) 1b (, post)) or]
+               [[0b (if (, pre) 1b (, post)) and/or]
                 [1b (if (, pre) (, post) 0b) and]])
 
 (the' .private (redundancy?' = reference every_case)
@@ -4064,8 +4064,8 @@
               false
 
               {:Top head tail}
-              (or (= reference head)
-                  (redundancy?' = reference tail))))
+              (and/or (= reference head)
+                      (redundancy?' = reference tail))))
 
 (the' .private (redundancy? = every_case)
       (type (for_any (_ it)
@@ -4076,8 +4076,8 @@
               false
 
               {:Top head tail}
-              (or (redundancy?' = head tail)
-                  (redundancy? = tail))))
+              (and/or (redundancy?' = head tail)
+                      (redundancy? = tail))))
 
 (with_template [,name ,type ,=]
                [(the' .private (,name reference it)
@@ -5421,53 +5421,55 @@
                                                   (failure "Redundancy in list patterns.")))
 
                                         else
-                                        (.when# 'term
-                                                {:Name @ ["" @term]}
-                                                (exec (.log!# (text "[when]"
-                                                                    " " (code:as_text 'term)
-                                                                    \n "  "
-                                                                    (text:interposed (text \n "  ") (list:each code:as_text expansion))))
-                                                      (.when# (|> (?:many (?:and ?:any ?:any))
-                                                                  (?:value expansion))
-                                                              {:Some every_branch}
-                                                              (monad:let meta:monad
-                                                                         [every_path (monad:each meta:monad
-                                                                                                 (function' (_ pattern,body)
-                                                                                                            (let' [[pattern body] pattern,body]
-                                                                                                                  (..path pattern {:Path/Body body})))
-                                                                                                 every_branch)]
-                                                                         (.when# (list:split 1 (list:in_reverse every_path))
-                                                                                 [(.list# else) every_then]
-                                                                                 (.when# (monad:mix maybe:monad
-                                                                                                    ..path:or
-                                                                                                    every_then
-                                                                                                    else)
-                                                                                         {:Some path}
-                                                                                         (monad:let meta:monad
-                                                                                                    [.exec (.log!# (text "[[when]] " (path:as_text path)))
-                                                                                                     'path (path:as_code (stack (code:local @term))
-                                                                                                                         {:None}
-                                                                                                                         path)]
-                                                                                                    (exec (.log!# (text "[[when]] " (code:as_text 'path)))
-                                                                                                          (pure (list 'path))))
-                                                                                         
-                                                                                         {:None}
-                                                                                         (pure (list (` (.when# (, 'term)
-                                                                                                                (,* expansion))))))
-                                                                                 
-                                                                                 _
-                                                                                 (failure "")))
+                                        (comment (.when# 'term
+                                                         {:Name @ ["" @term]}
+                                                         (comment (.log!# (text "[when]"
+                                                                                " " (code:as_text 'term)
+                                                                                \n "  "
+                                                                                (text:interposed (text \n "  ") (list:each code:as_text expansion))))
+                                                                  (.when# (|> (?:many (?:and ?:any ?:any))
+                                                                              (?:value expansion))
+                                                                          {:Some every_branch}
+                                                                          (monad:let meta:monad
+                                                                                     [every_path (monad:each meta:monad
+                                                                                                             (function' (_ pattern,body)
+                                                                                                                        (let' [[pattern body] pattern,body]
+                                                                                                                              (..path pattern {:Path/Body body})))
+                                                                                                             every_branch)]
+                                                                                     (.when# (list:split 1 (list:in_reverse every_path))
+                                                                                             [(.list# else) every_then]
+                                                                                             (.when# (monad:mix maybe:monad
+                                                                                                                ..path:or
+                                                                                                                every_then
+                                                                                                                else)
+                                                                                                     {:Some path}
+                                                                                                     (monad:let meta:monad
+                                                                                                                [.comment (.log!# (text "[[when]] " (path:as_text path)))
+                                                                                                                 'path (path:as_code (stack (code:local @term))
+                                                                                                                                     {:None}
+                                                                                                                                     path)]
+                                                                                                                (comment (.log!# (text "[[when]] " (code:as_text 'path)))
+                                                                                                                         (pure (list 'path))))
+                                                                                                     
+                                                                                                     {:None}
+                                                                                                     (pure (list (` (.when# (, 'term)
+                                                                                                                            (,* expansion))))))
+                                                                                             
+                                                                                             _
+                                                                                             (failure "")))
 
-                                                              {:None}
-                                                              (failure "")))
+                                                                          {:None}
+                                                                          (failure "")))
 
-                                                else
-                                                (monad:let meta:monad
-                                                           ['value (generated_name "'value")]
-                                                           (pure (list (` (.when# (, 'term)
-                                                                                  (, 'value)
-                                                                                  (..when (, 'value)
-                                                                                          (,* branches))))))))))
+                                                         else
+                                                         (monad:let meta:monad
+                                                                    ['value (generated_name "'value")]
+                                                                    (pure (list (` (.when# (, 'term)
+                                                                                           (, 'value)
+                                                                                           (..when (, 'value)
+                                                                                                   (,* branches))))))))
+                                                 (pure (list (` (.when# (, 'term)
+                                                                        (,* expansion))))))))
 
                      else
                      (failure ""))))
@@ -5738,8 +5740,8 @@
                                           (when head
                                                 [exported? {:Definition [type expression value]}]
                                                 (if (and (type:= Slot type)
-                                                         (or exported?
-                                                             (.text_=# expectation_for_module actual_module)))
+                                                         (and/or exported?
+                                                                 (.text_=# expectation_for_module actual_module)))
                                                     (let [[label actual_record] (as (-> Any Label) value)]
                                                          (if (type:= expectation_for_record actual_record)
                                                              {:Some (when label
@@ -6296,8 +6298,8 @@
      (-> (List Text)
          (Predicate Text))
      (list:mix (function (_ when prev)
-                         (or prev
-                             (.text_=# when name)))
+                         (and/or prev
+                                 (.text_=# when name)))
                whens
                0b))
 
@@ -7045,9 +7047,8 @@
                        (monad:let meta:monad
                                   [provenance provenance
                                    .let [message (text "Undefined behavior at " (provenance:as_text provenance))]]
-                                  (exec
-                                   (.log!# (text "WARNING: " message))
-                                   (pure (list (` (..halt! (, (code:text message))))))))
+                                  (exec (.log!# (text "WARNING: " message))
+                                        (pure (list (` (..halt! (, (code:text message))))))))
                        
                        _
                        (failure "")))))

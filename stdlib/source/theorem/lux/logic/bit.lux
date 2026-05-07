@@ -1,6 +1,6 @@
 (.using
  [library
-  [lux (.except or and if not false true)
+  [lux (.except and if not false true)
    ["_" theorem (.only)
     ["?" proposition]
     ["!" proof (.only)
@@ -34,1454 +34,1454 @@
   ["[0]" /]])
 
 (the .public (or this that)
-  (-> in.Rule in.Rule
-      in.Rule)
-  (in.if this in.any that))
+     (-> in.Rule in.Rule
+         in.Rule)
+     (in.if this in.any that))
 
 (the .public (and this that)
-  (-> in.Rule in.Rule
-      in.Rule)
-  (in.if this that in.any))
+     (-> in.Rule in.Rule
+         in.Rule)
+     (in.if this that in.any))
 
 (the (if cause effect)
-  (-> in.Rule in.Rule
-      in.Rule)
-  (by.application (by.application in.any cause) effect))
+     (-> in.Rule in.Rule
+         in.Rule)
+     (by.application (by.application in.any cause) effect))
 
 (the (not it)
-  (-> in.Rule
-      in.Rule)
-  (by.application in.any it))
+     (-> in.Rule
+         in.Rule)
+     (by.application in.any it))
 
 (comment "https://en.wikipedia.org/wiki/Boolean_algebra#Laws"
          (the (|not| it)
-           (Change in.Rule)
-           (all by.and
-                (by.application by.definition it)
-                by.reification
-                (by.if in.any in.any))))
+              (Change in.Rule)
+              (all by.and
+                   (by.application by.definition it)
+                   by.reification
+                   (by.if in.any in.any))))
 
 (the by_true
-  (all by.and
-       by.definition
-       (|not| by.definition)))
+     (all by.and
+          by.definition
+          (|not| by.definition)))
 
 (comment "Lemma"
          (these (_.the @false
-                  (?.= 0b
-                       .false)
-                  (!.= in.any
-                       by.definition))
+                       (?.= 0b
+                            .false)
+                       (!.= in.any
+                            by.definition))
 
                 (_.the @true
-                  (?.= 1b
-                       .true)
-                  (!.= in.any
-                       by_true))))
+                       (?.= 1b
+                            .true)
+                       (!.= in.any
+                            by_true))))
 
 (the (of/1 abstraction argument)
-  (-> in.Rule in.Rule
-      in.Rule)
-  (all by.and
-       (by.application abstraction argument)
-       by.reification))
+     (-> in.Rule in.Rule
+         in.Rule)
+     (all by.and
+          (by.application abstraction argument)
+          by.reification))
 
 (_.the .public if_true
-  (?.let [it]
-    [then it
-     else it]
-    (?.= (.if .true
-              then
-              else)
-         then))
-  (!.= (by.if by_true in.any)
-       in.any))
+       (?.let [it]
+              [then it
+               else it]
+              (?.= (.if .true
+                        then
+                        else)
+                   then))
+       (!.= (by.if by_true in.any)
+            in.any))
 
 (_.the .public if_false
-  (?.let [it]
-    [then it
-     else it]
-    (?.= (.if .false
-              then
-              else)
-         else))
-  (!.= (by.if by.definition in.any)
-       in.any))
+       (?.let [it]
+              [then it
+               else it]
+              (?.= (.if .false
+                        then
+                        else)
+                   else))
+       (!.= (by.if by.definition in.any)
+            in.any))
 
 (_.the .public true
-  (?.= (.not .false)
-       .true)
-  (!.= in.any
-       by.definition))
+       (?.= (.not .false)
+            .true)
+       (!.= in.any
+            by.definition))
 
 (comment "https://en.wikipedia.org/wiki/Double_negation"
          (_.the .public double_negation
-           (?.let [it Bit]
-             (?.= (.not (.not it))
-                  it))
-           (let [$= (function (_ ==)
-                      (!.= (|not| (|not| (by.= ==)))
-                           (by.= ==)))]
-             (induction.bit (function (_ =_false)
-                              ($= =_false))
-                            (function (_ =_true)
-                              ($= =_true))))))
+                (?.let [it Bit]
+                       (?.= (.not (.not it))
+                            it))
+                (let [$= (function (_ ==)
+                                   (!.= (|not| (|not| (by.= ==)))
+                                        (by.= ==)))]
+                     (induction.bit (function (_ =_false)
+                                              ($= =_false))
+                                    (function (_ =_true)
+                                              ($= =_true))))))
 
 (_.the .public false
-  (?.= (.not .true)
-       .false)
-  (!.= (all by.and
-            (by.application in.any by.definition)
-            (by.= double_negation))
-       in.any))
+       (?.= (.not .true)
+            .false)
+       (!.= (all by.and
+                 (by.application in.any by.definition)
+                 (by.= double_negation))
+            in.any))
 
 (comment "https://en.wikipedia.org/wiki/Idempotence"
          (template.with [,theorem ,composition ,if_false ,if_true]
-           [(_.the .public ,theorem
-              (?.let [it Bit]
-                (?.= (,composition it it)
-                     it))
-              (induction.bit (function (_ ==)
-                               (!.= (by.if (by.= ==) ,if_false)
-                                    (by.= ==)))
-                             (function (_ ==)
-                               (!.= (by.if (by.= ==) ,if_true)
-                                    (by.= ==)))))]
+                        [(_.the .public ,theorem
+                                (?.let [it Bit]
+                                       (?.= (,composition it it)
+                                            it))
+                                (induction.bit (function (_ ==)
+                                                         (!.= (by.if (by.= ==) ,if_false)
+                                                              (by.= ==)))
+                                               (function (_ ==)
+                                                         (!.= (by.if (by.= ==) ,if_true)
+                                                              (by.= ==)))))]
 
-           [[idempotence_of_or .or (by.= ==) in.any]
-            [idempotence_of_and .and in.any (by.= ==)]]))
-
-(template.with [,theorem ,composition ,identity ,value]
-  [(_.the .public ,theorem
-     (?.let [it Bit]
-       (?.= (,composition ,identity it)
-            it))
-     (!.= (by.if ,value in.any)
-          in.any))]
-
-  [[identity_of_or .or .false by.definition]
-   [identity_of_and .and .true by_true]])
+                        [[idempotence_of_or .and/or (by.= ==) in.any]
+                         [idempotence_of_and .and in.any (by.= ==)]]))
 
 (template.with [,theorem ,composition ,identity ,value]
-  [(_.the .public ,theorem
-     (?.let [it Bit]
-       (?.= (,composition ,identity it)
-            ,identity))
-     (!.= (by.if ,value in.any)
-          ,value))]
+               [(_.the .public ,theorem
+                       (?.let [it Bit]
+                              (?.= (,composition ,identity it)
+                                   it))
+                       (!.= (by.if ,value in.any)
+                            in.any))]
 
-  [[annihilation_of_or .or .true by_true]
-   [annihilation_of_and .and .false by.definition]])
+               [[identity_of_or .and/or .false by.definition]
+                [identity_of_and .and .true by_true]])
+
+(template.with [,theorem ,composition ,identity ,value]
+               [(_.the .public ,theorem
+                       (?.let [it Bit]
+                              (?.= (,composition ,identity it)
+                                   ,identity))
+                       (!.= (by.if ,value in.any)
+                            ,value))]
+
+               [[annihilation_of_or .and/or .true by_true]
+                [annihilation_of_and .and .false by.definition]])
 
 (comment "https://en.wikipedia.org/wiki/Commutative_property"
          (_.the .public commutativity_of_or
-           (?.let [this Bit
-                   that Bit]
-             (?.= (.or this that)
-                  (.or that this)))
-           (induction.bit (function (_ this_=_false)
-                            (let [this_=_false (by.and (by.= this_=_false) (by.= @false))]
-                              (induction.bit (function (_ that_=_false)
-                                               (let [that_=_false (by.and (by.= that_=_false) (by.= @false))]
-                                                 (!.= (all by.and
-                                                           (in.if this_=_false in.any in.any)
-                                                           (by.= ..identity_of_or)
-                                                           that_=_false)
-                                                      (all by.and
-                                                           (in.if this_=_false in.any in.any)
-                                                           (by.= ..identity_of_or)
-                                                           this_=_false))))
-                                             (function (_ that_=_true)
-                                               (let [that_=_true (by.and (by.= that_=_true) (by.= @true))]
-                                                 (!.= (all by.and
-                                                           (in.if this_=_false in.any in.any)
-                                                           (by.= ..identity_of_or)
-                                                           that_=_true)
-                                                      (all by.and
-                                                           (in.if that_=_true in.any in.any)
-                                                           (by.= ..annihilation_of_or))))))))
-                          (function (_ this_=_true)
-                            (let [this_=_true (by.and (by.= this_=_true) (by.= @true))]
-                              (induction.bit (function (_ that_=_false)
-                                               (let [that_=_false (by.and (by.= that_=_false) (by.= @false))]
-                                                 (!.= (all by.and
-                                                           (in.if this_=_true in.any in.any)
-                                                           (by.= ..annihilation_of_or))
-                                                      (all by.and
-                                                           (in.if that_=_false in.any in.any)
-                                                           (by.= ..identity_of_or)
-                                                           this_=_true))))
-                                             (function (_ that_=_true)
-                                               (let [that_=_true (by.and (by.= that_=_true) (by.= @true))]
-                                                 (!.= (all by.and
-                                                           (in.if this_=_true in.any in.any)
-                                                           (by.= ..annihilation_of_or))
-                                                      (all by.and
-                                                           (in.if that_=_true in.any in.any)
-                                                           (by.= ..annihilation_of_or)))))))))))
+                (?.let [this Bit
+                        that Bit]
+                       (?.= (.and/or this that)
+                            (.and/or that this)))
+                (induction.bit (function (_ this_=_false)
+                                         (let [this_=_false (by.and (by.= this_=_false) (by.= @false))]
+                                              (induction.bit (function (_ that_=_false)
+                                                                       (let [that_=_false (by.and (by.= that_=_false) (by.= @false))]
+                                                                            (!.= (all by.and
+                                                                                      (in.if this_=_false in.any in.any)
+                                                                                      (by.= ..identity_of_or)
+                                                                                      that_=_false)
+                                                                                 (all by.and
+                                                                                      (in.if this_=_false in.any in.any)
+                                                                                      (by.= ..identity_of_or)
+                                                                                      this_=_false))))
+                                                             (function (_ that_=_true)
+                                                                       (let [that_=_true (by.and (by.= that_=_true) (by.= @true))]
+                                                                            (!.= (all by.and
+                                                                                      (in.if this_=_false in.any in.any)
+                                                                                      (by.= ..identity_of_or)
+                                                                                      that_=_true)
+                                                                                 (all by.and
+                                                                                      (in.if that_=_true in.any in.any)
+                                                                                      (by.= ..annihilation_of_or))))))))
+                               (function (_ this_=_true)
+                                         (let [this_=_true (by.and (by.= this_=_true) (by.= @true))]
+                                              (induction.bit (function (_ that_=_false)
+                                                                       (let [that_=_false (by.and (by.= that_=_false) (by.= @false))]
+                                                                            (!.= (all by.and
+                                                                                      (in.if this_=_true in.any in.any)
+                                                                                      (by.= ..annihilation_of_or))
+                                                                                 (all by.and
+                                                                                      (in.if that_=_false in.any in.any)
+                                                                                      (by.= ..identity_of_or)
+                                                                                      this_=_true))))
+                                                             (function (_ that_=_true)
+                                                                       (let [that_=_true (by.and (by.= that_=_true) (by.= @true))]
+                                                                            (!.= (all by.and
+                                                                                      (in.if this_=_true in.any in.any)
+                                                                                      (by.= ..annihilation_of_or))
+                                                                                 (all by.and
+                                                                                      (in.if that_=_true in.any in.any)
+                                                                                      (by.= ..annihilation_of_or)))))))))))
 
 (_.the .public commutativity_of_and
-  (?.let [this Bit
-          that Bit]
-    (?.= (.and this that)
-         (.and that this)))
-  (induction.bit (function (_ =this)
-                   (let [=this (by.and (by.= =this) (by.= @false))]
-                     (induction.bit (function (_ =that)
-                                      (let [=that (by.and (by.= =that) (by.= @false))]
-                                        (!.= (all by.and
-                                                  (in.if =this in.any in.any)
-                                                  (by.= ..annihilation_of_and))
-                                             (all by.and
-                                                  (in.if =that in.any in.any)
-                                                  (by.= ..annihilation_of_and)))))
-                                    (function (_ =that)
-                                      (let [=that (by.and (by.= =that) (by.= @true))]
-                                        (!.= (all by.and
-                                                  (in.if =this in.any in.any)
-                                                  (by.= ..annihilation_of_and))
-                                             (all by.and
-                                                  (in.if =that in.any in.any)
-                                                  (by.= ..identity_of_and)
-                                                  =this)))))))
-                 (function (_ =this)
-                   (let [=this (by.and (by.= =this) (by.= @true))]
-                     (induction.bit (function (_ =that)
-                                      (let [=that (by.and (by.= =that) (by.= @false))]
-                                        (!.= (all by.and
-                                                  (in.if =this in.any in.any)
-                                                  (by.= ..identity_of_and)
-                                                  =that)
-                                             (all by.and
-                                                  (in.if =that in.any in.any)
-                                                  (by.= ..annihilation_of_and)))))
-                                    (function (_ =that)
-                                      (let [=that (by.and (by.= =that) (by.= @true))]
-                                        (!.= (all by.and
-                                                  (in.if =this in.any in.any)
-                                                  (by.= ..identity_of_and)
-                                                  =that)
-                                             (all by.and
-                                                  (in.if =that in.any in.any)
-                                                  (by.= ..identity_of_and)
-                                                  =this)))))))))
+       (?.let [this Bit
+               that Bit]
+              (?.= (.and this that)
+                   (.and that this)))
+       (induction.bit (function (_ =this)
+                                (let [=this (by.and (by.= =this) (by.= @false))]
+                                     (induction.bit (function (_ =that)
+                                                              (let [=that (by.and (by.= =that) (by.= @false))]
+                                                                   (!.= (all by.and
+                                                                             (in.if =this in.any in.any)
+                                                                             (by.= ..annihilation_of_and))
+                                                                        (all by.and
+                                                                             (in.if =that in.any in.any)
+                                                                             (by.= ..annihilation_of_and)))))
+                                                    (function (_ =that)
+                                                              (let [=that (by.and (by.= =that) (by.= @true))]
+                                                                   (!.= (all by.and
+                                                                             (in.if =this in.any in.any)
+                                                                             (by.= ..annihilation_of_and))
+                                                                        (all by.and
+                                                                             (in.if =that in.any in.any)
+                                                                             (by.= ..identity_of_and)
+                                                                             =this)))))))
+                      (function (_ =this)
+                                (let [=this (by.and (by.= =this) (by.= @true))]
+                                     (induction.bit (function (_ =that)
+                                                              (let [=that (by.and (by.= =that) (by.= @false))]
+                                                                   (!.= (all by.and
+                                                                             (in.if =this in.any in.any)
+                                                                             (by.= ..identity_of_and)
+                                                                             =that)
+                                                                        (all by.and
+                                                                             (in.if =that in.any in.any)
+                                                                             (by.= ..annihilation_of_and)))))
+                                                    (function (_ =that)
+                                                              (let [=that (by.and (by.= =that) (by.= @true))]
+                                                                   (!.= (all by.and
+                                                                             (in.if =this in.any in.any)
+                                                                             (by.= ..identity_of_and)
+                                                                             =that)
+                                                                        (all by.and
+                                                                             (in.if =that in.any in.any)
+                                                                             (by.= ..identity_of_and)
+                                                                             =this)))))))))
 
 (comment "https://en.wikipedia.org/wiki/Complement_(set_theory)"
          "https://en.wikipedia.org/wiki/Law_of_excluded_middle"
          (_.the .public complementation_of_or
-           (?.let [it Bit]
-             (?.= (.or it (.not it))
-                  .true))
-           (induction.bit (function (_ =_false)
-                            (let [=_false (by.and (by.= =_false) (by.= @false))]
-                              (!.= (all by.and
-                                        (in.if =_false in.any in.any)
-                                        (by.= identity_of_or)
-                                        (by.application in.any =_false))
-                                   by.definition)))
-                          (function (_ =_true)
-                            (let [=_true (by.and (by.= =_true) (by.= @true))]
-                              (!.= (all by.and
-                                        (in.if =_true in.any in.any)
-                                        (by.= annihilation_of_or))
-                                   in.any))))))
+                (?.let [it Bit]
+                       (?.= (.and/or it (.not it))
+                            .true))
+                (induction.bit (function (_ =_false)
+                                         (let [=_false (by.and (by.= =_false) (by.= @false))]
+                                              (!.= (all by.and
+                                                        (in.if =_false in.any in.any)
+                                                        (by.= identity_of_or)
+                                                        (by.application in.any =_false))
+                                                   by.definition)))
+                               (function (_ =_true)
+                                         (let [=_true (by.and (by.= =_true) (by.= @true))]
+                                              (!.= (all by.and
+                                                        (in.if =_true in.any in.any)
+                                                        (by.= annihilation_of_or))
+                                                   in.any))))))
 
 (comment "https://en.wikipedia.org/wiki/Law_of_noncontradiction"
          (_.the .public complementation_of_and
-           (?.let [it Bit]
-             (?.= (.and it (.not it))
-                  .false))
-           (induction.bit (function (_ =it)
-                            (let [=it (by.and (by.= =it) (by.= @false))]
-                              (!.= (all by.and
-                                        (in.if =it in.any in.any)
-                                        (by.= annihilation_of_and))
-                                   in.any)))
-                          (function (_ =it)
-                            (let [=it (by.and (by.= =it) (by.= @true))]
-                              (!.= (all by.and
-                                        (in.if =it in.any in.any)
-                                        (by.= identity_of_and)
-                                        (by.application in.any =it)
-                                        (by.= ..false))
-                                   in.any))))))
+                (?.let [it Bit]
+                       (?.= (.and it (.not it))
+                            .false))
+                (induction.bit (function (_ =it)
+                                         (let [=it (by.and (by.= =it) (by.= @false))]
+                                              (!.= (all by.and
+                                                        (in.if =it in.any in.any)
+                                                        (by.= annihilation_of_and))
+                                                   in.any)))
+                               (function (_ =it)
+                                         (let [=it (by.and (by.= =it) (by.= @true))]
+                                              (!.= (all by.and
+                                                        (in.if =it in.any in.any)
+                                                        (by.= identity_of_and)
+                                                        (by.application in.any =it)
+                                                        (by.= ..false))
+                                                   in.any))))))
 
 (comment "https://en.wikipedia.org/wiki/Associative_property"
          (_.the .public associativity_of_or
-           (?.let [$0 Bit
-                   $1 Bit
-                   $2 Bit]
-             (?.= (.or $0 (.or $1 $2))
-                  (.or (.or $0 $1) $2)))
-           (induction.bit (function (_ $0_=_false)
-                            (let [$0_=_false (by.and (by.= $0_=_false) (by.= @false))]
-                              (induction.bit (function (_ $1_=_false)
-                                               (let [$1_=_false (by.and (by.= $1_=_false) (by.= @false))]
-                                                 (!.= (all by.and
-                                                           (in.if $0_=_false in.any in.any)
-                                                           (by.= identity_of_or)
-                                                           (in.if $1_=_false in.any in.any)
-                                                           (by.= identity_of_or))
-                                                      (all by.and
-                                                           (in.if (all by.and
-                                                                       (in.if $0_=_false in.any in.any)
-                                                                       (by.= identity_of_or)
-                                                                       $1_=_false)
-                                                                  in.any in.any)
-                                                           (by.= identity_of_or)))))
-                                             (function (_ $1_=_true)
-                                               (let [$1_=_true (by.and (by.= $1_=_true) (by.= @true))]
-                                                 (!.= (all by.and
-                                                           (in.if $0_=_false in.any in.any)
-                                                           (by.= identity_of_or)
-                                                           (in.if $1_=_true in.any in.any)
-                                                           (by.= annihilation_of_or))
-                                                      (all by.and
-                                                           (in.if (all by.and
-                                                                       (in.if $0_=_false in.any in.any)
-                                                                       (by.= identity_of_or)
-                                                                       $1_=_true)
-                                                                  in.any in.any)
-                                                           (by.= annihilation_of_or))))))))
-                          (function (_ $0_=_true)
-                            (let [$0_=_true (by.and (by.= $0_=_true) (by.= @true))]
-                              (!.= (all by.and
-                                        (in.if $0_=_true in.any in.any)
-                                        (by.= annihilation_of_or))
-                                   (all by.and
-                                        (in.if (all by.and
-                                                    (in.if $0_=_true in.any in.any)
-                                                    (by.= annihilation_of_or))
-                                               in.any in.any)
-                                        (by.= annihilation_of_or))))))))
+                (?.let [$0 Bit
+                        $1 Bit
+                        $2 Bit]
+                       (?.= (.and/or $0 (.and/or $1 $2))
+                            (.and/or (.and/or $0 $1) $2)))
+                (induction.bit (function (_ $0_=_false)
+                                         (let [$0_=_false (by.and (by.= $0_=_false) (by.= @false))]
+                                              (induction.bit (function (_ $1_=_false)
+                                                                       (let [$1_=_false (by.and (by.= $1_=_false) (by.= @false))]
+                                                                            (!.= (all by.and
+                                                                                      (in.if $0_=_false in.any in.any)
+                                                                                      (by.= identity_of_or)
+                                                                                      (in.if $1_=_false in.any in.any)
+                                                                                      (by.= identity_of_or))
+                                                                                 (all by.and
+                                                                                      (in.if (all by.and
+                                                                                                  (in.if $0_=_false in.any in.any)
+                                                                                                  (by.= identity_of_or)
+                                                                                                  $1_=_false)
+                                                                                             in.any in.any)
+                                                                                      (by.= identity_of_or)))))
+                                                             (function (_ $1_=_true)
+                                                                       (let [$1_=_true (by.and (by.= $1_=_true) (by.= @true))]
+                                                                            (!.= (all by.and
+                                                                                      (in.if $0_=_false in.any in.any)
+                                                                                      (by.= identity_of_or)
+                                                                                      (in.if $1_=_true in.any in.any)
+                                                                                      (by.= annihilation_of_or))
+                                                                                 (all by.and
+                                                                                      (in.if (all by.and
+                                                                                                  (in.if $0_=_false in.any in.any)
+                                                                                                  (by.= identity_of_or)
+                                                                                                  $1_=_true)
+                                                                                             in.any in.any)
+                                                                                      (by.= annihilation_of_or))))))))
+                               (function (_ $0_=_true)
+                                         (let [$0_=_true (by.and (by.= $0_=_true) (by.= @true))]
+                                              (!.= (all by.and
+                                                        (in.if $0_=_true in.any in.any)
+                                                        (by.= annihilation_of_or))
+                                                   (all by.and
+                                                        (in.if (all by.and
+                                                                    (in.if $0_=_true in.any in.any)
+                                                                    (by.= annihilation_of_or))
+                                                               in.any in.any)
+                                                        (by.= annihilation_of_or))))))))
 
 (_.the .public associativity_of_and
-  (?.let [$0 Bit
-          $1 Bit
-          $2 Bit]
-    (?.= (.and $0 (.and $1 $2))
-         (.and (.and $0 $1) $2)))
-  (induction.bit (function (_ =0)
-                   (let [=0 (by.and (by.= =0) (by.= @false))]
-                     (!.= (all by.and
-                               (in.if =0 in.any in.any)
-                               (by.= annihilation_of_and))
-                          (all by.and
-                               (in.if (all by.and
-                                           (in.if =0 in.any in.any)
-                                           (by.= annihilation_of_and))
-                                      in.any in.any)
-                               (by.= annihilation_of_and)))))
-                 (function (_ =0)
-                   (let [=0 (by.and (by.= =0) (by.= @true))]
-                     (induction.bit (function (_ =1)
-                                      (let [=1 (by.and (by.= =1) (by.= @false))]
-                                        (!.= (all by.and
-                                                  (in.if =0 in.any in.any)
-                                                  (by.= identity_of_and)
-                                                  (in.if =1 in.any in.any)
-                                                  (by.= annihilation_of_and))
-                                             (all by.and
-                                                  (in.if (all by.and
-                                                              (in.if =0 in.any in.any)
-                                                              (by.= identity_of_and)
-                                                              =1)
-                                                         in.any in.any)
-                                                  (by.= annihilation_of_and)))))
-                                    (function (_ =1)
-                                      (let [=1 (by.and (by.= =1) (by.= @true))]
-                                        (!.= (all by.and
-                                                  (in.if =0 in.any in.any)
-                                                  (by.= identity_of_and)
-                                                  (in.if =1 in.any in.any)
-                                                  (by.= identity_of_and))
-                                             (all by.and
-                                                  (in.if (all by.and
-                                                              (in.if =0 in.any in.any)
-                                                              (by.= identity_of_and)
-                                                              =1)
-                                                         in.any in.any)
-                                                  (by.= identity_of_and))))))))))
+       (?.let [$0 Bit
+               $1 Bit
+               $2 Bit]
+              (?.= (.and $0 (.and $1 $2))
+                   (.and (.and $0 $1) $2)))
+       (induction.bit (function (_ =0)
+                                (let [=0 (by.and (by.= =0) (by.= @false))]
+                                     (!.= (all by.and
+                                               (in.if =0 in.any in.any)
+                                               (by.= annihilation_of_and))
+                                          (all by.and
+                                               (in.if (all by.and
+                                                           (in.if =0 in.any in.any)
+                                                           (by.= annihilation_of_and))
+                                                      in.any in.any)
+                                               (by.= annihilation_of_and)))))
+                      (function (_ =0)
+                                (let [=0 (by.and (by.= =0) (by.= @true))]
+                                     (induction.bit (function (_ =1)
+                                                              (let [=1 (by.and (by.= =1) (by.= @false))]
+                                                                   (!.= (all by.and
+                                                                             (in.if =0 in.any in.any)
+                                                                             (by.= identity_of_and)
+                                                                             (in.if =1 in.any in.any)
+                                                                             (by.= annihilation_of_and))
+                                                                        (all by.and
+                                                                             (in.if (all by.and
+                                                                                         (in.if =0 in.any in.any)
+                                                                                         (by.= identity_of_and)
+                                                                                         =1)
+                                                                                    in.any in.any)
+                                                                             (by.= annihilation_of_and)))))
+                                                    (function (_ =1)
+                                                              (let [=1 (by.and (by.= =1) (by.= @true))]
+                                                                   (!.= (all by.and
+                                                                             (in.if =0 in.any in.any)
+                                                                             (by.= identity_of_and)
+                                                                             (in.if =1 in.any in.any)
+                                                                             (by.= identity_of_and))
+                                                                        (all by.and
+                                                                             (in.if (all by.and
+                                                                                         (in.if =0 in.any in.any)
+                                                                                         (by.= identity_of_and)
+                                                                                         =1)
+                                                                                    in.any in.any)
+                                                                             (by.= identity_of_and))))))))))
 
 (comment "https://en.wikipedia.org/wiki/Distributive_property"
          (_.the .public distributivity_of_or
-           (?.let [$0 Bit
-                   $1 Bit
-                   $2 Bit]
-             (?.= (.and (.or $0 $1) (.or $0 $2))
-                  (.or $0 (.and $1 $2))))
-           (induction.bit (function (_ =_false)
-                            (let [=_false (by.and (by.= =_false) (by.= @false))
-                                  $or_false (all by.and
-                                                 (in.if =_false in.any in.any)
-                                                 (by.= identity_of_or))]
-                              (!.= (in.if $or_false $or_false in.any)
-                                   $or_false)))
-                          (function (_ =_true)
-                            (let [=_true (by.and (by.= =_true) (by.= @true))
-                                  $or_true (all by.and
-                                                (in.if =_true in.any in.any)
-                                                (by.= annihilation_of_or))]
-                              (!.= (all by.and
-                                        (in.if $or_true $or_true in.any)
-                                        (by.= identity_of_and))
-                                   $or_true))
-                            ))))
+                (?.let [$0 Bit
+                        $1 Bit
+                        $2 Bit]
+                       (?.= (.and (.and/or $0 $1) (.and/or $0 $2))
+                            (.and/or $0 (.and $1 $2))))
+                (induction.bit (function (_ =_false)
+                                         (let [=_false (by.and (by.= =_false) (by.= @false))
+                                               $or_false (all by.and
+                                                              (in.if =_false in.any in.any)
+                                                              (by.= identity_of_or))]
+                                              (!.= (in.if $or_false $or_false in.any)
+                                                   $or_false)))
+                               (function (_ =_true)
+                                         (let [=_true (by.and (by.= =_true) (by.= @true))
+                                               $or_true (all by.and
+                                                             (in.if =_true in.any in.any)
+                                                             (by.= annihilation_of_or))]
+                                              (!.= (all by.and
+                                                        (in.if $or_true $or_true in.any)
+                                                        (by.= identity_of_and))
+                                                   $or_true))
+                                         ))))
 
 (_.the .public distributivity_of_and
-  (?.let [$0 Bit
-          $1 Bit
-          $2 Bit]
-    (?.= (.or (.and $0 $1) (.and $0 $2))
-         (.and $0 (.or $1 $2))))
-  (induction.bit (function (_ =0)
-                   (let [=0 (by.and (by.= =0) (by.= @false))
-                         annihilation (all by.and
-                                           (in.if =0 in.any in.any)
-                                           (by.= annihilation_of_and))]
-                     (!.= (all by.and
-                               (in.if annihilation in.any annihilation)
-                               (by.= identity_of_or))
-                          annihilation)))
-                 (function (_ =0)
-                   (let [=0 (by.and (by.= =0) (by.= @true))
-                         identity (all by.and
-                                       (in.if =0 in.any in.any)
-                                       (by.= identity_of_and))]
-                     (!.= (in.if identity in.any identity)
-                          identity))
-                   )))
+       (?.let [$0 Bit
+               $1 Bit
+               $2 Bit]
+              (?.= (.and/or (.and $0 $1) (.and $0 $2))
+                   (.and $0 (.and/or $1 $2))))
+       (induction.bit (function (_ =0)
+                                (let [=0 (by.and (by.= =0) (by.= @false))
+                                      annihilation (all by.and
+                                                        (in.if =0 in.any in.any)
+                                                        (by.= annihilation_of_and))]
+                                     (!.= (all by.and
+                                               (in.if annihilation in.any annihilation)
+                                               (by.= identity_of_or))
+                                          annihilation)))
+                      (function (_ =0)
+                                (let [=0 (by.and (by.= =0) (by.= @true))
+                                      identity (all by.and
+                                                    (in.if =0 in.any in.any)
+                                                    (by.= identity_of_and))]
+                                     (!.= (in.if identity in.any identity)
+                                          identity))
+                                )))
 
 (comment "https://en.wikipedia.org/wiki/De_Morgan%27s_laws"
          (_.the .public negation_of_or
-           (?.let [this Bit
-                   that Bit]
-             (?.= (.and (.not this) (.not that))
-                  (.not (.or this that))))
-           (induction.bit (function (_ =this)
-                            (let [=this (by.and (by.= =this) (by.= @false))]
-                              (!.= (all by.and
-                                        (in.if (all by.and
-                                                    (by.application in.any =this)
-                                                    (by.= ..true))
-                                               in.any in.any)
-                                        (by.= identity_of_and))
-                                   (by.application in.any
+                (?.let [this Bit
+                        that Bit]
+                       (?.= (.and (.not this) (.not that))
+                            (.not (.and/or this that))))
+                (induction.bit (function (_ =this)
+                                         (let [=this (by.and (by.= =this) (by.= @false))]
+                                              (!.= (all by.and
+                                                        (in.if (all by.and
+                                                                    (by.application in.any =this)
+                                                                    (by.= ..true))
+                                                               in.any in.any)
+                                                        (by.= identity_of_and))
+                                                   (by.application in.any
+                                                                   (all by.and
+                                                                        (in.if =this in.any in.any)
+                                                                        (by.= identity_of_or))))))
+                               (function (_ =this)
+                                         (let [=this (by.and (by.= =this) (by.= @true))]
+                                              (!.= (all by.and
+                                                        (in.if (all by.and
+                                                                    (by.application in.any =this)
+                                                                    (by.= ..false))
+                                                               in.any in.any)
+                                                        (by.= annihilation_of_and))
                                                    (all by.and
-                                                        (in.if =this in.any in.any)
-                                                        (by.= identity_of_or))))))
-                          (function (_ =this)
-                            (let [=this (by.and (by.= =this) (by.= @true))]
-                              (!.= (all by.and
-                                        (in.if (all by.and
-                                                    (by.application in.any =this)
-                                                    (by.= ..false))
-                                               in.any in.any)
-                                        (by.= annihilation_of_and))
-                                   (all by.and
-                                        (by.application in.any
-                                                        (all by.and
-                                                             (in.if =this in.any in.any)
-                                                             (by.= annihilation_of_or)))
-                                        (by.= ..false))))))))
+                                                        (by.application in.any
+                                                                        (all by.and
+                                                                             (in.if =this in.any in.any)
+                                                                             (by.= annihilation_of_or)))
+                                                        (by.= ..false))))))))
 
 (_.the .public negation_of_and
-  (?.let [this Bit
-          that Bit]
-    (?.= (.or (.not this) (.not that))
-         (.not (.and this that))))
-  (induction.bit (function (_ =this)
-                   (let [=this (by.and (by.= =this) (by.= @false))]
-                     (!.= (all by.and
-                               (in.if (all by.and
-                                           (by.application in.any =this)
-                                           (by.= ..true))
-                                      in.any in.any)
-                               (by.= annihilation_of_or))
-                          (all by.and
-                               (by.application in.any
-                                               (all by.and
-                                                    (in.if =this in.any in.any)
-                                                    (by.= annihilation_of_and)))
-                               (by.= ..true)))))
-                 (function (_ =this)
-                   (let [=this (by.and (by.= =this) (by.= @true))]
-                     (!.= (all by.and
-                               (in.if (all by.and
-                                           (by.application in.any =this)
-                                           (by.= ..false))
-                                      in.any in.any)
-                               (by.= identity_of_or))
-                          (by.application in.any
+       (?.let [this Bit
+               that Bit]
+              (?.= (.and/or (.not this) (.not that))
+                   (.not (.and this that))))
+       (induction.bit (function (_ =this)
+                                (let [=this (by.and (by.= =this) (by.= @false))]
+                                     (!.= (all by.and
+                                               (in.if (all by.and
+                                                           (by.application in.any =this)
+                                                           (by.= ..true))
+                                                      in.any in.any)
+                                               (by.= annihilation_of_or))
                                           (all by.and
-                                               (in.if =this in.any in.any)
-                                               (by.= identity_of_and))))))))
+                                               (by.application in.any
+                                                               (all by.and
+                                                                    (in.if =this in.any in.any)
+                                                                    (by.= annihilation_of_and)))
+                                               (by.= ..true)))))
+                      (function (_ =this)
+                                (let [=this (by.and (by.= =this) (by.= @true))]
+                                     (!.= (all by.and
+                                               (in.if (all by.and
+                                                           (by.application in.any =this)
+                                                           (by.= ..false))
+                                                      in.any in.any)
+                                               (by.= identity_of_or))
+                                          (by.application in.any
+                                                          (all by.and
+                                                               (in.if =this in.any in.any)
+                                                               (by.= identity_of_and))))))))
 
 (_.the .public absorption_of_or
-  (?.let [this Bit
-          that Bit]
-    (?.= (.or this (.and this that))
-         this))
-  (induction.bit (function (_ =this)
-                   (let [=this (by.and (by.= =this) (by.= @false))]
-                     (!.= (all by.and
-                               (in.if =this in.any in.any)
-                               (by.= identity_of_or)
-                               (in.if =this in.any in.any)
-                               (by.= annihilation_of_and))
-                          =this)))
-                 (function (_ =this)
-                   (let [=this (by.and (by.= =this) (by.= @true))]
-                     (!.= (all by.and
-                               (in.if =this in.any in.any)
-                               (by.= annihilation_of_or))
-                          =this)))))
+       (?.let [this Bit
+               that Bit]
+              (?.= (.and/or this (.and this that))
+                   this))
+       (induction.bit (function (_ =this)
+                                (let [=this (by.and (by.= =this) (by.= @false))]
+                                     (!.= (all by.and
+                                               (in.if =this in.any in.any)
+                                               (by.= identity_of_or)
+                                               (in.if =this in.any in.any)
+                                               (by.= annihilation_of_and))
+                                          =this)))
+                      (function (_ =this)
+                                (let [=this (by.and (by.= =this) (by.= @true))]
+                                     (!.= (all by.and
+                                               (in.if =this in.any in.any)
+                                               (by.= annihilation_of_or))
+                                          =this)))))
 
 (_.the .public absorption_of_and
-  (?.let [this Bit
-          that Bit]
-    (?.= (.and this (.or this that))
-         this))
-  (induction.bit (function (_ =this)
-                   (let [=this (by.and (by.= =this) (by.= @false))]
-                     (!.= (all by.and
-                               (in.if =this in.any in.any)
-                               (by.= annihilation_of_and))
-                          =this)))
-                 (function (_ =this)
-                   (let [=this (by.and (by.= =this) (by.= @true))]
-                     (!.= (all by.and
-                               (in.if =this in.any in.any)
-                               (by.= identity_of_and)
-                               (in.if =this in.any in.any)
-                               (by.= annihilation_of_or))
-                          =this)))))
+       (?.let [this Bit
+               that Bit]
+              (?.= (.and this (.and/or this that))
+                   this))
+       (induction.bit (function (_ =this)
+                                (let [=this (by.and (by.= =this) (by.= @false))]
+                                     (!.= (all by.and
+                                               (in.if =this in.any in.any)
+                                               (by.= annihilation_of_and))
+                                          =this)))
+                      (function (_ =this)
+                                (let [=this (by.and (by.= =this) (by.= @true))]
+                                     (!.= (all by.and
+                                               (in.if =this in.any in.any)
+                                               (by.= identity_of_and)
+                                               (in.if =this in.any in.any)
+                                               (by.= annihilation_of_or))
+                                          =this)))))
 
 (_.the .public if_not
-  (?.let [it]
-    [test Bit
-     then it
-     else it]
-    (?.= (.if (.not test)
-              then
-              else)
-         (.if test
-              else
-              then)))
-  (induction.bit (function (_ =this)
-                   (let [=this (by.and (by.= =this) (by.= @false))]
-                     (!.= (all by.and
-                               (in.if (all by.and
-                                           (by.application in.any =this)
-                                           (by.= ..true))
-                                      in.any in.any)
-                               (by.= if_true))
-                          (all by.and
-                               (in.if =this in.any in.any)
-                               (by.= if_false)))))
-                 (function (_ =this)
-                   (let [=this (by.and (by.= =this) (by.= @true))]
-                     (!.= (all by.and
-                               (in.if (all by.and
-                                           (by.application in.any =this)
-                                           (by.= ..false))
-                                      in.any in.any)
-                               (by.= if_false))
-                          (all by.and
-                               (in.if =this in.any in.any)
-                               (by.= if_true)))))))
+       (?.let [it]
+              [test Bit
+               then it
+               else it]
+              (?.= (.if (.not test)
+                        then
+                        else)
+                   (.if test
+                        else
+                        then)))
+       (induction.bit (function (_ =this)
+                                (let [=this (by.and (by.= =this) (by.= @false))]
+                                     (!.= (all by.and
+                                               (in.if (all by.and
+                                                           (by.application in.any =this)
+                                                           (by.= ..true))
+                                                      in.any in.any)
+                                               (by.= if_true))
+                                          (all by.and
+                                               (in.if =this in.any in.any)
+                                               (by.= if_false)))))
+                      (function (_ =this)
+                                (let [=this (by.and (by.= =this) (by.= @true))]
+                                     (!.= (all by.and
+                                               (in.if (all by.and
+                                                           (by.application in.any =this)
+                                                           (by.= ..false))
+                                                      in.any in.any)
+                                               (by.= if_false))
+                                          (all by.and
+                                               (in.if =this in.any in.any)
+                                               (by.= if_true)))))))
 
 (comment "https://en.wikipedia.org/wiki/Exclusive_or#Properties"
          (_.the .public identity_of_xor
-           (?.let [it Bit]
-             (?.= (/.xor .false it)
-                  it))
-           (!.= (all by.and
-                     (of/1 (of/1 by.definition by.definition) in.any)
-                     (by.if in.any in.any))
-                in.any)))
+                (?.let [it Bit]
+                       (?.= (/.xor .false it)
+                            it))
+                (!.= (all by.and
+                          (of/1 (of/1 by.definition by.definition) in.any)
+                          (by.if in.any in.any))
+                     in.any)))
 
 (_.the .public negation_by_xor
-  (?.let [it Bit]
-    (?.= (/.xor .true it)
-         (.not it)))
-  (!.= (all by.and
-            (of/1 (of/1 by.definition by_true) in.any)
-            (by.if in.any in.any))
-       in.any))
+       (?.let [it Bit]
+              (?.= (/.xor .true it)
+                   (.not it)))
+       (!.= (all by.and
+                 (of/1 (of/1 by.definition by_true) in.any)
+                 (by.if in.any in.any))
+            in.any))
 
 (_.the .public non_idempotence_of_xor
-  (?.let [it Bit]
-    (?.= (/.xor it it)
-         .false))
-  (induction.bit (function (_ =it)
-                   (!.= (all by.and
-                             (of/1 (of/1 by.definition (by.= =it)) (by.= =it))
-                             (by.if in.any in.any))
-                        by.definition))
-                 (function (_ =it')
-                   (let [=it (by.and (by.= =it') (by.= @true))]
-                     (!.= (all by.and
-                               (of/1 (of/1 by.definition (by.= =it')) =it)
-                               (by.if in.any in.any)
-                               (by.= ..false))
-                          in.any)))))
+       (?.let [it Bit]
+              (?.= (/.xor it it)
+                   .false))
+       (induction.bit (function (_ =it)
+                                (!.= (all by.and
+                                          (of/1 (of/1 by.definition (by.= =it)) (by.= =it))
+                                          (by.if in.any in.any))
+                                     by.definition))
+                      (function (_ =it')
+                                (let [=it (by.and (by.= =it') (by.= @true))]
+                                     (!.= (all by.and
+                                               (of/1 (of/1 by.definition (by.= =it')) =it)
+                                               (by.if in.any in.any)
+                                               (by.= ..false))
+                                          in.any)))))
 
 (comment "https://en.wikipedia.org/wiki/Complement_(set_theory)"
          (_.the .public complementation_of_xor
-           (?.let [it Bit]
-             (?.= (/.xor it (.not it))
-                  .true))
-           (induction.bit (function (_ =it')
-                            (let [=it (by.and (by.= =it') (by.= @false))]
-                              (!.= (all by.and
-                                        (of/1 (of/1 by.definition (by.= =it'))
-                                              (by.application in.any =it))
-                                        (by.if in.any in.any)
-                                        (by.= ..true))
-                                   in.any)))
-                          (function (_ =it')
-                            (let [=it (by.and (by.= =it') (by.= @true))]
-                              (!.= (all by.and
-                                        (of/1 (of/1 by.definition (by.= =it'))
-                                              (by.application in.any =it))
-                                        (by.if in.any in.any)
-                                        (by.= double_negation))
-                                   in.any))))))
+                (?.let [it Bit]
+                       (?.= (/.xor it (.not it))
+                            .true))
+                (induction.bit (function (_ =it')
+                                         (let [=it (by.and (by.= =it') (by.= @false))]
+                                              (!.= (all by.and
+                                                        (of/1 (of/1 by.definition (by.= =it'))
+                                                              (by.application in.any =it))
+                                                        (by.if in.any in.any)
+                                                        (by.= ..true))
+                                                   in.any)))
+                               (function (_ =it')
+                                         (let [=it (by.and (by.= =it') (by.= @true))]
+                                              (!.= (all by.and
+                                                        (of/1 (of/1 by.definition (by.= =it'))
+                                                              (by.application in.any =it))
+                                                        (by.if in.any in.any)
+                                                        (by.= double_negation))
+                                                   in.any))))))
 
 (comment "https://en.wikipedia.org/wiki/Commutative_property"
          (_.the .public commutativity_of_xor
-           (?.let [this Bit
-                   that Bit]
-             (?.= (/.xor this that)
-                  (/.xor that this)))
-           (induction.bit (function (_ =this')
-                            (let [=this (by.and (by.= =this') (by.= @false))]
-                              (induction.bit (function (_ =that)
-                                               (let [=that (by.and (by.= =that) (by.= @false))]
-                                                 (!.= (by.application (by.application in.any =this) =that)
-                                                      (by.application (by.application in.any =that) =this))))
-                                             (function (_ =that')
-                                               (let [=that (by.and (by.= =that') (by.= @true))]
-                                                 (!.= (all by.and
-                                                           (of/1 (of/1 by.definition (by.= =this')) =that)
-                                                           (by.if in.any in.any))
-                                                      (all by.and
-                                                           (of/1 (of/1 by.definition (by.= =that')) =this)
-                                                           (by.if in.any in.any)
-                                                           (by.= ..true))))))))
-                          (function (_ =this')
-                            (let [=this (by.and (by.= =this') (by.= @true))]
-                              (induction.bit (function (_ =that')
-                                               (let [=that (by.and (by.= =that') (by.= @false))]
-                                                 (!.= (all by.and
-                                                           (of/1 (of/1 by.definition (by.= =this')) =that)
-                                                           (by.if in.any in.any)
-                                                           (by.= ..true))
-                                                      (all by.and
-                                                           (of/1 (of/1 by.definition (by.= =that')) =this)
-                                                           (by.if in.any in.any)))))
-                                             (function (_ =that)
-                                               (let [=that (by.and (by.= =that) (by.= @true))]
-                                                 (!.= (by.application (by.application in.any =this) =that)
-                                                      (by.application (by.application in.any =that) =this))))))))))
+                (?.let [this Bit
+                        that Bit]
+                       (?.= (/.xor this that)
+                            (/.xor that this)))
+                (induction.bit (function (_ =this')
+                                         (let [=this (by.and (by.= =this') (by.= @false))]
+                                              (induction.bit (function (_ =that)
+                                                                       (let [=that (by.and (by.= =that) (by.= @false))]
+                                                                            (!.= (by.application (by.application in.any =this) =that)
+                                                                                 (by.application (by.application in.any =that) =this))))
+                                                             (function (_ =that')
+                                                                       (let [=that (by.and (by.= =that') (by.= @true))]
+                                                                            (!.= (all by.and
+                                                                                      (of/1 (of/1 by.definition (by.= =this')) =that)
+                                                                                      (by.if in.any in.any))
+                                                                                 (all by.and
+                                                                                      (of/1 (of/1 by.definition (by.= =that')) =this)
+                                                                                      (by.if in.any in.any)
+                                                                                      (by.= ..true))))))))
+                               (function (_ =this')
+                                         (let [=this (by.and (by.= =this') (by.= @true))]
+                                              (induction.bit (function (_ =that')
+                                                                       (let [=that (by.and (by.= =that') (by.= @false))]
+                                                                            (!.= (all by.and
+                                                                                      (of/1 (of/1 by.definition (by.= =this')) =that)
+                                                                                      (by.if in.any in.any)
+                                                                                      (by.= ..true))
+                                                                                 (all by.and
+                                                                                      (of/1 (of/1 by.definition (by.= =that')) =this)
+                                                                                      (by.if in.any in.any)))))
+                                                             (function (_ =that)
+                                                                       (let [=that (by.and (by.= =that) (by.= @true))]
+                                                                            (!.= (by.application (by.application in.any =this) =that)
+                                                                                 (by.application (by.application in.any =that) =this))))))))))
 
 (_.the .public negation_in_xor
-  (?.let [this Bit
-          that Bit]
-    (?.= (/.xor (.not this) that)
-         (.not (/.xor this that))))
-  (induction.bit (function (_ =this)
-                   (let [=this (by.and (by.= =this) (by.= @false))]
-                     (!.= (all by.and
-                               (by.application (by.application in.any (all by.and
-                                                                           (by.application in.any =this)
-                                                                           (by.= ..true)))
-                                               in.any)
-                               (by.= negation_by_xor))
-                          (by.application in.any
-                                          (all by.and
-                                               (by.application (by.application in.any =this)
+       (?.let [this Bit
+               that Bit]
+              (?.= (/.xor (.not this) that)
+                   (.not (/.xor this that))))
+       (induction.bit (function (_ =this)
+                                (let [=this (by.and (by.= =this) (by.= @false))]
+                                     (!.= (all by.and
+                                               (by.application (by.application in.any (all by.and
+                                                                                           (by.application in.any =this)
+                                                                                           (by.= ..true)))
                                                                in.any)
-                                               (by.= identity_of_xor))))))
-                 (function (_ =this)
-                   (let [=this (by.and (by.= =this) (by.= @true))]
-                     (!.= (all by.and
-                               (by.application (by.application in.any (all by.and
-                                                                           (by.application in.any =this)
-                                                                           (by.= ..false)))
-                                               in.any)
-                               (by.= identity_of_xor))
-                          (all by.and
-                               (by.application in.any
-                                               (all by.and
-                                                    (by.application (by.application in.any =this)
-                                                                    in.any)
-                                                    (by.= negation_by_xor)))
-                               (by.= double_negation)))))))
+                                               (by.= negation_by_xor))
+                                          (by.application in.any
+                                                          (all by.and
+                                                               (by.application (by.application in.any =this)
+                                                                               in.any)
+                                                               (by.= identity_of_xor))))))
+                      (function (_ =this)
+                                (let [=this (by.and (by.= =this) (by.= @true))]
+                                     (!.= (all by.and
+                                               (by.application (by.application in.any (all by.and
+                                                                                           (by.application in.any =this)
+                                                                                           (by.= ..false)))
+                                                               in.any)
+                                               (by.= identity_of_xor))
+                                          (all by.and
+                                               (by.application in.any
+                                                               (all by.and
+                                                                    (by.application (by.application in.any =this)
+                                                                                    in.any)
+                                                                    (by.= negation_by_xor)))
+                                               (by.= double_negation)))))))
 
 (comment "https://en.wikipedia.org/wiki/Associative_property"
          (_.the .public associativity_of_xor
-           (?.let [$0 Bit
-                   $1 Bit
-                   $2 Bit]
-             (?.= (/.xor $0 (/.xor $1 $2))
-                  (/.xor (/.xor $0 $1) $2)))
-           (induction.bit (function (_ =0)
-                            (let [=0 (by.and (by.= =0) (by.= @false))
+                (?.let [$0 Bit
+                        $1 Bit
+                        $2 Bit]
+                       (?.= (/.xor $0 (/.xor $1 $2))
+                            (/.xor (/.xor $0 $1) $2)))
+                (induction.bit (function (_ =0)
+                                         (let [=0 (by.and (by.= =0) (by.= @false))
 
-                                  identity_of_xor (all by.and
-                                                       (by.application (by.application in.any =0)
-                                                                       in.any)
-                                                       (by.= ..identity_of_xor))]
-                              (!.= identity_of_xor
-                                   (by.application (by.application in.any identity_of_xor)
-                                                   in.any))))
-                          (function (_ =0)
-                            (let [=0 (by.and (by.= =0) (by.= @true))
+                                               identity_of_xor (all by.and
+                                                                    (by.application (by.application in.any =0)
+                                                                                    in.any)
+                                                                    (by.= ..identity_of_xor))]
+                                              (!.= identity_of_xor
+                                                   (by.application (by.application in.any identity_of_xor)
+                                                                   in.any))))
+                               (function (_ =0)
+                                         (let [=0 (by.and (by.= =0) (by.= @true))
 
-                                  negation_by_xor (all by.and
-                                                       (by.application (by.application in.any =0)
-                                                                       in.any)
-                                                       (by.= ..negation_by_xor))]
-                              (!.= negation_by_xor
-                                   (all by.and
-                                        (by.application (by.application in.any negation_by_xor)
-                                                        in.any)
-                                        (by.= ..negation_in_xor))))))))
+                                               negation_by_xor (all by.and
+                                                                    (by.application (by.application in.any =0)
+                                                                                    in.any)
+                                                                    (by.= ..negation_by_xor))]
+                                              (!.= negation_by_xor
+                                                   (all by.and
+                                                        (by.application (by.application in.any negation_by_xor)
+                                                                        in.any)
+                                                        (by.= ..negation_in_xor))))))))
 
 (_.the .public xor_is_an_involution
-  (?.let [this Bit
-          that Bit]
-    (?.= (/.xor that (/.xor that this))
-         this))
-  (!.= (all by.and
-            (by.= associativity_of_xor)
-            (by.application (by.application in.any (by.= non_idempotence_of_xor))
-                            in.any)
-            (by.= identity_of_xor))
-       in.any))
+       (?.let [this Bit
+               that Bit]
+              (?.= (/.xor that (/.xor that this))
+                   this))
+       (!.= (all by.and
+                 (by.= associativity_of_xor)
+                 (by.application (by.application in.any (by.= non_idempotence_of_xor))
+                                 in.any)
+                 (by.= identity_of_xor))
+            in.any))
 
 (_.the .public distributivity_in_xor
-  (?.let [$0 Bit
-          $1 Bit
-          $2 Bit]
-    (?.= (/.xor (.and $0 $1) (.and $0 $2))
-         (.and $0 (/.xor $1 $2))))
-  (induction.bit (function (_ =0)
-                   (let [=0 (by.and (by.= =0) (by.= @false))
+       (?.let [$0 Bit
+               $1 Bit
+               $2 Bit]
+              (?.= (/.xor (.and $0 $1) (.and $0 $2))
+                   (.and $0 (/.xor $1 $2))))
+       (induction.bit (function (_ =0)
+                                (let [=0 (by.and (by.= =0) (by.= @false))
 
-                         annihilation_of_and (all by.and
-                                                  (in.if =0 in.any in.any)
-                                                  (by.= ..annihilation_of_and))]
-                     (!.= (all by.and
-                               (by.application (by.application in.any annihilation_of_and)
-                                               annihilation_of_and)
-                               (by.= non_idempotence_of_xor))
-                          annihilation_of_and)))
-                 (function (_ =0)
-                   (let [=0 (by.and (by.= =0) (by.= @true))
+                                      annihilation_of_and (all by.and
+                                                               (in.if =0 in.any in.any)
+                                                               (by.= ..annihilation_of_and))]
+                                     (!.= (all by.and
+                                               (by.application (by.application in.any annihilation_of_and)
+                                                               annihilation_of_and)
+                                               (by.= non_idempotence_of_xor))
+                                          annihilation_of_and)))
+                      (function (_ =0)
+                                (let [=0 (by.and (by.= =0) (by.= @true))
 
-                         identity_of_and (all by.and
-                                              (in.if =0 in.any in.any)
-                                              (by.= ..identity_of_and))]
-                     (!.= (by.application (by.application in.any identity_of_and)
-                                          identity_of_and)
-                          identity_of_and)))))
+                                      identity_of_and (all by.and
+                                                           (in.if =0 in.any in.any)
+                                                           (by.= ..identity_of_and))]
+                                     (!.= (by.application (by.application in.any identity_of_and)
+                                                          identity_of_and)
+                                          identity_of_and)))))
 
 (comment "https://en.wikipedia.org/wiki/Material_conditional#Formal_properties"
          "https://en.wikipedia.org/wiki/Principle_of_explosion"
          (_.the .public principle_of_explosion
-           (?.let [it Bit]
-             (?.= (/.if .false it)
-                  .true))
-           (!.= (all by.and
-                     (by.application (all by.and
-                                          (by.application by.definition by.definition)
-                                          by.reification)
-                                     in.any)
-                     by.reification
-                     (by.if in.any in.any))
-                in.any)))
+                (?.let [it Bit]
+                       (?.= (/.if .false it)
+                            .true))
+                (!.= (all by.and
+                          (by.application (all by.and
+                                               (by.application by.definition by.definition)
+                                               by.reification)
+                                          in.any)
+                          by.reification
+                          (by.if in.any in.any))
+                     in.any)))
 
 (_.the .public identity_of_if
-  (?.let [it Bit]
-    (?.= (/.if .true it)
-         it))
-  (!.= (all by.and
-            (by.application (all by.and
-                                 (by.application by.definition by_true)
-                                 by.reification)
-                            in.any)
-            by.reification
-            (by.if in.any in.any))
-       in.any))
+       (?.let [it Bit]
+              (?.= (/.if .true it)
+                   it))
+       (!.= (all by.and
+                 (by.application (all by.and
+                                      (by.application by.definition by_true)
+                                      by.reification)
+                                 in.any)
+                 by.reification
+                 (by.if in.any in.any))
+            in.any))
 
 (comment "https://en.wikipedia.org/wiki/Reflexive_relation"
          (_.the .public reflexivity_of_if
-           (?.let [it Bit]
-             (?.= (/.if it it)
-                  .true))
-           (induction.bit (function (_ =it)
-                            (let [=it (by.and (by.= =it) (by.= @false))]
-                              (!.= (all by.and
-                                        (by.application (by.application in.any =it) in.any)
-                                        (by.= principle_of_explosion))
-                                   in.any)))
-                          (function (_ =it)
-                            (let [=it (by.and (by.= =it) (by.= @true))]
-                              (!.= (all by.and
-                                        (by.application (all by.and
-                                                             (by.application by.definition =it)
-                                                             by.reification)
-                                                        =it)
-                                        by.reification
-                                        (by.if by_true in.any))
-                                   in.any))))))
+                (?.let [it Bit]
+                       (?.= (/.if it it)
+                            .true))
+                (induction.bit (function (_ =it)
+                                         (let [=it (by.and (by.= =it) (by.= @false))]
+                                              (!.= (all by.and
+                                                        (by.application (by.application in.any =it) in.any)
+                                                        (by.= principle_of_explosion))
+                                                   in.any)))
+                               (function (_ =it)
+                                         (let [=it (by.and (by.= =it) (by.= @true))]
+                                              (!.= (all by.and
+                                                        (by.application (all by.and
+                                                                             (by.application by.definition =it)
+                                                                             by.reification)
+                                                                        =it)
+                                                        by.reification
+                                                        (by.if by_true in.any))
+                                                   in.any))))))
 
 (comment "https://en.wikipedia.org/wiki/Connected_relation"
          (_.the .public totality_of_if
-           (?.let [this Bit
-                   that Bit]
-             (?.= (.or (/.if this that)
-                       (/.if that this))
-                  .true))
-           (induction.bit (function (_ =this)
-                            (let [=this (by.and (by.= =this) (by.= @false))]
-                              (!.= (all by.and
-                                        (or (all by.and
-                                                 (by.application (by.application in.any =this) in.any)
-                                                 (by.= principle_of_explosion))
-                                            in.any)
-                                        (by.= annihilation_of_or))
-                                   in.any)))
-                          (function (_ =this)
-                            (let [=this (by.and (by.= =this) (by.= @true))]
-                              (induction.bit (function (_ =that)
-                                               (let [=that (by.and (by.= =that) (by.= @false))]
-                                                 (!.= (all by.and
-                                                           (or in.any
-                                                               (all by.and
-                                                                    (by.application (by.application in.any =that) in.any)
-                                                                    (by.= principle_of_explosion)))
-                                                           (by.= commutativity_of_or)
-                                                           (by.= annihilation_of_or))
-                                                      in.any)))
-                                             (function (_ =that)
-                                               (let [=that (by.and (by.= =that) (by.= @true))]
-                                                 (!.= (all by.and
-                                                           (or (all by.and
-                                                                    (by.application (by.application in.any =this) =that)
-                                                                    (by.= reflexivity_of_if))
-                                                               in.any)
-                                                           (by.= annihilation_of_or))
-                                                      in.any)))))))))
+                (?.let [this Bit
+                        that Bit]
+                       (?.= (.and/or (/.if this that)
+                                     (/.if that this))
+                            .true))
+                (induction.bit (function (_ =this)
+                                         (let [=this (by.and (by.= =this) (by.= @false))]
+                                              (!.= (all by.and
+                                                        (or (all by.and
+                                                                 (by.application (by.application in.any =this) in.any)
+                                                                 (by.= principle_of_explosion))
+                                                            in.any)
+                                                        (by.= annihilation_of_or))
+                                                   in.any)))
+                               (function (_ =this)
+                                         (let [=this (by.and (by.= =this) (by.= @true))]
+                                              (induction.bit (function (_ =that)
+                                                                       (let [=that (by.and (by.= =that) (by.= @false))]
+                                                                            (!.= (all by.and
+                                                                                      (or in.any
+                                                                                          (all by.and
+                                                                                               (by.application (by.application in.any =that) in.any)
+                                                                                               (by.= principle_of_explosion)))
+                                                                                      (by.= commutativity_of_or)
+                                                                                      (by.= annihilation_of_or))
+                                                                                 in.any)))
+                                                             (function (_ =that)
+                                                                       (let [=that (by.and (by.= =that) (by.= @true))]
+                                                                            (!.= (all by.and
+                                                                                      (or (all by.and
+                                                                                               (by.application (by.application in.any =this) =that)
+                                                                                               (by.= reflexivity_of_if))
+                                                                                          in.any)
+                                                                                      (by.= annihilation_of_or))
+                                                                                 in.any)))))))))
 
 (comment "https://en.wikipedia.org/wiki/Law_of_excluded_middle"
          (_.the .public complementation_of_if
-           (?.let [this Bit
-                   that Bit]
-             (?.= (.or (/.if this that)
-                       (/.if this (.not that)))
-                  .true))
-           (induction.bit (function (_ =this)
-                            (let [=this (by.and (by.= =this) (by.= @false))
-                                  principle_of_explosion (all by.and
-                                                              (by.application (by.application in.any =this) in.any)
-                                                              (by.= ..principle_of_explosion))]
-                              (!.= (all by.and
-                                        (or principle_of_explosion
-                                            principle_of_explosion)
-                                        (by.= idempotence_of_or))
-                                   in.any)))
-                          (function (_ =this)
-                            (let [=this (by.and (by.= =this) (by.= @true))
+                (?.let [this Bit
+                        that Bit]
+                       (?.= (.and/or (/.if this that)
+                                     (/.if this (.not that)))
+                            .true))
+                (induction.bit (function (_ =this)
+                                         (let [=this (by.and (by.= =this) (by.= @false))
+                                               principle_of_explosion (all by.and
+                                                                           (by.application (by.application in.any =this) in.any)
+                                                                           (by.= ..principle_of_explosion))]
+                                              (!.= (all by.and
+                                                        (or principle_of_explosion
+                                                            principle_of_explosion)
+                                                        (by.= idempotence_of_or))
+                                                   in.any)))
+                               (function (_ =this)
+                                         (let [=this (by.and (by.= =this) (by.= @true))
 
-                                  identity_of_if (all by.and
-                                                      (by.application (by.application in.any =this) in.any)
-                                                      (by.= ..identity_of_if))]
-                              (!.= (all by.and
-                                        (or identity_of_if
-                                            identity_of_if)
-                                        (by.= complementation_of_or))
-                                   in.any))))))
+                                               identity_of_if (all by.and
+                                                                   (by.application (by.application in.any =this) in.any)
+                                                                   (by.= ..identity_of_if))]
+                                              (!.= (all by.and
+                                                        (or identity_of_if
+                                                            identity_of_if)
+                                                        (by.= complementation_of_or))
+                                                   in.any))))))
 
 (_.the .public contraposition
-  (?.let [this Bit
-          that Bit]
-    (?.= (/.if this that)
-         (/.if (.not that) (.not this))))
-  (induction.bit (function (_ =this)
-                   (let [=this (by.and (by.= =this) (by.= @false))
-                         
-                         principle_of_explosion (function (_ it)
-                                                  (all by.and
-                                                       (if it in.any)
-                                                       (by.= ..principle_of_explosion)))]
-                     (induction.bit (function (_ =that)
-                                      (let [=that (by.and (by.= =that) (by.= @false))]
-                                        (!.= (principle_of_explosion =this)
-                                             (all by.and
-                                                  (if (all by.and
-                                                           (not =that)
-                                                           (by.= ..true))
-                                                      (all by.and
-                                                           (not =this)
-                                                           (by.= ..true)))
-                                                  (by.= ..identity_of_if)))))
-                                    (function (_ =that)
-                                      (let [=that (by.and (by.= =that) (by.= @true))]
-                                        (!.= (principle_of_explosion =this)
-                                             (principle_of_explosion (all by.and
-                                                                          (not =that)
-                                                                          (by.= ..false)))))))))
-                 (function (_ =this)
-                   (let [=this (by.and (by.= =this) (by.= @true))]
-                     (induction.bit (function (_ =that)
-                                      (let [=that (by.and (by.= =that) (by.= @false))]
-                                        (!.= (if =this =that)
-                                             (if (all by.and
-                                                      (not =that)
-                                                      (by.= ..true))
-                                                 (all by.and
-                                                      (not =this)
-                                                      (by.= ..false))))))
-                                    (function (_ =that)
-                                      (let [=that (by.and (by.= =that) (by.= @true))]
-                                        (!.= (all by.and
-                                                  (if =this =that)
-                                                  (by.= ..identity_of_if))
-                                             (all by.and
-                                                  (if (all by.and
-                                                           (not =that)
-                                                           (by.= ..false))
-                                                      in.any)
-                                                  (by.= ..principle_of_explosion))))))))))
+       (?.let [this Bit
+               that Bit]
+              (?.= (/.if this that)
+                   (/.if (.not that) (.not this))))
+       (induction.bit (function (_ =this)
+                                (let [=this (by.and (by.= =this) (by.= @false))
+                                      
+                                      principle_of_explosion (function (_ it)
+                                                                       (all by.and
+                                                                            (if it in.any)
+                                                                            (by.= ..principle_of_explosion)))]
+                                     (induction.bit (function (_ =that)
+                                                              (let [=that (by.and (by.= =that) (by.= @false))]
+                                                                   (!.= (principle_of_explosion =this)
+                                                                        (all by.and
+                                                                             (if (all by.and
+                                                                                      (not =that)
+                                                                                      (by.= ..true))
+                                                                                 (all by.and
+                                                                                      (not =this)
+                                                                                      (by.= ..true)))
+                                                                             (by.= ..identity_of_if)))))
+                                                    (function (_ =that)
+                                                              (let [=that (by.and (by.= =that) (by.= @true))]
+                                                                   (!.= (principle_of_explosion =this)
+                                                                        (principle_of_explosion (all by.and
+                                                                                                     (not =that)
+                                                                                                     (by.= ..false)))))))))
+                      (function (_ =this)
+                                (let [=this (by.and (by.= =this) (by.= @true))]
+                                     (induction.bit (function (_ =that)
+                                                              (let [=that (by.and (by.= =that) (by.= @false))]
+                                                                   (!.= (if =this =that)
+                                                                        (if (all by.and
+                                                                                 (not =that)
+                                                                                 (by.= ..true))
+                                                                            (all by.and
+                                                                                 (not =this)
+                                                                                 (by.= ..false))))))
+                                                    (function (_ =that)
+                                                              (let [=that (by.and (by.= =that) (by.= @true))]
+                                                                   (!.= (all by.and
+                                                                             (if =this =that)
+                                                                             (by.= ..identity_of_if))
+                                                                        (all by.and
+                                                                             (if (all by.and
+                                                                                      (not =that)
+                                                                                      (by.= ..false))
+                                                                                 in.any)
+                                                                             (by.= ..principle_of_explosion))))))))))
 
 (comment "https://en.wikipedia.org/wiki/Import%E2%80%93export_(logic)"
          "https://en.wikipedia.org/wiki/Exportation_(logic)"
          (_.the .public import_export
-           (?.let [this Bit
-                   that Bit
-                   return Bit]
-             (?.= (/.if this (/.if that return))
-                  (/.if (.and this that) return)))
-           (induction.bit (function (_ =this)
-                            (let [=this (by.and (by.= =this) (by.= @false))]
-                              (!.= (all by.and
-                                        (if =this in.any)
-                                        (by.= principle_of_explosion))
-                                   (all by.and
-                                        (if (all by.and
-                                                 (and =this in.any)
-                                                 (by.= annihilation_of_and))
-                                            in.any)
-                                        (by.= principle_of_explosion)))))
-                          (function (_ =this)
-                            (let [=this (by.and (by.= =this) (by.= @true))]
-                              (!.= (all by.and
-                                        (if =this in.any)
-                                        (by.= identity_of_if))
-                                   (all by.and
-                                        (if (all by.and
-                                                 (and =this in.any)
-                                                 (by.= identity_of_and))
-                                            in.any))))))))
+                (?.let [this Bit
+                        that Bit
+                        return Bit]
+                       (?.= (/.if this (/.if that return))
+                            (/.if (.and this that) return)))
+                (induction.bit (function (_ =this)
+                                         (let [=this (by.and (by.= =this) (by.= @false))]
+                                              (!.= (all by.and
+                                                        (if =this in.any)
+                                                        (by.= principle_of_explosion))
+                                                   (all by.and
+                                                        (if (all by.and
+                                                                 (and =this in.any)
+                                                                 (by.= annihilation_of_and))
+                                                            in.any)
+                                                        (by.= principle_of_explosion)))))
+                               (function (_ =this)
+                                         (let [=this (by.and (by.= =this) (by.= @true))]
+                                              (!.= (all by.and
+                                                        (if =this in.any)
+                                                        (by.= identity_of_if))
+                                                   (all by.and
+                                                        (if (all by.and
+                                                                 (and =this in.any)
+                                                                 (by.= identity_of_and))
+                                                            in.any))))))))
 
 (_.the .public negation_of_if
-  (?.let [this Bit
-          that Bit
-          return Bit]
-    (?.= (.not (/.if this that))
-         (.and this (.not that))))
-  (induction.bit (function (_ =this)
-                   (let [=this (by.and (by.= =this) (by.= @false))]
-                     (!.= (all by.and
-                               (not (all by.and
-                                         (if =this in.any)
-                                         (by.= principle_of_explosion)))
-                               (by.= ..false))
-                          (all by.and
-                               (and =this in.any)
-                               (by.= annihilation_of_and)))))
-                 (function (_ =this)
-                   (let [=this (by.and (by.= =this) (by.= @true))]
-                     (!.= (not (all by.and
-                                    (if =this in.any)
-                                    (by.= ..identity_of_if)))
-                          (all by.and
-                               (and =this in.any)
-                               (by.= identity_of_and)))))))
+       (?.let [this Bit
+               that Bit
+               return Bit]
+              (?.= (.not (/.if this that))
+                   (.and this (.not that))))
+       (induction.bit (function (_ =this)
+                                (let [=this (by.and (by.= =this) (by.= @false))]
+                                     (!.= (all by.and
+                                               (not (all by.and
+                                                         (if =this in.any)
+                                                         (by.= principle_of_explosion)))
+                                               (by.= ..false))
+                                          (all by.and
+                                               (and =this in.any)
+                                               (by.= annihilation_of_and)))))
+                      (function (_ =this)
+                                (let [=this (by.and (by.= =this) (by.= @true))]
+                                     (!.= (not (all by.and
+                                                    (if =this in.any)
+                                                    (by.= ..identity_of_if)))
+                                          (all by.and
+                                               (and =this in.any)
+                                               (by.= identity_of_and)))))))
 
 (_.the .public or_if
-  (?.let [this Bit
-          that Bit
-          return Bit]
-    (?.= (/.if this that)
-         (.or (.not this) that)))
-  (induction.bit (function (_ =this)
-                   (let [=this (by.and (by.= =this) (by.= @false))]
-                     (!.= (all by.and
-                               (if =this in.any)
-                               (by.= principle_of_explosion))
-                          (all by.and
-                               (or (all by.and
-                                        (not =this)
-                                        (by.= ..true))
-                                   in.any)
-                               (by.= annihilation_of_or)))))
-                 (function (_ =this)
-                   (let [=this (by.and (by.= =this) (by.= @true))]
-                     (!.= (all by.and
-                               (if =this in.any)
-                               (by.= ..identity_of_if))
-                          (all by.and
-                               (or (all by.and
-                                        (not =this)
-                                        (by.= ..false))
-                                   in.any)
-                               (by.= identity_of_or)))))))
+       (?.let [this Bit
+               that Bit
+               return Bit]
+              (?.= (/.if this that)
+                   (.and/or (.not this) that)))
+       (induction.bit (function (_ =this)
+                                (let [=this (by.and (by.= =this) (by.= @false))]
+                                     (!.= (all by.and
+                                               (if =this in.any)
+                                               (by.= principle_of_explosion))
+                                          (all by.and
+                                               (or (all by.and
+                                                        (not =this)
+                                                        (by.= ..true))
+                                                   in.any)
+                                               (by.= annihilation_of_or)))))
+                      (function (_ =this)
+                                (let [=this (by.and (by.= =this) (by.= @true))]
+                                     (!.= (all by.and
+                                               (if =this in.any)
+                                               (by.= ..identity_of_if))
+                                          (all by.and
+                                               (or (all by.and
+                                                        (not =this)
+                                                        (by.= ..false))
+                                                   in.any)
+                                               (by.= identity_of_or)))))))
 
 (_.the .public necessity
-  (?.let [it Bit]
-    (?.= (/.if it .true)
-         .true))
-  (induction.bit (function (_ this)
-                   (let [this (by.and (by.= this) (by.= @false))]
-                     (!.= (all by.and
-                               (if this in.any)
-                               (by.= principle_of_explosion))
-                          in.any)))
-                 (function (_ this)
-                   (let [this (by.and (by.= this) (by.= @true))]
-                     (!.= (all by.and
-                               (if this in.any)
-                               (by.= ..identity_of_if))
-                          in.any)))))
+       (?.let [it Bit]
+              (?.= (/.if it .true)
+                   .true))
+       (induction.bit (function (_ this)
+                                (let [this (by.and (by.= this) (by.= @false))]
+                                     (!.= (all by.and
+                                               (if this in.any)
+                                               (by.= principle_of_explosion))
+                                          in.any)))
+                      (function (_ this)
+                                (let [this (by.and (by.= this) (by.= @true))]
+                                     (!.= (all by.and
+                                               (if this in.any)
+                                               (by.= ..identity_of_if))
+                                          in.any)))))
 
 (comment "https://en.wikipedia.org/wiki/Commutative_property"
          (_.the .public commutativity_of_if
-           (?.let [this Bit
-                   that Bit
-                   return Bit]
-             (?.= (/.if this (/.if that return))
-                  (/.if that (/.if this return))))
-           (induction.bit (function (_ this)
-                            (let [this (by.and (by.= this) (by.= @false))
+                (?.let [this Bit
+                        that Bit
+                        return Bit]
+                       (?.= (/.if this (/.if that return))
+                            (/.if that (/.if this return))))
+                (induction.bit (function (_ this)
+                                         (let [this (by.and (by.= this) (by.= @false))
 
-                                  principle_of_explosion (all by.and
-                                                              (if this in.any)
-                                                              (by.= ..principle_of_explosion))]
-                              (!.= principle_of_explosion
-                                   (all by.and
-                                        (if in.any principle_of_explosion)
-                                        (by.= ..necessity)))))
-                          (function (_ this)
-                            (let [this (by.and (by.= this) (by.= @true))
+                                               principle_of_explosion (all by.and
+                                                                           (if this in.any)
+                                                                           (by.= ..principle_of_explosion))]
+                                              (!.= principle_of_explosion
+                                                   (all by.and
+                                                        (if in.any principle_of_explosion)
+                                                        (by.= ..necessity)))))
+                               (function (_ this)
+                                         (let [this (by.and (by.= this) (by.= @true))
 
-                                  identity_of_if (all by.and
-                                                      (if this in.any)
-                                                      (by.= ..identity_of_if))]
-                              (!.= identity_of_if
-                                   (if in.any identity_of_if)))))))
+                                               identity_of_if (all by.and
+                                                                   (if this in.any)
+                                                                   (by.= ..identity_of_if))]
+                                              (!.= identity_of_if
+                                                   (if in.any identity_of_if)))))))
 
 (comment "https://en.wikipedia.org/wiki/Distributive_property"
          (_.the .public left_distributivity
-           (?.let [this Bit
-                   that Bit
-                   return Bit]
-             (?.= (/.if this (/.if that return))
-                  (/.if (/.if this that)
-                        (/.if this return))))
-           (induction.bit (function (_ this)
-                            (let [this (by.and (by.= this) (by.= @false))
+                (?.let [this Bit
+                        that Bit
+                        return Bit]
+                       (?.= (/.if this (/.if that return))
+                            (/.if (/.if this that)
+                                  (/.if this return))))
+                (induction.bit (function (_ this)
+                                         (let [this (by.and (by.= this) (by.= @false))
 
-                                  principle_of_explosion (function (_ it)
-                                                           (all by.and
-                                                                (if it in.any)
-                                                                (by.= ..principle_of_explosion)))]
-                              (!.= (principle_of_explosion this)
-                                   (all by.and
-                                        (if (principle_of_explosion this)
-                                            (principle_of_explosion this))
-                                        (by.= ..necessity)))))
-                          (function (_ this)
-                            (let [this (by.and (by.= this) (by.= @true))
+                                               principle_of_explosion (function (_ it)
+                                                                                (all by.and
+                                                                                     (if it in.any)
+                                                                                     (by.= ..principle_of_explosion)))]
+                                              (!.= (principle_of_explosion this)
+                                                   (all by.and
+                                                        (if (principle_of_explosion this)
+                                                            (principle_of_explosion this))
+                                                        (by.= ..necessity)))))
+                               (function (_ this)
+                                         (let [this (by.and (by.= this) (by.= @true))
 
-                                  identity_of_if (all by.and
-                                                      (if this in.any)
-                                                      (by.= ..identity_of_if))]
-                              (!.= identity_of_if
-                                   (if identity_of_if
-                                       identity_of_if)))))))
+                                               identity_of_if (all by.and
+                                                                   (if this in.any)
+                                                                   (by.= ..identity_of_if))]
+                                              (!.= identity_of_if
+                                                   (if identity_of_if
+                                                       identity_of_if)))))))
 
 (comment "https://en.wikipedia.org/wiki/Equality_(mathematics)#Basic_properties"
          (the (= this that)
-           (-> in.Rule in.Rule
-               in.Rule)
-           (all by.and
-                (by.application (all by.and
-                                     (by.application by.definition this)
-                                     by.reification)
-                                that)
-                by.reification)))
+              (-> in.Rule in.Rule
+                  in.Rule)
+              (all by.and
+                   (by.application (all by.and
+                                        (by.application by.definition this)
+                                        by.reification)
+                                   that)
+                   by.reification)))
 
 (comment "https://en.wikipedia.org/wiki/Reflexive_relation"
          (the reflexivity_of_='
-           (induction.bit (function (_ it)
-                            (let [it (by.and (by.= it) (by.= @false))]
-                              (!.= (all by.and
-                                        (= it it)
-                                        (by.= ..if_false)
-                                        (by.= ..true))
-                                   in.any)))
-                          (function (_ it)
-                            (let [it (by.and (by.= it) (by.= @true))]
-                              (!.= (all by.and
-                                        (= it it)
-                                        (by.= ..if_true))
-                                   in.any))))))
+              (induction.bit (function (_ it)
+                                       (let [it (by.and (by.= it) (by.= @false))]
+                                            (!.= (all by.and
+                                                      (= it it)
+                                                      (by.= ..if_false)
+                                                      (by.= ..true))
+                                                 in.any)))
+                             (function (_ it)
+                                       (let [it (by.and (by.= it) (by.= @true))]
+                                            (!.= (all by.and
+                                                      (= it it)
+                                                      (by.= ..if_true))
+                                                 in.any))))))
 
 (_.the .public reflexivity_of_=
-  (equality.axiom_of_reflexivity .Bit /.=)
-  ..reflexivity_of_=')
+       (equality.axiom_of_reflexivity .Bit /.=)
+       ..reflexivity_of_=')
 
 (comment "https://en.wikipedia.org/wiki/Complement_(set_theory)"
          (_.the .public complementation_of_=
-           (?.let [it .Bit]
-             (?.= (/.= it (.not it))
-                  .false))
-           (let [case (function (_ by_then)
-                        (function (_ it_=_0b|1b)
-                          (!.= (all by.and
-                                    (by.of by.definition (list (by.= it_=_0b|1b) (|not| (by.= it_=_0b|1b))))
-                                    (by.if in.any by_then))
-                               by.definition)))]
-             (induction.bit (case (|not| in.any))
-                            (case in.any)))))
+                (?.let [it .Bit]
+                       (?.= (/.= it (.not it))
+                            .false))
+                (let [case (function (_ by_then)
+                                     (function (_ it_=_0b|1b)
+                                               (!.= (all by.and
+                                                         (by.of by.definition (list (by.= it_=_0b|1b) (|not| (by.= it_=_0b|1b))))
+                                                         (by.if in.any by_then))
+                                                    by.definition)))]
+                     (induction.bit (case (|not| in.any))
+                                    (case in.any)))))
 
 (the symmetry_of_='
-  (let [case (function (_ by_this by_that by_not)
-               (all by.and
-                    (by.of' in.any (list by_this (by.and by_that (by.= (?.in_reverse by_not)))))
-                    (by.= ..complementation_of_=)))]
-    (induction.bit (function (_ this_=_0b)
-                     (induction.bit (function (_ that_=_0b)
-                                      (let [this_=_false (by.and (by.= this_=_0b) (by.= @false))
-                                            that_=_false (by.and (by.= that_=_0b) (by.= @false))]
-                                        (!.= (all by.and
-                                                  (by.of' in.any (list this_=_false that_=_false))
-                                                  (by.= ..reflexivity_of_=))
-                                             (all by.and
-                                                  (by.of' in.any (list that_=_false this_=_false))
-                                                  (by.= ..reflexivity_of_=)))))
-                                    (function (_ that_=_1b)
-                                      (let [this_=_false (by.and (by.= this_=_0b) (by.= @false))
-                                            that_=_true (by.and (by.= that_=_1b) (by.= @true))]
-                                        (!.= (case this_=_false that_=_true ..true)
-                                             (case that_=_true this_=_false ..false))))))
-                   (function (_ this_=_1b)
-                     (induction.bit (function (_ that_=_0b)
-                                      (let [this_=_true (by.and (by.= this_=_1b) (by.= @true))
-                                            that_=_false (by.and (by.= that_=_0b) (by.= @false))]
-                                        (!.= (case this_=_true that_=_false ..false)
-                                             (case that_=_false this_=_true ..true))))
-                                    (function (_ that_=_1b)
-                                      (let [this_=_true (by.and (by.= this_=_1b) (by.= @true))
-                                            that_=_true (by.and (by.= that_=_1b) (by.= @true))]
-                                        (!.= (all by.and
-                                                  (by.of' in.any (list this_=_true that_=_true))
-                                                  (by.= ..reflexivity_of_=))
-                                             (all by.and
-                                                  (by.of' in.any (list that_=_true this_=_true))
-                                                  (by.= ..reflexivity_of_=))))))))))
+     (let [case (function (_ by_this by_that by_not)
+                          (all by.and
+                               (by.of' in.any (list by_this (by.and by_that (by.= (?.in_reverse by_not)))))
+                               (by.= ..complementation_of_=)))]
+          (induction.bit (function (_ this_=_0b)
+                                   (induction.bit (function (_ that_=_0b)
+                                                            (let [this_=_false (by.and (by.= this_=_0b) (by.= @false))
+                                                                  that_=_false (by.and (by.= that_=_0b) (by.= @false))]
+                                                                 (!.= (all by.and
+                                                                           (by.of' in.any (list this_=_false that_=_false))
+                                                                           (by.= ..reflexivity_of_=))
+                                                                      (all by.and
+                                                                           (by.of' in.any (list that_=_false this_=_false))
+                                                                           (by.= ..reflexivity_of_=)))))
+                                                  (function (_ that_=_1b)
+                                                            (let [this_=_false (by.and (by.= this_=_0b) (by.= @false))
+                                                                  that_=_true (by.and (by.= that_=_1b) (by.= @true))]
+                                                                 (!.= (case this_=_false that_=_true ..true)
+                                                                      (case that_=_true this_=_false ..false))))))
+                         (function (_ this_=_1b)
+                                   (induction.bit (function (_ that_=_0b)
+                                                            (let [this_=_true (by.and (by.= this_=_1b) (by.= @true))
+                                                                  that_=_false (by.and (by.= that_=_0b) (by.= @false))]
+                                                                 (!.= (case this_=_true that_=_false ..false)
+                                                                      (case that_=_false this_=_true ..true))))
+                                                  (function (_ that_=_1b)
+                                                            (let [this_=_true (by.and (by.= this_=_1b) (by.= @true))
+                                                                  that_=_true (by.and (by.= that_=_1b) (by.= @true))]
+                                                                 (!.= (all by.and
+                                                                           (by.of' in.any (list this_=_true that_=_true))
+                                                                           (by.= ..reflexivity_of_=))
+                                                                      (all by.and
+                                                                           (by.of' in.any (list that_=_true this_=_true))
+                                                                           (by.= ..reflexivity_of_=))))))))))
 
 (_.the .public symmetry_of_=
-  (equality.axiom_of_symmetry .Bit /.=)
-  ..symmetry_of_=')
+       (equality.axiom_of_symmetry .Bit /.=)
+       ..symmetry_of_=')
 
 (the 'not
-  analysis.Term
-  (analysis.constant provenance.dummy (name .not)))
+     analysis.Term
+     (analysis.constant provenance.dummy (name .not)))
 
 (the transitivity_of_='
-  (<| !.if (function (_ reference_=_this))
-      !.if (function (_ reference_=_that))
-      (induction.bit (function (_ reference_=_0b)
-                       (let [deduction (all by.and
-                                            (!.=' (all by.and
-                                                       (by.of by.definition (list (by.= reference_=_0b) in.any))
-                                                       (by.if in.any in.any))
-                                                  in.any)
-                                            (inference.by 'not)
-                                            (!.=' (by.= ..double_negation)
-                                                  (by.= ..false)))]
-                         (<| ((!.let [reference_=_this deduction]))
-                             (function (_ this_=_false))
-                             ((!.let [reference_=_that deduction]))
-                             (function (_ that_=_false))
-                             (!.= (all by.and
-                                       (by.of' in.any (list (by.= this_=_false) (by.= that_=_false)))
-                                       (by.= ..reflexivity_of_=))
-                                  in.any))))
-                     (function (_ reference_=_1b)
-                       (let [deduction (!.=' (all by.and
-                                                  (by.of by.definition (list (by.= reference_=_1b) in.any))
-                                                  (by.if in.any in.any))
-                                             in.any)]
-                         (<| ((!.let [reference_=_this deduction]))
-                             (function (_ this_=_true))
-                             ((!.let [reference_=_that deduction]))
-                             (function (_ that_=_true))
-                             (!.= (all by.and
-                                       (by.of' in.any (list (by.= this_=_true) (by.= that_=_true)))
-                                       (by.= ..reflexivity_of_=))
-                                  in.any)))))))
+     (<| !.if (function (_ reference_=_this))
+         !.if (function (_ reference_=_that))
+         (induction.bit (function (_ reference_=_0b)
+                                  (let [deduction (all by.and
+                                                       (!.=' (all by.and
+                                                                  (by.of by.definition (list (by.= reference_=_0b) in.any))
+                                                                  (by.if in.any in.any))
+                                                             in.any)
+                                                       (inference.by 'not)
+                                                       (!.=' (by.= ..double_negation)
+                                                             (by.= ..false)))]
+                                       (<| ((!.let [reference_=_this deduction]))
+                                           (function (_ this_=_false))
+                                           ((!.let [reference_=_that deduction]))
+                                           (function (_ that_=_false))
+                                           (!.= (all by.and
+                                                     (by.of' in.any (list (by.= this_=_false) (by.= that_=_false)))
+                                                     (by.= ..reflexivity_of_=))
+                                                in.any))))
+                        (function (_ reference_=_1b)
+                                  (let [deduction (!.=' (all by.and
+                                                             (by.of by.definition (list (by.= reference_=_1b) in.any))
+                                                             (by.if in.any in.any))
+                                                        in.any)]
+                                       (<| ((!.let [reference_=_this deduction]))
+                                           (function (_ this_=_true))
+                                           ((!.let [reference_=_that deduction]))
+                                           (function (_ that_=_true))
+                                           (!.= (all by.and
+                                                     (by.of' in.any (list (by.= this_=_true) (by.= that_=_true)))
+                                                     (by.= ..reflexivity_of_=))
+                                                in.any)))))))
 
 (_.the .public transitivity_of_=
-  (equality.axiom_of_transitivity .Bit /.=)
-  ..transitivity_of_=')
+       (equality.axiom_of_transitivity .Bit /.=)
+       ..transitivity_of_=')
 
 (_.the .public equality
-  (comment "TODO: It should be (equality.system .Bit /.equality) instead."
-           (equality.system .Bit /.=))
-  (all !.and
-       ..reflexivity_of_='
-       ..symmetry_of_='
-       ..transitivity_of_='))
+       (comment "TODO: It should be (equality.system .Bit /.equality) instead."
+                (equality.system .Bit /.=))
+       (all !.and
+            ..reflexivity_of_='
+            ..symmetry_of_='
+            ..transitivity_of_='))
 
 (_.the .public extraction_of_commonality
-  (?.let [premise conclusion]
-    [test Bit
-     then premise
-     else premise
-     after (-> premise conclusion)]
-    (?.= (.if test
-              (after then)
-              (after else))
-         (after (.if test
-                     then
-                     else))))
-  (let [proof (is (-> ?.Proposition ?.Proposition
-                      induction.Case)
-                  (function (_ @constant if_constant)
-                    (function (_ =_test)
-                      (let [=_test (by.and (by.= =_test) (by.= @constant))
-                            if' (by.and (in.if =_test in.any in.any)
-                                        (by.= if_constant))]
-                        (!.= if'
-                             (by.application in.any if'))))))]
-    (induction.bit (proof @false ..if_false)
-                   (proof @true ..if_true))))
+       (?.let [premise conclusion]
+              [test Bit
+               then premise
+               else premise
+               after (-> premise conclusion)]
+              (?.= (.if test
+                        (after then)
+                        (after else))
+                   (after (.if test
+                               then
+                               else))))
+       (let [proof (is (-> ?.Proposition ?.Proposition
+                           induction.Case)
+                       (function (_ @constant if_constant)
+                                 (function (_ =_test)
+                                           (let [=_test (by.and (by.= =_test) (by.= @constant))
+                                                 if' (by.and (in.if =_test in.any in.any)
+                                                             (by.= if_constant))]
+                                                (!.= if'
+                                                     (by.application in.any if'))))))]
+            (induction.bit (proof @false ..if_false)
+                           (proof @true ..if_true))))
 
 (_.the .public if_identical
-  (?.let [any]
-    [test Bit
-     then_or_else any]
-    (?.= (.if test
-              then_or_else
-              then_or_else)
-         then_or_else))
-  (let [proof (is (-> ?.Proposition ?.Proposition
-                      induction.Case)
-                  (function (_ @constant if_constant)
-                    (function (_ =_test)
-                      (let [=_test (by.and (by.= =_test) (by.= @constant))
-                            if' (by.and (in.if =_test in.any in.any)
-                                        (by.= if_constant))]
-                        (!.= if'
-                             in.any)))))]
-    (induction.bit (proof @false ..if_false)
-                   (proof @true ..if_true))))
+       (?.let [any]
+              [test Bit
+               then_or_else any]
+              (?.= (.if test
+                        then_or_else
+                        then_or_else)
+                   then_or_else))
+       (let [proof (is (-> ?.Proposition ?.Proposition
+                           induction.Case)
+                       (function (_ @constant if_constant)
+                                 (function (_ =_test)
+                                           (let [=_test (by.and (by.= =_test) (by.= @constant))
+                                                 if' (by.and (in.if =_test in.any in.any)
+                                                             (by.= if_constant))]
+                                                (!.= if'
+                                                     in.any)))))]
+            (induction.bit (proof @false ..if_false)
+                           (proof @true ..if_true))))
 
 (_.the .public if_or
-  (?.let [cause Bit
-          effect Bit]
-    (?.if (?.= (/.if cause effect)
-               .true)
-          (?.or (?.= cause
-                     .false)
-                (?.= effect
-                     .true))))
-  (<| !.if (function (_ cause_|-_effect))
-      (!.or (function (_ |cause_=_false| |effect_=_true|)
-              ((!.let [cause_|-_effect
-                       (!.=' (by.of by.definition (list in.any in.any))
-                             in.any)])
-               (function (_ cause_|-_effect)
-                 (inference.if cause_|-_effect
-                               (function (_ cause_=_1b effect_=_true)
-                                 (|effect_=_true|
-                                  (!.= (by.= effect_=_true)
-                                       in.any)))
-                               (function (_ cause_=_0b true_=_true)
-                                 (|cause_=_false|
-                                  (!.= (all by.and
-                                            (by.= cause_=_0b)
-                                            (by.= ..@false))
-                                       in.any))))))))))
+       (?.let [cause Bit
+               effect Bit]
+              (?.if (?.= (/.if cause effect)
+                         .true)
+                    (?.or (?.= cause
+                               .false)
+                          (?.= effect
+                               .true))))
+       (<| !.if (function (_ cause_|-_effect))
+           (!.or (function (_ |cause_=_false| |effect_=_true|)
+                           ((!.let [cause_|-_effect
+                                    (!.=' (by.of by.definition (list in.any in.any))
+                                          in.any)])
+                            (function (_ cause_|-_effect)
+                                      (inference.if cause_|-_effect
+                                                    (function (_ cause_=_1b effect_=_true)
+                                                              (|effect_=_true|
+                                                               (!.= (by.= effect_=_true)
+                                                                    in.any)))
+                                                    (function (_ cause_=_0b true_=_true)
+                                                              (|cause_=_false|
+                                                               (!.= (all by.and
+                                                                         (by.= cause_=_0b)
+                                                                         (by.= ..@false))
+                                                                    in.any))))))))))
 
 (comment "https://en.wikipedia.org/wiki/Law_of_excluded_middle"
          (_.the .public bit
-           (?.let [it Bit]
-             (?.or (?.= it
-                        .false)
-                   (?.= it
-                        .true)))
-           !.axiom))
+                (?.let [it Bit]
+                       (?.or (?.= it
+                                  .false)
+                             (?.= it
+                                  .true)))
+                !.axiom))
 
 (_.the .public anti_reflexivity_of_<
-  (total.axiom_of_anti_reflexivity Bit /.<)
-  (!.= (all by.and
-            (by.of by.definition (list in.any in.any))
-            (by.= ..complementation_of_and))
-       in.any))
+       (total.axiom_of_anti_reflexivity Bit /.<)
+       (!.= (all by.and
+                 (by.of by.definition (list in.any in.any))
+                 (by.= ..complementation_of_and))
+            in.any))
 
 (_.the .public only_order
-  (?.let [this Bit
-          that Bit]
-    (?.if (?.= (/.< this that)
-               .true)
-          (?.and (?.= this .true)
-                 (?.= that .false))))
-  (<| !.if (function (_ <*this&that))
-      (<| ((!.let [<*this&that
-                   (all by.and
-                        (!.=' (by.of by.definition (list in.any in.any))
-                              in.any)
-                        (contradiction.then (!.=' in.any by_true)))]))
-          (function (_ [this_=_1b not<that>_=_true]))
-          ((!.let [not<that>_=_true
-                   (all by.and
-                        (inference.by 'not)
-                        (!.=' (by.= ..double_negation)
-                              (all by.and
-                                   (by.= ..false)
-                                   by.definition)))]))
-          (function (_ that_=_0b))
-          (!.and (!.= (by.= this_=_1b)
-                      by_true)
-                 (!.= (by.= that_=_0b)
-                      by.definition)))))
+       (?.let [this Bit
+               that Bit]
+              (?.if (?.= (/.< this that)
+                         .true)
+                    (?.and (?.= this .true)
+                           (?.= that .false))))
+       (<| !.if (function (_ <*this&that))
+           (<| ((!.let [<*this&that
+                        (all by.and
+                             (!.=' (by.of by.definition (list in.any in.any))
+                                   in.any)
+                             (contradiction.then (!.=' in.any by_true)))]))
+               (function (_ [this_=_1b not<that>_=_true]))
+               ((!.let [not<that>_=_true
+                        (all by.and
+                             (inference.by 'not)
+                             (!.=' (by.= ..double_negation)
+                                   (all by.and
+                                        (by.= ..false)
+                                        by.definition)))]))
+               (function (_ that_=_0b))
+               (!.and (!.= (by.= this_=_1b)
+                           by_true)
+                      (!.= (by.= that_=_0b)
+                           by.definition)))))
 
 (_.the .public minimum
-  (?.let [it Bit]
-    (?.= (/.< .false it)
-         .false))
-  (!.= (all by.and
-            (by.of by.definition (list in.any in.any))
-            (by.= ..annihilation_of_and))
-       in.any))
+       (?.let [it Bit]
+              (?.= (/.< .false it)
+                   .false))
+       (!.= (all by.and
+                 (by.of by.definition (list in.any in.any))
+                 (by.= ..annihilation_of_and))
+            in.any))
 
 (_.the .public asymmetry_of_<
-  (total.axiom_of_asymmetry Bit /.<)
-  (<| !.if (function (_ <*this&that))
-      ((!.let_pair (by.by ..only_order (list <*this&that)))
-       (function (_ [this_=_true that_=_false])
-         (!.= (all by.and
-                   (by.of' in.any (list (by.= that_=_false) (by.= this_=_true)))
-                   (by.= ..minimum))
-              in.any)))))
+       (total.axiom_of_asymmetry Bit /.<)
+       (<| !.if (function (_ <*this&that))
+           ((!.let_pair (by.by ..only_order (list <*this&that)))
+            (function (_ [this_=_true that_=_false])
+                      (!.= (all by.and
+                                (by.of' in.any (list (by.= that_=_false) (by.= this_=_true)))
+                                (by.= ..minimum))
+                           in.any)))))
 
 (_.the .public not_equal
-  (?.let [this Bit
-          that Bit]
-    (?.if (?.= (/.= this that)
-               .false)
-          (?.or (?.and (?.= this .false)
-                       (?.= that .true))
-                (?.and (?.= this .true)
-                       (?.= that .false)))))
-  (<| !.if (function (_ this_!=_that))
-      (!.or (function (_ case_01 case_10)
-              ((!.let [this_!=_that
-                       (!.=' (by.of by.definition (list in.any in.any))
-                             in.any)])
-               (function (_ this_!=_that)
-                 (inference.if this_!=_that
-                               (function (_ this_=_1b that_=_false)
-                                 (case_10
-                                  (!.and (!.= (all by.and
-                                                   (by.= this_=_1b)
-                                                   (by.= ..@true))
-                                              in.any)
-                                         (!.= (by.= that_=_false)
-                                              in.any))))
-                               (function (_ this_=_0b not<that>_=_false)
-                                 (<| ((!.let [not<that>_=_false
-                                              (all by.and
-                                                   (inference.by 'not)
-                                                   (!.=' (by.= ..double_negation)
-                                                         (by.= ..true)))]))
-                                     (function (_ that_=_true))
-                                     (case_01
-                                      (!.and (!.= (all by.and
-                                                       (by.= this_=_0b)
-                                                       (by.= ..@false))
-                                                  in.any)
-                                             (!.= (by.= that_=_true)
-                                                  in.any))))))))))))
+       (?.let [this Bit
+               that Bit]
+              (?.if (?.= (/.= this that)
+                         .false)
+                    (?.or (?.and (?.= this .false)
+                                 (?.= that .true))
+                          (?.and (?.= this .true)
+                                 (?.= that .false)))))
+       (<| !.if (function (_ this_!=_that))
+           (!.or (function (_ case_01 case_10)
+                           ((!.let [this_!=_that
+                                    (!.=' (by.of by.definition (list in.any in.any))
+                                          in.any)])
+                            (function (_ this_!=_that)
+                                      (inference.if this_!=_that
+                                                    (function (_ this_=_1b that_=_false)
+                                                              (case_10
+                                                               (!.and (!.= (all by.and
+                                                                                (by.= this_=_1b)
+                                                                                (by.= ..@true))
+                                                                           in.any)
+                                                                      (!.= (by.= that_=_false)
+                                                                           in.any))))
+                                                    (function (_ this_=_0b not<that>_=_false)
+                                                              (<| ((!.let [not<that>_=_false
+                                                                           (all by.and
+                                                                                (inference.by 'not)
+                                                                                (!.=' (by.= ..double_negation)
+                                                                                      (by.= ..true)))]))
+                                                                  (function (_ that_=_true))
+                                                                  (case_01
+                                                                   (!.and (!.= (all by.and
+                                                                                    (by.= this_=_0b)
+                                                                                    (by.= ..@false))
+                                                                               in.any)
+                                                                          (!.= (by.= that_=_true)
+                                                                               in.any))))))))))))
 
 (_.the .public totality_of_<
-  (total.axiom_of_totality Bit /.= /.<)
-  (<| !.if (function (_ equality))
-      !.if (function (_ this_!=_that))
-      (!.or (function (_ |that_<_this| |this_<_that|)
-              (induction.or (by.by ..not_equal (list this_!=_that))
-                            (function (_ this_=_false_&&_that_=_true)
-                              ((!.let_pair {try.:Success this_=_false_&&_that_=_true})
-                               (function (_ [this_=_false that_=_true])
-                                 (|this_<_that|
-                                  (!.= (all by.and
-                                            (by.of by.definition (list (by.= that_=_true) (by.= this_=_false)))
-                                            (by.if (by.= (?.in_reverse @true))
-                                                   (by.= ..true)))
-                                       in.any)))))
-                            (function (_ this_=_true_&&_that_=_false)
-                              ((!.let_pair {try.:Success this_=_true_&&_that_=_false})
-                               (function (_ [this_=_true that_=_false])
-                                 (|that_<_this|
-                                  (!.= (all by.and
-                                            (by.of by.definition (list (by.= this_=_true) (by.= that_=_false)))
-                                            (by.if (by.= (?.in_reverse @true))
-                                                   (by.= ..true)))
-                                       in.any))))))))))
+       (total.axiom_of_totality Bit /.= /.<)
+       (<| !.if (function (_ equality))
+           !.if (function (_ this_!=_that))
+           (!.or (function (_ |that_<_this| |this_<_that|)
+                           (induction.or (by.by ..not_equal (list this_!=_that))
+                                         (function (_ this_=_false_&&_that_=_true)
+                                                   ((!.let_pair {try.:Success this_=_false_&&_that_=_true})
+                                                    (function (_ [this_=_false that_=_true])
+                                                              (|this_<_that|
+                                                               (!.= (all by.and
+                                                                         (by.of by.definition (list (by.= that_=_true) (by.= this_=_false)))
+                                                                         (by.if (by.= (?.in_reverse @true))
+                                                                                (by.= ..true)))
+                                                                    in.any)))))
+                                         (function (_ this_=_true_&&_that_=_false)
+                                                   ((!.let_pair {try.:Success this_=_true_&&_that_=_false})
+                                                    (function (_ [this_=_true that_=_false])
+                                                              (|that_<_this|
+                                                               (!.= (all by.and
+                                                                         (by.of by.definition (list (by.= this_=_true) (by.= that_=_false)))
+                                                                         (by.if (by.= (?.in_reverse @true))
+                                                                                (by.= ..true)))
+                                                                    in.any))))))))))
 
 (_.the .public disjunction
-  (monoid.system .Bit .false .or)
-  (all !.and
-       (!.= (by.= ..identity_of_or)
-            in.any)
-       (!.= (all by.and
-                 (by.= ..commutativity_of_or)
-                 (by.= ..identity_of_or))
-            in.any)
-       (!.= (by.= (?.in_reverse ..associativity_of_or))
-            in.any)
-       ))
+       (monoid.system .Bit .false .and/or)
+       (all !.and
+            (!.= (by.= ..identity_of_or)
+                 in.any)
+            (!.= (all by.and
+                      (by.= ..commutativity_of_or)
+                      (by.= ..identity_of_or))
+                 in.any)
+            (!.= (by.= (?.in_reverse ..associativity_of_or))
+                 in.any)
+            ))
 
 (_.the .public exclusive_disjunction
-  (monoid.system .Bit .false /.xor)
-  (all !.and
-       (!.= (by.= ..identity_of_xor)
-            in.any)
-       (!.= (all by.and
-                 (by.= ..commutativity_of_xor)
-                 (by.= ..identity_of_xor))
-            in.any)
-       (!.= (by.= (?.in_reverse ..associativity_of_xor))
-            in.any)
-       ))
+       (monoid.system .Bit .false /.xor)
+       (all !.and
+            (!.= (by.= ..identity_of_xor)
+                 in.any)
+            (!.= (all by.and
+                      (by.= ..commutativity_of_xor)
+                      (by.= ..identity_of_xor))
+                 in.any)
+            (!.= (by.= (?.in_reverse ..associativity_of_xor))
+                 in.any)
+            ))
 
 (_.the .public conjunction
-  (monoid.system .Bit .true .and)
-  (all !.and
-       (!.= (by.= ..identity_of_and)
-            in.any)
-       (!.= (all by.and
-                 (by.= ..commutativity_of_and)
-                 (by.= ..identity_of_and))
-            in.any)
-       (!.= (by.= (?.in_reverse ..associativity_of_and))
-            in.any)
-       ))
+       (monoid.system .Bit .true .and)
+       (all !.and
+            (!.= (by.= ..identity_of_and)
+                 in.any)
+            (!.= (all by.and
+                      (by.= ..commutativity_of_and)
+                      (by.= ..identity_of_and))
+                 in.any)
+            (!.= (by.= (?.in_reverse ..associativity_of_and))
+                 in.any)
+            ))

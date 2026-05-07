@@ -1,7 +1,7 @@
 (.using
  [library
   [lux (.except :seed
-                text or and stack list i64 natural integer revolution character only try)
+                text and stack list i64 natural integer revolution character only try)
    [abstract
     [hash (.only Hash)]
     [functor (.only Functor)]
@@ -34,362 +34,362 @@
     ["[0]" view]]]])
 
 (every .public (PRNG state)
-  (-> state
-      [(Can PRNG state) I64]))
+       (-> state
+           [(Can PRNG state) I64]))
 
 (every .public (Random it)
-  (for_any (_ seed)
-    (State (Can PRNG seed) it)))
+       (for_any (_ seed)
+                (State (Can PRNG seed) it)))
 
 (the Implementation
-  (template.macro (_ ,interface)
-    [(for_any (_ seed)
-       (,interface (for_any (_ it) (Random it seed))))]))
+     (template.macro (_ ,interface)
+                     [(for_any (_ seed)
+                               (,interface (for_any (_ it) (Random it seed))))]))
 
 (the .public functor
-  (Implementation Functor)
-  state.functor)
+     (Implementation Functor)
+     state.functor)
 
 (the .public monad
-  (Implementation Monad)
-  state.monad)
+     (Implementation Monad)
+     state.monad)
 
 (the .public (only pred gen)
-  (for_any (_ it)
-    (-> (-> it Bit) (Random it)
-        (Random it)))
-  (monad.let ..monad
-    [sample gen]
-    (if (pred sample)
-        (pure sample)
-        (only pred gen))))
+     (for_any (_ it)
+              (-> (-> it Bit) (Random it)
+                  (Random it)))
+     (monad.let ..monad
+                [sample gen]
+                (if (pred sample)
+                    (pure sample)
+                    (only pred gen))))
 
 (the .public (one check random)
-  (for_any (_ input output)
-    (-> (-> input
-            (Maybe output))
-        (-> (Random input)
-            (Random output))))
-  (monad.let ..monad
-    [sample random]
-    (when (check sample)
-      {.:Some output}
-      (pure output)
+     (for_any (_ input output)
+              (-> (-> input
+                      (Maybe output))
+                  (-> (Random input)
+                      (Random output))))
+     (monad.let ..monad
+                [sample random]
+                (when (check sample)
+                      {.:Some output}
+                      (pure output)
 
-      {.:None}
-      (one check random))))
+                      {.:None}
+                      (one check random))))
 
 (the .public bit
-  (Random Bit)
-  (function (_ [seed number])
-    (let [[prng output] (number seed)]
-      [prng (|> output
-                (/64.and 1)
-                (n.= 1))])))
+     (Random Bit)
+     (function (_ [seed number])
+               (let [[prng output] (number seed)]
+                    [prng (|> output
+                              (/64.and 1)
+                              (n.= 1))])))
 
 (the .public i64
-  (Random I64)
-  (function (_ [seed number])
-    (let [[[seed number] left] (number seed)
-          [prng right] (number seed)]
-      [prng (|> left
-                (/64.<< 32)
-                (.i64_+# right))])))
+     (Random I64)
+     (function (_ [seed number])
+               (let [[[seed number] left] (number seed)
+                     [prng right] (number seed)]
+                    [prng (|> left
+                              (/64.<< 32)
+                              (.i64_+# right))])))
 
 (template.with [<name> <type> <cast>]
-  [(the .public <name>
-     (Random <type>)
-     (by ..functor each (|>> <cast>) ..i64))]
+               [(the .public <name>
+                     (Random <type>)
+                     (by ..functor each (|>> <cast>) ..i64))]
 
-  [[natural Natural .natural]
-   [integer Integer .integer]
-   [revolution Revolution .revolution]])
+               [[natural Natural .natural]
+                [integer Integer .integer]
+                [revolution Revolution .revolution]])
 
 (the .public real
-  (Random Real)
-  (by ..functor each
-      (|>> .i64
-           r.of_bits)
-      ..natural))
+     (Random Real)
+     (by ..functor each
+         (|>> .i64
+              r.of_bits)
+         ..natural))
 
 (the .public unit_real
-  (Random Real)
-  (let [mantissa_range (.integer (/64.<< 53 1))
-        mantissa_maximum (i.real (-- mantissa_range))]
-    (by ..functor each
-        (|>> (i.% mantissa_range)
-             i.absolute
-             i.real
-             (r./ mantissa_maximum))
-        ..integer)))
+     (Random Real)
+     (let [mantissa_range (.integer (/64.<< 53 1))
+           mantissa_maximum (i.real (-- mantissa_range))]
+          (by ..functor each
+              (|>> (i.% mantissa_range)
+                   i.absolute
+                   i.real
+                   (r./ mantissa_maximum))
+              ..integer)))
 
 (the .public safe_real
-  (Random Real)
-  (..only (|>> r.not_a_number? not)
-          ..real))
+     (Random Real)
+     (..only (|>> r.not_a_number? not)
+             ..real))
 
 (the .public (character set)
-  (-> unicode.Set
-      (Random Character))
-  (let [start (unicode.start set)
-        end (unicode.end set)
-        size (n.- start end)
-        in_range (is (-> Character Character)
-                     (|>> (n.% size) (n.+ start)))]
-    (|> ..natural
-        (by ..functor each in_range)
-        (..only (unicode.member? set)))))
+     (-> unicode.Set
+         (Random Character))
+     (let [start (unicode.start set)
+           end (unicode.end set)
+           size (n.- start end)
+           in_range (is (-> Character Character)
+                        (|>> (n.% size) (n.+ start)))]
+          (|> ..natural
+              (by ..functor each in_range)
+              (..only (unicode.member? set)))))
 
 (the .public (text character_gen size)
-  (-> (Random Character) Natural
-      (Random Text))
-  (if (n.= 0 size)
-      (by ..monad pure "")
-      (monad.let ..monad
-        [x character_gen
-         xs (text character_gen (-- size))]
-        (pure (.text (text.of_character x) xs)))))
+     (-> (Random Character) Natural
+         (Random Text))
+     (if (n.= 0 size)
+         (by ..monad pure "")
+         (monad.let ..monad
+                    [x character_gen
+                     xs (text character_gen (-- size))]
+                    (pure (.text (text.of_character x) xs)))))
 
 (template.with [<name> <set>]
-  [(the .public <name>
-     (-> Natural
-         (Random Text))
-     (..text (..character <set>)))]
+               [(the .public <name>
+                     (-> Natural
+                         (Random Text))
+                     (..text (..character <set>)))]
 
-  [[unicode       unicode.character]
-   [ascii         unicode.ascii]
-   [alphabetic    unicode.alphabetic]
-   [alpha_numeric unicode.alpha_numeric]
-   [numeric       unicode.numeric]
-   [upper_cased   unicode.upper_case]
-   [lower_cased   unicode.lower_case]])
+               [[unicode       unicode.character]
+                [ascii         unicode.ascii]
+                [alphabetic    unicode.alphabetic]
+                [alpha_numeric unicode.alpha_numeric]
+                [numeric       unicode.numeric]
+                [upper_cased   unicode.upper_case]
+                [lower_cased   unicode.lower_case]])
 
 (template.with [<name> <type> <ctor> <gen>]
-  [(the .public <name>
-     (Random <type>)
-     (monad.let ..monad
-       [left <gen>
-        right <gen>]
-       (pure (<ctor> left right))))]
+               [(the .public <name>
+                     (Random <type>)
+                     (monad.let ..monad
+                                [left <gen>
+                                 right <gen>]
+                                (pure (<ctor> left right))))]
 
-  [[fraction f.Fraction f.new ..natural]
-   [complex c.Complex c.complex ..unit_real]])
+               [[fraction f.Fraction f.new ..natural]
+                [complex c.Complex c.complex ..unit_real]])
 
 (the .public (and left right)
-  (for_any (_ left right)
-    (-> (Random left) (Random right)
-        (Random (And left right))))
-  (function (_ prng)
-    (let [[prng left] (left prng)
-          [prng right] (right prng)]
-      [prng [left right]])))
+     (for_any (_ left right)
+              (-> (Random left) (Random right)
+                  (Random (And left right))))
+     (function (_ prng)
+               (let [[prng left] (left prng)
+                     [prng right] (right prng)]
+                    [prng [left right]])))
 
 (the .public (or left right)
-  (for_any (_ left right)
-    (-> (Random left) (Random right)
-        (Random (Or left right))))
-  (function (_ prng)
-    (let [[prng ?] (..bit prng)]
-      (if ?
-          (let [[prng left] (left prng)]
-            [prng {0b left}])
-          (let [[prng right] (right prng)]
-            [prng {1b right}])))))
+     (for_any (_ left right)
+              (-> (Random left) (Random right)
+                  (Random (Or left right))))
+     (function (_ prng)
+               (let [[prng ?] (..bit prng)]
+                    (if ?
+                        (let [[prng left] (left prng)]
+                             [prng {0b left}])
+                        (let [[prng right] (right prng)]
+                             [prng {1b right}])))))
 
 (the .public (either left right)
-  (for_any (_ it)
-    (-> (Random it) (Random it)
-        (Random it)))
-  (function (_ prng)
-    (let [[prng ?] (..bit prng)]
-      (if ?
-          (left prng)
-          (right prng)))))
+     (for_any (_ it)
+              (-> (Random it) (Random it)
+                  (Random it)))
+     (function (_ prng)
+               (let [[prng ?] (..bit prng)]
+                    (if ?
+                        (left prng)
+                        (right prng)))))
 
 (the .public (rec gen)
-  (for_any (_ it)
-    (-> (Change (Random it))
-        (Random it)))
-  (function (_ state)
-    (let [gen' (gen (rec gen))]
-      (gen' state))))
+     (for_any (_ it)
+              (-> (Change (Random it))
+                  (Random it)))
+     (function (_ state)
+               (let [gen' (gen (rec gen))]
+                    (gen' state))))
 
 (the .public (try it)
-  (for_any (_ it)
-    (-> (Random (Try it))
-        (Random it)))
-  (monad.let ..monad
-    [attempt it]
-    (when attempt
-      {try.:Success it}
-      (pure it)
+     (for_any (_ it)
+              (-> (Random (Try it))
+                  (Random it)))
+     (monad.let ..monad
+                [attempt it]
+                (when attempt
+                      {try.:Success it}
+                      (pure it)
 
-      {try.:Failure _}
-      (try it))))
+                      {try.:Failure _}
+                      (try it))))
 
 (the .public (maybe value_gen)
-  (for_any (_ it)
-    (-> (Random it)
-        (Random (Maybe it))))
-  (monad.let [! ..monad]
-    [some? bit]
-    (if some?
-        (monad.let !
-          [value value_gen]
-          (pure {.:Some value}))
-        (pure {.:None}))))
+     (for_any (_ it)
+              (-> (Random it)
+                  (Random (Maybe it))))
+     (monad.let [! ..monad]
+                [some? bit]
+                (if some?
+                    (monad.let !
+                               [value value_gen]
+                               (pure {.:Some value}))
+                    (pure {.:None}))))
 
 (the .public (stack size value_gen)
-  (for_any (_ it)
-    (-> Natural (Random it)
-        (Random (Stack it))))
-  (if (n.> 0 size)
-      (monad.let ..monad
-        [x value_gen
-         xs (stack (-- size) value_gen)]
-        (pure {.:Top x xs}))
-      (by ..monad pure (.stack))))
+     (for_any (_ it)
+              (-> Natural (Random it)
+                  (Random (Stack it))))
+     (if (n.> 0 size)
+         (monad.let ..monad
+                    [x value_gen
+                     xs (stack (-- size) value_gen)]
+                    (pure {.:Top x xs}))
+         (by ..monad pure (.stack))))
 
 (the .public list
-  (for_any (_ item)
-    (-> Natural
-        (-> (Random item)
-            (Random (List item)))))
-  list.static)
+     (for_any (_ item)
+              (-> Natural
+                  (-> (Random item)
+                      (Random (List item)))))
+     list.static)
 
 (the .public (one_of else every_other_option)
-  (for_any (_ it)
-    (-> it (List it)
-        (Random it)))
-  (monad.let [! ..monad]
-    [.let [size (list.size every_other_option)]
-     choice (by ! each (n.% (++ size)) ..natural)]
-    (pure (if (n.= size choice)
-              else
-              (.list_item# choice every_other_option)))))
+     (for_any (_ it)
+              (-> it (List it)
+                  (Random it)))
+     (monad.let [! ..monad]
+                [.let [size (list.size every_other_option)]
+                 choice (by ! each (n.% (++ size)) ..natural)]
+                (pure (if (n.= size choice)
+                          else
+                          (.list_item# choice every_other_option)))))
 
 (template.with [<name> <type> ,of_list]
-  [(the .public (<name> size item)
-     (for_any (_ it)
-       (-> Natural
-           (-> (Random it)
-               (Random (<type> it)))))
-     (by ..monad each
-         ,of_list
-         (..list size item)))]
+               [(the .public (<name> size item)
+                     (for_any (_ it)
+                              (-> Natural
+                                  (-> (Random it)
+                                      (Random (<type> it)))))
+                     (by ..monad each
+                         ,of_list
+                         (..list size item)))]
 
-  [[array Array list.as_array]
-   [queue Queue (view.of queue.list)]])
+               [[array Array list.as_array]
+                [queue Queue (view.of queue.list)]])
 
 (the .public (set hash size value_gen)
-  (for_any (_ it)
-    (-> (Hash it) Natural
-        (-> (Random it)
-            (Random (Set it)))))
-  (if (n.> 0 size)
-      (monad.let [! ..monad]
-        [xs (set hash (-- size) value_gen)]
-        (loop (of [_ []])
-          (monad.let !
-            [x value_gen
-             .let [xs+ (set.has x xs)]]
-            (if (n.= size (set.size xs+))
-                (pure xs+)
-                (of [])))))
-      (by ..monad pure (set.empty hash))))
+     (for_any (_ it)
+              (-> (Hash it) Natural
+                  (-> (Random it)
+                      (Random (Set it)))))
+     (if (n.> 0 size)
+         (monad.let [! ..monad]
+                    [xs (set hash (-- size) value_gen)]
+                    (loop (of [_ []])
+                          (monad.let !
+                                     [x value_gen
+                                      .let [xs+ (set.has x xs)]]
+                                     (if (n.= size (set.size xs+))
+                                         (pure xs+)
+                                         (of [])))))
+         (by ..monad pure (set.empty hash))))
 
 (the .public (dictionary hash size key_gen value_gen)
-  (for_any (_ key value)
-    (-> (Hash key) Natural (Random key) (Random value)
-        (Random (Dictionary key value))))
-  (if (n.> 0 size)
-      (monad.let [! ..monad]
-        [kv (dictionary hash (-- size) key_gen value_gen)]
-        (loop (of [_ []])
-          (monad.let !
-            [k key_gen
-             v value_gen
-             .let [kv+ (dictionary.has k v kv)]]
-            (if (n.= size (dictionary.size kv+))
-                (pure kv+)
-                (of [])))))
-      (by ..monad pure (dictionary.empty hash))))
+     (for_any (_ key value)
+              (-> (Hash key) Natural (Random key) (Random value)
+                  (Random (Dictionary key value))))
+     (if (n.> 0 size)
+         (monad.let [! ..monad]
+                    [kv (dictionary hash (-- size) key_gen value_gen)]
+                    (loop (of [_ []])
+                          (monad.let !
+                                     [k key_gen
+                                      v value_gen
+                                      .let [kv+ (dictionary.has k v kv)]]
+                                     (if (n.= size (dictionary.size kv+))
+                                         (pure kv+)
+                                         (of [])))))
+         (by ..monad pure (dictionary.empty hash))))
 
 (the .public (next can_prng it)
-  (for_any (_ seed it)
-    (-> (Can PRNG seed) (Random it seed)
-        [(Can PRNG seed) it]))
-  (state.value can_prng it))
+     (for_any (_ seed it)
+              (-> (Can PRNG seed) (Random it seed)
+                  [(Can PRNG seed) it]))
+     (state.value can_prng it))
 
 (the .public (value prng seed it)
-  (for_any (_ seed it)
-    (-> (PRNG seed) seed (Random it seed)
-        [(Can PRNG seed) it]))
-  (next (can prng seed) it))
+     (for_any (_ seed it)
+              (-> (PRNG seed) seed (Random it seed)
+                  [(Can PRNG seed) it]))
+     (next (can prng seed) it))
 
 (the .public (prng update return)
-  (for_any (_ seed)
-    (-> (-> seed seed) (-> seed I64)
-        (PRNG seed)))
-  (function (ability seed)
-    [(can ability (update seed))
-     (return seed)]))
+     (for_any (_ seed)
+              (-> (-> seed seed) (-> seed I64)
+                  (PRNG seed)))
+     (function (ability seed)
+               [(can ability (update seed))
+                (return seed)]))
 
 (every .public PCG_32
-  (Record
-   [:increase (I64 Any)
-    :seed (I64 Any)]))
+       (Record
+        [:increase (I64 Any)
+         :seed (I64 Any)]))
 
 (the .public pcg_32
-  (PRNG PCG_32)
-  (let [magic 6364136223846793005]
-    (..prng (function (_ [increase seed])
-              (|> seed .natural (n.x magic) (.i64_+# increase) [increase]))
-            (function (_ [increase seed])
-              (let [rot (|> seed .natural (/64.>> 59))]
-                (|> seed
-                    (/64.>> 18)
-                    (/64.xor seed)
-                    (/64.>> 27)
-                    (/64.right_rotated rot)
-                    .i64))))))
+     (PRNG PCG_32)
+     (let [magic 6364136223846793005]
+          (..prng (function (_ [increase seed])
+                            (|> seed .natural (n.x magic) (.i64_+# increase) [increase]))
+                  (function (_ [increase seed])
+                            (let [rot (|> seed .natural (/64.>> 59))]
+                                 (|> seed
+                                     (/64.>> 18)
+                                     (/64.xor seed)
+                                     (/64.>> 27)
+                                     (/64.right_rotated rot)
+                                     .i64))))))
 
 (every .public Xoroshiro_128+
-  (Record
-   [:seed_0 (I64 Any)
-    :seed_1 (I64 Any)]))
+       (Record
+        [:seed_0 (I64 Any)
+         :seed_1 (I64 Any)]))
 
 (the .public xoroshiro_128+
-  (PRNG Xoroshiro_128+)
-  (..prng (function (_ [s0 s1])
-            (let [s01 (/64.xor s0 s1)]
-              [(|> s0
-                   (/64.left_rotated 55)
-                   (/64.xor s01)
-                   (/64.xor (/64.<< 14 s01)))
-               (/64.left_rotated 36 s01)]))
-          (function (_ [s0 s1])
-            (.i64_+# s0 s1))))
+     (PRNG Xoroshiro_128+)
+     (..prng (function (_ [s0 s1])
+                       (let [s01 (/64.xor s0 s1)]
+                            [(|> s0
+                                 (/64.left_rotated 55)
+                                 (/64.xor s01)
+                                 (/64.xor (/64.<< 14 s01)))
+                             (/64.left_rotated 36 s01)]))
+             (function (_ [s0 s1])
+                       (.i64_+# s0 s1))))
 
 ... https://en.wikipedia.org/wiki/Xorshift#Initialization
 ... http://xorshift.di.unimi.it/splitmix64.c
 ... [Andrew Clifton - Don't generate, hash! (Or, how I learned to stop worrying and love SplitMix64)](https://www.youtube.com/watch?v=e4b--cyXEsM)
 (every .public Split_Mix_64
-  Natural)
+       Natural)
 
 (the .public split_mix_64
-  (PRNG Split_Mix_64)
-  (let [twist (is (-> Natural Natural Natural)
-                  (function (_ shift value)
-                    (/64.xor (/64.>> shift value)
-                             value)))
-        mix n.x]
-    (..prng (n.+ (number.base_16 "9E,37,79,B9,7F,4A,7C,15"))
-            (|>> (twist 30)
-                 (mix (number.base_16 "BF,58,47,6D,1C,E4,E5,B9"))
+     (PRNG Split_Mix_64)
+     (let [twist (is (-> Natural Natural Natural)
+                     (function (_ shift value)
+                               (/64.xor (/64.>> shift value)
+                                        value)))
+           mix n.x]
+          (..prng (n.+ (number.base_16 "9E,37,79,B9,7F,4A,7C,15"))
+                  (|>> (twist 30)
+                       (mix (number.base_16 "BF,58,47,6D,1C,E4,E5,B9"))
 
-                 (twist 27)
-                 (mix (number.base_16 "94,D0,49,BB,13,31,11,EB"))
+                       (twist 27)
+                       (mix (number.base_16 "94,D0,49,BB,13,31,11,EB"))
 
-                 (twist 31)
-                 .i64))))
+                       (twist 31)
+                       .i64))))

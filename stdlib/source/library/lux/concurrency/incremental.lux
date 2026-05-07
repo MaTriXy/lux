@@ -1,6 +1,6 @@
 (.using
  [library
-  [lux (.except or and)
+  [lux (.except and)
    [abstract
     [functor (.only Functor)]
     ["[0]" monad]]
@@ -17,152 +17,152 @@
   ["[0]" atom (.only Atom)]])
 
 (every (Dependency it)
-  (-> it
-      (IO Any)))
+       (-> it
+           (IO Any)))
 
 (nominal.every .public (Computation it)
-  (Atom [it (List (Dependency it))])
+               (Atom [it (List (Dependency it))])
 
-  (the .public value
-    (for_any (_ it)
-      (-> (Computation it)
-          (IO it)))
-    (|>> nominal.as
-         atom.read!
-         (io:each pair.left)))
+               (the .public value
+                    (for_any (_ it)
+                             (-> (Computation it)
+                                 (IO it)))
+                    (|>> nominal.as
+                         atom.read!
+                         (io:each pair.left)))
 
-  (the (computation value)
-    (for_any (_ it)
-      (-> it
-          (Computation it)))
-    (nominal.of (atom.atom [value (list)])))
+               (the (computation value)
+                    (for_any (_ it)
+                             (-> it
+                                 (Computation it)))
+                    (nominal.of (atom.atom [value (list)])))
 
-  (the .public functor
-    (Functor Computation)
-    (implementation
-     (the (each $ input)
-       (io.value (monad.let [! io.monad]
-                   [old (atom.read! (nominal.as input))
-                    .let [[current dependencies] old
-                          output (computation ($ current))]
-                    ? (atom.compare_and_swap! old
-                                              [current (list:composite dependencies
-                                                                       (list (function (retry! next)
-                                                                               (monad.let !
-                                                                                 [old (atom.read! (nominal.as output))
-                                                                                  .let [[_ dependencies] old]
-                                                                                  ? (atom.compare_and_swap! old
-                                                                                                            [($ next) dependencies]
-                                                                                                            (nominal.as output))]
-                                                                                 (if ?
-                                                                                     (pure [])
-                                                                                     (retry! next))))))]
-                                              (nominal.as input))]
-                   (pure (if ?
-                             output
-                             (each $ input))))))))
+               (the .public functor
+                    (Functor Computation)
+                    (implementation
+                     (the (each $ input)
+                          (io.value (monad.let [! io.monad]
+                                               [old (atom.read! (nominal.as input))
+                                                .let [[current dependencies] old
+                                                      output (computation ($ current))]
+                                                ? (atom.compare_and_swap! old
+                                                                          [current (list:composite dependencies
+                                                                                                   (list (function (retry! next)
+                                                                                                                   (monad.let !
+                                                                                                                              [old (atom.read! (nominal.as output))
+                                                                                                                               .let [[_ dependencies] old]
+                                                                                                                               ? (atom.compare_and_swap! old
+                                                                                                                                                         [($ next) dependencies]
+                                                                                                                                                         (nominal.as output))]
+                                                                                                                              (if ?
+                                                                                                                                  (pure [])
+                                                                                                                                  (retry! next))))))]
+                                                                          (nominal.as input))]
+                                               (pure (if ?
+                                                         output
+                                                         (each $ input))))))))
 
-  (the (watch! dependency it)
-    (for_any (_ it)
-      (-> (Dependency it) (Computation it)
-          (IO Any)))
-    (monad.let io.monad
-      [.let [it' (nominal.as it)]
-       old (atom.read! it')
-       .let [[current dependencies] old]
-       ? (atom.compare_and_swap! old [current (list:composite dependencies (list dependency))] it')]
-      (if ?
-          (pure [])
-          (watch! dependency it))))
+               (the (watch! dependency it)
+                    (for_any (_ it)
+                             (-> (Dependency it) (Computation it)
+                                 (IO Any)))
+                    (monad.let io.monad
+                               [.let [it' (nominal.as it)]
+                                old (atom.read! it')
+                                .let [[current dependencies] old]
+                                ? (atom.compare_and_swap! old [current (list:composite dependencies (list dependency))] it')]
+                               (if ?
+                                   (pure [])
+                                   (watch! dependency it))))
 
-  (the (update! $ output)
-    (for_any (_ it)
-      (-> (-> it it) (Computation it)
-          (IO Any)))
-    (atom.update! (function (_ [current dependencies])
-                    [($ current) dependencies])
-                  (nominal.as output)))
+               (the (update! $ output)
+                    (for_any (_ it)
+                             (-> (-> it it) (Computation it)
+                                 (IO Any)))
+                    (atom.update! (function (_ [current dependencies])
+                                            [($ current) dependencies])
+                                  (nominal.as output)))
 
-  (the .public (or left right)
-    (for_any (_ left right)
-      (-> (Computation left) (Computation right)
-          (Computation (Or left right))))
-    (io.value (monad.let io.monad
-                [left' (value left)
-                 .let [output (computation {.:Left left'})]
-                 _ (watch! (function (_ it)
-                             (update! (function.constant {.:Left it}) output))
-                           left)
-                 _ (watch! (function (_ it)
-                             (update! (function.constant {.:Right it}) output))
-                           right)]
-                (pure output))))
+               (the .public (or left right)
+                    (for_any (_ left right)
+                             (-> (Computation left) (Computation right)
+                                 (Computation (Or left right))))
+                    (io.value (monad.let io.monad
+                                         [left' (value left)
+                                          .let [output (computation {.:Left left'})]
+                                          _ (watch! (function (_ it)
+                                                              (update! (function.constant {.:Left it}) output))
+                                                    left)
+                                          _ (watch! (function (_ it)
+                                                              (update! (function.constant {.:Right it}) output))
+                                                    right)]
+                                         (pure output))))
 
-  (the .public (and left right)
-    (for_any (_ left right)
-      (-> (Computation left) (Computation right)
-          (Computation (And left right))))
-    (io.value (monad.let io.monad
-                [left' (value left)
-                 right' (value right)
-                 .let [output (computation [left' right'])]
-                 _ (watch! (function (_ left)
-                             (update! (function (_ [_ right])
-                                        [left right])
-                                      output))
-                           left)
-                 _ (watch! (function (_ right)
-                             (update! (function (_ [left _])
-                                        [left right])
-                                      output))
-                           right)]
-                (pure output))))
+               (the .public (and left right)
+                    (for_any (_ left right)
+                             (-> (Computation left) (Computation right)
+                                 (Computation (And left right))))
+                    (io.value (monad.let io.monad
+                                         [left' (value left)
+                                          right' (value right)
+                                          .let [output (computation [left' right'])]
+                                          _ (watch! (function (_ left)
+                                                              (update! (function (_ [_ right])
+                                                                                 [left right])
+                                                                       output))
+                                                    left)
+                                          _ (watch! (function (_ right)
+                                                              (update! (function (_ [left _])
+                                                                                 [left right])
+                                                                       output))
+                                                    right)]
+                                         (pure output))))
 
-  (the .public (either left right)
-    (for_any (_ it)
-      (-> (Computation it) (Computation it)
-          (Computation it)))
-    (io.value (monad.let io.monad
-                [left' (value left)
-                 .let [output (computation left')]
-                 .let [update! (function (_ it)
-                                 (update! (function.constant it) output))]
-                 _ (watch! update! left)
-                 _ (watch! update! right)]
-                (pure output))))
+               (the .public (either left right)
+                    (for_any (_ it)
+                             (-> (Computation it) (Computation it)
+                                 (Computation it)))
+                    (io.value (monad.let io.monad
+                                         [left' (value left)
+                                          .let [output (computation left')]
+                                          .let [update! (function (_ it)
+                                                                  (update! (function.constant it) output))]
+                                          _ (watch! update! left)
+                                          _ (watch! update! right)]
+                                         (pure output))))
 
-  (nominal.every .public (Var it)
-    (Computation it)
+               (nominal.every .public (Var it)
+                              (Computation it)
 
-    (the .public (var value)
-      (for_any (_ it)
-        (-> it
-            (Var it)))
-      (<| (nominal.of Var)
-          (nominal.of Computation)
-          (atom.atom [value (list)])))
+                              (the .public (var value)
+                                   (for_any (_ it)
+                                            (-> it
+                                                (Var it)))
+                                   (<| (nominal.of Var)
+                                       (nominal.of Computation)
+                                       (atom.atom [value (list)])))
 
-    (the .public mutations
-      (for_any (_ it)
-        (-> (Var it)
-            (Computation it)))
-      (|>> (nominal.as Var)))
+                              (the .public mutations
+                                   (for_any (_ it)
+                                            (-> (Var it)
+                                                (Computation it)))
+                                   (|>> (nominal.as Var)))
 
-    (the .public (mutate! value it)
-      (for_any (_ it)
-        (-> it (Var it)
-            (IO Any)))
-      (monad.let [! io.monad]
-        [.let [it' (|> it
-                       (nominal.as Var)
-                       (nominal.as Computation))]
-         old (atom.read! it')
-         .let [[_ dependencies] old]
-         ? (atom.compare_and_swap! old [value dependencies] it')]
-        (if ?
-            (monad.let !
-              [_ (list.each' ! (function.of value) dependencies)]
-              (pure []))
-            (mutate! value it))))
-    )
-  )
+                              (the .public (mutate! value it)
+                                   (for_any (_ it)
+                                            (-> it (Var it)
+                                                (IO Any)))
+                                   (monad.let [! io.monad]
+                                              [.let [it' (|> it
+                                                             (nominal.as Var)
+                                                             (nominal.as Computation))]
+                                               old (atom.read! it')
+                                               .let [[_ dependencies] old]
+                                               ? (atom.compare_and_swap! old [value dependencies] it')]
+                                              (if ?
+                                                  (monad.let !
+                                                             [_ (list.each' ! (function.of value) dependencies)]
+                                                             (pure []))
+                                                  (mutate! value it))))
+                              )
+               )

@@ -1,7 +1,7 @@
 (.using
  [library
   [lux (.except Code Label
-                if function or and not let local comment its when)
+                if function and/or and not let local comment its when)
    [abstract
     [equality (.only Equality)]
     [hash (.only Hash)]
@@ -31,429 +31,429 @@
 
 ... Added the carriage return for better Windows compatibility.
 (the \n+
-  Text
-  (text text.carriage_return \n))
+     Text
+     (text text.carriage_return \n))
 
 (the nested
-  (-> Text
-      Text)
-  (.let [nested_new_line (text \n text.tab)]
-    (|>> (text \n+)
-         (text.replaced \n nested_new_line))))
+     (-> Text
+         Text)
+     (.let [nested_new_line (text \n text.tab)]
+           (|>> (text \n+)
+                (text.replaced \n nested_new_line))))
 
 ... https://en.wikipedia.org/wiki/Delimiter
 (the input_delimiter ", ")
 
 (nominal.every .public (Code brand)
-  Text
+               Text
 
-  (the .public equality
-    (for_any (_ brand)
-      (Equality (Code brand)))
-    (implementation
-     (the (= expected actual)
-       (by text.equality = (nominal.as expected) (nominal.as actual)))))
+               (the .public equality
+                    (for_any (_ brand)
+                             (Equality (Code brand)))
+                    (implementation
+                     (the (= expected actual)
+                          (by text.equality = (nominal.as expected) (nominal.as actual)))))
 
-  (the .public hash
-    (for_any (_ brand)
-      (Hash (Code brand)))
-    (implementation
-     (the equality ..equality)
-     (the hash (|>> nominal.as (by text.hash hash)))))
+               (the .public hash
+                    (for_any (_ brand)
+                             (Hash (Code brand)))
+                    (implementation
+                     (the equality ..equality)
+                     (the hash (|>> nominal.as (by text.hash hash)))))
 
-  (the .public manual
-    (-> Text
-        Code)
-    (|>> nominal.of
-         (as (-> (Code Any) Code))))
+               (the .public manual
+                    (-> Text
+                        Code)
+                    (|>> nominal.of
+                         (as (-> (Code Any) Code))))
 
-  (the .public code
-    (-> (Code Any)
-        Text)
-    (|>> nominal.as))
+               (the .public code
+                    (-> (Code Any)
+                        Text)
+                    (|>> nominal.as))
 
-  (template.with [<type> <super>+]
-                 [(expansion.let [<brand> (template.name [<type> "'"])]
-                    (these (nominal.every (<brand> brand) Any)
-                           (`` (every .public <type> (|> Any <brand> (,, (template.spliced <super>+)))))))]
-                 
-                 [[Expression [Code]]
-                  [Computation [Expression' Code]]
-                  [Location [Computation' Expression' Code]]
-                  [Statement [Code]]])
+               (template.with [<type> <super>+]
+                              [(expansion.let [<brand> (template.name [<type> "'"])]
+                                              (these (nominal.every (<brand> brand) Any)
+                                                     (`` (every .public <type> (|> Any <brand> (,, (template.spliced <super>+)))))))]
+                              
+                              [[Expression [Code]]
+                               [Computation [Expression' Code]]
+                               [Location [Computation' Expression' Code]]
+                               [Statement [Code]]])
 
-  (template.with [<type> <super>+]
-                 [(expansion.let [<brand> (template.name [<type> "'"])]
-                    (these (nominal.every <brand> Any)
-                           (`` (every .public <type> (|> <brand> (,, (template.spliced <super>+)))))))]
+               (template.with [<type> <super>+]
+                              [(expansion.let [<brand> (template.name [<type> "'"])]
+                                              (these (nominal.every <brand> Any)
+                                                     (`` (every .public <type> (|> <brand> (,, (template.spliced <super>+)))))))]
 
-                 [[Literal [Computation' Expression' Code]]
-                  [Var [Location' Computation' Expression' Code]]
-                  [Access [Location' Computation' Expression' Code]]
-                  [Label [Code]]])
+                              [[Literal [Computation' Expression' Code]]
+                               [Var [Location' Computation' Expression' Code]]
+                               [Access [Location' Computation' Expression' Code]]
+                               [Label [Code]]])
 
-  (the .public nil
-    Literal
-    (nominal.of "nil"))
+               (the .public nil
+                    Literal
+                    (nominal.of "nil"))
 
-  (the .public boolean
-    (-> Bit
-        Literal)
-    (|>> (|.when
-           0b "false"
-           1b "true")
-         nominal.of))
+               (the .public boolean
+                    (-> Bit
+                        Literal)
+                    (|>> (|.when
+                          0b "false"
+                          1b "true")
+                         nominal.of))
 
-  (the .public int
-    (-> Integer
-        Literal)
-    ... Integers must be turned into hexadecimal to avoid quirks in how Lua parses integers.
-    ... In particular, the number -9223372036854775808 will be incorrectly parsed as a float by Lua.
-    (.let [as_hex (by n.base_16 as)]
-      (|>> .natural
-           as_hex
-           (text "0x")
-           nominal.of)))
+               (the .public int
+                    (-> Integer
+                        Literal)
+                    ... Integers must be turned into hexadecimal to avoid quirks in how Lua parses integers.
+                    ... In particular, the number -9223372036854775808 will be incorrectly parsed as a float by Lua.
+                    (.let [as_hex (by n.base_16 as)]
+                          (|>> .natural
+                               as_hex
+                               (text "0x")
+                               nominal.of)))
 
-  (the .public float
-    (-> Real
-        Literal)
-    (|>> (|.if [(r.= r.positive_infinity)]
-               [(|.new "(1.0/0.0)" [])]
-               
-               [(r.= r.negative_infinity)]
-               [(|.new "(-1.0/0.0)" [])]
-               
-               [(r.= r.not_a_number)]
-               [(|.new "(0.0/0.0)" [])]
+               (the .public float
+                    (-> Real
+                        Literal)
+                    (|>> (|.if [(r.= r.positive_infinity)]
+                               [(|.new "(1.0/0.0)" [])]
+                               
+                               [(r.= r.negative_infinity)]
+                               [(|.new "(-1.0/0.0)" [])]
+                               
+                               [(r.= r.not_a_number)]
+                               [(|.new "(0.0/0.0)" [])]
 
-               ... else
-               [%.real (text.replaced "+" "")])
-         nominal.of))
+                               ... else
+                               [%.real (text.replaced "+" "")])
+                         nominal.of))
 
-  (the safe
-    (-> Text
-        Text)
-    (`` (|>> (,, (template.with [<find> <replace>]
-                                [(text.replaced <find> <replace>)]
+               (the safe
+                    (-> Text
+                        Text)
+                    (`` (|>> (,, (template.with [<find> <replace>]
+                                                [(text.replaced <find> <replace>)]
 
-                                [["\" "\\"]
-                                 [text.tab "\t"]
-                                 [text.vertical_tab "\v"]
-                                 [text.null "\0"]
-                                 [text.back_space "\b"]
-                                 [text.form_feed "\f"]
-                                 [\n "\n"]
-                                 [text.carriage_return "\r"]
-                                 [text.double_quote (text "\" text.double_quote)]]))
-             )))
+                                                [["\" "\\"]
+                                                 [text.tab "\t"]
+                                                 [text.vertical_tab "\v"]
+                                                 [text.null "\0"]
+                                                 [text.back_space "\b"]
+                                                 [text.form_feed "\f"]
+                                                 [\n "\n"]
+                                                 [text.carriage_return "\r"]
+                                                 [text.double_quote (text "\" text.double_quote)]]))
+                             )))
 
-  (the .public string
-    (-> Text
-        Literal)
-    (|>> ..safe
-         (text.enclosed' text.double_quote)
-         nominal.of))
+               (the .public string
+                    (-> Text
+                        Literal)
+                    (|>> ..safe
+                         (text.inside' text.double_quote)
+                         nominal.of))
 
-  (the .public multi
-    (-> (List Expression)
-        Expression)
-    (|>> (list:each ..code)
-         (text.interposed ..input_delimiter)
-         nominal.of))
+               (the .public multi
+                    (-> (List Expression)
+                        Expression)
+                    (|>> (list:each ..code)
+                         (text.interposed ..input_delimiter)
+                         nominal.of))
 
-  (the .public array
-    (-> (List Expression)
-        Literal)
-    (|>> (list:each ..code)
-         (text.interposed ..input_delimiter)
-         (text.enclosed ["{" "}"])
-         nominal.of))
+               (the .public array
+                    (-> (List Expression)
+                        Literal)
+                    (|>> (list:each ..code)
+                         (text.interposed ..input_delimiter)
+                         (text.inside ["{" "}"])
+                         nominal.of))
 
-  (the .public table
-    (-> (List [Text Expression])
-        Literal)
-    (|>> (list:each (.function (_ [key value])
-                      (text key " = " (nominal.as value))))
-         (text.interposed ..input_delimiter)
-         (text.enclosed ["({" "})"])
-         nominal.of))
+               (the .public table
+                    (-> (List [Text Expression])
+                        Literal)
+                    (|>> (list:each (.function (_ [key value])
+                                               (text key " = " (nominal.as value))))
+                         (text.interposed ..input_delimiter)
+                         (text.inside ["({" "})"])
+                         nominal.of))
 
-  (the .public (item idx array)
-    (-> Expression Expression
-        Expression)
-    (nominal.of
-     (text "(" (nominal.as array) ")[" (nominal.as idx) "]")))
-
-  (the .public (at idx array)
-    (-> Expression Expression
-        Access)
-    (nominal.of
-     (text (nominal.as array) "[" (nominal.as idx) "]")))
-
-  (the .public (its field table)
-    (-> Text Expression
-        Access)
-    (nominal.of
-     (text (nominal.as table) "." field)))
-
-  (the .public length
-    (-> Expression
-        Computation)
-    (|>> nominal.as
-         (text.enclosed ["#(" ")"])
-         nominal.of))
-
-  (the .public (of args func)
-    (-> (List Expression) Expression
-        Computation)
-    (|> args
-        (list:each ..code)
-        (text.interposed ..input_delimiter)
-        (text.enclosed ["(" ")"])
-        (text (nominal.as func))
-        nominal.of))
-
-  (the .public (do method args table)
-    (-> Text (List Expression) Expression
-        Computation)
-    (|> args
-        (list:each ..code)
-        (text.interposed ..input_delimiter)
-        (text.enclosed ["(" ")"])
-        (text (nominal.as table) ":" method)
-        nominal.of))
-
-  (template.with [<op> <name>]
-                 [(the .public (<name> parameter subject)
+               (the .public (item idx array)
                     (-> Expression Expression
                         Expression)
                     (nominal.of
-                     (text "("
-                           (nominal.as subject)
-                           " " <op> " "
-                           (nominal.as parameter)
-                           ")")))]
+                     (text "(" (nominal.as array) ")[" (nominal.as idx) "]")))
 
-                 [["==" =]
-                  ["<"  <]
-                  ["<=" <=]
-                  [">"  >]
-                  [">=" >=]
-                  ["+"  +]
-                  ["-"  -]
-                  ["*"  *]
-                  ["^"  ^]
-                  ["/"  /]
-                  ["//" //]
-                  ["%"  %]
-                  [".." concatenation]
-
-                  ["or"  or]
-                  ["and" and]
-                  
-                  ["|"   bit_or]
-                  ["&"   bit_and]
-                  ["~"   bit_xor]
-
-                  ["<<" bit_shl]
-                  [">>" bit_shr]])
-
-  (template.with [<name> <unary>]
-                 [(the .public (<name> subject)
-                    (-> Expression
-                        Expression)
+               (the .public (at idx array)
+                    (-> Expression Expression
+                        Access)
                     (nominal.of
-                     (text "(" <unary> " " (nominal.as subject) ")")))]
+                     (text (nominal.as array) "[" (nominal.as idx) "]")))
 
-                 [[not "not"]
-                  [opposite "-"]])
+               (the .public (its field table)
+                    (-> Text Expression
+                        Access)
+                    (nominal.of
+                     (text (nominal.as table) "." field)))
 
-  (template.with [<name> <type>]
-                 [(the .public <name>
-                    (-> Text
-                        <type>)
-                    (|>> nominal.of))]
+               (the .public length
+                    (-> Expression
+                        Computation)
+                    (|>> nominal.as
+                         (text.inside ["#(" ")"])
+                         nominal.of))
 
-                 [[var Var]
-                  [label Label]])
+               (the .public (of args func)
+                    (-> (List Expression) Expression
+                        Computation)
+                    (|> args
+                        (list:each ..code)
+                        (text.interposed ..input_delimiter)
+                        (text.inside ["(" ")"])
+                        (text (nominal.as func))
+                        nominal.of))
 
-  (the .public ;
-    (-> Expression
-        Statement)
-    (|>> nominal.as
-         nominal.of))
+               (the .public (do method args table)
+                    (-> Text (List Expression) Expression
+                        Computation)
+                    (|> args
+                        (list:each ..code)
+                        (text.interposed ..input_delimiter)
+                        (text.inside ["(" ")"])
+                        (text (nominal.as table) ":" method)
+                        nominal.of))
 
-  (the .public (then pre! post!)
-    (-> Statement Statement
-        Statement)
-    (nominal.of
-     (text (nominal.as pre!)
-           \n+
-           (nominal.as post!))))
+               (template.with [<op> <name>]
+                              [(the .public (<name> parameter subject)
+                                    (-> Expression Expression
+                                        Expression)
+                                    (nominal.of
+                                     (text "("
+                                           (nominal.as subject)
+                                           " " <op> " "
+                                           (nominal.as parameter)
+                                           ")")))]
 
-  (the locations
-    (-> (List Location)
-        Text)
-    (|>> (list:each ..code)
-         (text.interposed ..input_delimiter)))
+                              [["==" =]
+                               ["<"  <]
+                               ["<=" <=]
+                               [">"  >]
+                               [">=" >=]
+                               ["+"  +]
+                               ["-"  -]
+                               ["*"  *]
+                               ["^"  ^]
+                               ["/"  /]
+                               ["//" //]
+                               ["%"  %]
+                               [".." concatenation]
 
-  (the .public (local vars)
-    (-> (List Var)
-        Statement)
-    (nominal.of
-     (text "local " (..locations vars))))
+                               ["or"  and/or]
+                               ["and" and]
+                               
+                               ["|"   bit_or]
+                               ["&"   bit_and]
+                               ["~"   bit_xor]
 
-  (the .public (set vars value)
-    (-> (List Location) Expression
-        Statement)
-    (nominal.of
-     (text (..locations vars) " = " (nominal.as value))))
+                               ["<<" bit_shl]
+                               [">>" bit_shr]])
 
-  (the .public (let vars value)
-    (-> (List Var) Expression
-        Statement)
-    (nominal.of
-     (text "local " (..locations vars) " = " (nominal.as value))))
+               (template.with [<name> <unary>]
+                              [(the .public (<name> subject)
+                                    (-> Expression
+                                        Expression)
+                                    (nominal.of
+                                     (text "(" <unary> " " (nominal.as subject) ")")))]
 
-  (the .public (local/1 var value)
-    (-> Var Expression
-        Statement)
-    (nominal.of
-     (text "local " (nominal.as var) " = " (nominal.as value))))
+                              [[not "not"]
+                               [opposite "-"]])
 
-  (the .public (if test then! else!)
-    (-> Expression Statement Statement
-        Statement)
-    (nominal.of
-     (text "if " (nominal.as test)
-           \n+ "then" (..nested (nominal.as then!))
-           \n+ "else" (..nested (nominal.as else!))
-           \n+ "end")))
+               (template.with [<name> <type>]
+                              [(the .public <name>
+                                    (-> Text
+                                        <type>)
+                                    (|>> nominal.of))]
 
-  (the .public (when test then!)
-    (-> Expression Statement
-        Statement)
-    (nominal.of
-     (text "if " (nominal.as test)
-           \n+ "then" (..nested (nominal.as then!))
-           \n+ "end")))
+                              [[var Var]
+                               [label Label]])
 
-  (the .public (while test body!)
-    (-> Expression Statement
-        Statement)
-    (nominal.of
-     (text "while " (nominal.as test) " do"
-           (..nested (nominal.as body!))
-           \n+ "end")))
+               (the .public ;
+                    (-> Expression
+                        Statement)
+                    (|>> nominal.as
+                         nominal.of))
 
-  (the .public (repeat until body!)
-    (-> Expression Statement
-        Statement)
-    (nominal.of
-     (text "repeat"
-           (..nested (nominal.as body!))
-           \n+ "until " (nominal.as until))))
-
-  (the .public (for_in vars source body!)
-    (-> (List Var) Expression
-        (Change Statement))
-    (nominal.of
-     (text "for " (|> vars
-                      (list:each ..code)
-                      (text.interposed ..input_delimiter))
-           " in " (nominal.as source) " do"
-           (..nested (nominal.as body!))
-           \n+ "end")))
-
-  (the .public (for_step var from to step body!)
-    (-> Var Expression Expression Expression Statement
-        Statement)
-    (nominal.of
-     (text "for " (nominal.as var)
-           " = " (nominal.as from)
-           ..input_delimiter (nominal.as to)
-           ..input_delimiter (nominal.as step) " do"
-           (..nested (nominal.as body!))
-           \n+ "end")))
-
-  (the .public (return value)
-    (-> Expression
-        Statement)
-    (nominal.of
-     (text "return " (nominal.as value))))
-
-  (the .public (closure args body!)
-    (-> (List Var) Statement
-        Expression)
-    (|> (text "function " (|> args
-                              ..locations
-                              (text.enclosed ["(" ")"]))
-              (..nested (nominal.as body!))
-              \n+ "end")
-        (text.enclosed ["(" ")"])
-        nominal.of))
-
-  (template.with [<name> <code> <binding>]
-                 [(the .public (<name> name args body!)
-                    (-> <binding> (List Var) Statement
+               (the .public (then pre! post!)
+                    (-> Statement Statement
                         Statement)
                     (nominal.of
-                     (text <code> " " (nominal.as name)
-                           (|> args
-                               ..locations
-                               (text.enclosed ["(" ")"]))
+                     (text (nominal.as pre!)
+                           \n+
+                           (nominal.as post!))))
+
+               (the locations
+                    (-> (List Location)
+                        Text)
+                    (|>> (list:each ..code)
+                         (text.interposed ..input_delimiter)))
+
+               (the .public (local vars)
+                    (-> (List Var)
+                        Statement)
+                    (nominal.of
+                     (text "local " (..locations vars))))
+
+               (the .public (set vars value)
+                    (-> (List Location) Expression
+                        Statement)
+                    (nominal.of
+                     (text (..locations vars) " = " (nominal.as value))))
+
+               (the .public (let vars value)
+                    (-> (List Var) Expression
+                        Statement)
+                    (nominal.of
+                     (text "local " (..locations vars) " = " (nominal.as value))))
+
+               (the .public (local/1 var value)
+                    (-> Var Expression
+                        Statement)
+                    (nominal.of
+                     (text "local " (nominal.as var) " = " (nominal.as value))))
+
+               (the .public (if test then! else!)
+                    (-> Expression Statement Statement
+                        Statement)
+                    (nominal.of
+                     (text "if " (nominal.as test)
+                           \n+ "then" (..nested (nominal.as then!))
+                           \n+ "else" (..nested (nominal.as else!))
+                           \n+ "end")))
+
+               (the .public (when test then!)
+                    (-> Expression Statement
+                        Statement)
+                    (nominal.of
+                     (text "if " (nominal.as test)
+                           \n+ "then" (..nested (nominal.as then!))
+                           \n+ "end")))
+
+               (the .public (while test body!)
+                    (-> Expression Statement
+                        Statement)
+                    (nominal.of
+                     (text "while " (nominal.as test) " do"
                            (..nested (nominal.as body!))
-                           \n+ "end")))]
+                           \n+ "end")))
 
-                 [[function "function" Location]
-                  [local_function "local function" Var]])
+               (the .public (repeat until body!)
+                    (-> Expression Statement
+                        Statement)
+                    (nominal.of
+                     (text "repeat"
+                           (..nested (nominal.as body!))
+                           \n+ "until " (nominal.as until))))
 
-  (the .public break
-    Statement
-    (nominal.of "break"))
+               (the .public (for_in vars source body!)
+                    (-> (List Var) Expression
+                        (Change Statement))
+                    (nominal.of
+                     (text "for " (|> vars
+                                      (list:each ..code)
+                                      (text.interposed ..input_delimiter))
+                           " in " (nominal.as source) " do"
+                           (..nested (nominal.as body!))
+                           \n+ "end")))
 
-  (the .public (set_label label)
-    (-> Label
-        Statement)
-    (nominal.of
-     (text "::" (nominal.as label) "::")))
+               (the .public (for_step var from to step body!)
+                    (-> Var Expression Expression Expression Statement
+                        Statement)
+                    (nominal.of
+                     (text "for " (nominal.as var)
+                           " = " (nominal.as from)
+                           ..input_delimiter (nominal.as to)
+                           ..input_delimiter (nominal.as step) " do"
+                           (..nested (nominal.as body!))
+                           \n+ "end")))
 
-  (the .public (go_to label)
-    (-> Label
-        Statement)
-    (nominal.of
-     (text "goto " (nominal.as label))))
+               (the .public (return value)
+                    (-> Expression
+                        Statement)
+                    (nominal.of
+                     (text "return " (nominal.as value))))
 
-  ... https://www.lua.org/pil/1.3.html
-  (the .public (comment commentary on)
-    (for_any (_ kind)
-      (-> Text (Code kind)
-          (Code kind)))
-    (nominal.of
-     (text "-- "  commentary \n+ (nominal.as on))))
-  )
+               (the .public (closure args body!)
+                    (-> (List Var) Statement
+                        Expression)
+                    (|> (text "function " (|> args
+                                              ..locations
+                                              (text.inside ["(" ")"]))
+                              (..nested (nominal.as body!))
+                              \n+ "end")
+                        (text.inside ["(" ")"])
+                        nominal.of))
+
+               (template.with [<name> <code> <binding>]
+                              [(the .public (<name> name args body!)
+                                    (-> <binding> (List Var) Statement
+                                        Statement)
+                                    (nominal.of
+                                     (text <code> " " (nominal.as name)
+                                           (|> args
+                                               ..locations
+                                               (text.inside ["(" ")"]))
+                                           (..nested (nominal.as body!))
+                                           \n+ "end")))]
+
+                              [[function "function" Location]
+                               [local_function "local function" Var]])
+
+               (the .public break
+                    Statement
+                    (nominal.of "break"))
+
+               (the .public (set_label label)
+                    (-> Label
+                        Statement)
+                    (nominal.of
+                     (text "::" (nominal.as label) "::")))
+
+               (the .public (go_to label)
+                    (-> Label
+                        Statement)
+                    (nominal.of
+                     (text "goto " (nominal.as label))))
+
+               ... https://www.lua.org/pil/1.3.html
+               (the .public (comment commentary on)
+                    (for_any (_ kind)
+                             (-> Text (Code kind)
+                                 (Code kind)))
+                    (nominal.of
+                     (text "-- "  commentary \n+ (nominal.as on))))
+               )
 
 (syntax.the (arity_inputs [arity <code>.natural])
-  (pure (.when arity
-          0 (list)
-          _ (|> (-- arity)
-                (enum.range n.enum 0)
-                (list:each (|>> %.natural code.local))))))
+            (pure (.when arity
+                         0 (list)
+                         _ (|> (-- arity)
+                               (enum.range n.enum 0)
+                               (list:each (|>> %.natural code.local))))))
 
 (syntax.the (arity_types [arity <code>.natural])
-  (pure (list.repeated arity (` ..Expression))))
+            (pure (list.repeated arity (` ..Expression))))
 
 (template.with [<arity> <function>+]
                [(expansion.let [<inputs> (arity_inputs <arity>)
                                 <types> (arity_types <arity>)]
-                  (template.with [<function>]
-                                 [(`` (the .public ((,, (template.name [<function> "/" <arity>])) <inputs>)
-                                        (-> <types>
-                                            Computation)
-                                        (..of (.list <inputs>) (..var <function>))))]
+                               (template.with [<function>]
+                                              [(`` (the .public ((,, (template.name [<function> "/" <arity>])) <inputs>)
+                                                        (-> <types>
+                                                            Computation)
+                                                        (..of (.list <inputs>) (..var <function>))))]
 
-                                 <function>+))]
+                                              <function>+))]
 
                [[1
                  [["error"]

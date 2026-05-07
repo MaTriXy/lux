@@ -27,85 +27,85 @@
   ["[0]T" rgb]])
 
 (the .public value
-  (Random /.Value)
-  (random:each /.value random.unit_real))
+     (Random /.Value)
+     (random:each /.value random.unit_real))
 
 (the degree
-  (Random /.Value)
-  (random:each (|>> (n.% 360) n.real r.of_degree)
-               random.natural))
+     (Random /.Value)
+     (random:each (|>> (n.% 360) n.real r.of_degree)
+                  random.natural))
 
 (the per_cent
-  (Random /.Value)
-  (random:each (|>> (n.% 100) n.real r.of_per_cent)
-               random.natural))
+     (Random /.Value)
+     (random:each (|>> (n.% 100) n.real r.of_per_cent)
+                  random.natural))
 
 (the .public random
-  (Random /.HSB)
-  (monad.let random.monad
-    [hue ..degree
-     saturation ..per_cent
-     brightness ..per_cent]
-    (pure (/.hsb hue saturation brightness))))
+     (Random /.HSB)
+     (monad.let random.monad
+                [hue ..degree
+                 saturation ..per_cent
+                 brightness ..per_cent]
+                (pure (/.hsb hue saturation brightness))))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (monad.let [! random.monad]
-        [expected_value ..value
-         expected_rgb rgbT.random
-         expected_hsb ..random
+     Test
+     (<| (_.covering /._)
+         (monad.let [! random.monad]
+                    [expected_value ..value
+                     expected_rgb rgbT.random
+                     expected_hsb ..random
 
-         possible_value (random.only (|>> r.not_a_number? not)
-                                     random.real)
-         .let [delta +0.000000001]
+                     possible_value (random.only (|>> r.not_a_number? not)
+                                                 random.real)
+                     .let [delta +0.000000001]
 
-         left ..random
-         right ..random])
-      (all _.and
-           (_.for [/.Value]
-                  (all _.and
-                       (_.coverage [/.value?]
-                         (and (/.value? expected_value)
-                              (not (/.value? (r.+ delta /.most)))
-                              (not (/.value? (r.- delta /.least)))))
-                       (_.coverage [/.value]
-                         (if (/.value? possible_value)
-                             (|> possible_value
-                                 /.value
-                                 (r.= possible_value))
-                             (or (r.= /.least (/.value possible_value))
-                                 (r.= /.most (/.value possible_value)))))
-                       (_.coverage [/.least]
-                         (and (r.< /.most
-                                   /.least)
-                              (/.value? /.least)
-                              (/.value? (r.+ delta /.least))
-                              (not (/.value? (r.- delta /.least)))))
-                       (_.coverage [/.most]
-                         (and (r.> /.least
-                                   /.most)
-                              (/.value? /.most)
-                              (/.value? (r.- delta /.most))
-                              (not (/.value? (r.+ delta /.most)))))
-                       ))
-           (_.for [/.HSB]
-                  (all _.and
-                       (_.for [/.equality /.=]
-                              (static.when (identical? /.equality /.=)
-                                (equalityT.spec /.equality ..random)))
+                     left ..random
+                     right ..random])
+         (all _.and
+              (_.for [/.Value]
+                     (all _.and
+                          (_.coverage [/.value?]
+                                      (and (/.value? expected_value)
+                                           (not (/.value? (r.+ delta /.most)))
+                                           (not (/.value? (r.- delta /.least)))))
+                          (_.coverage [/.value]
+                                      (if (/.value? possible_value)
+                                          (|> possible_value
+                                              /.value
+                                              (r.= possible_value))
+                                          (and/or (r.= /.least (/.value possible_value))
+                                                  (r.= /.most (/.value possible_value)))))
+                          (_.coverage [/.least]
+                                      (and (r.< /.most
+                                                /.least)
+                                           (/.value? /.least)
+                                           (/.value? (r.+ delta /.least))
+                                           (not (/.value? (r.- delta /.least)))))
+                          (_.coverage [/.most]
+                                      (and (r.> /.least
+                                                /.most)
+                                           (/.value? /.most)
+                                           (/.value? (r.- delta /.most))
+                                           (not (/.value? (r.+ delta /.most)))))
+                          ))
+              (_.for [/.HSB]
+                     (all _.and
+                          (_.for [/.equality /.=]
+                                 (static.when (identical? /.equality /.=)
+                                              (equalityT.spec /.equality ..random)))
 
-                       (_.coverage [/.hsb
-                                    /.hue /.saturation /.brightness]
-                         (|> (/.hsb (/.hue expected_hsb) (/.saturation expected_hsb) (/.brightness expected_hsb))
-                             (by /.equality = expected_hsb)))
-                       (_.coverage [/.of_rgb /.rgb]
-                         (|> expected_rgb
-                             /.of_rgb
-                             /.rgb
-                             (by rgb.equality = expected_rgb)))
-                       (_.coverage [/.as_text]
-                         (bit.= (by /.equality = left right)
-                                (text.= (/.as_text left) (/.as_text right))))
-                       ))
-           )))
+                          (_.coverage [/.hsb
+                                       /.hue /.saturation /.brightness]
+                                      (|> (/.hsb (/.hue expected_hsb) (/.saturation expected_hsb) (/.brightness expected_hsb))
+                                          (by /.equality = expected_hsb)))
+                          (_.coverage [/.of_rgb /.rgb]
+                                      (|> expected_rgb
+                                          /.of_rgb
+                                          /.rgb
+                                          (by rgb.equality = expected_rgb)))
+                          (_.coverage [/.as_text]
+                                      (bit.= (by /.equality = left right)
+                                             (text.= (/.as_text left) (/.as_text right))))
+                          ))
+              )))

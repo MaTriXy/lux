@@ -25,91 +25,91 @@
     ["[0]" view]]]])
 
 (template.with [<name> <type> <injection>]
-  [(the .public <name>
-     (Injection <type>)
-     <injection>)]
+               [(the .public <name>
+                     (Injection <type>)
+                     <injection>)]
 
-  [[natural Natural (by natural.base_10 as)]
-   [integer Integer (by integer.base_10 as)]
-   [revolution Revolution (by revolution.base_10 as)]
-   [real Real (by real.base_10 as)]
-   [text Text text.as_text]])
+               [[natural Natural (by natural.base_10 as)]
+                [integer Integer (by integer.base_10 as)]
+                [revolution Revolution (by revolution.base_10 as)]
+                [real Real (by real.base_10 as)]
+                [text Text text.as_text]])
 
 (template.with [,name]
-  [(the .public ,name
-     (Injection Real)
-     (let [suffix (its unit.:suffix (template.name [unit._] [,name]))]
-       (|>> (by (template.name [real._] [,name]) as)
-            (text.split_by real.delimiter)
-            (maybe.else ["" ""])
-            pair.left
-            (text.suffix suffix))))]
+               [(the .public ,name
+                     (Injection Real)
+                     (let [suffix (its unit.:suffix (template.name [unit._] [,name]))]
+                          (|>> (by (template.name [real._] [,name]) as)
+                               (text.split_by real.delimiter)
+                               (maybe.else ["" ""])
+                               pair.left
+                               (text.suffix suffix))))]
 
-  [[degree]
-   [per_cent]
-   [per_mille]
-   [per_myriad]])
+               [[degree]
+                [per_cent]
+                [per_mille]
+                [per_myriad]])
 
 (template.with [<type> <injection>,<format>]
-  [(`` (template.with [<injection> <format>]
-         [(the .public <injection>
-            (Injection <type>)
-            (by <format> as))]
+               [(`` (template.with [<injection> <format>]
+                                   [(the .public <injection>
+                                         (Injection <type>)
+                                         (by <format> as))]
 
-         <injection>,<format>))]
+                                   <injection>,<format>))]
 
-  [[Natural
-    [[natural_02 natural.base_02]
-     [natural_08 natural.base_08]
-     [natural_10 natural.base_10]
-     [natural_16 natural.base_16]]]
-   [Integer
-    [[integer_02 integer.base_02]
-     [integer_08 integer.base_08]
-     [integer_10 integer.base_10]
-     [integer_16 integer.base_16]]]
-   [Revolution
-    [[revolution_02 revolution.base_02]
-     [revolution_08 revolution.base_08]
-     [revolution_10 revolution.base_10]
-     [revolution_16 revolution.base_16]]]
-   [Real
-    [[real_02 real.base_02]
-     [real_08 real.base_08]
-     [real_10 real.base_10]
-     [real_16 real.base_16]]]])
+               [[Natural
+                 [[natural_02 natural.base_02]
+                  [natural_08 natural.base_08]
+                  [natural_10 natural.base_10]
+                  [natural_16 natural.base_16]]]
+                [Integer
+                 [[integer_02 integer.base_02]
+                  [integer_08 integer.base_08]
+                  [integer_10 integer.base_10]
+                  [integer_16 integer.base_16]]]
+                [Revolution
+                 [[revolution_02 revolution.base_02]
+                  [revolution_08 revolution.base_08]
+                  [revolution_10 revolution.base_10]
+                  [revolution_16 revolution.base_16]]]
+                [Real
+                 [[real_02 real.base_02]
+                  [real_08 real.base_08]
+                  [real_10 real.base_10]
+                  [real_16 real.base_16]]]])
 
 (the .public (padded padding as)
-  (-> Natural (Injection Natural)
-      (Injection Natural))
-  (by (natural.padded padding
-                      (implementation
-                       (the as as)
-                       (the (of _) (undefined))))
-      as))
+     (-> Natural (Injection Natural)
+         (Injection Natural))
+     (by (natural.padded padding
+                         (implementation
+                          (the as as)
+                          (the (of _) (undefined))))
+         as))
 
 (the .public (modulo it)
-  (for_any (_ %)
-    (Injection (modular.Modulo %)))
-  (by (modular.text (modular.modulus it)) as it))
+     (for_any (_ %)
+              (Injection (modular.Modulo %)))
+     (by (modular.text (modular.modulus it)) as it))
 
 (the .public (stack as)
-  (for_any (_ it)
-    (-> (Injection it)
-        (Injection (Stack it))))
-  (|>> (view.of list.stack)
-       (list:each (|>> as (.text " ")))
-       text.together
-       (text.enclosed ["(stack" ")"])))
+     (for_any (_ it)
+              (-> (Injection it)
+                  (Injection (Stack it))))
+     (|>> (view.of list.stack)
+          (list:each (|>> as (.text " ")))
+          text.together
+          (text.inside ["(stack" ")"])))
 
 (the .public (maybe as)
-  (for_any (_ it)
-    (-> (Injection it)
-        (Injection (Maybe it))))
-  (function (_ value)
-    (when value
-      {.:None}
-      "{.:None}"
+     (for_any (_ it)
+              (-> (Injection it)
+                  (Injection (Maybe it))))
+     (function (_ value)
+               (when value
+                     {.:None}
+                     "{.:None}"
 
-      {.:Some value}
-      (.text "{.:Some " (as value) "}"))))
+                     {.:Some value}
+                     (.text "{.:Some " (as value) "}"))))

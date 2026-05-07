@@ -42,469 +42,469 @@
   ["[0]" /]])
 
 (the number_as_text
-  (-> /.Number
-      Text)
-  (|>> list.in_reverse
-       (list.as_text (by natural.base_10 as))))
+     (-> /.Number
+         Text)
+     (|>> list.in_reverse
+          (list.as_text (by natural.base_10 as))))
 
 (the test_for_every_interface
-  Test
-  (`` (all _.and
-           (_.for [/.equality /.=]
-                  (static.when (identical? /.equality /.=)
-                    (equalityT.spec /.equality (/.random 3))))
-           (_.for [/.hash]
-                  (hashT.spec /.hash (/.random 1)))
-           (_.for [/.order /.<]
-                  (orderT.spec /.order (/.random 3)))
-           (,, (template.with [<composite> <monoid>]
-                              [(_.for [<monoid> <composite>]
-                                      (static.when (identical? <composite> (by <monoid> composite))
-                                        (monoidT.spec /.equality <monoid> (/.random 3))))]
-                              
-                              [[/.+ /.addition]
-                               [/.x /.multiplication]
+     Test
+     (`` (all _.and
+              (_.for [/.equality /.=]
+                     (static.when (identical? /.equality /.=)
+                                  (equalityT.spec /.equality (/.random 3))))
+              (_.for [/.hash]
+                     (hashT.spec /.hash (/.random 1)))
+              (_.for [/.order /.<]
+                     (orderT.spec /.order (/.random 3)))
+              (,, (template.with [<composite> <monoid>]
+                                 [(_.for [<monoid> <composite>]
+                                         (static.when (identical? <composite> (by <monoid> composite))
+                                                      (monoidT.spec /.equality <monoid> (/.random 3))))]
+                                 
+                                 [[/.+ /.addition]
+                                  [/.x /.multiplication]
 
-                               [/.major /.maximum]]))
-           (,, (template.with [<format>]
-                              [(_.for [<format>]
-                                      (formatT.spec /.equality <format> (/.random 3)))]
+                                  [/.major /.maximum]]))
+              (,, (template.with [<format>]
+                                 [(_.for [<format>]
+                                         (formatT.spec /.equality <format> (/.random 3)))]
 
-                              [[/.base_02]
-                               [/.base_08]
-                               [/.base_10]
-                               [/.base_16]]))
-           )))
+                                 [[/.base_02]
+                                  [/.base_08]
+                                  [/.base_10]
+                                  [/.base_16]]))
+              )))
 
 (the lattice
-  Test
-  (<| (monad.let [! random.monad]
-        [left (/.random 3)
-         right (/.random 3)
+     Test
+     (<| (monad.let [! random.monad]
+                    [left (/.random 3)
+                     right (/.random 3)
 
-         digits (by ! each (natural.% 4)
-                    random.natural)
-         
-         expected (/.random digits)])
-      (all _.and
-           (_.coverage [/.lcm /.least_common_multiple
-                        /.multiple?]
-             (and (/.= /.zero
-                       (/.least_common_multiple /.zero expected))
-                  (/.= (/.least_common_multiple right left)
-                       (/.least_common_multiple left right))
-                  (and (/.multiple? left (/.least_common_multiple left right))
-                       (/.multiple? right (/.least_common_multiple left right)))
-                  (identical? /.least_common_multiple /.lcm)))
-           (_.coverage [/.gcd /.greatest_common_divisor
-                        /.divisor?]
-             (and (/.= expected
-                       (/.greatest_common_divisor /.zero expected))
-                  (/.= (/.greatest_common_divisor right left)
-                       (/.greatest_common_divisor left right))
-                  (and (/.divisor? left (/.greatest_common_divisor left right))
-                       (/.divisor? right (/.greatest_common_divisor left right)))
-                  (identical? /.greatest_common_divisor /.gcd)))
-           (_.coverage [/.co_prime?]
-             (and (bit.= (/.co_prime? expected expected)
-                         (/.= /.one expected))
-                  (bit.= (/.= /.one (/.greatest_common_divisor left right))
-                         (/.co_prime? left right))))
-           )))
+                     digits (by ! each (natural.% 4)
+                                random.natural)
+                     
+                     expected (/.random digits)])
+         (all _.and
+              (_.coverage [/.lcm /.least_common_multiple
+                           /.multiple?]
+                          (and (/.= /.zero
+                                    (/.least_common_multiple /.zero expected))
+                               (/.= (/.least_common_multiple right left)
+                                    (/.least_common_multiple left right))
+                               (and (/.multiple? left (/.least_common_multiple left right))
+                                    (/.multiple? right (/.least_common_multiple left right)))
+                               (identical? /.least_common_multiple /.lcm)))
+              (_.coverage [/.gcd /.greatest_common_divisor
+                           /.divisor?]
+                          (and (/.= expected
+                                    (/.greatest_common_divisor /.zero expected))
+                               (/.= (/.greatest_common_divisor right left)
+                                    (/.greatest_common_divisor left right))
+                               (and (/.divisor? left (/.greatest_common_divisor left right))
+                                    (/.divisor? right (/.greatest_common_divisor left right)))
+                               (identical? /.greatest_common_divisor /.gcd)))
+              (_.coverage [/.co_prime?]
+                          (and (bit.= (/.co_prime? expected expected)
+                                      (/.= /.one expected))
+                               (bit.= (/.= /.one (/.greatest_common_divisor left right))
+                                      (/.co_prime? left right))))
+              )))
 
 (the comparison
-  Test
-  (<| (monad.let [! random.monad]
-        [bit_0 random.bit
-         bit_1 random.bit
-         bit_2 random.bit
-         .let [[random_0 random_1 random_2] (if bit_0
-                                                (if bit_1
-                                                    (if bit_2
-                                                        [(/.random 1) (/.random 2) (/.random 3)]
-                                                        [(/.random 1) (/.random 3) (/.random 2)])
-                                                    (if bit_2
-                                                        [(/.random 2) (/.random 1) (/.random 3)]
-                                                        [(/.random 2) (/.random 3) (/.random 1)]))
-                                                (if bit_1
-                                                    [(/.random 3) (/.random 1) (/.random 2)]
-                                                    [(/.random 3) (/.random 2) (/.random 1)]))]
-         origin random_0
-         other random_1
-         it random_2
+     Test
+     (<| (monad.let [! random.monad]
+                    [bit_0 random.bit
+                     bit_1 random.bit
+                     bit_2 random.bit
+                     .let [[random_0 random_1 random_2] (if bit_0
+                                                            (if bit_1
+                                                                (if bit_2
+                                                                    [(/.random 1) (/.random 2) (/.random 3)]
+                                                                    [(/.random 1) (/.random 3) (/.random 2)])
+                                                                (if bit_2
+                                                                    [(/.random 2) (/.random 1) (/.random 3)]
+                                                                    [(/.random 2) (/.random 3) (/.random 1)]))
+                                                            (if bit_1
+                                                                [(/.random 3) (/.random 1) (/.random 2)]
+                                                                [(/.random 3) (/.random 2) (/.random 1)]))]
+                     origin random_0
+                     other random_1
+                     it random_2
 
-         it_0 (/.random 3)
-         it_1 (/.random 3)
-         it_2 (/.random 3)
+                     it_0 (/.random 3)
+                     it_1 (/.random 3)
+                     it_2 (/.random 3)
 
-         left (/.random 3)
-         right (/.random 3)])
-      (all _.and
-           (_.coverage [/.=]
-             (let [reflection!
-                   (/.= it it)
+                     left (/.random 3)
+                     right (/.random 3)])
+         (all _.and
+              (_.coverage [/.=]
+                          (let [reflection!
+                                (/.= it it)
 
-                   symmetry!
-                   (bit.= (/.= origin it)
-                          (/.= it origin))
+                                symmetry!
+                                (bit.= (/.= origin it)
+                                       (/.= it origin))
 
-                   transitivity!
-                   (bit.= (and (/.= it_0 it_1)
-                               (/.= it_1 it_2))
-                          (/.= it_0 it_2))]
-               (and reflection!
-                    symmetry!
-                    transitivity!)))
-           (_.coverage [/.<]
-             (let [anti_reflection!
-                   (not (/.< it it))
+                                transitivity!
+                                (bit.= (and (/.= it_0 it_1)
+                                            (/.= it_1 it_2))
+                                       (/.= it_0 it_2))]
+                               (and reflection!
+                                    symmetry!
+                                    transitivity!)))
+              (_.coverage [/.<]
+                          (let [anti_reflection!
+                                (not (/.< it it))
 
-                   anti_symmetry!
-                   (or (/.= it origin)
-                       (bit.= (not (/.< origin it))
-                              (/.< it origin)))
+                                anti_symmetry!
+                                (and/or (/.= it origin)
+                                        (bit.= (not (/.< origin it))
+                                               (/.< it origin)))
 
-                   ++ (all /.major origin other it)
-                   -- (all /.minor origin other it)
-                   not_extreme (is (Change /.Number)
-                                   (function (_ it)
-                                     (if (/.< ++ it)
-                                         (if (/.> -- it)
-                                             it
-                                             /.zero)
-                                         /.zero)))
-                   +- (all /.+
-                           (not_extreme origin)
-                           (not_extreme other)
-                           (not_extreme it))
+                                ++ (all /.major origin other it)
+                                -- (all /.minor origin other it)
+                                not_extreme (is (Change /.Number)
+                                                (function (_ it)
+                                                          (if (/.< ++ it)
+                                                              (if (/.> -- it)
+                                                                  it
+                                                                  /.zero)
+                                                              /.zero)))
+                                +- (all /.+
+                                        (not_extreme origin)
+                                        (not_extreme other)
+                                        (not_extreme it))
 
-                   transitivity!
-                   (bit.= (and (/.< ++ +-)
-                               (/.< +- --))
-                          (/.< ++ --))]
-               (and anti_reflection!
-                    anti_symmetry!
-                    transitivity!)))
-           (_.coverage [/.>]
-             (bit.= (/.< it origin)
-                    (/.> origin it)))
-           (_.coverage [/.<=]
-             (bit.= (or (/.< origin it)
-                        (/.<= origin it))
-                    (/.<= origin it)))
-           (_.coverage [/.>=]
-             (bit.= (or (/.> origin it)
-                        (/.>= origin it))
-                    (/.>= origin it)))
-           (_.coverage [/.major /.minor]
-             (let [idempotency!
-                   (and (/.= it (/.minor it it))
-                        (/.= it (/.major it it)))
+                                transitivity!
+                                (bit.= (and (/.< ++ +-)
+                                            (/.< +- --))
+                                       (/.< ++ --))]
+                               (and anti_reflection!
+                                    anti_symmetry!
+                                    transitivity!)))
+              (_.coverage [/.>]
+                          (bit.= (/.< it origin)
+                                 (/.> origin it)))
+              (_.coverage [/.<=]
+                          (bit.= (and/or (/.< origin it)
+                                         (/.<= origin it))
+                                 (/.<= origin it)))
+              (_.coverage [/.>=]
+                          (bit.= (and/or (/.> origin it)
+                                         (/.>= origin it))
+                                 (/.>= origin it)))
+              (_.coverage [/.major /.minor]
+                          (let [idempotency!
+                                (and (/.= it (/.minor it it))
+                                     (/.= it (/.major it it)))
 
-                   absorption!
-                   (/.= /.zero (/.minor /.zero it))
+                                absorption!
+                                (/.= /.zero (/.minor /.zero it))
 
-                   identity!
-                   (/.= it (/.major /.zero it))
+                                identity!
+                                (/.= it (/.major /.zero it))
 
-                   commutativity!
-                   (and (/.= (/.minor origin it)
-                             (/.minor it origin))
-                        (/.= (/.major origin it)
-                             (/.major it origin)))
+                                commutativity!
+                                (and (/.= (/.minor origin it)
+                                          (/.minor it origin))
+                                     (/.= (/.major origin it)
+                                          (/.major it origin)))
 
-                   relationship!
-                   (and (/.< (/.major origin it)
-                             (/.minor origin it))
-                        (/.> (/.minor origin it)
-                             (/.major origin it)))]
-               (and idempotency!
-                    
-                    absorption!
-                    identity!
+                                relationship!
+                                (and (/.< (/.major origin it)
+                                          (/.minor origin it))
+                                     (/.> (/.minor origin it)
+                                          (/.major origin it)))]
+                               (and idempotency!
+                                    
+                                    absorption!
+                                    identity!
 
-                    commutativity!
-                    
-                    relationship!)))
-           )))
+                                    commutativity!
+                                    
+                                    relationship!)))
+              )))
 
 (the arithmetic
-  Test
-  (<| (monad.let [! random.monad]
-        [bit_0 random.bit
-         bit_1 random.bit
-         bit_2 random.bit
-         .let [[random_0 random_1 random_2] (if bit_0
-                                                (if bit_1
-                                                    (if bit_2
-                                                        [(/.random 1) (/.random 2) (/.random 3)]
-                                                        [(/.random 1) (/.random 3) (/.random 2)])
-                                                    (if bit_2
-                                                        [(/.random 2) (/.random 1) (/.random 3)]
-                                                        [(/.random 2) (/.random 3) (/.random 1)]))
-                                                (if bit_1
-                                                    [(/.random 3) (/.random 1) (/.random 2)]
-                                                    [(/.random 3) (/.random 2) (/.random 1)]))]
-         origin random_0
-         other random_1
-         it random_2
+     Test
+     (<| (monad.let [! random.monad]
+                    [bit_0 random.bit
+                     bit_1 random.bit
+                     bit_2 random.bit
+                     .let [[random_0 random_1 random_2] (if bit_0
+                                                            (if bit_1
+                                                                (if bit_2
+                                                                    [(/.random 1) (/.random 2) (/.random 3)]
+                                                                    [(/.random 1) (/.random 3) (/.random 2)])
+                                                                (if bit_2
+                                                                    [(/.random 2) (/.random 1) (/.random 3)]
+                                                                    [(/.random 2) (/.random 3) (/.random 1)]))
+                                                            (if bit_1
+                                                                [(/.random 3) (/.random 1) (/.random 2)]
+                                                                [(/.random 3) (/.random 2) (/.random 1)]))]
+                     origin random_0
+                     other random_1
+                     it random_2
 
-         exponent_0 (by ! each (natural.% 200) random.natural)
-         exponent_1 (by ! each (natural.% 200) random.natural)
+                     exponent_0 (by ! each (natural.% 200) random.natural)
+                     exponent_1 (by ! each (natural.% 200) random.natural)
 
-         left (/.random 3)
-         right (/.random 3)
+                     left (/.random 3)
+                     right (/.random 3)
 
-         sample (/.random 3)
-         power (by ! each (natural.% 10)
-                   random.natural)])
-      (all _.and
-           (_.coverage [/.+]
-             (and (/.= (/.+ origin it)
-                       (/.+ it origin))
-                  (bit.= (/.= it (/.+ it it))
-                         (/.= /.zero it))
-                  (/.= (/.+ origin (/.+ other it))
-                       (/.+ (/.+ origin other) it))))
-           (_.coverage [/.x]
-             (let [commutativity!
-                   (/.= (/.x origin it)
-                        (/.x it origin))
+                     sample (/.random 3)
+                     power (by ! each (natural.% 10)
+                               random.natural)])
+         (all _.and
+              (_.coverage [/.+]
+                          (and (/.= (/.+ origin it)
+                                    (/.+ it origin))
+                               (bit.= (/.= it (/.+ it it))
+                                      (/.= /.zero it))
+                               (/.= (/.+ origin (/.+ other it))
+                                    (/.+ (/.+ origin other) it))))
+              (_.coverage [/.x]
+                          (let [commutativity!
+                                (/.= (/.x origin it)
+                                     (/.x it origin))
 
-                   identity!
-                   (bit.= (/.= it (/.x it it))
-                          (/.= /.one it))
+                                identity!
+                                (bit.= (/.= it (/.x it it))
+                                       (/.= /.one it))
 
-                   associativity!
-                   (/.= (/.x origin (/.x other it))
-                        (/.x (/.x origin other) it))]
-               (and commutativity!
-                    identity!
-                    associativity!)))
-           (_.coverage [/.zero]
-             (and (/.= it
-                       (/.+ /.zero it))
-                  (/.= /.zero
-                       (/.x /.zero it))))
-           (_.coverage [/.one]
-             (/.= it
-                  (/.x /.one it)))
-           (_.coverage [/.-]
-             (let [balance!
-                   (/.= /.zero
-                        (/.- it it))
+                                associativity!
+                                (/.= (/.x origin (/.x other it))
+                                     (/.x (/.x origin other) it))]
+                               (and commutativity!
+                                    identity!
+                                    associativity!)))
+              (_.coverage [/.zero]
+                          (and (/.= it
+                                    (/.+ /.zero it))
+                               (/.= /.zero
+                                    (/.x /.zero it))))
+              (_.coverage [/.one]
+                          (/.= it
+                               (/.x /.one it)))
+              (_.coverage [/.-]
+                          (let [balance!
+                                (/.= /.zero
+                                     (/.- it it))
 
-                   reconstitution!
-                   (let [major (/.major origin it)
-                         minor (/.minor origin it)]
-                     (/.= major
-                          (/.+ minor (/.- minor major))))]
-               (and balance!
-                    reconstitution!)))
-           (_.coverage [/.excess]
-             (and (bit.= (/.< origin it)
-                         (/.> (/.- origin it) (/.excess origin it)))
-                  (/.= /.zero
-                       (/.excess it it))
-                  (/.= origin
-                       (/.excess (/.+ origin it) it))))
-           (_.coverage [/./]
-             (let [itself!
-                   (/.= /.one (/./ it it))
+                                reconstitution!
+                                (let [major (/.major origin it)
+                                      minor (/.minor origin it)]
+                                     (/.= major
+                                          (/.+ minor (/.- minor major))))]
+                               (and balance!
+                                    reconstitution!)))
+              (_.coverage [/.excess]
+                          (and (bit.= (/.< origin it)
+                                      (/.> (/.- origin it) (/.excess origin it)))
+                               (/.= /.zero
+                                    (/.excess it it))
+                               (/.= origin
+                                    (/.excess (/.+ origin it) it))))
+              (_.coverage [/./]
+                          (let [itself!
+                                (/.= /.one (/./ it it))
 
-                   one!
-                   (/.= it (/./ /.one it))
+                                one!
+                                (/.= it (/./ /.one it))
 
-                   of_zero!
-                   (/.= /.zero (/./ it /.zero))
+                                of_zero!
+                                (/.= /.zero (/./ it /.zero))
 
-                   small!
-                   (bit.= (/.< other it)
-                          (/.= /.zero (/./ other it)))
+                                small!
+                                (bit.= (/.< other it)
+                                       (/.= /.zero (/./ other it)))
 
-                   large!
-                   (bit.= (/.> other it)
-                          (/.>= /.one (/./ other it)))
+                                large!
+                                (bit.= (/.> other it)
+                                       (/.>= /.one (/./ other it)))
 
-                   factor!
-                   (and (|> it
-                            (/.x other)
-                            (/./ other)
-                            (/.= it))
-                        (|> other
-                            (/.x it)
-                            (/./ it)
-                            (/.= other)))
+                                factor!
+                                (and (|> it
+                                         (/.x other)
+                                         (/./ other)
+                                         (/.= it))
+                                     (|> other
+                                         (/.x it)
+                                         (/./ it)
+                                         (/.= other)))
 
-                   exponential!
-                   (let [e (/.exponential_2 exponent_0)]
-                     (and (/.= e (/./ it (/.x e it)))
-                          (/.= it (/./ e (/.x e it)))))
+                                exponential!
+                                (let [e (/.exponential_2 exponent_0)]
+                                     (and (/.= e (/./ it (/.x e it)))
+                                          (/.= it (/./ e (/.x e it)))))
 
-                   logarithm!
-                   (let [e (/.exponential_2 exponent_0)]
-                     (natural.= (natural.+ (/.logarithm_2 e)
-                                           (/.logarithm_2 it))
-                                (/.logarithm_2 (/.x e it))))]
-               (and itself!
-                    one!
-                    of_zero!
-                    small!
-                    large!
-                    factor!
-                    exponential!
-                    logarithm!)))
-           (_.coverage [/.division_by_zero]
-             (when (try (/./ /.zero it))
-               {.:Left error}
-               (text.contains? /.division_by_zero error)
+                                logarithm!
+                                (let [e (/.exponential_2 exponent_0)]
+                                     (natural.= (natural.+ (/.logarithm_2 e)
+                                                           (/.logarithm_2 it))
+                                                (/.logarithm_2 (/.x e it))))]
+                               (and itself!
+                                    one!
+                                    of_zero!
+                                    small!
+                                    large!
+                                    factor!
+                                    exponential!
+                                    logarithm!)))
+              (_.coverage [/.division_by_zero]
+                          (when (try (/./ /.zero it))
+                                {.:Left error}
+                                (text.contains? /.division_by_zero error)
 
-               else
-               false))
-           (_.coverage [/.%]
-             (let [itself!
-                   (/.= /.zero (/.% it it))
+                                else
+                                false))
+              (_.coverage [/.%]
+                          (let [itself!
+                                (/.= /.zero (/.% it it))
 
-                   no_room!
-                   (/.= /.zero (/.% /.one it))
+                                no_room!
+                                (/.= /.zero (/.% /.one it))
 
-                   factor!
-                   (and (/.= /.zero (/.% it (/.x other it)))
-                        (/.= /.zero (/.% other (/.x other it))))
+                                factor!
+                                (and (/.= /.zero (/.% it (/.x other it)))
+                                     (/.= /.zero (/.% other (/.x other it))))
 
-                   reconstitution!
-                   (|> it
-                       (/./ other)
-                       (/.x other)
-                       (/.+ (/.% other it))
-                       (/.= it))]
-               (and itself!
-                    no_room!
-                    factor!
-                    reconstitution!)))
-           (_.coverage [/./%]
-             (let [[div rem] (/./% left right)]
-               (and (/.= div (/./ left right))
-                    (/.= rem (/.% left right)))))
-           (<| (_.for [/.Exponent])
-               (all _.and
-                    (_.coverage [/.^]
-                      (and (/.= /.one (/.^ 0 sample))
-                           (/.= sample (/.^ 1 sample))
-                           (/.= (list.mix /.x
-                                          (list.repeated power sample)
-                                          /.one)
-                                (/.^ power sample))))
-                    (_.coverage [/.exponential_2]
-                      (let [double (is (Change /.Number)
-                                       (function (_ it)
-                                         (/.+ it it)))]
-                        (and (/.= (|> it)
-                                  (/.x it (/.exponential_2 0)))
-                             (/.= (|> it double)
-                                  (/.x it (/.exponential_2 1)))
-                             (/.= (double (/.x it (/.exponential_2 exponent_0)))
-                                  (/.x it (/.exponential_2 (++ exponent_0))))
-                             (let [e2^x (/.exponential_2 exponent_0)]
-                               (and (|> e2^x
-                                        (/.x it)
-                                        (/./ it)
-                                        (/.= e2^x))
-                                    (|> it
-                                        (/.x e2^x)
-                                        (/./ e2^x)
-                                        (/.= it))))
-                             (/.= (/.exponential_2 (natural.+ exponent_0 exponent_1))
-                                  (/.x (/.exponential_2 exponent_0)
-                                       (/.exponential_2 exponent_1))))))
-                    (_.coverage [/.logarithm_2]
-                      (and (|> (/.logarithm_2 /.zero)
-                               (natural.= 0))
-                           (|> (/.logarithm_2 /.one)
-                               (natural.= 0))
-                           (|> (/.logarithm_2 (/.+ /.one /.one))
-                               (natural.= 1))
-                           (natural.= (/.logarithm_2 (/.+ it it))
-                                      (++ (/.logarithm_2 it)))
-                           (|> exponent_0
-                               /.exponential_2
-                               /.logarithm_2
-                               (natural.= exponent_0))))
-                    ))
-           )))
+                                reconstitution!
+                                (|> it
+                                    (/./ other)
+                                    (/.x other)
+                                    (/.+ (/.% other it))
+                                    (/.= it))]
+                               (and itself!
+                                    no_room!
+                                    factor!
+                                    reconstitution!)))
+              (_.coverage [/./%]
+                          (let [[div rem] (/./% left right)]
+                               (and (/.= div (/./ left right))
+                                    (/.= rem (/.% left right)))))
+              (<| (_.for [/.Exponent])
+                  (all _.and
+                       (_.coverage [/.^]
+                                   (and (/.= /.one (/.^ 0 sample))
+                                        (/.= sample (/.^ 1 sample))
+                                        (/.= (list.mix /.x
+                                                       (list.repeated power sample)
+                                                       /.one)
+                                             (/.^ power sample))))
+                       (_.coverage [/.exponential_2]
+                                   (let [double (is (Change /.Number)
+                                                    (function (_ it)
+                                                              (/.+ it it)))]
+                                        (and (/.= (|> it)
+                                                  (/.x it (/.exponential_2 0)))
+                                             (/.= (|> it double)
+                                                  (/.x it (/.exponential_2 1)))
+                                             (/.= (double (/.x it (/.exponential_2 exponent_0)))
+                                                  (/.x it (/.exponential_2 (++ exponent_0))))
+                                             (let [e2^x (/.exponential_2 exponent_0)]
+                                                  (and (|> e2^x
+                                                           (/.x it)
+                                                           (/./ it)
+                                                           (/.= e2^x))
+                                                       (|> it
+                                                           (/.x e2^x)
+                                                           (/./ e2^x)
+                                                           (/.= it))))
+                                             (/.= (/.exponential_2 (natural.+ exponent_0 exponent_1))
+                                                  (/.x (/.exponential_2 exponent_0)
+                                                       (/.exponential_2 exponent_1))))))
+                       (_.coverage [/.logarithm_2]
+                                   (and (|> (/.logarithm_2 /.zero)
+                                            (natural.= 0))
+                                        (|> (/.logarithm_2 /.one)
+                                            (natural.= 0))
+                                        (|> (/.logarithm_2 (/.+ /.one /.one))
+                                            (natural.= 1))
+                                        (natural.= (/.logarithm_2 (/.+ it it))
+                                                   (++ (/.logarithm_2 it)))
+                                        (|> exponent_0
+                                            /.exponential_2
+                                            /.logarithm_2
+                                            (natural.= exponent_0))))
+                       ))
+              )))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (monad.let [! random.monad]
-        [bit_0 random.bit
-         bit_1 random.bit
-         bit_2 random.bit
-         .let [[random_0 random_1 random_2] (if bit_0
-                                                (if bit_1
-                                                    (if bit_2
-                                                        [(/.random 1) (/.random 2) (/.random 3)]
-                                                        [(/.random 1) (/.random 3) (/.random 2)])
-                                                    (if bit_2
-                                                        [(/.random 2) (/.random 1) (/.random 3)]
-                                                        [(/.random 2) (/.random 3) (/.random 1)]))
-                                                (if bit_1
-                                                    [(/.random 3) (/.random 1) (/.random 2)]
-                                                    [(/.random 3) (/.random 2) (/.random 1)]))]
-         origin random_0
-         other random_1
-         it random_2
+     Test
+     (<| (_.covering /._)
+         (monad.let [! random.monad]
+                    [bit_0 random.bit
+                     bit_1 random.bit
+                     bit_2 random.bit
+                     .let [[random_0 random_1 random_2] (if bit_0
+                                                            (if bit_1
+                                                                (if bit_2
+                                                                    [(/.random 1) (/.random 2) (/.random 3)]
+                                                                    [(/.random 1) (/.random 3) (/.random 2)])
+                                                                (if bit_2
+                                                                    [(/.random 2) (/.random 1) (/.random 3)]
+                                                                    [(/.random 2) (/.random 3) (/.random 1)]))
+                                                            (if bit_1
+                                                                [(/.random 3) (/.random 1) (/.random 2)]
+                                                                [(/.random 3) (/.random 2) (/.random 1)]))]
+                     origin random_0
+                     other random_1
+                     it random_2
 
-         sample (/.random 3)
-         small random.natural])
-      (_.for [/.Number
-              /.random])
-      (all _.and
-           ..test_for_every_interface
-           
-           (_.coverage [/.Natural /.N]
-             (and (identical? /.Natural /.Number)
-                  (identical? /.N /.Number)))
-           ..comparison
-           ..arithmetic
-           ..lattice
-           (_.coverage [/.small]
-             (with (try.equality /.equality)
-                   (= {try.:Success (case.some /.small small)}
-                      (by /.base_10 of (by natural.base_10 as small)))))
-           (_.coverage [/.even? /.odd?]
-             (bit.= (/.even? sample)
-                    (not (/.odd? sample))))
-           (all _.and
-                (<| (_.for [/.:Zero])
-                    (caseT.specification /.:Zero
-                                         [/.equality
-                                          (/.random 0)]
-                                         [any.equality
-                                          (pure [])]))
-                (_.coverage [/.:Zero]
-                  (and (case.when /.zero
-                         {/.:Zero _}
-                         true
-                         
-                         else
-                         false)
-                       (/.= /.zero (case.some /.:Zero [])))))
-           (all _.and
-                (<| (_.for [/.:Successor])
-                    (caseT.specification /.:Successor
-                                         [/.equality
-                                          (/.random 1)]
-                                         [/.equality
-                                          (/.random 1)]))
-                (_.coverage [/.:Successor]
-                  (and (case.when origin
-                         {/.:Successor predecessor}
-                         (and (/.< origin predecessor)
-                              (/.= origin (/.+ /.one predecessor)))
-                         
-                         else
-                         (/.= /.zero origin))
-                       (/.= (/.+ /.one origin)
-                            (case.some /.:Successor origin)))))
-           )))
+                     sample (/.random 3)
+                     small random.natural])
+         (_.for [/.Number
+                 /.random])
+         (all _.and
+              ..test_for_every_interface
+              
+              (_.coverage [/.Natural /.N]
+                          (and (identical? /.Natural /.Number)
+                               (identical? /.N /.Number)))
+              ..comparison
+              ..arithmetic
+              ..lattice
+              (_.coverage [/.small]
+                          (with (try.equality /.equality)
+                                (= {try.:Success (case.some /.small small)}
+                                   (by /.base_10 of (by natural.base_10 as small)))))
+              (_.coverage [/.even? /.odd?]
+                          (bit.= (/.even? sample)
+                                 (not (/.odd? sample))))
+              (all _.and
+                   (<| (_.for [/.:Zero])
+                       (caseT.specification /.:Zero
+                                            [/.equality
+                                             (/.random 0)]
+                                            [any.equality
+                                             (pure [])]))
+                   (_.coverage [/.:Zero]
+                               (and (case.when /.zero
+                                               {/.:Zero _}
+                                               true
+                                               
+                                               else
+                                               false)
+                                    (/.= /.zero (case.some /.:Zero [])))))
+              (all _.and
+                   (<| (_.for [/.:Successor])
+                       (caseT.specification /.:Successor
+                                            [/.equality
+                                             (/.random 1)]
+                                            [/.equality
+                                             (/.random 1)]))
+                   (_.coverage [/.:Successor]
+                               (and (case.when origin
+                                               {/.:Successor predecessor}
+                                               (and (/.< origin predecessor)
+                                                    (/.= origin (/.+ /.one predecessor)))
+                                               
+                                               else
+                                               (/.= /.zero origin))
+                                    (/.= (/.+ /.one origin)
+                                         (case.some /.:Successor origin)))))
+              )))

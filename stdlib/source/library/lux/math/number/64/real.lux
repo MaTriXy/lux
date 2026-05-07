@@ -26,7 +26,7 @@
     ["[0]" unit]]]])
 
 (the .public Number
-  .Real)
+     .Real)
 
 (the It ..Number)
 
@@ -34,536 +34,536 @@
 (the template:macro (.in_module# .prelude .template:macro))
 
 (with_template [,name <value>]
-  [(the .public ,name
-     It
-     <value>)]
+               [(the .public ,name
+                     It
+                     <value>)]
 
-  [[e +2.7182818284590452354]
-   [zero +0.0]
-   [positive_one +1.0]
-   [negative_one -1.0]])
+               [[e +2.7182818284590452354]
+                [zero +0.0]
+                [positive_one +1.0]
+                [negative_one -1.0]])
 
 (with_template [,name <op>]
-  [(the .public (,name paremeter it)
-     (-> It
-         (Change It))
-     (<op> paremeter it))]
+               [(the .public (,name paremeter it)
+                     (-> It
+                         (Change It))
+                     (<op> paremeter it))]
 
-  [[+ .f64_+#]
-   [- .f64_-#]
-   [x .f64_x#]
-   [/ .f64_/#]
-   [% .f64_%#]])
+               [[+ .f64_+#]
+                [- .f64_-#]
+                [x .f64_x#]
+                [/ .f64_/#]
+                [% .f64_%#]])
 
 (the .public (/% param subject)
-  (-> It It
-      [It It])
-  [(../ param subject)
-   (..% param subject)])
+     (-> It It
+         [It It])
+     [(../ param subject)
+      (..% param subject)])
 
 (the .public (reciprocal it)
-  (Change It)
-  (../ it
-       positive_one))
+     (Change It)
+     (../ it
+          positive_one))
 
 (target.if target.jvm
            (these (the !double
-                    (template:macro
-                     (_ value)
-                     [(|> value
-                          (as (-> It (Nominal "java.lang.Double")))
-                          .jvm_object_cast#)]))
+                       (template:macro
+                        (_ value)
+                        [(|> value
+                             (as (-> It (Nominal "java.lang.Double")))
+                             .jvm_object_cast#)]))
                   
                   (the !real
-                    (template:macro
-                     (_ value)
-                     [(|> value
-                          .jvm_object_cast#
-                          (as (-> (Nominal "java.lang.Double") It)))]))
+                       (template:macro
+                        (_ value)
+                        [(|> value
+                             .jvm_object_cast#
+                             (as (-> (Nominal "java.lang.Double") It)))]))
                   
                   (with_template [,name <method>]
-                    [(the .public ,name
-                       (Change It)
-                       (|>> !double
-                            ["D"]
-                            (.jvm_member_invoke_static# [] "java.lang.Math" <method> [])
-                            !real))]
-                    
-                    [[exp    "exp"]
-                     [log    "log"]
-                     
-                     [ceil   "ceil"]
-                     [floor  "floor"]
-                     
-                     [root_2 "sqrt"]
-                     [root_3 "cbrt"]])
+                                 [(the .public ,name
+                                       (Change It)
+                                       (|>> !double
+                                            ["D"]
+                                            (.jvm_member_invoke_static# [] "java.lang.Math" <method> [])
+                                            !real))]
+                                 
+                                 [[exp    "exp"]
+                                  [log    "log"]
+                                  
+                                  [ceil   "ceil"]
+                                  [floor  "floor"]
+                                  
+                                  [root_2 "sqrt"]
+                                  [root_3 "cbrt"]])
                   
                   (the .public (^ param subject)
-                    (-> It It
-                        It)
-                    (|> (.jvm_member_invoke_static# [] "java.lang.Math" "pow" []
-                                                    ["D" (!double subject)] ["D" (!double param)])
-                        !real)))
+                       (-> It It
+                           It)
+                       (|> (.jvm_member_invoke_static# [] "java.lang.Math" "pow" []
+                                                       ["D" (!double subject)] ["D" (!double param)])
+                           !real)))
 
            target.js
            (these (with_template [,name <method>]
-                    [(the .public ,name
-                       (Change It)
-                       (|>> []
-                            (.js_of# (.js_constant# <method>))
-                            (as (-> Any It))))]
-                    
-                    [[exp    "Math.exp"]
-                     [log    "Math.log"]
-                     
-                     [ceil   "Math.ceil"]
-                     [floor  "Math.floor"]
+                                 [(the .public ,name
+                                       (Change It)
+                                       (|>> []
+                                            (.js_of# (.js_constant# <method>))
+                                            (as (-> Any It))))]
+                                 
+                                 [[exp    "Math.exp"]
+                                  [log    "Math.log"]
+                                  
+                                  [ceil   "Math.ceil"]
+                                  [floor  "Math.floor"]
 
-                     [root_2 "Math.sqrt"]
-                     [root_3 "Math.cbrt"]])
+                                  [root_2 "Math.sqrt"]
+                                  [root_3 "Math.cbrt"]])
                   
                   (the .public (^ param subject)
-                    (-> It It
-                        It)
-                    (as (-> Any It)
-                        (.js_of# (.js_constant# "Math.pow") [subject param]))))
+                       (-> It It
+                           It)
+                       (as (-> Any It)
+                           (.js_of# (.js_constant# "Math.pow") [subject param]))))
 
            target.python
            (these (with_template [,name <method>]
-                    [(the .public ,name
-                       (Change It)
-                       (|>> []
-                            (.python_object_do# <method> (.python_import# "math"))
-                            (as (-> Any It))))]
-                    
-                    [[exp    "exp"]
-                     [log    "log"]
-                     
-                     [ceil   "ceil"]
-                     [floor  "floor"]
+                                 [(the .public ,name
+                                       (Change It)
+                                       (|>> []
+                                            (.python_object_do# <method> (.python_import# "math"))
+                                            (as (-> Any It))))]
+                                 
+                                 [[exp    "exp"]
+                                  [log    "log"]
+                                  
+                                  [ceil   "ceil"]
+                                  [floor  "floor"]
 
-                     [root_2 "sqrt"]])
+                                  [root_2 "sqrt"]])
                   
                   (the .public (^ param subject)
-                    (-> It It
-                        It)
-                    (as (-> Any It)
-                        (.python_object_do# "pow" (.python_import# "math") [subject param])))
+                       (-> It It
+                           It)
+                       (as (-> Any It)
+                           (.python_object_do# "pow" (.python_import# "math") [subject param])))
 
                   (the .public (root_3 it)
-                    (-> It
-                        It)
-                    (if (.f64_<# zero it)
-                        (|> it
-                            (.f64_x# negative_one)
-                            (^ (reciprocal +3.0))
-                            (.f64_x# negative_one))
-                        (|> it
-                            (^ (reciprocal +3.0))))))
+                       (-> It
+                           It)
+                       (if (.f64_<# zero it)
+                           (|> it
+                               (.f64_x# negative_one)
+                               (^ (reciprocal +3.0))
+                               (.f64_x# negative_one))
+                           (|> it
+                               (^ (reciprocal +3.0))))))
 
            target.lua
            (these (with_template [,name <method>]
-                    [(the .public ,name
-                       (Change It)
-                       (|>> []
-                            (.lua_of# (.lua_constant# <method>))
-                            (as (-> Any It))))]
-                    
-                    [[exp    "math.exp"]
-                     [log    "math.log"]
-                     
-                     [ceil   "math.ceil"]
-                     [floor  "math.floor"]
+                                 [(the .public ,name
+                                       (Change It)
+                                       (|>> []
+                                            (.lua_of# (.lua_constant# <method>))
+                                            (as (-> Any It))))]
+                                 
+                                 [[exp    "math.exp"]
+                                  [log    "math.log"]
+                                  
+                                  [ceil   "math.ceil"]
+                                  [floor  "math.floor"]
 
-                     [root_2 "math.sqrt"]])
+                                  [root_2 "math.sqrt"]])
                   
                   (the .public (^ param subject)
-                    (-> It It
-                        It)
-                    (.lua_power# param subject))
+                       (-> It It
+                           It)
+                       (.lua_power# param subject))
 
                   (the .public (root_3 it)
-                    (-> It
-                        It)
-                    (if (.f64_<# zero it)
-                        (|> it
-                            (.f64_x# negative_one)
-                            (^ (reciprocal +3.0))
-                            (.f64_x# negative_one))
-                        (|> it
-                            (^ (reciprocal +3.0))))))
+                       (-> It
+                           It)
+                       (if (.f64_<# zero it)
+                           (|> it
+                               (.f64_x# negative_one)
+                               (^ (reciprocal +3.0))
+                               (.f64_x# negative_one))
+                           (|> it
+                               (^ (reciprocal +3.0))))))
 
            target.ruby
            (these (with_template [,name <method>]
-                    [(the .public ,name
-                       (Change It)
-                       (|>> []
-                            (.ruby_of# (.ruby_constant# <method>))
-                            (as (-> Any It))))]
-                    
-                    [[exp    "Math.exp"]
-                     [log    "Math.log"]
-                     
-                     [root_2 "Math.sqrt"]
-                     [root_3 "Math.cbrt"]])
+                                 [(the .public ,name
+                                       (Change It)
+                                       (|>> []
+                                            (.ruby_of# (.ruby_constant# <method>))
+                                            (as (-> Any It))))]
+                                 
+                                 [[exp    "Math.exp"]
+                                  [log    "Math.log"]
+                                  
+                                  [root_2 "Math.sqrt"]
+                                  [root_3 "Math.cbrt"]])
 
                   (with_template [,name <method>]
-                    [(the .public (,name it)
-                       (Change It)
-                       (|> (.ruby_object_do# <method> it [])
-                           (as (-> Any Integer))
-                           (.int_f64#)))]
+                                 [(the .public (,name it)
+                                       (Change It)
+                                       (|> (.ruby_object_do# <method> it [])
+                                           (as (-> Any Integer))
+                                           (.int_f64#)))]
 
-                    [[ceil  "ceil"]
-                     [floor "floor"]])
+                                 [[ceil  "ceil"]
+                                  [floor "floor"]])
 
                   (the .public (^ param subject)
-                    (-> It It
-                        It)
-                    (as (-> Any It)
-                        (.ruby_object_do# "**" subject [param]))))
+                       (-> It It
+                           It)
+                       (as (-> Any It)
+                           (.ruby_object_do# "**" subject [param]))))
 
            target.php
            (these (with_template [,name <method>]
-                    [(the .public ,name
-                       (Change It)
-                       (|>> ("php of" ("php constant" <method>))
-                            (as (-> Any It))))]
-                    
-                    [[exp    "exp"]
-                     [log    "log"]
+                                 [(the .public ,name
+                                       (Change It)
+                                       (|>> ("php of" ("php constant" <method>))
+                                            (as (-> Any It))))]
+                                 
+                                 [[exp    "exp"]
+                                  [log    "log"]
 
-                     [ceil   "ceil"]
-                     [floor  "floor"]
-                     
-                     [root_2 "sqrt"]])
+                                  [ceil   "ceil"]
+                                  [floor  "floor"]
+                                  
+                                  [root_2 "sqrt"]])
 
                   (the .public (^ param subject)
-                    (-> It It
-                        It)
-                    (as (-> Any It)
-                        ("php of" ("php constant" "pow") subject param)))
+                       (-> It It
+                           It)
+                       (as (-> Any It)
+                           ("php of" ("php constant" "pow") subject param)))
 
                   (the .public root_3
-                    (-> It
-                        It)
-                    (^ (reciprocal +3.0))))
+                       (-> It
+                           It)
+                       (^ (reciprocal +3.0))))
            )
 
 (the .public (round it)
-  (-> It
-      It)
-  (let [floored (floor it)
-        diff (.f64_-# floored it)]
-    (if (.f64_<# diff +0.5)
-        (.f64_+# positive_one floored)
-        
-        (.f64_<# -0.5 diff)
-        (.f64_+# negative_one floored)
-        
-        ... else
-        floored)))
+     (-> It
+         It)
+     (let [floored (floor it)
+           diff (.f64_-# floored it)]
+          (if (.f64_<# diff +0.5)
+              (.f64_+# positive_one floored)
+              
+              (.f64_<# -0.5 diff)
+              (.f64_+# negative_one floored)
+              
+              ... else
+              floored)))
 
 (the .public (log_by base it)
-  (-> It It
-      It)
-  (.f64_/# (..log base)
-           (..log it)))
+     (-> It It
+         It)
+     (.f64_/# (..log base)
+              (..log it)))
 
 (the .public (factorial it)
-  (-> Natural
-      Natural)
-  (loop (of [acc 1
-             it it])
-    (if (natural.> 1 it)
-        (of (natural.x it acc) (-- it))
-        acc)))
+     (-> Natural
+         Natural)
+     (loop (of [acc 1
+                it it])
+           (if (natural.> 1 it)
+               (of (natural.x it acc) (-- it))
+               acc)))
 
 (with_template [,name <op>]
-  [(the .public (,name param subject)
-     (-> It It
-         Bit)
-     (<op> param subject))]
+               [(the .public (,name param subject)
+                     (-> It It
+                         Bit)
+                     (<op> param subject))]
 
-  [[= .f64_=#]
-   [< .f64_<#]])
+               [[= .f64_=#]
+                [< .f64_<#]])
 
 (the .public (<= reference it)
-  (-> It It
-      Bit)
-  (or (.f64_<# reference it)
-      (.f64_=# reference it)))
+     (-> It It
+         Bit)
+     (and/or (.f64_<# reference it)
+             (.f64_=# reference it)))
 
 (the .public (> reference it)
-  (-> It It
-      Bit)
-  (.f64_<# it reference))
+     (-> It It
+         Bit)
+     (.f64_<# it reference))
 
 (the .public (>= reference it)
-  (-> It It
-      Bit)
-  (or (.f64_<# it reference)
-      (.f64_=# it reference)))
+     (-> It It
+         Bit)
+     (and/or (.f64_<# it reference)
+             (.f64_=# it reference)))
 
 (with_template [<comparison> ,name]
-  [(the .public ,name
-     (Predicate It)
-     (<comparison> zero))]
+               [(the .public ,name
+                     (Predicate It)
+                     (<comparison> zero))]
 
-  [[..> positive?]
-   [..< negative?]
-   [..= zero?]])
+               [[..> positive?]
+                [..< negative?]
+                [..= zero?]])
 
 ... https://en.wikipedia.org/wiki/Additive_inverse
 (the .public (opposite it)
-  (-> It
-      It)
-  (..- it zero))
+     (-> It
+         It)
+     (..- it zero))
 
 (the .public (absolute it)
-  (-> It
-      It)
-  (if (..< zero it)
-      (..opposite it)
-      it))
+     (-> It
+         It)
+     (if (..< zero it)
+         (..opposite it)
+         it))
 
 (the .public (signum it)
-  (-> It
-      It)
-  (if (..= zero it) zero
-      (..< zero it) negative_one
-      ... else
-      positive_one))
+     (-> It
+         It)
+     (if (..= zero it) zero
+         (..< zero it) negative_one
+         ... else
+         positive_one))
 
 (the min_exponent -1022)
 (the max_exponent (integer.real +1023))
 
 (with_template [,name <test>]
-  [(the .public (,name left right)
-     (-> It It
-         It)
-     (if (<test> right left)
-         left
-         right))]
+               [(the .public (,name left right)
+                     (-> It It
+                         It)
+                     (if (<test> right left)
+                         left
+                         right))]
 
-  [[minor ..<]
-   [major ..>]])
+               [[minor ..<]
+                [major ..>]])
 
 (the .public natural
-  (-> It
-      Natural)
-  (|>> .f64_int# .natural))
+     (-> It
+         Natural)
+     (|>> .f64_int# .natural))
 
 (the .public integer
-  (-> It
-      Integer)
-  (|>> .f64_int#))
+     (-> It
+         Integer)
+     (|>> .f64_int#))
 
 (the size_of_mantissa Natural 52)
 (the size_of_exponent Natural 11)
 
 (the denominator
-  (|> -1
-      (.i64_right# ..size_of_exponent)
-      .int_f64#))
+     (|> -1
+         (.i64_right# ..size_of_exponent)
+         .int_f64#))
 
 (the .public revolution
-  (-> It
-      Revolution)
-  (|>> ..absolute
-       (..% positive_one)
-       (..x ..denominator)
-       .f64_int#
-       (.i64_left# ..size_of_exponent)))
+     (-> It
+         Revolution)
+     (|>> ..absolute
+          (..% positive_one)
+          (..x ..denominator)
+          .f64_int#
+          (.i64_left# ..size_of_exponent)))
 
 (with_template [,name <numerator>]
-  [(the .public ,name
-     It
-     (../ zero <numerator>))]
+               [(the .public ,name
+                     It
+                     (../ zero <numerator>))]
 
-  [[not_a_number      zero]
-   [positive_infinity positive_one]])
+               [[not_a_number      zero]
+                [positive_infinity positive_one]])
 
 (the .public negative_infinity
-  It
-  (..x negative_one ..positive_infinity))
+     It
+     (..x negative_one ..positive_infinity))
 
 (the .public (not_a_number? it)
-  (-> It
-      Bit)
-  (not (..= it it)))
+     (-> It
+         Bit)
+     (not (..= it it)))
 
 (the .public (number? it)
-  (-> It
-      Bit)
-  (not (or (..not_a_number? it)
-           (..= ..positive_infinity it)
-           (..= ..negative_infinity it))))
+     (-> It
+         Bit)
+     (not (and/or (..not_a_number? it)
+                  (..= ..positive_infinity it)
+                  (..= ..negative_infinity it))))
 
 (the .public equality
-  (Equality It)
-  (implementation
-   (the (= left right)
-     (or (..= left right)
-         (and (..not_a_number? left)
-              (..not_a_number? right))))))
+     (Equality It)
+     (implementation
+      (the (= left right)
+           (and/or (..= left right)
+                   (and (..not_a_number? left)
+                        (..not_a_number? right))))))
 
 (the .public order
-  (Order It)
-  (implementation
-   (the equality ..equality)
-   (the < ..<)))
+     (Order It)
+     (implementation
+      (the equality ..equality)
+      (the < ..<)))
 
 (the .public smallest
-  It
-  (^ (integer.real (integer.- (.integer ..size_of_mantissa) ..min_exponent))
-     +2.0))
+     It
+     (^ (integer.real (integer.- (.integer ..size_of_mantissa) ..min_exponent))
+        +2.0))
 
 (the .public biggest
-  It
-  (let [f2^-52 (^ (natural.real (natural.- ..size_of_mantissa 0)) +2.0)
-        f2^+1023 (^ ..max_exponent +2.0)]
-    (|> +2.0
-        (..- f2^-52)
-        (..x f2^+1023))))
+     It
+     (let [f2^-52 (^ (natural.real (natural.- ..size_of_mantissa 0)) +2.0)
+           f2^+1023 (^ ..max_exponent +2.0)]
+          (|> +2.0
+              (..- f2^-52)
+              (..x f2^+1023))))
 
 (with_template [,name ,composite ,identity]
-  [(the .public ,name
-     (Monoid It)
-     (implementation
-      (the identity ,identity)
-      (the composite ,composite)))]
+               [(the .public ,name
+                     (Monoid It)
+                     (implementation
+                      (the identity ,identity)
+                      (the composite ,composite)))]
 
-  [[addition       ..+     zero]
-   [multiplication ..x     positive_one]
-   [minimum        ..minor ..biggest]
-   [maximum        ..major (..x negative_one ..biggest)]])
+               [[addition       ..+     zero]
+                [multiplication ..x     positive_one]
+                [minimum        ..minor ..biggest]
+                [maximum        ..major (..x negative_one ..biggest)]])
 
 ... https://en.wikipedia.org/wiki/Delimiter
 ... https://en.wikipedia.org/wiki/Decimal_separator
 (the .public delimiter
-  ".")
+     ".")
 
 (the .public delimiter_for_exponentiation
-  "e")
+     "e")
 
 (the negative_exponentiation
-  (text ..delimiter_for_exponentiation "-"))
+     (text ..delimiter_for_exponentiation "-"))
 
 (the positive_exponentiation
-  (text ..delimiter_for_exponentiation "+"))
+     (text ..delimiter_for_exponentiation "+"))
 
 (the (base_10:as it)
-  (-> It
-      Text)
-  (target.if target.jvm
-             (|> it
-                 ..!double
-                 ["D"]
-                 (.jvm_member_invoke_static# [] "java.lang.Double" "toString" [])
-                 (as (-> (Nominal "java.lang.String") Text))
-                 (text.replaced "E-" ..negative_exponentiation)
-                 (text.replaced "E" ..positive_exponentiation))
-             
-             target.js
-             (let [raw (as (-> Any Text) (.js_object_do# "toString" it []))]
-               (if (text.contains? ..delimiter raw)
-                   raw
+     (-> It
+         Text)
+     (target.if target.jvm
+                (|> it
+                    ..!double
+                    ["D"]
+                    (.jvm_member_invoke_static# [] "java.lang.Double" "toString" [])
+                    (as (-> (Nominal "java.lang.String") Text))
+                    (text.replaced "E-" ..negative_exponentiation)
+                    (text.replaced "E" ..positive_exponentiation))
+                
+                target.js
+                (let [raw (as (-> Any Text) (.js_object_do# "toString" it []))]
+                     (if (text.contains? ..delimiter raw)
+                         raw
 
-                   (text.contains? ..delimiter_for_exponentiation raw)
-                   (let [exponentiation (if (text.contains? ..negative_exponentiation raw)
-                                            ..delimiter_for_exponentiation
-                                            ..positive_exponentiation)]
-                     (text.replaced ..delimiter_for_exponentiation (text ".0" exponentiation) raw))
+                         (text.contains? ..delimiter_for_exponentiation raw)
+                         (let [exponentiation (if (text.contains? ..negative_exponentiation raw)
+                                                  ..delimiter_for_exponentiation
+                                                  ..positive_exponentiation)]
+                              (text.replaced ..delimiter_for_exponentiation (text ".0" exponentiation) raw))
 
-                   ... else
-                   (.text_composite# raw ".0")))
+                         ... else
+                         (.text_composite# raw ".0")))
 
-             target.lua
-             (as (-> Any Text) (.lua_of# (.lua_constant# "string.format") ["%.17g" it]))
+                target.lua
+                (as (-> Any Text) (.lua_of# (.lua_constant# "string.format") ["%.17g" it]))
 
-             target.python
-             (as (-> Any Text) (.python_of# (.python_constant# "repr") [it]))
+                target.python
+                (as (-> Any Text) (.python_of# (.python_constant# "repr") [it]))
 
-             target.ruby
-             (as (-> Any Text) (.ruby_object_do# "to_s" it []))))
+                target.ruby
+                (as (-> Any Text) (.ruby_object_do# "to_s" it []))))
 
 (the with_projection_error
-  (template:macro
-   (_ ,it)
-   [(when (try ,it)
-      {try.:Failure _}
-      {try.:Failure error.not_valid}
+     (template:macro
+      (_ ,it)
+      [(when (try ,it)
+             {try.:Failure _}
+             {try.:Failure error.not_valid}
 
-      success
-      success)]))
+             success
+             success)]))
 
 (the _expansion:let (.in_module# .prelude .expansion:let))
 
 (the .public base_10
-  (Format Text It)
-  (implementation
-   (the (as it)
-     (when it
-       -0.0 (let [output (base_10:as it)]
-              (if (text.starts_with? "-" output)
-                  output
-                  (.text_composite# "+" output)))
-       _ (if (..< zero it)
-             (base_10:as it)
-             (.text_composite# "+" (base_10:as it)))))
+     (Format Text It)
+     (implementation
+      (the (as it)
+           (when it
+                 -0.0 (let [output (base_10:as it)]
+                           (if (text.starts_with? "-" output)
+                               output
+                               (.text_composite# "+" output)))
+                 _ (if (..< zero it)
+                       (base_10:as it)
+                       (.text_composite# "+" (base_10:as it)))))
 
-   (the (of it)
-     (target.if target.jvm
-                (|> it
-                    (as (-> Text (Nominal "java.lang.String")))
-                    .jvm_object_cast#
-                    ["Ljava/lang/String;"]
-                    (.jvm_member_invoke_static# [] "java.lang.Double" "parseDouble" [])
-                    ..!real
-                    with_projection_error)
+      (the (of it)
+           (target.if target.jvm
+                      (|> it
+                          (as (-> Text (Nominal "java.lang.String")))
+                          .jvm_object_cast#
+                          ["Ljava/lang/String;"]
+                          (.jvm_member_invoke_static# [] "java.lang.Double" "parseDouble" [])
+                          ..!real
+                          with_projection_error)
 
-                target.js
-                (|> (.js_of# (.js_constant# "parseFloat") [it])
-                    (as (-> Any It))
-                    with_projection_error)
+                      target.js
+                      (|> (.js_of# (.js_constant# "parseFloat") [it])
+                          (as (-> Any It))
+                          with_projection_error)
 
-                target.lua
-                (|> (.lua_of# (.lua_constant# "tonumber") [it])
-                    (as (-> Any It))
-                    with_projection_error)
+                      target.lua
+                      (|> (.lua_of# (.lua_constant# "tonumber") [it])
+                          (as (-> Any It))
+                          with_projection_error)
 
-                target.python
-                (|> (.python_of# (.python_constant# "float") [it])
-                    (as (-> Any It))
-                    with_projection_error)
+                      target.python
+                      (|> (.python_of# (.python_constant# "float") [it])
+                          (as (-> Any It))
+                          with_projection_error)
 
-                target.ruby
-                (let [projection (as (-> Any It) (.ruby_object_do# "to_f" it []))]
-                  (<| (_expansion:let [,success {try.:Success projection}])
-                      (if (..= zero projection)
-                          (when it
-                            "0" ,success
-                            "+0" ,success
-                            "-0" ,success
-                            
-                            ".0" ,success
-                            "+.0" ,success
-                            "-.0" ,success
-                            
-                            "0.0" ,success
-                            "+0.0" ,success
-                            "-0.0" ,success
+                      target.ruby
+                      (let [projection (as (-> Any It) (.ruby_object_do# "to_f" it []))]
+                           (<| (_expansion:let [,success {try.:Success projection}])
+                               (if (..= zero projection)
+                                   (when it
+                                         "0" ,success
+                                         "+0" ,success
+                                         "-0" ,success
+                                         
+                                         ".0" ,success
+                                         "+.0" ,success
+                                         "-.0" ,success
+                                         
+                                         "0.0" ,success
+                                         "+0.0" ,success
+                                         "-0.0" ,success
 
-                            else
-                            {try.:Failure error.not_valid})
-                          ,success)))))))
+                                         else
+                                         {try.:Failure error.not_valid})
+                                   ,success)))))))
 
 (the log/2
-  (Change It)
-  (let [base (..log +2.0)]
-    (|>> ..log
-         (../ base))))
+     (Change It)
+     (let [base (..log +2.0)]
+          (|>> ..log
+               (../ base))))
 
 (the bias_of_exponent Natural 1023)
 
@@ -573,267 +573,267 @@
 (the offset_of_sign (natural.+ ..size_of_exponent ..offset_of_exponent))
 
 (with_template [<cast> <hex> ,name]
-  [(the ,name
-     (|> <hex>
-         (by natural.base_16 of)
-         try.trusted
-         <cast>))]
+               [(the ,name
+                     (|> <hex>
+                         (by natural.base_16 of)
+                         try.trusted
+                         <cast>))]
 
-  [[.i64 "FFF8000000000000" bits_of_not_a_number]
-   [.i64 "7FF0000000000000" bits_of_positive_infinity]
-   [.i64 "FFF0000000000000" bits_of_negative_infinity]
-   [.i64 "0000000000000000" bits_of_positive_zero]
-   [.i64 "8000000000000000" bits_of_negative_zero]
-   [.natural "7FF" bits_of_special_exponent]])
+               [[.i64 "FFF8000000000000" bits_of_not_a_number]
+                [.i64 "7FF0000000000000" bits_of_positive_infinity]
+                [.i64 "FFF0000000000000" bits_of_negative_infinity]
+                [.i64 "0000000000000000" bits_of_positive_zero]
+                [.i64 "8000000000000000" bits_of_negative_zero]
+                [.natural "7FF" bits_of_special_exponent]])
 
 (the .public (bits it)
-  (-> It
-      I64)
-  (.i64 (if (..not_a_number? it)
-            ..bits_of_not_a_number
+     (-> It
+         I64)
+     (.i64 (if (..not_a_number? it)
+               ..bits_of_not_a_number
 
-            (..= positive_infinity it)
-            ..bits_of_positive_infinity
+               (..= positive_infinity it)
+               ..bits_of_positive_infinity
 
-            (..= negative_infinity it)
-            ..bits_of_negative_infinity
+               (..= negative_infinity it)
+               ..bits_of_negative_infinity
 
-            (..= zero it)
-            (if (..= positive_infinity (reciprocal it))
-                ... Positive zero
-                ..bits_of_positive_zero
-                ... Negative zero
-                ..bits_of_negative_zero)
+               (..= zero it)
+               (if (..= positive_infinity (reciprocal it))
+                   ... Positive zero
+                   ..bits_of_positive_zero
+                   ... Negative zero
+                   ..bits_of_negative_zero)
 
-            ... else
-            (let [sign_bit (if (..< zero it)
-                               1
-                               0)
-                  it (..absolute it)
-                  exponent (|> it
-                               ..log/2
-                               ..floor
-                               (..minor ..max_exponent))
-                  min_gap (..- (integer.real ..min_exponent) exponent)
-                  power (|> (natural.real ..size_of_mantissa)
-                            (..+ (..minor zero min_gap))
-                            (..- exponent))
-                  max_gap (..- ..max_exponent power)
-                  mantissa (|> it
-                               (..x (^ (..minor ..max_exponent power) +2.0))
-                               (..x (if (..> zero max_gap)
-                                        (^ max_gap +2.0)
-                                        positive_one)))
-                  exponent_bits (|> (if (..< zero min_gap)
-                                        (|> (..integer exponent)
-                                            (integer.- (..integer min_gap))
-                                            --)
-                                        (..integer exponent))
-                                    (integer.+ (.integer ..bias_of_exponent))
-                                    (/64.and ..mask_of_exponent))
-                  mantissa_bits (..integer mantissa)]
-              (all /64.or
-                   (/64.<< ..offset_of_sign sign_bit)
-                   (/64.<< ..offset_of_exponent exponent_bits)
-                   (/64.zero ..size_of_mantissa mantissa_bits)))
-            )))
+               ... else
+               (let [sign_bit (if (..< zero it)
+                                  1
+                                  0)
+                     it (..absolute it)
+                     exponent (|> it
+                                  ..log/2
+                                  ..floor
+                                  (..minor ..max_exponent))
+                     min_gap (..- (integer.real ..min_exponent) exponent)
+                     power (|> (natural.real ..size_of_mantissa)
+                               (..+ (..minor zero min_gap))
+                               (..- exponent))
+                     max_gap (..- ..max_exponent power)
+                     mantissa (|> it
+                                  (..x (^ (..minor ..max_exponent power) +2.0))
+                                  (..x (if (..> zero max_gap)
+                                           (^ max_gap +2.0)
+                                           positive_one)))
+                     exponent_bits (|> (if (..< zero min_gap)
+                                           (|> (..integer exponent)
+                                               (integer.- (..integer min_gap))
+                                               --)
+                                           (..integer exponent))
+                                       (integer.+ (.integer ..bias_of_exponent))
+                                       (/64.and ..mask_of_exponent))
+                     mantissa_bits (..integer mantissa)]
+                    (all /64.and/or
+                         (/64.<< ..offset_of_sign sign_bit)
+                         (/64.<< ..offset_of_exponent exponent_bits)
+                         (/64.zero ..size_of_mantissa mantissa_bits)))
+               )))
 
 (with_template [<getter> <size> <offset>]
-  [(the <getter>
-     (Change I64)
-     (let [mask (|> 1 (/64.<< <size>) -- (/64.<< <offset>))]
-       (|>> (/64.and mask) (/64.>> <offset>) .i64)))]
+               [(the <getter>
+                     (Change I64)
+                     (let [mask (|> 1 (/64.<< <size>) -- (/64.<< <offset>))]
+                          (|>> (/64.and mask) (/64.>> <offset>) .i64)))]
 
-  [[mantissa ..size_of_mantissa 0]
-   [exponent ..size_of_exponent ..size_of_mantissa]
-   [sign     1                  ..offset_of_sign]])
+               [[mantissa ..size_of_mantissa 0]
+                [exponent ..size_of_exponent ..size_of_mantissa]
+                [sign     1                  ..offset_of_sign]])
 
 (the .public (of_bits it)
-  (-> I64
-      It)
-  (when [(is Natural (..exponent it))
-         (is Natural (..mantissa it))
-         (is Natural (..sign it))]
-    [..bits_of_special_exponent 0 0]
-    ..positive_infinity
+     (-> I64
+         It)
+     (when [(is Natural (..exponent it))
+            (is Natural (..mantissa it))
+            (is Natural (..sign it))]
+           [..bits_of_special_exponent 0 0]
+           ..positive_infinity
 
-    [..bits_of_special_exponent 0 1]
-    ..negative_infinity
+           [..bits_of_special_exponent 0 1]
+           ..negative_infinity
 
-    [..bits_of_special_exponent _ _]
-    ..not_a_number
+           [..bits_of_special_exponent _ _]
+           ..not_a_number
 
-    ... Positive zero
-    [0 0 0] zero
-    ... Negative zero
-    [0 0 1] (..x negative_one zero)
+           ... Positive zero
+           [0 0 0] zero
+           ... Negative zero
+           [0 0 1] (..x negative_one zero)
 
-    [E M S]
-    (let [sign (if (natural.= 0 S)
-                   positive_one
-                   negative_one)
-          [mantissa power] (if (natural.< ..size_of_mantissa E)
-                               [(if (natural.= 0 E)
-                                    M
-                                    (/64.one ..size_of_mantissa M))
-                                (|> E
-                                    (natural.- ..bias_of_exponent)
-                                    .integer
-                                    (integer.major ..min_exponent)
-                                    (integer.- (.integer ..size_of_mantissa)))]
-                               [(/64.one ..size_of_mantissa M)
-                                (|> E (natural.- ..bias_of_exponent) (natural.- ..size_of_mantissa) .integer)])
-          exponent (^ (integer.real power) +2.0)]
-      (|> (natural.real mantissa)
-          (..x exponent)
-          (..x sign)))))
+           [E M S]
+           (let [sign (if (natural.= 0 S)
+                          positive_one
+                          negative_one)
+                 [mantissa power] (if (natural.< ..size_of_mantissa E)
+                                      [(if (natural.= 0 E)
+                                           M
+                                           (/64.one ..size_of_mantissa M))
+                                       (|> E
+                                           (natural.- ..bias_of_exponent)
+                                           .integer
+                                           (integer.major ..min_exponent)
+                                           (integer.- (.integer ..size_of_mantissa)))]
+                                      [(/64.one ..size_of_mantissa M)
+                                       (|> E (natural.- ..bias_of_exponent) (natural.- ..size_of_mantissa) .integer)])
+                 exponent (^ (integer.real power) +2.0)]
+                (|> (natural.real mantissa)
+                    (..x exponent)
+                    (..x sign)))))
 
 (`` (the (representation_exponent format representation)
-      (-> (Format Text Natural) Text
-          (Try [Text Integer]))
-      (when [(.text_index# 0 "e+" representation)
-             (.text_index# 0 "E+" representation)
-             (.text_index# 0 "e-" representation)
-             (.text_index# 0 "E-" representation)]
-        (,, (with_template [<factor> <pattern>]
-              [<pattern>
-               (monad.let try.monad
-                 [.let [after_offset (natural.+ 2 split_index)
-                        after_length (natural.- after_offset (.text_size# representation))]
-                  exponent (|> representation
-                               (.text_clip# after_offset after_length)
-                               (by format of))]
-                 (pure [(.text_clip# 0 split_index representation)
-                        (integer.x <factor> (.integer exponent))]))]
+         (-> (Format Text Natural) Text
+             (Try [Text Integer]))
+         (when [(.text_index# 0 "e+" representation)
+                (.text_index# 0 "E+" representation)
+                (.text_index# 0 "e-" representation)
+                (.text_index# 0 "E-" representation)]
+               (,, (with_template [<factor> <pattern>]
+                                  [<pattern>
+                                   (monad.let try.monad
+                                              [.let [after_offset (natural.+ 2 split_index)
+                                                     after_length (natural.- after_offset (.text_size# representation))]
+                                               exponent (|> representation
+                                                            (.text_clip# after_offset after_length)
+                                                            (by format of))]
+                                              (pure [(.text_clip# 0 split_index representation)
+                                                     (integer.x <factor> (.integer exponent))]))]
 
-              [[+1 [{.:Some split_index} {.:None} {.:None} {.:None}]]
-               [+1 [{.:None} {.:Some split_index} {.:None} {.:None}]]
+                                  [[+1 [{.:Some split_index} {.:None} {.:None} {.:None}]]
+                                   [+1 [{.:None} {.:Some split_index} {.:None} {.:None}]]
+                                   
+                                   [-1 [{.:None} {.:None} {.:Some split_index} {.:None}]]
+                                   [-1 [{.:None} {.:None} {.:None} {.:Some split_index}]]]))
                
-               [-1 [{.:None} {.:None} {.:Some split_index} {.:None}]]
-               [-1 [{.:None} {.:None} {.:None} {.:Some split_index}]]]))
-        
-        _
-        {try.:Success [representation +0]})))
+               _
+               {try.:Success [representation +0]})))
 
 (with_template [<struct> <natural> <integer>]
-  [(the .public <struct>
-     (Format Text It)
-     (implementation
-      (the (as value)
-        (let [bits (..bits value)
-              mantissa (..mantissa bits)
-              exponent (integer.- (.integer ..bias_of_exponent) (..exponent bits))
-              sign (..sign bits)]
-          (.text_composite# (when (.natural sign)
-                              1 "-"
-                              0 "+"
-                              _ (undefined))
-                            (by <natural> as (.natural mantissa))
-                            ..delimiter "0" ..delimiter_for_exponentiation
-                            (by <integer> as exponent))))
+               [(the .public <struct>
+                     (Format Text It)
+                     (implementation
+                      (the (as value)
+                           (let [bits (..bits value)
+                                 mantissa (..mantissa bits)
+                                 exponent (integer.- (.integer ..bias_of_exponent) (..exponent bits))
+                                 sign (..sign bits)]
+                                (.text_composite# (when (.natural sign)
+                                                        1 "-"
+                                                        0 "+"
+                                                        _ (undefined))
+                                                  (by <natural> as (.natural mantissa))
+                                                  ..delimiter "0" ..delimiter_for_exponentiation
+                                                  (by <integer> as exponent))))
 
-      (the (of representation)
-        (let [negative? (text.starts_with? "-" representation)
-              positive? (text.starts_with? "+" representation)]
-          (if (or negative? positive?)
-              (monad.let [! try.monad]
-                [[mantissa exponent] (..representation_exponent <natural> representation)
-                 [whole real] (when (.text_index# 0 ..delimiter mantissa)
-                                {.:Some split_index}
-                                (monad.let !
-                                  [.let [after_offset (++ split_index)
-                                         after_length (natural.- after_offset (.text_size# mantissa))]
-                                   real (|> mantissa
-                                            (.text_clip# after_offset after_length)
-                                            (by <natural> of))]
-                                  (pure [(.text_clip# 0 split_index mantissa)
-                                         real]))
+                      (the (of representation)
+                           (let [negative? (text.starts_with? "-" representation)
+                                 positive? (text.starts_with? "+" representation)]
+                                (if (and/or negative? positive?)
+                                    (monad.let [! try.monad]
+                                               [[mantissa exponent] (..representation_exponent <natural> representation)
+                                                [whole real] (when (.text_index# 0 ..delimiter mantissa)
+                                                                   {.:Some split_index}
+                                                                   (monad.let !
+                                                                              [.let [after_offset (++ split_index)
+                                                                                     after_length (natural.- after_offset (.text_size# mantissa))]
+                                                                               real (|> mantissa
+                                                                                        (.text_clip# after_offset after_length)
+                                                                                        (by <natural> of))]
+                                                                              (pure [(.text_clip# 0 split_index mantissa)
+                                                                                     real]))
 
-                                {.:None}
-                                {try.:Failure error.not_valid})
-                 .let [whole (.text_clip# 1 (-- (.text_size# whole)) whole)]
-                 mantissa (by <natural> of (when real
-                                             0 whole
-                                             _ (.text_composite# whole (by <natural> as real))))
-                 .let [sign (if negative? 1 0)]]
-                (pure (..of_bits
-                       (all /64.or
-                            (/64.<< ..offset_of_sign (.i64 sign))
-                            (/64.<< ..size_of_mantissa (.i64 (integer.+ (.integer ..bias_of_exponent) exponent)))
-                            (/64.zero ..size_of_mantissa (.i64 mantissa))))))
-              {try.:Failure error.not_valid})))))]
+                                                                   {.:None}
+                                                                   {try.:Failure error.not_valid})
+                                                .let [whole (.text_clip# 1 (-- (.text_size# whole)) whole)]
+                                                mantissa (by <natural> of (when real
+                                                                                0 whole
+                                                                                _ (.text_composite# whole (by <natural> as real))))
+                                                .let [sign (if negative? 1 0)]]
+                                               (pure (..of_bits
+                                                      (all /64.and/or
+                                                           (/64.<< ..offset_of_sign (.i64 sign))
+                                                           (/64.<< ..size_of_mantissa (.i64 (integer.+ (.integer ..bias_of_exponent) exponent)))
+                                                           (/64.zero ..size_of_mantissa (.i64 mantissa))))))
+                                    {try.:Failure error.not_valid})))))]
 
-  [[base_02 natural.base_02 integer.base_02]
-   [base_08 natural.base_08 integer.base_08]
-   [base_16 natural.base_16 integer.base_16]])
+               [[base_02 natural.base_02 integer.base_02]
+                [base_08 natural.base_08 integer.base_08]
+                [base_16 natural.base_16 integer.base_16]])
 
 (the .public hash
-  (Hash It)
-  (implementation
-   (the equality ..equality)
-   (the hash ..bits)))
+     (Hash It)
+     (implementation
+      (the equality ..equality)
+      (the hash ..bits)))
 
 (the .public (approximately? margin_of_error standard value)
-  (-> It It It
-      Bit)
-  (|> value
-      (..- standard)
-      ..absolute
-      (..<= margin_of_error)))
+     (-> It It It
+         Bit)
+     (|> value
+         (..- standard)
+         ..absolute
+         (..<= margin_of_error)))
 
 ... https://en.wikipedia.org/wiki/Modulo
 ... https://rob.conery.io/2018/08/21/mod-and-remainder-are-not-the-same/
 (the .public (modulo divisor dividend)
-  (-> It
-      (Change It))
-  (let [remainder (..% divisor dividend)]
-    (if (or (and (..< zero divisor)
-                 (..> zero remainder))
-            (and (..> zero divisor)
-                 (..< zero remainder)))
-        (..+ divisor remainder)
-        remainder)))
+     (-> It
+         (Change It))
+     (let [remainder (..% divisor dividend)]
+          (if (and/or (and (..< zero divisor)
+                           (..> zero remainder))
+                      (and (..> zero divisor)
+                           (..< zero remainder)))
+              (..+ divisor remainder)
+              remainder)))
 
 (with_template [<format> <as> <of> ,unit]
-  [(the .public <as>
-     (Change It)
-     (x (natural.real (its unit.:factor ,unit))))
-   
-   (the .public <of>
-     (Change It)
-     (/ (natural.real (its unit.:factor ,unit))))
-   
-   (the .public <format>
-     (Format Text It)
-     (let [suffix (its unit.:suffix ,unit)]
-       (implementation
-        (the as
-          (|>> <as>
-               (by ..base_10 as)
-               (text.suffix suffix)))
+               [(the .public <as>
+                     (Change It)
+                     (x (natural.real (its unit.:factor ,unit))))
+                
+                (the .public <of>
+                     (Change It)
+                     (/ (natural.real (its unit.:factor ,unit))))
+                
+                (the .public <format>
+                     (Format Text It)
+                     (let [suffix (its unit.:suffix ,unit)]
+                          (implementation
+                           (the as
+                                (|>> <as>
+                                     (by ..base_10 as)
+                                     (text.suffix suffix)))
 
-        (the (of it)
-          (when (text.split_by suffix it)
-            {.:Some [it ""]}
-            (|> it
-                (by ..base_10 of)
-                (try:each <of>))
-            
-            _
-            {try.:Failure error.not_valid})))))]
+                           (the (of it)
+                                (when (text.split_by suffix it)
+                                      {.:Some [it ""]}
+                                      (|> it
+                                          (by ..base_10 of)
+                                          (try:each <of>))
+                                      
+                                      _
+                                      {try.:Failure error.not_valid})))))]
 
-  [[degree as_degree of_degree unit.degree]
-   [gradian as_gradian of_gradian unit.gradian]
-   [per_cent as_per_cent of_per_cent unit.per_cent]
-   [per_mille as_per_mille of_per_mille unit.per_mille]
-   [per_myriad as_per_myriad of_per_myriad unit.per_myriad]])
+               [[degree as_degree of_degree unit.degree]
+                [gradian as_gradian of_gradian unit.gradian]
+                [per_cent as_per_cent of_per_cent unit.per_cent]
+                [per_mille as_per_mille of_per_mille unit.per_mille]
+                [per_myriad as_per_myriad of_per_myriad unit.per_myriad]])
 
 (the .public (whole it)
-  (Change It)
-  (if (< zero it)
-      (..ceil it)
-      (..floor it)))
+     (Change It)
+     (if (< zero it)
+         (..ceil it)
+         (..floor it)))
 
 (the .public partial
-  (Change It)
-  (..% positive_one))
+     (Change It)
+     (..% positive_one))

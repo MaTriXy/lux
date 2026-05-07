@@ -22,318 +22,318 @@
 (the with_template (.in_module# .prelude .with_template))
 
 (the .public Number
-  .Integer)
+     .Integer)
 
 (the It
-  ..Number)
+     ..Number)
 
 (with_template [,value ,name]
-  [(the .public ,name
-     It
-     ,value)]
+               [(the .public ,name
+                     It
+                     ,value)]
 
-  [[+0 zero]
-   [+1 positive_one]
-   [-1 negative_one]])
+               [[+0 zero]
+                [+1 positive_one]
+                [-1 negative_one]])
 
 (with_template [<name> <op>]
-  [(the .public (<name> param subject)
-     (-> It It
-         Bit)
-     (<op> param subject))]
+               [(the .public (<name> param subject)
+                     (-> It It
+                         Bit)
+                     (<op> param subject))]
 
-  [[= .i64_=#]
-   [< .int_<#]])
+               [[= .i64_=#]
+                [< .int_<#]])
 
 (the .public (<= reference it)
-  (-> It It
-      Bit)
-  (if (.int_<# reference it)
-      true
-      (.i64_=# reference it)))
+     (-> It It
+         Bit)
+     (if (.int_<# reference it)
+         true
+         (.i64_=# reference it)))
 
 (the .public (> reference it)
-  (-> It It
-      Bit)
-  (.int_<# it reference))
+     (-> It It
+         Bit)
+     (.int_<# it reference))
 
 (the .public (>= reference it)
-  (-> It It
-      Bit)
-  (if (.int_<# it reference)
-      true
-      (.i64_=# reference it)))
+     (-> It It
+         Bit)
+     (if (.int_<# it reference)
+         true
+         (.i64_=# reference it)))
 
 (with_template [<comparison> <name>]
-  [(the .public <name>
-     (Predicate It)
-     (<comparison> +0))]
+               [(the .public <name>
+                     (Predicate It)
+                     (<comparison> +0))]
 
-  [[..> positive?]
-   [..< negative?]
-   [..= zero?]])
+               [[..> positive?]
+                [..< negative?]
+                [..= zero?]])
 
 (with_template [<name> <test>]
-  [(the .public (<name> left right)
-     (-> It It
-         It)
-     (if (<test> right left)
-         left
-         right))]
+               [(the .public (<name> left right)
+                     (-> It It
+                         It)
+                     (if (<test> right left)
+                         left
+                         right))]
 
-  [[minor ..<]
-   [major ..>]])
+               [[minor ..<]
+                [major ..>]])
 
 (with_template [<name> <op>]
-  [(the .public (<name> param subject)
-     (-> It It
-         It)
-     (<op> param subject))]
+               [(the .public (<name> param subject)
+                     (-> It It
+                         It)
+                     (<op> param subject))]
 
-  [[+ .i64_+#]
-   [- .i64_-#]
-   [x .int_x#]
-   [/ .int_/#]
-   [% .int_%#]])
+               [[+ .i64_+#]
+                [- .i64_-#]
+                [x .int_x#]
+                [/ .int_/#]
+                [% .int_%#]])
 
 (the .public (/% param subject)
-  (-> It It
-      [It It])
-  [(../ param subject)
-   (..% param subject)])
+     (-> It It
+         [It It])
+     [(../ param subject)
+      (..% param subject)])
 
 ... https://en.wikipedia.org/wiki/Exponentiation
 ... https://en.wikipedia.org/wiki/Exponentiation_by_squaring
 (the .public (^ power base)
-  (-> //natural.Exponent
-      (Change It))
-  (loop (^ [power power
-            base base
-            it +1])
-    (if (.i64_=# 0 power)
-        it
-        (^ (.i64_right# 1 power)
-           (.int_x# base base)
-           (if (.i64_=# 1 (.i64_and# 1 power))
-               (.int_x# base it)
-               it)))))
+     (-> //natural.Exponent
+         (Change It))
+     (loop (^ [power power
+               base base
+               it +1])
+           (if (.i64_=# 0 power)
+               it
+               (^ (.i64_right# 1 power)
+                  (.int_x# base base)
+                  (if (.i64_=# 1 (.i64_and# 1 power))
+                      (.int_x# base it)
+                      it)))))
 
 (the .public (opposite it)
-  (Change It)
-  (..- it ..zero))
+     (Change It)
+     (..- it ..zero))
 
 (the .public (absolute it)
-  (Change It)
-  (if (..< +0 it)
-      (..opposite it)
-      it))
+     (Change It)
+     (if (..< +0 it)
+         (..opposite it)
+         it))
 
 (the .public (signum it)
-  (Change It)
-  (if (..= +0 it) +0
-      (..< +0 it) -1
-      ... else
-      +1))
+     (Change It)
+     (if (..= +0 it) +0
+         (..< +0 it) -1
+         ... else
+         +1))
 
 ... https://en.wikipedia.org/wiki/Modulo
 ... https://rob.conery.io/2018/08/21/mod-and-remainder-are-not-the-same/
 (the .public (modulo divisor dividend)
-  (-> It It
-      It)
-  (let [remainder (..% divisor dividend)]
-    (if (or (and (..< +0 divisor)
-                 (..> +0 remainder))
-            (and (..> +0 divisor)
-                 (..< +0 remainder)))
-        (..+ divisor remainder)
-        remainder)))
+     (-> It It
+         It)
+     (let [remainder (..% divisor dividend)]
+          (if (and/or (and (..< +0 divisor)
+                           (..> +0 remainder))
+                      (and (..> +0 divisor)
+                           (..< +0 remainder)))
+              (..+ divisor remainder)
+              remainder)))
 
 (the .public even?
-  (Predicate It)
-  (|>> (..% +2)
-       (.i64_=# +0)))
+     (Predicate It)
+     (|>> (..% +2)
+          (.i64_=# +0)))
 
 (the .public odd?
-  (Predicate It)
-  (|>> ..even?
-       not))
+     (Predicate It)
+     (|>> ..even?
+          not))
 
 ... https://en.wikipedia.org/wiki/Greatest_common_divisor
 (the .public (greatest_common_divisor a b)
-  (-> It It
-      It)
-  (.integer (//natural.greatest_common_divisor (.natural (..absolute a))
-                                               (.natural (..absolute b)))))
+     (-> It It
+         It)
+     (.integer (//natural.greatest_common_divisor (.natural (..absolute a))
+                                                  (.natural (..absolute b)))))
 
 (alias [gcd]
        ..greatest_common_divisor)
 
 ... https://en.wikipedia.org/wiki/Coprime_integers
 (the .public (co_prime? a b)
-  (-> It
-      (Predicate It))
-  (..= +1 (..greatest_common_divisor a b)))
+     (-> It
+         (Predicate It))
+     (..= +1 (..greatest_common_divisor a b)))
 
 ... https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm
 (the .public (extended_greatest_common_divisor a b)
-  (-> It It
-      [[It It] It])
-  (loop (extended_greatest_common_divisor [x +1 x1 +0
-                                           y +0 y1 +1
-                                           a1 (..absolute a) b1 (..absolute b)])
-    (when b1
-      +0 [[x y] a1]
-      _ (let [q (/ b1 a1)]
-          (extended_greatest_common_divisor x1 (- (..x q x1) x)
-                                            y1 (- (..x q y1) y)
-                                            b1 (- (..x q b1) a1))))))
+     (-> It It
+         [[It It] It])
+     (loop (extended_greatest_common_divisor [x +1 x1 +0
+                                              y +0 y1 +1
+                                              a1 (..absolute a) b1 (..absolute b)])
+           (when b1
+                 +0 [[x y] a1]
+                 _ (let [q (/ b1 a1)]
+                        (extended_greatest_common_divisor x1 (- (..x q x1) x)
+                                                          y1 (- (..x q y1) y)
+                                                          b1 (- (..x q b1) a1))))))
 
 ... https://en.wikipedia.org/wiki/Least_common_multiple
 (`` (the .public (least_common_multiple a b)
-      (-> It It
-          It)
-      (when [a b]
-        (,, (with_template [<pattern>]
-              [<pattern>
-               +0]
+         (-> It It
+             It)
+         (when [a b]
+               (,, (with_template [<pattern>]
+                                  [<pattern>
+                                   +0]
 
-              [[[_ +0]]
-               [[+0 _]]]))
+                                  [[[_ +0]]
+                                   [[+0 _]]]))
 
-        _
-        (/ (greatest_common_divisor a b)
-           (x a b)))))
+               _
+               (/ (greatest_common_divisor a b)
+                  (x a b)))))
 
 (alias [lcm]
        ..least_common_multiple)
 
 (the .public real
-  (-> It
-      Real)
-  (|>> .int_f64#))
+     (-> It
+         Real)
+     (|>> .int_f64#))
 
 (the .public equality
-  (Equality It)
-  (implementation
-   (the = ..=)))
+     (Equality It)
+     (implementation
+      (the = ..=)))
 
 (the .public order
-  (Order It)
-  (implementation
-   (the equality ..equality)
-   (the < ..<)))
+     (Order It)
+     (implementation
+      (the equality ..equality)
+      (the < ..<)))
 
 (the .public enum
-  (Enum It)
-  (implementation
-   (the order ..order)
-   (the succ ++)
-   (the pred --)))
+     (Enum It)
+     (implementation
+      (the order ..order)
+      (the succ ++)
+      (the pred --)))
 
 ... TODO: Find out why the numeric literals fail during JS compilation.
 (the .public interval
-  (Interval It)
-  (implementation
-   (the enum ..enum)
-   (the maximum
-     ... +9,223,372,036,854,775,807
-     (let [half (/64.<< 62 +1)]
-       (+ half
-          (-- half))))
-   (the minimum
-     ... -9,223,372,036,854,775,808
-     (/64.<< 63 +1))))
+     (Interval It)
+     (implementation
+      (the enum ..enum)
+      (the maximum
+           ... +9,223,372,036,854,775,807
+           (let [half (/64.<< 62 +1)]
+                (+ half
+                   (-- half))))
+      (the minimum
+           ... -9,223,372,036,854,775,808
+           (/64.<< 63 +1))))
 
 (with_template [<name> <composite> <identity>]
-  [(the .public <name>
-     (Monoid It)
-     (implementation
-      (the identity <identity>)
-      (the composite <composite>)))]
+               [(the .public <name>
+                     (Monoid It)
+                     (implementation
+                      (the identity <identity>)
+                      (the composite <composite>)))]
 
-  [[addition       ..+   +0]
-   [multiplication ..x   +1]
-   [maximum        ..major (by ..interval minimum)]
-   [minimum        ..minor (by ..interval maximum)]])
+               [[addition       ..+   +0]
+                [multiplication ..x   +1]
+                [maximum        ..major (by ..interval minimum)]
+                [minimum        ..minor (by ..interval maximum)]])
 
 (with_template [,character ,signum]
-  [(the ,character
-     (signum.as_text ,signum))]
+               [(the ,character
+                     (signum.as_text ,signum))]
 
-  [[+sign signum.positive]
-   [-sign signum.negative]])
+               [[+sign signum.positive]
+                [-sign signum.negative]])
 
 (with_template [<struct> <format>]
-  [(the .public <struct>
-     (Format Text It)
-     (implementation
-      (the (as value)
-        (if (..< +0 value)
-            (|> value ++ ..opposite .natural ++ (by <format> as) (.text_composite# ..-sign))
-            (|> value .natural (by <format> as) (.text_composite# ..+sign))))
+               [(the .public <struct>
+                     (Format Text It)
+                     (implementation
+                      (the (as value)
+                           (if (..< +0 value)
+                               (|> value ++ ..opposite .natural ++ (by <format> as) (.text_composite# ..-sign))
+                               (|> value .natural (by <format> as) (.text_composite# ..+sign))))
 
-      (the (of repr)
-        (let [input_size (.text_size# repr)]
-          (if (//natural.> 1 input_size)
-              (when (.text_clip# 0 1 repr)
-                ..+sign
-                (|> repr
-                    (.text_clip# 1 (-- input_size))
-                    (by <format> of)
-                    (by try.functor each (|>> .integer)))
-                
-                ..-sign
-                (|> repr
-                    (.text_clip# 1 (-- input_size))
-                    (by <format> of)
-                    (by try.functor each (|>> -- .integer ..opposite --)))
-                
-                _
-                {try.:Failure error.not_valid})
-              {try.:Failure error.not_valid})))))]
+                      (the (of repr)
+                           (let [input_size (.text_size# repr)]
+                                (if (//natural.> 1 input_size)
+                                    (when (.text_clip# 0 1 repr)
+                                          ..+sign
+                                          (|> repr
+                                              (.text_clip# 1 (-- input_size))
+                                              (by <format> of)
+                                              (by try.functor each (|>> .integer)))
+                                          
+                                          ..-sign
+                                          (|> repr
+                                              (.text_clip# 1 (-- input_size))
+                                              (by <format> of)
+                                              (by try.functor each (|>> -- .integer ..opposite --)))
+                                          
+                                          _
+                                          {try.:Failure error.not_valid})
+                                    {try.:Failure error.not_valid})))))]
 
-  [[base_02 //natural.base_02]
-   [base_08 //natural.base_08]
-   [base_10 //natural.base_10]
-   [base_16 //natural.base_16]])
+               [[base_02 //natural.base_02]
+                [base_08 //natural.base_08]
+                [base_10 //natural.base_10]
+                [base_16 //natural.base_16]])
 
 (the .public hash
-  (Hash It)
-  (implementation
-   (the equality ..equality)
-   (the hash (|>> .natural))))
+     (Hash It)
+     (implementation
+      (the equality ..equality)
+      (the hash (|>> .natural))))
 
 (the _expansion:let (.in_module# .prelude .expansion:let))
 
 (the .public (>> parameter subject)
-  (-> Natural It
-      It)
-  (<| (_expansion:let [<positive> (/64.>> parameter subject)])
-      (if (< +0 subject)
-          (|> +1
-              (/64.<< parameter)
-              --
-              (/64.<< (//natural.- parameter /64.width))
-              (/64.or <positive>))
-          <positive>)))
+     (-> Natural It
+         It)
+     (<| (_expansion:let [<positive> (/64.>> parameter subject)])
+         (if (< +0 subject)
+             (|> +1
+                 (/64.<< parameter)
+                 --
+                 (/64.<< (//natural.- parameter /64.width))
+                 (/64.and/or <positive>))
+             <positive>)))
 
 (the .public (multiple? reference it)
-  (-> It
-      (Predicate It))
-  (|> it
-      (% reference)
-      (.i64_=# +0)))
+     (-> It
+         (Predicate It))
+     (|> it
+         (% reference)
+         (.i64_=# +0)))
 
 (the .public (divisor? reference it)
-  (-> It
-      (Predicate It))
-  (multiple? it reference))
+     (-> It
+         (Predicate It))
+     (multiple? it reference))
 
 (the .public infinity
-  It
-  (.i64_left# 63 +1))
+     It
+     (.i64_left# 63 +1))
 
 (the .public (reflection origin it)
-  (-> It
-      (Change It))
-  (- (- origin it) origin))
+     (-> It
+         (Change It))
+     (- (- origin it) origin))

@@ -1,7 +1,7 @@
 ... https://en.wikipedia.org/wiki/Mathematical_induction
 (.using
  [library
-  [lux (.except or tuple function)
+  [lux (.except tuple function)
    [abstract
     ["[0]" monad]]
    [error
@@ -30,113 +30,113 @@
    ["by" rule]]])
 
 (the (valid? it)
-  (Predicate ?.Proposition)
-  (when (?.identity it)
-    {try.:Success [left right]}
-    (with analysis.equality
-      (= left right))
+     (Predicate ?.Proposition)
+     (when (?.identity it)
+           {try.:Success [left right]}
+           (with analysis.equality
+                 (= left right))
 
-    else
-    false))
+           else
+           false))
 
 (every .public Case
-  (-> ?.Proposition
-      !.Proof))
+       (-> ?.Proposition
+           !.Proof))
 
 (the .public (bit if_false if_true
                   context it)
-  (-> Case Case
-      !.Proof)
-  (monad.let try.monad
-    [.let [variable (?.variable provenance.dummy (its in.:next_variable context))
-           context (revised in.:next_variable ++ context)]
-     false! (if_false {?.:Identity [?.:slow variable
-                                    ?.:fast (analysis.bit provenance.dummy false)]}
-                      context
-                      it)
-     true! (if_true {?.:Identity [?.:slow variable
-                                  ?.:fast (analysis.bit provenance.dummy true)]}
-                    context
-                    it)]
-    (pure (if (valid? false!)
-              true!
-              false!))))
+     (-> Case Case
+         !.Proof)
+     (monad.let try.monad
+                [.let [variable (?.variable provenance.dummy (its in.:next_variable context))
+                       context (revised in.:next_variable ++ context)]
+                 false! (if_false {?.:Identity [?.:slow variable
+                                                ?.:fast (analysis.bit provenance.dummy false)]}
+                                  context
+                                  it)
+                 true! (if_true {?.:Identity [?.:slow variable
+                                              ?.:fast (analysis.bit provenance.dummy true)]}
+                                context
+                                it)]
+                (pure (if (valid? false!)
+                          true!
+                          false!))))
 
 (the .public (case if_left if_right
                    context it)
-  (-> Case Case
-      !.Proof)
-  (monad.let try.monad
-    [.let [content (?.term provenance.dummy (its in.:next_term context))
-           variable (?.variable provenance.dummy (its in.:next_variable context))
-           context (|> context
-                       (revised in.:next_term ++)
-                       (revised in.:next_variable ++))]
-     left! (if_left {?.:Identity [?.:slow variable
-                                  ?.:fast (analysis.variant provenance.dummy [0 .false content])]}
-                    context
-                    it)
-     right! (if_right {?.:Identity [?.:slow variable
-                                    ?.:fast (analysis.variant provenance.dummy [0 .true content])]}
-                      context
-                      it)]
-    (pure (if (valid? left!)
-              right!
-              left!))))
+     (-> Case Case
+         !.Proof)
+     (monad.let try.monad
+                [.let [content (?.term provenance.dummy (its in.:next_term context))
+                       variable (?.variable provenance.dummy (its in.:next_variable context))
+                       context (|> context
+                                   (revised in.:next_term ++)
+                                   (revised in.:next_variable ++))]
+                 left! (if_left {?.:Identity [?.:slow variable
+                                              ?.:fast (analysis.variant provenance.dummy [0 .false content])]}
+                                context
+                                it)
+                 right! (if_right {?.:Identity [?.:slow variable
+                                                ?.:fast (analysis.variant provenance.dummy [0 .true content])]}
+                                  context
+                                  it)]
+                (pure (if (valid? left!)
+                          right!
+                          left!))))
 
 (the .public (function by_application
-               context it)
-  (Change !.Proof)
-  (monad.let try.monad
-    [[expectation reality] (?.identity it)
-     .let [argument (?.term provenance.dummy (its in.:next_term context))]]
-    (by_application (revised in.:next_term ++ context)
-                    {?.:Identity [?.:slow {@type.:Application provenance.dummy argument expectation}
-                                  ?.:fast {@type.:Application provenance.dummy argument reality}]})))
+                       context it)
+     (Change !.Proof)
+     (monad.let try.monad
+                [[expectation reality] (?.identity it)
+                 .let [argument (?.term provenance.dummy (its in.:next_term context))]]
+                (by_application (revised in.:next_term ++ context)
+                                {?.:Identity [?.:slow {@type.:Application provenance.dummy argument expectation}
+                                              ?.:fast {@type.:Application provenance.dummy argument reality}]})))
 
 (the .public (pair if_pair
                    context it)
-  (-> Case
-      !.Proof)
-  (monad.let try.monad
-    [.let [left (?.term provenance.dummy (its in.:next_term context))
-           right (?.term provenance.dummy (++ (its in.:next_term context)))
-           variable (?.variable provenance.dummy (its in.:next_variable context))]]
-    (if_pair {?.:Identity [?.:slow variable
-                           ?.:fast (analysis.tuple provenance.dummy (list left right))]}
-             (|> context
-                 (revised in.:next_term (|>> ++ ++))
-                 (revised in.:next_variable ++))
-             it)))
+     (-> Case
+         !.Proof)
+     (monad.let try.monad
+                [.let [left (?.term provenance.dummy (its in.:next_term context))
+                       right (?.term provenance.dummy (++ (its in.:next_term context)))
+                       variable (?.variable provenance.dummy (its in.:next_variable context))]]
+                (if_pair {?.:Identity [?.:slow variable
+                                       ?.:fast (analysis.tuple provenance.dummy (list left right))]}
+                         (|> context
+                             (revised in.:next_term (|>> ++ ++))
+                             (revised in.:next_variable ++))
+                         it)))
 
 (exception.the .public (not_tuple [arity])
-  (Exception [Natural])
-  (exception.report
-   (list ["Arity" (by natural.base_10 as arity)])))
+               (Exception [Natural])
+               (exception.report
+                (list ["Arity" (by natural.base_10 as arity)])))
 
 (the .public (tuple arity if_tuple
                     context it)
-  (-> Natural Case
-      !.Proof)
-  (if (natural.>= 2 arity)
-      (if_tuple {?.:Identity [?.:slow (?.variable provenance.dummy (its in.:next_variable context))
-                              ?.:fast (let [offset (its in.:next_term context)]
-                                        (|> (list.domain arity)
-                                            (list:each (|>> (natural.+ offset)
-                                                            (?.term provenance.dummy)))
-                                            (analysis.tuple provenance.dummy)))]}
-                (|> context
-                    (revised in.:next_term (natural.+ arity))
-                    (revised in.:next_variable ++))
-                it)
-      (exception.except ..not_tuple [arity])))
+     (-> Natural Case
+         !.Proof)
+     (if (natural.>= 2 arity)
+         (if_tuple {?.:Identity [?.:slow (?.variable provenance.dummy (its in.:next_variable context))
+                                 ?.:fast (let [offset (its in.:next_term context)]
+                                              (|> (list.domain arity)
+                                                  (list:each (|>> (natural.+ offset)
+                                                                  (?.term provenance.dummy)))
+                                                  (analysis.tuple provenance.dummy)))]}
+                   (|> context
+                       (revised in.:next_term (natural.+ arity))
+                       (revised in.:next_variable ++))
+                   it)
+         (exception.except ..not_tuple [arity])))
 
 (the .public (or disjunction left_case right_case
                  context it)
-  (-> (Try ?.Proposition) Case Case
-      !.Proof)
-  (monad.let try.monad
-    [disjunction disjunction
-     [left right] (?.disjunction disjunction)
-     left ((left_case left) context it)]
-    ((right_case right) context it)))
+     (-> (Try ?.Proposition) Case Case
+         !.Proof)
+     (monad.let try.monad
+                [disjunction disjunction
+                 [left right] (?.disjunction disjunction)
+                 left ((left_case left) context it)]
+                ((right_case right) context it)))

@@ -37,231 +37,231 @@
     ["r" real]]]])
 
 (the signature
-  Test
-  (`` (all _.and
-           (_.for [/.equality /.=]
-                  (static.when (identical? /.equality /.=)
-                    (equalityT.spec /.equality random.natural)))
-           (_.for [/.hash]
-                  (hashT.spec /.hash random.natural))
-           (_.for [/.order /.<]
-                  (orderT.spec /.order random.natural))
-           (_.for [/.enum]
-                  (enumT.spec /.enum random.natural))
-           (_.for [/.interval]
-                  (intervalT.spec /.interval random.natural))
-           (,, (template.with [<composite> <monoid>]
-                              [(_.for [<monoid> <composite>]
-                                      (static.when (identical? <composite> (by <monoid> composite))
-                                        (monoidT.spec /.equality <monoid> random.natural)))]
-                              
-                              [[/.+ /.addition]
-                               [/.x /.multiplication]
+     Test
+     (`` (all _.and
+              (_.for [/.equality /.=]
+                     (static.when (identical? /.equality /.=)
+                                  (equalityT.spec /.equality random.natural)))
+              (_.for [/.hash]
+                     (hashT.spec /.hash random.natural))
+              (_.for [/.order /.<]
+                     (orderT.spec /.order random.natural))
+              (_.for [/.enum]
+                     (enumT.spec /.enum random.natural))
+              (_.for [/.interval]
+                     (intervalT.spec /.interval random.natural))
+              (,, (template.with [<composite> <monoid>]
+                                 [(_.for [<monoid> <composite>]
+                                         (static.when (identical? <composite> (by <monoid> composite))
+                                                      (monoidT.spec /.equality <monoid> random.natural)))]
+                                 
+                                 [[/.+ /.addition]
+                                  [/.x /.multiplication]
 
-                               [/.minor /.minimum]
-                               [/.major /.maximum]]))
-           (,, (template.with [<format>]
-                              [(monad.let [! random.monad]
-                                 [.let [limit (|> (by /.interval maximum)
-                                                  (by <format> as)
-                                                  text.size
-                                                  ++)]
-                                  expected_size (by ! each (/.% limit) random.natural)]
-                                 (_.for [<format> /.padded]
-                                        (all _.and
-                                             (formatT.spec /.equality <format> random.natural)
-                                             (formatT.spec /.equality (/.padded expected_size <format>) random.natural)
-                                             )))]
+                                  [/.minor /.minimum]
+                                  [/.major /.maximum]]))
+              (,, (template.with [<format>]
+                                 [(monad.let [! random.monad]
+                                             [.let [limit (|> (by /.interval maximum)
+                                                              (by <format> as)
+                                                              text.size
+                                                              ++)]
+                                              expected_size (by ! each (/.% limit) random.natural)]
+                                             (_.for [<format> /.padded]
+                                                    (all _.and
+                                                         (formatT.spec /.equality <format> random.natural)
+                                                         (formatT.spec /.equality (/.padded expected_size <format>) random.natural)
+                                                         )))]
 
-                              [[/.base_02]
-                               [/.base_08]
-                               [/.base_10]
-                               [/.base_16]]))
-           )))
+                                 [[/.base_02]
+                                  [/.base_08]
+                                  [/.base_10]
+                                  [/.base_16]]))
+              )))
 
 (the predicate
-  Test
-  (monad.let [! random.monad]
-    [sample random.natural]
-    (all _.and
-         (_.coverage [/.even? /.odd?]
-           (bit.= (/.even? sample)
-                  (not (/.odd? sample))))
-         )))
+     Test
+     (monad.let [! random.monad]
+                [sample random.natural]
+                (all _.and
+                     (_.coverage [/.even? /.odd?]
+                                 (bit.= (/.even? sample)
+                                        (not (/.odd? sample))))
+                     )))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (_.for [.Natural])
-      (monad.let [! random.monad]
-        [expected random.natural
-         origin random.natural])
-      (all _.and
-           (_.coverage [.Nat .N /.Number]
-             (and (identical? .Natural .Nat)
-                  (identical? .Natural .N)
-                  (identical? .Natural /.Number)))
-           (_.coverage [/.zero]
-             (and (/.= expected (/.+ /.zero expected))
-                  (/.= expected (/.- /.zero expected))
-                  
-                  (/.= /.zero (/.x /.zero expected))))
-           (_.coverage [/.one]
-             (and (not (/.= expected (/.+ /.one expected)))
-                  (/.= expected (/.x /.one expected))
-                  (/.= expected (/./ /.one expected))))
-           (monad.let !
-             [sample random.natural
-              power (by ! each (/.% 10)
-                        random.natural)]
-             (all _.and
-                  (_.coverage [/.-]
-                    (and (/.= 0 (/.- sample sample))
-                         (/.= sample (/.- 0 sample))))
-                  (_.coverage [/.opposite]
-                    (and (/.= /.zero
-                              (/.+ (/.opposite sample)
-                                   sample))
-                         (/.= (/.- origin
-                                   sample)
-                              (/.+ (/.opposite origin)
-                                   sample))
-                         (/.= (/.- (/.opposite origin)
-                                   sample)
-                              (/.+ origin
-                                   sample))))
-                  (monad.let !
-                    [origin (by ! each (/.% /.infinity) random.natural)
-                     it (by ! each (/.% /.infinity) random.natural)]
-                    (_.coverage [/.excess]
-                      (and (/.= /.zero
-                                (/.excess it it))
-                           (/.= origin
-                                (/.excess (/.+ origin it) it)))))
-                  (_.coverage [/./]
-                    (and (/.= 1 (/./ sample sample))
-                         (/.= sample (/./ 1 sample))))
-                  (_.coverage [/.Exponent /.^]
-                    (and (/.= 1 (/.^ 0 sample))
-                         (/.= sample (/.^ 1 sample))
-                         (/.= (list.mix /.x (list.repeated power sample) 1)
-                              (/.^ power sample))))
-                  ))
-           (monad.let random.monad
-             [left random.natural
-              right random.natural]
-             (all _.and
-                  (_.coverage [/.>]
-                    (bit.= (/.> left right)
-                           (/.< right left)))
-                  (_.coverage [/.<= /.>=]
-                    (bit.= (/.<= left right)
-                           (/.>= right left)))
-                  ))
-           (monad.let random.monad
-             [left (random.only (|>> (/.= 0) not)
-                                random.natural)
-              right random.natural]
-             (all _.and
-                  (_.coverage [/.%]
-                    (let [rem (/.% left right)
-                          div (|> right (/.- rem) (/./ left))]
-                      (/.= right
-                           (|> div (/.x left) (/.+ rem)))))
-                  (_.coverage [/./%]
-                    (let [[div rem] (/./% left right)]
-                      (and (/.= div (/./ left right))
-                           (/.= rem (/.% left right)))))
-                  ))
-           (monad.let !
-             [.let [random (by ! each (|>> (/.% 1,000) ++) random.natural)]
-              left random
-              right random]
-             (all _.and
-                  (_.coverage [/.lcm /.least_common_multiple
-                               /.multiple?]
-                    (and (/.= /.zero
-                              (/.lcm /.zero expected))
-                         (/.= (/.lcm right left)
-                              (/.lcm left right))
-                         (and (/.multiple? left (/.lcm left right))
-                              (/.multiple? right (/.lcm left right)))
-                         (identical? /.lcm /.least_common_multiple)))
-                  (_.coverage [/.gcd /.greatest_common_divisor
-                               /.divisor?]
-                    (and (/.= expected
-                              (/.gcd /.zero expected))
-                         (/.= (/.gcd right left)
-                              (/.gcd left right))
-                         (and (/.divisor? left (/.gcd left right))
-                              (/.divisor? right (/.gcd left right)))
-                         (identical? /.gcd /.greatest_common_divisor)))
-                  (_.coverage [/.co_prime?]
-                    (and (bit.= (/.co_prime? expected expected)
-                                (/.= /.one expected))
-                         (bit.= (/.= /.one (/.gcd left right))
-                                (/.co_prime? left right))))
-                  (monad.let !
-                    [range (by ! each (/.% 100) random.natural)]
-                    (_.coverage [/.prime?]
-                      (let [candidates (|> range
-                                           list.domain
-                                           (list.only /.prime?))]
-                        (and (bit.= (/.= /.zero range)
-                                    (list.empty? candidates))
-                             (list.every? (function (_ it)
-                                            (let [co_prime_with_others!
-                                                  (list.every? (function (_ factor)
-                                                                 (or (/.co_prime? it factor)
-                                                                     (comment "0 x X = X x 0"
-                                                                              (/.= /.zero factor))
-                                                                     (/.= /.zero it)
-                                                                     
-                                                                     (/.= it factor)))
-                                                               candidates)
+     Test
+     (<| (_.covering /._)
+         (_.for [.Natural])
+         (monad.let [! random.monad]
+                    [expected random.natural
+                     origin random.natural])
+         (all _.and
+              (_.coverage [.Nat .N /.Number]
+                          (and (identical? .Natural .Nat)
+                               (identical? .Natural .N)
+                               (identical? .Natural /.Number)))
+              (_.coverage [/.zero]
+                          (and (/.= expected (/.+ /.zero expected))
+                               (/.= expected (/.- /.zero expected))
+                               
+                               (/.= /.zero (/.x /.zero expected))))
+              (_.coverage [/.one]
+                          (and (not (/.= expected (/.+ /.one expected)))
+                               (/.= expected (/.x /.one expected))
+                               (/.= expected (/./ /.one expected))))
+              (monad.let !
+                         [sample random.natural
+                          power (by ! each (/.% 10)
+                                    random.natural)]
+                         (all _.and
+                              (_.coverage [/.-]
+                                          (and (/.= 0 (/.- sample sample))
+                                               (/.= sample (/.- 0 sample))))
+                              (_.coverage [/.opposite]
+                                          (and (/.= /.zero
+                                                    (/.+ (/.opposite sample)
+                                                         sample))
+                                               (/.= (/.- origin
+                                                         sample)
+                                                    (/.+ (/.opposite origin)
+                                                         sample))
+                                               (/.= (/.- (/.opposite origin)
+                                                         sample)
+                                                    (/.+ origin
+                                                         sample))))
+                              (monad.let !
+                                         [origin (by ! each (/.% /.infinity) random.natural)
+                                          it (by ! each (/.% /.infinity) random.natural)]
+                                         (_.coverage [/.excess]
+                                                     (and (/.= /.zero
+                                                               (/.excess it it))
+                                                          (/.= origin
+                                                               (/.excess (/.+ origin it) it)))))
+                              (_.coverage [/./]
+                                          (and (/.= 1 (/./ sample sample))
+                                               (/.= sample (/./ 1 sample))))
+                              (_.coverage [/.Exponent /.^]
+                                          (and (/.= 1 (/.^ 0 sample))
+                                               (/.= sample (/.^ 1 sample))
+                                               (/.= (list.mix /.x (list.repeated power sample) 1)
+                                                    (/.^ power sample))))
+                              ))
+              (monad.let random.monad
+                         [left random.natural
+                          right random.natural]
+                         (all _.and
+                              (_.coverage [/.>]
+                                          (bit.= (/.> left right)
+                                                 (/.< right left)))
+                              (_.coverage [/.<= /.>=]
+                                          (bit.= (/.<= left right)
+                                                 (/.>= right left)))
+                              ))
+              (monad.let random.monad
+                         [left (random.only (|>> (/.= 0) not)
+                                            random.natural)
+                          right random.natural]
+                         (all _.and
+                              (_.coverage [/.%]
+                                          (let [rem (/.% left right)
+                                                div (|> right (/.- rem) (/./ left))]
+                                               (/.= right
+                                                    (|> div (/.x left) (/.+ rem)))))
+                              (_.coverage [/./%]
+                                          (let [[div rem] (/./% left right)]
+                                               (and (/.= div (/./ left right))
+                                                    (/.= rem (/.% left right)))))
+                              ))
+              (monad.let !
+                         [.let [random (by ! each (|>> (/.% 1,000) ++) random.natural)]
+                          left random
+                          right random]
+                         (all _.and
+                              (_.coverage [/.lcm /.least_common_multiple
+                                           /.multiple?]
+                                          (and (/.= /.zero
+                                                    (/.lcm /.zero expected))
+                                               (/.= (/.lcm right left)
+                                                    (/.lcm left right))
+                                               (and (/.multiple? left (/.lcm left right))
+                                                    (/.multiple? right (/.lcm left right)))
+                                               (identical? /.lcm /.least_common_multiple)))
+                              (_.coverage [/.gcd /.greatest_common_divisor
+                                           /.divisor?]
+                                          (and (/.= expected
+                                                    (/.gcd /.zero expected))
+                                               (/.= (/.gcd right left)
+                                                    (/.gcd left right))
+                                               (and (/.divisor? left (/.gcd left right))
+                                                    (/.divisor? right (/.gcd left right)))
+                                               (identical? /.gcd /.greatest_common_divisor)))
+                              (_.coverage [/.co_prime?]
+                                          (and (bit.= (/.co_prime? expected expected)
+                                                      (/.= /.one expected))
+                                               (bit.= (/.= /.one (/.gcd left right))
+                                                      (/.co_prime? left right))))
+                              (monad.let !
+                                         [range (by ! each (/.% 100) random.natural)]
+                                         (_.coverage [/.prime?]
+                                                     (let [candidates (|> range
+                                                                          list.domain
+                                                                          (list.only /.prime?))]
+                                                          (and (bit.= (/.= /.zero range)
+                                                                      (list.empty? candidates))
+                                                               (list.every? (function (_ it)
+                                                                                      (let [co_prime_with_others!
+                                                                                            (list.every? (function (_ factor)
+                                                                                                                   (and/or (/.co_prime? it factor)
+                                                                                                                           (comment "0 x X = X x 0"
+                                                                                                                                    (/.= /.zero factor))
+                                                                                                                           (/.= /.zero it)
+                                                                                                                           
+                                                                                                                           (/.= it factor)))
+                                                                                                         candidates)
 
-                                                  no_multiple_is_prime!
-                                                  (list.every? (function (_ factor)
-                                                                 (or (not (/.prime? (/.x factor it)))
-                                                                     (comment "0 x X = X x 0"
-                                                                              (/.= /.zero factor))
-                                                                     (/.= /.zero it)
-                                                                     (comment "1 x X = X x 1"
-                                                                              (/.= /.one factor))
-                                                                     (/.= /.one it)))
-                                                               candidates)]
-                                              (and co_prime_with_others!
-                                                   no_multiple_is_prime!)))
-                                          candidates)))))
-                  ))
-           (monad.let !
-             [expected (by ! each (/.% 1,000,000) random.natural)
-              sample random.natural]
-             (_.coverage [/.real]
-               (and (|> expected /.real r.natural (/.= expected))
-                    (r.number? (/.real sample)))))
-           (_.coverage [/.reflection]
-             (and (/.= (/.opposite expected)
-                       (/.reflection /.zero expected))
-                  (/.= expected
-                       (/.reflection expected expected))
-                  (|> expected
-                      (/.reflection origin)
-                      (/.reflection origin)
-                      (/.= expected))
-                  (/.= (/.+ expected expected)
-                       (/.reflection expected /.zero))))
-           (_.coverage [/.infinity]
-             (and (and (/.= /.infinity (/.opposite /.infinity))
-                       (not (/.= /.zero /.infinity)))
-                  (and (/.= /.zero (/.+ /.infinity /.infinity))
-                       (|> expected
-                           (/.+ /.infinity)
-                           (/.+ /.infinity)
-                           (/.= expected)))
-                  (/.= (/.reflection /.zero expected)
-                       (/.reflection /.infinity expected))))
+                                                                                            no_multiple_is_prime!
+                                                                                            (list.every? (function (_ factor)
+                                                                                                                   (and/or (not (/.prime? (/.x factor it)))
+                                                                                                                           (comment "0 x X = X x 0"
+                                                                                                                                    (/.= /.zero factor))
+                                                                                                                           (/.= /.zero it)
+                                                                                                                           (comment "1 x X = X x 1"
+                                                                                                                                    (/.= /.one factor))
+                                                                                                                           (/.= /.one it)))
+                                                                                                         candidates)]
+                                                                                           (and co_prime_with_others!
+                                                                                                no_multiple_is_prime!)))
+                                                                            candidates)))))
+                              ))
+              (monad.let !
+                         [expected (by ! each (/.% 1,000,000) random.natural)
+                          sample random.natural]
+                         (_.coverage [/.real]
+                                     (and (|> expected /.real r.natural (/.= expected))
+                                          (r.number? (/.real sample)))))
+              (_.coverage [/.reflection]
+                          (and (/.= (/.opposite expected)
+                                    (/.reflection /.zero expected))
+                               (/.= expected
+                                    (/.reflection expected expected))
+                               (|> expected
+                                   (/.reflection origin)
+                                   (/.reflection origin)
+                                   (/.= expected))
+                               (/.= (/.+ expected expected)
+                                    (/.reflection expected /.zero))))
+              (_.coverage [/.infinity]
+                          (and (and (/.= /.infinity (/.opposite /.infinity))
+                                    (not (/.= /.zero /.infinity)))
+                               (and (/.= /.zero (/.+ /.infinity /.infinity))
+                                    (|> expected
+                                        (/.+ /.infinity)
+                                        (/.+ /.infinity)
+                                        (/.= expected)))
+                               (/.= (/.reflection /.zero expected)
+                                    (/.reflection /.infinity expected))))
 
-           ..predicate
-           ..signature
-           )))
+              ..predicate
+              ..signature
+              )))

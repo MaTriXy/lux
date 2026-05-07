@@ -30,74 +30,74 @@
 (the Reification /16.Number)
 
 (nominal.every .public (Modifier it)
-  Reification
+               Reification
 
-  (the .public code
-    (-> (Modifier Any)
-        Reification)
-    (|>> nominal.as))
+               (the .public code
+                    (-> (Modifier Any)
+                        Reification)
+                    (|>> nominal.as))
 
-  (the .public equality
-    (for_any (_ it)
-      (Equality (Modifier it)))
-    (by equality.functor each ..code /16.equality))
+               (the .public equality
+                    (for_any (_ it)
+                             (Equality (Modifier it)))
+                    (by equality.functor each ..code /16.equality))
 
-  (alias [=]
-         ..equality)
+               (alias [=]
+                      ..equality)
 
-  (the !abstraction
-    (template.macro (_ value)
-      [(|> value
-           /16.of
-           nominal.of)]))
+               (the !abstraction
+                    (template.macro (_ value)
+                                    [(|> value
+                                         /16.of
+                                         nominal.of)]))
 
-  (the !reification
-    (template.macro (_ value)
-      [(|> value
-           nominal.as
-           /16.as)]))
+               (the !reification
+                    (template.macro (_ value)
+                                    [(|> value
+                                         nominal.as
+                                         /16.as)]))
 
-  (the .public (has? sub super)
-    (for_any (_ it)
-      (-> (Modifier it) (Modifier it)
-          Bit))
-    (let [sub (!reification sub)]
-      (|> (!reification super)
-          (/64.and sub)
-          (by /64.equality = sub))))
+               (the .public (has? sub super)
+                    (for_any (_ it)
+                             (-> (Modifier it) (Modifier it)
+                                 Bit))
+                    (let [sub (!reification sub)]
+                         (|> (!reification super)
+                             (/64.and sub)
+                             (by /64.equality = sub))))
 
-  (the .public monoid
-    (for_any (_ it)
-      (Monoid (Modifier it)))
-    (implementation
-     (the identity
-       (!abstraction
-        (number.base_16 "0000")))
-     
-     (the (composite left right)
-       (!abstraction
-        (/64.or (!reification left)
-                (!reification right))))))
+               (the .public monoid
+                    (for_any (_ it)
+                             (Monoid (Modifier it)))
+                    (implementation
+                     (the identity
+                          (!abstraction
+                           (number.base_16 "0000")))
+                     
+                     (the (composite left right)
+                          (!abstraction
+                           (/64.and/or (!reification left)
+                                       (!reification right))))))
 
-  (the .public empty
-    Modifier
-    (by ..monoid identity))
+               (the .public empty
+                    Modifier
+                    (by ..monoid identity))
 
-  (the .public as_binary
-    (for_any (_ it)
-      (Injection (Modifier it)))
-    (|>> nominal.as
-         /16.as_binary))
-  )
+               (the .public as_binary
+                    (for_any (_ it)
+                             (Injection (Modifier it)))
+                    (|>> nominal.as
+                         /16.as_binary))
+               )
 
 (syntax.the .public (modifiers [itT ?list.any
                                 options (<>.many ?list.any)])
-  (with_names ['modifier 'code]
-    (pure (list (` (template.with [(, 'code) (, 'modifier)]
-                     [(the (,' .public) (, 'modifier)
-                        (..Modifier (, itT))
-                        (|> (number.base_16 (, 'code))
-                            /16.of
-                            as_expected))]
-                     
-                     [(,* options)]))))))
+            (with_names ['modifier 'code]
+                        (pure (list (` (template.with [(, 'code) (, 'modifier)]
+                                                      [(the (,' .public) (, 'modifier)
+                                                            (..Modifier (, itT))
+                                                            (|> (number.base_16 (, 'code))
+                                                                /16.of
+                                                                as_expected))]
+                                                      
+                                                      [(,* options)]))))))

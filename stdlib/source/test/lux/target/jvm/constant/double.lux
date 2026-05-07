@@ -20,37 +20,37 @@
   ["[0]" /]])
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (_.for [/.Double /.random])
-      (all _.and
-           (_.for [/.equality /.=]
-                  (static.when (identical? /.equality /.=)
-                    (equalityT.spec /.equality /.random)))
+     Test
+     (<| (_.covering /._)
+         (_.for [/.Double /.random])
+         (all _.and
+              (_.for [/.equality /.=]
+                     (static.when (identical? /.equality /.=)
+                                  (equalityT.spec /.equality /.random)))
 
-           (monad.let [! random.monad]
-             [sample_0 /.random
-              sample_1 /.random]
-             (_.coverage [/.as_binary]
-               (let [both_zeroes!
-                     (or (and (/.= /.positive_zero sample_0)
-                              (/.= /.negative_zero sample_1))
-                         (and (/.= /.negative_zero sample_0)
-                              (/.= /.positive_zero sample_1)))
+              (monad.let [! random.monad]
+                         [sample_0 /.random
+                          sample_1 /.random]
+                         (_.coverage [/.as_binary]
+                                     (let [both_zeroes!
+                                           (and/or (and (/.= /.positive_zero sample_0)
+                                                        (/.= /.negative_zero sample_1))
+                                                   (and (/.= /.negative_zero sample_0)
+                                                        (/.= /.positive_zero sample_1)))
 
-                     equal_values!
-                     (/.= sample_0
-                          sample_1)
+                                           equal_values!
+                                           (/.= sample_0
+                                                sample_1)
 
-                     equal_binaries!
-                     (binary.= (!binary.value /.as_binary sample_0)
-                               (!binary.value /.as_binary sample_1))]
-                 (or both_zeroes!
-                     (bit.= equal_values!
-                            equal_binaries!)))))
-           (_.coverage [/.positive_zero /.negative_zero]
-             (bit.= (/.= /.positive_zero
-                         /.negative_zero)
-                    (not (binary.= (!binary.value /.as_binary /.positive_zero)
-                                   (!binary.value /.as_binary /.negative_zero)))))
-           )))
+                                           equal_binaries!
+                                           (binary.= (!binary.value /.as_binary sample_0)
+                                                     (!binary.value /.as_binary sample_1))]
+                                          (and/or both_zeroes!
+                                                  (bit.= equal_values!
+                                                         equal_binaries!)))))
+              (_.coverage [/.positive_zero /.negative_zero]
+                          (bit.= (/.= /.positive_zero
+                                      /.negative_zero)
+                                 (not (binary.= (!binary.value /.as_binary /.positive_zero)
+                                                (!binary.value /.as_binary /.negative_zero)))))
+              )))

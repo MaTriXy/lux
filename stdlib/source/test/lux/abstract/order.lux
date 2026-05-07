@@ -93,8 +93,8 @@
                                    ,0 ,1 ,2
                                    [(let [connectivity
                                           (comment "https://en.wikipedia.org/wiki/Connected_relation"
-                                                   (or (,<= ,0 ,1)
-                                                       (,<= ,1 ,0)))]
+                                                   (and/or (,<= ,0 ,1)
+                                                           (,<= ,1 ,0)))]
                                          (and connectivity))])]))
 
 (template.the .public (strict_total ,implementation ,< ,> ,<= ,>=
@@ -135,10 +135,10 @@
                                                        (,choice it_0 it_0)))
 
                                           selection
-                                          (or (,= it_0
-                                                  (,choice it_0 it_1))
-                                              (,= it_1
-                                                  (,choice it_0 it_1)))]
+                                          (and/or (,= it_0
+                                                      (,choice it_0 it_1))
+                                                  (,= it_1
+                                                      (,choice it_0 it_1)))]
                                          (and idempotence
                                               selection)))))])
 
@@ -214,17 +214,17 @@
                                       (/:= parameter subject)
 
                                       ordered!
-                                      (or (and (/:< parameter subject)
-                                               (not (/:< subject parameter)))
-                                          (and (/:< subject parameter)
-                                               (not (/:< parameter subject))))]
+                                      (and/or (and (/:< parameter subject)
+                                                   (not (/:< subject parameter)))
+                                              (and (/:< subject parameter)
+                                                   (not (/:< parameter subject))))]
                                      (bit.= equal! (not ordered!)))]
 
                           subject (random.only (|>> (/:= parameter) not)
                                                random)
                           extra (random.only (function (_ value)
-                                                       (not (or (/:= parameter value)
-                                                                (/:= subject value))))
+                                                       (not (and/or (/:= parameter value)
+                                                                    (/:= subject value))))
                                              random)
                           .let [[maximum minimum] (if (/:< parameter subject)
                                                       [parameter subject]
@@ -237,9 +237,9 @@
                                                    (/:< extra minimum))
                                       in_between? (and (/:< maximum extra)
                                                        (/:< extra minimum))]
-                                     (or greater?
-                                         lesser?
-                                         in_between?))]]
+                                     (and/or greater?
+                                             lesser?
+                                             in_between?))]]
                          (_.coverage [/.<]
                                      (and equal_or_ordered!
                                           transitive_property!)))

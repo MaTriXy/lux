@@ -25,180 +25,180 @@
      ["[0]" internal]]]]])
 
 (nominal.every .public (Signature category)
-  Text
+               Text
 
-  (the .public signature
-    (for_any (_ category)
-      (-> (Signature category)
-          Text))
-    (|>> nominal.as))
+               (the .public signature
+                    (for_any (_ category)
+                             (-> (Signature category)
+                                 Text))
+                    (|>> nominal.as))
 
-  (template.with [<category> <name> <descriptor>]
-    [(the .public <name>
-       (Signature <category>)
-       (nominal.of
-        (//descriptor.descriptor <descriptor>)))]
+               (template.with [<category> <name> <descriptor>]
+                              [(the .public <name>
+                                    (Signature <category>)
+                                    (nominal.of
+                                     (//descriptor.descriptor <descriptor>)))]
 
-    [[Void void //descriptor.void]
-     [Primitive boolean //descriptor.boolean]
-     [Primitive byte //descriptor.byte]
-     [Primitive short //descriptor.short]
-     [Primitive int //descriptor.int]
-     [Primitive long //descriptor.long]
-     [Primitive float //descriptor.float]
-     [Primitive double //descriptor.double]
-     [Primitive char //descriptor.char]])
+                              [[Void void //descriptor.void]
+                               [Primitive boolean //descriptor.boolean]
+                               [Primitive byte //descriptor.byte]
+                               [Primitive short //descriptor.short]
+                               [Primitive int //descriptor.int]
+                               [Primitive long //descriptor.long]
+                               [Primitive float //descriptor.float]
+                               [Primitive double //descriptor.double]
+                               [Primitive char //descriptor.char]])
 
-  (the .public array
-    (-> (Signature Value)
-        (Signature Array))
-    (|>> nominal.as
-         (text //descriptor.array_prefix)
-         nominal.of))
+               (the .public array
+                    (-> (Signature Value)
+                        (Signature Array))
+                    (|>> nominal.as
+                         (text //descriptor.array_prefix)
+                         nominal.of))
 
-  (the .public wildcard
-    (Signature Parameter)
-    (nominal.of "*"))
+               (the .public wildcard
+                    (Signature Parameter)
+                    (nominal.of "*"))
 
-  (template.with [<char> <name>]
-    [(the .public <name> <char>)]
+               (template.with [<char> <name>]
+                              [(the .public <name> <char>)]
 
-    [["T" var_prefix]
-     ["-" lower_prefix]
-     ["+" upper_prefix]
+                              [["T" var_prefix]
+                               ["-" lower_prefix]
+                               ["+" upper_prefix]
 
-     ["<" parameters_start]
-     [">" parameters_end]
-     [":" parameter_type_infix]
+                               ["<" parameters_start]
+                               [">" parameters_end]
+                               [":" parameter_type_infix]
 
-     ["(" arguments_start]
-     [")" arguments_end]
-     ["^" exception_prefix]])
-  
-  (template.with [<name> <prefix>]
-    [(the .public <name>
-       (-> (Signature Parameter)
-           (Signature Parameter))
-       (|>> nominal.as
-            (text <prefix>)
-            nominal.of))]
+                               ["(" arguments_start]
+                               [")" arguments_end]
+                               ["^" exception_prefix]])
+               
+               (template.with [<name> <prefix>]
+                              [(the .public <name>
+                                    (-> (Signature Parameter)
+                                        (Signature Parameter))
+                                    (|>> nominal.as
+                                         (text <prefix>)
+                                         nominal.of))]
 
-    [[lower ..lower_prefix]
-     [upper ..upper_prefix]])
+                              [[lower ..lower_prefix]
+                               [upper ..upper_prefix]])
 
-  (the .public var
-    (-> Text
-        (Signature Var))
-    (|>> (text.enclosed [..var_prefix //descriptor.class_suffix])
-         nominal.of))
+               (the .public var
+                    (-> Text
+                        (Signature Var))
+                    (|>> (text.inside [..var_prefix //descriptor.class_suffix])
+                         nominal.of))
 
-  (the .public var_name
-    (-> (Signature Var)
-        Text)
-    (|>> nominal.as
-         (text.replaced ..var_prefix "")
-         (text.replaced //descriptor.class_suffix "")))
+               (the .public var_name
+                    (-> (Signature Var)
+                        Text)
+                    (|>> nominal.as
+                         (text.replaced ..var_prefix "")
+                         (text.replaced //descriptor.class_suffix "")))
 
-  (the .public (class parameters name)
-    (-> (List (Signature Parameter)) external.Name
-        (Signature Class))
-    (nominal.of
-     (text //descriptor.class_prefix
-           (|> name internal.name internal.value)
-           (when parameters
-             (list)
-             ""
+               (the .public (class parameters name)
+                    (-> (List (Signature Parameter)) external.Name
+                        (Signature Class))
+                    (nominal.of
+                     (text //descriptor.class_prefix
+                           (|> name internal.name internal.value)
+                           (when parameters
+                                 (list)
+                                 ""
 
-             _
-             (text ..parameters_start
-                   (|> parameters
-                       (list:each ..signature)
-                       text.together)
-                   ..parameters_end))
-           //descriptor.class_suffix)))
+                                 _
+                                 (text ..parameters_start
+                                       (|> parameters
+                                           (list:each ..signature)
+                                           text.together)
+                                       ..parameters_end))
+                           //descriptor.class_suffix)))
 
-  (the .public (declaration variables name)
-    (-> (List (Signature Var)) external.Name
-        (Signature Declaration))
-    (nominal.transmutation (..class variables name)))
+               (the .public (declaration variables name)
+                    (-> (List (Signature Var)) external.Name
+                        (Signature Declaration))
+                    (nominal.transmutation (..class variables name)))
 
-  (the class_bound
-    (|> (..class (list) "java.lang.Object")
-        ..signature
-        (text ..parameter_type_infix)))
+               (the class_bound
+                    (|> (..class (list) "java.lang.Object")
+                        ..signature
+                        (text ..parameter_type_infix)))
 
-  (the var_declaration/1
-    (-> (Signature Var)
-        Text)
-    (|>> ..var_name
-         (text.suffix ..class_bound)))
+               (the var_declaration/1
+                    (-> (Signature Var)
+                        Text)
+                    (|>> ..var_name
+                         (text.suffix ..class_bound)))
 
-  (the var_declaration/+
-    (-> (List (Signature Var))
-        Text)
-    (|>> (list:each ..var_declaration/1)
-         text.together
-         (text.enclosed [..parameters_start
-                         ..parameters_end])))
+               (the var_declaration/+
+                    (-> (List (Signature Var))
+                        Text)
+                    (|>> (list:each ..var_declaration/1)
+                         text.together
+                         (text.inside [..parameters_start
+                                       ..parameters_end])))
 
-  (the var_declaration/*
-    (-> (List (Signature Var))
-        Text)
-    (|>> (pipe.when
-           (list)
-           ""
-           
-           it
-           (..var_declaration/+ it))))
+               (the var_declaration/*
+                    (-> (List (Signature Var))
+                        Text)
+                    (|>> (pipe.when
+                          (list)
+                          ""
+                          
+                          it
+                          (..var_declaration/+ it))))
 
-  (the .public (inheritance variables super interfaces)
-    (-> (List (Signature Var)) (Signature Class) (List (Signature Class))
-        (Signature Inheritance))
-    (nominal.of
-     (text (var_declaration/* variables)
-           (nominal.as super)
-           (|> interfaces
-               (list:each ..signature)
-               text.together))))
+               (the .public (inheritance variables super interfaces)
+                    (-> (List (Signature Var)) (Signature Class) (List (Signature Class))
+                        (Signature Inheritance))
+                    (nominal.of
+                     (text (var_declaration/* variables)
+                           (nominal.as super)
+                           (|> interfaces
+                               (list:each ..signature)
+                               text.together))))
 
-  (the .public as_class
-    (-> (Signature Declaration)
-        (Signature Class))
-    (|>> nominal.transmutation))
+               (the .public as_class
+                    (-> (Signature Declaration)
+                        (Signature Class))
+                    (|>> nominal.transmutation))
 
-  (the .public (method [type_variables inputs output exceptions])
-    (-> [(List (Signature Var))
-         (List (Signature Value))
-         (Signature Return)
-         (List (Signature Class))]
-        (Signature Method))
-    (nominal.of
-     (text (var_declaration/* type_variables)
-           (|> inputs
-               (list:each ..signature)
-               text.together
-               (text.enclosed [..arguments_start
-                               ..arguments_end]))
-           (nominal.as output)
-           (|> exceptions
-               (list:each (|>> nominal.as (text ..exception_prefix)))
-               text.together))))
+               (the .public (method [type_variables inputs output exceptions])
+                    (-> [(List (Signature Var))
+                         (List (Signature Value))
+                         (Signature Return)
+                         (List (Signature Class))]
+                        (Signature Method))
+                    (nominal.of
+                     (text (var_declaration/* type_variables)
+                           (|> inputs
+                               (list:each ..signature)
+                               text.together
+                               (text.inside [..arguments_start
+                                             ..arguments_end]))
+                           (nominal.as output)
+                           (|> exceptions
+                               (list:each (|>> nominal.as (text ..exception_prefix)))
+                               text.together))))
 
-  (the .public equality
-    (for_any (_ category)
-      (Equality (Signature category)))
-    (implementation
-     (the (= parameter subject)
-       (text.= (nominal.as parameter)
-               (nominal.as subject)))))
+               (the .public equality
+                    (for_any (_ category)
+                             (Equality (Signature category)))
+                    (implementation
+                     (the (= parameter subject)
+                          (text.= (nominal.as parameter)
+                                  (nominal.as subject)))))
 
-  (alias [=]
-         ..equality)
+               (alias [=]
+                      ..equality)
 
-  (the .public hash
-    (for_any (_ category)
-      (Hash (Signature category)))
-    (implementation
-     (the equality ..equality)
-     (the hash (|>> nominal.as text:hash))))
-  )
+               (the .public hash
+                    (for_any (_ category)
+                             (Hash (Signature category)))
+                    (implementation
+                     (the equality ..equality)
+                     (the hash (|>> nominal.as text:hash))))
+               )

@@ -28,232 +28,232 @@
     ["[0]" case]]]])
 
 (the .public maximum
-  Natural
-  (-- /64.width))
+     Natural
+     (-- /64.width))
 
 (nominal.every .public (Point @)
-  Natural
+               Natural
 
-  (exception.the .public (point_exceeds_maximum it)
-    (Exception Natural)
-    (exception.report
-     (list ["Candidate" (%.natural it)]
-           ["Maximum" (%.natural maximum)])))
+               (exception.the .public (point_exceeds_maximum it)
+                              (Exception Natural)
+                              (exception.report
+                               (list ["Candidate" (%.natural it)]
+                                     ["Maximum" (%.natural maximum)])))
 
-  (the .public (point it)
-    (for_some (_ @)
-      (-> Natural
-          (Try (Point @))))
-    (if (n.> maximum it)
-        (exception.except ..point_exceeds_maximum [it])
-        {try.:Success (nominal.of it)}))
+               (the .public (point it)
+                    (for_some (_ @)
+                              (-> Natural
+                                  (Try (Point @))))
+                    (if (n.> maximum it)
+                        (exception.except ..point_exceeds_maximum [it])
+                        {try.:Success (nominal.of it)}))
 
-  (the .public location
-    (for_any (_ @)
-      (-> (Point @)
-          Natural))
-    (|>> nominal.as))
-  
-  (nominal.every .public (Fixed @)
-    Integer
+               (the .public location
+                    (for_any (_ @)
+                             (-> (Point @)
+                                 Natural))
+                    (|>> nominal.as))
+               
+               (nominal.every .public (Fixed @)
+                              Integer
 
-    (the sign
-      (-> Integer
-          (I64 Any))
-      (/64.and (/64.bit ..maximum)))
+                              (the sign
+                                   (-> Integer
+                                       (I64 Any))
+                                   (/64.and (/64.bit ..maximum)))
 
-    (the of_units
-      (inline.macro (_ @ it)
-        (for_any (_ @)
-          (-> (Point @) Integer
-              (I64 Any)))
-        (|> it
-            .i64
-            (/64.<< (nominal.as Point @))
-            (/64.or (sign it)))))
+                              (the of_units
+                                   (inline.macro (_ @ it)
+                                                 (for_any (_ @)
+                                                          (-> (Point @) Integer
+                                                              (I64 Any)))
+                                                 (|> it
+                                                     .i64
+                                                     (/64.<< (nominal.as Point @))
+                                                     (/64.and/or (sign it)))))
 
-    (the of_sub_units
-      (inline.macro (_ @ it)
-        (for_any (_ @)
-          (-> (Point @) Revolution
-              (I64 Any)))
-        (|> it
-            .i64
-            (/64.>> (n.- (nominal.as Point @) /64.width)))))
+                              (the of_sub_units
+                                   (inline.macro (_ @ it)
+                                                 (for_any (_ @)
+                                                          (-> (Point @) Revolution
+                                                              (I64 Any)))
+                                                 (|> it
+                                                     .i64
+                                                     (/64.>> (n.- (nominal.as Point @) /64.width)))))
 
-    (the .public (fixed @ units sub_units)
-      (for_any (_ @)
-        (-> (Point @) Integer Revolution
-            (Fixed @)))
-      (nominal.of
-       (.integer (/64.or (of_units @ units)
-                         (of_sub_units @ sub_units)))))
+                              (the .public (fixed @ units sub_units)
+                                   (for_any (_ @)
+                                            (-> (Point @) Integer Revolution
+                                                (Fixed @)))
+                                   (nominal.of
+                                    (.integer (/64.and/or (of_units @ units)
+                                                          (of_sub_units @ sub_units)))))
 
-    (template.with [<name> <type> <of>]
-      [(the .public (<name> @ it)
-         (for_any (_ @)
-           (-> (Point @) <type>
-               (Fixed @)))
-         (nominal.of (.integer (<of> @ it))))]
+                              (template.with [<name> <type> <of>]
+                                             [(the .public (<name> @ it)
+                                                   (for_any (_ @)
+                                                            (-> (Point @) <type>
+                                                                (Fixed @)))
+                                                   (nominal.of (.integer (<of> @ it))))]
 
-      [[of_integer Integer of_units]
-       [of_revolution Revolution of_sub_units]])
+                                             [[of_integer Integer of_units]
+                                              [of_revolution Revolution of_sub_units]])
 
-    (the .public (units @)
-      (for_any (_ @)
-        (-> (Point @) (Fixed @)
-            Integer))
-      (|>> nominal.as
-           (i.>> (nominal.as Point @))))
+                              (the .public (units @)
+                                   (for_any (_ @)
+                                            (-> (Point @) (Fixed @)
+                                                Integer))
+                                   (|>> nominal.as
+                                        (i.>> (nominal.as Point @))))
 
-    (the .public (sub_units @)
-      (for_any (_ @)
-        (-> (Point @) (Fixed @)
-            Revolution))
-      (|>> nominal.as
-           (/64.and (/64.mask (nominal.as Point @)))
-           (/64.<< (n.- (nominal.as Point @) /64.width))
-           .revolution))
+                              (the .public (sub_units @)
+                                   (for_any (_ @)
+                                            (-> (Point @) (Fixed @)
+                                                Revolution))
+                                   (|>> nominal.as
+                                        (/64.and (/64.mask (nominal.as Point @)))
+                                        (/64.<< (n.- (nominal.as Point @) /64.width))
+                                        .revolution))
 
-    (template.with [<composite_type> <post_processing> <fp> <integer>]
-      [(the .public (<fp> _ parameter subject)
-         (for_any (_ @)
-           (-> (Point @) (Fixed @) (Fixed @)
-               <composite_type>))
-         (<post_processing>
-          (<integer> (nominal.as parameter)
-                     (nominal.as subject))))]
+                              (template.with [<composite_type> <post_processing> <fp> <integer>]
+                                             [(the .public (<fp> _ parameter subject)
+                                                   (for_any (_ @)
+                                                            (-> (Point @) (Fixed @) (Fixed @)
+                                                                <composite_type>))
+                                                   (<post_processing>
+                                                    (<integer> (nominal.as parameter)
+                                                               (nominal.as subject))))]
 
-      [[(Fixed @) nominal.of + i.+]
-       [(Fixed @) nominal.of - i.-]
+                                             [[(Fixed @) nominal.of + i.+]
+                                              [(Fixed @) nominal.of - i.-]
 
-       [Bit |> = i.=]
-       [Bit |> < i.<]
-       [Bit |> <= i.<=]
-       [Bit |> > i.>]
-       [Bit |> >= i.>=]])
+                                              [Bit |> = i.=]
+                                              [Bit |> < i.<]
+                                              [Bit |> <= i.<=]
+                                              [Bit |> > i.>]
+                                              [Bit |> >= i.>=]])
 
-    (template.with [<quarter> <name>]
-      [(the <name>
-         (for_any (_ it)
-           (-> (I64 it)
-               (I64 it)))
-         (let [left (n.- (n.x (++ <quarter>) 16) /64.width)
-               right (n.+ (n.x <quarter> 16) left)]
-           (|>> (/64.<< left)
-                (/64.>> right))))]
+                              (template.with [<quarter> <name>]
+                                             [(the <name>
+                                                   (for_any (_ it)
+                                                            (-> (I64 it)
+                                                                (I64 it)))
+                                                   (let [left (n.- (n.x (++ <quarter>) 16) /64.width)
+                                                         right (n.+ (n.x <quarter> 16) left)]
+                                                        (|>> (/64.<< left)
+                                                             (/64.>> right))))]
 
-      [[0 ll]
-       [1 lh]
-       [2 hl]
-       [3 hh]])
+                                             [[0 ll]
+                                              [1 lh]
+                                              [2 hl]
+                                              [3 hh]])
 
-    (the low
-      (for_any (_ it)
-        (-> (I64 it)
-            (I64 it)))
-      (/64.and (/64.mask 32)))
+                              (the low
+                                   (for_any (_ it)
+                                            (-> (I64 it)
+                                                (I64 it)))
+                                   (/64.and (/64.mask 32)))
 
-    (the high
-      (for_any (_ it)
-        (-> (I64 it)
-            (I64 it)))
-      (/64.>> 32))
+                              (the high
+                                   (for_any (_ it)
+                                            (-> (I64 it)
+                                                (I64 it)))
+                                   (/64.>> 32))
 
-    (template.with [<shift> <name>]
-      [(the <name>
-         (for_any (_ it)
-           (-> (I64 it)
-               (I64 it)))
-         (/64.<< <shift>))]
+                              (template.with [<shift> <name>]
+                                             [(the <name>
+                                                   (for_any (_ it)
+                                                            (-> (I64 it)
+                                                                (I64 it)))
+                                                   (/64.<< <shift>))]
 
-      [[16 up/16]
-       [32 up/32]])
+                                             [[16 up/16]
+                                              [32 up/32]])
 
-    (the .public (x @ parameter subject)
-      (for_any (_ @)
-        (-> (Point @) (Fixed @) (Fixed @)
-            (Fixed @)))
-      (let [mask (/64.mask (nominal.as Point @))]
-        (macro.let [units' (template.macro (_ <it>)
-                             [(i.>> (nominal.as Point @) <it>)])
-                    sub_units' (template.macro (_ <it>)
-                                 [(/64.and mask <it>)])
-                    high_sub_units' (template.macro (_ <it>)
-                                      [(/64.>> (nominal.as Point @) <it>)])]
-          (let [parameter (nominal.as parameter)
-                subject (nominal.as subject)
+                              (the .public (x @ parameter subject)
+                                   (for_any (_ @)
+                                            (-> (Point @) (Fixed @) (Fixed @)
+                                                (Fixed @)))
+                                   (let [mask (/64.mask (nominal.as Point @))]
+                                        (macro.let [units' (template.macro (_ <it>)
+                                                                           [(i.>> (nominal.as Point @) <it>)])
+                                                    sub_units' (template.macro (_ <it>)
+                                                                               [(/64.and mask <it>)])
+                                                    high_sub_units' (template.macro (_ <it>)
+                                                                                    [(/64.>> (nominal.as Point @) <it>)])]
+                                                   (let [parameter (nominal.as parameter)
+                                                         subject (nominal.as subject)
 
-                s:u (units' subject)
-                s:s (sub_units' subject)
-                
-                p:u (units' parameter)
-                p:s (sub_units' parameter)
-                
-                sxp (i.x s:u p:s)
-                pxs (i.x p:u s:s)
-                
-                x:u (all i.+
-                         (i.x p:u
-                              s:u)
-                         (units' sxp)
-                         (units' pxs)
-                         )
-                x:s (all i.+
-                         (high_sub_units'
-                          (i.x p:s
-                               s:s))
-                         (sub_units' sxp)
-                         (sub_units' pxs)
-                         )]
-            (nominal.of
-             (.integer (/64.or (of_units @ x:u)
-                               x:s)))))))
+                                                         s:u (units' subject)
+                                                         s:s (sub_units' subject)
+                                                         
+                                                         p:u (units' parameter)
+                                                         p:s (sub_units' parameter)
+                                                         
+                                                         sxp (i.x s:u p:s)
+                                                         pxs (i.x p:u s:s)
+                                                         
+                                                         x:u (all i.+
+                                                                  (i.x p:u
+                                                                       s:u)
+                                                                  (units' sxp)
+                                                                  (units' pxs)
+                                                                  )
+                                                         x:s (all i.+
+                                                                  (high_sub_units'
+                                                                   (i.x p:s
+                                                                        s:s))
+                                                                  (sub_units' sxp)
+                                                                  (sub_units' pxs)
+                                                                  )]
+                                                        (nominal.of
+                                                         (.integer (/64.and/or (of_units @ x:u)
+                                                                               x:s)))))))
 
-    (the .public (/ @ parameter subject)
-      (for_any (_ @)
-        (-> (Point @) (Fixed @) (Fixed @)
-            (Fixed @)))
-      (let [point (case.some big/integer.small (.integer (/64.bit (nominal.as Point @))))
-            subject (case.some big/integer.small (nominal.as subject))
-            parameter (case.some big/integer.small (nominal.as parameter))
-            it (|> subject
-                   (big/integer.x point)
-                   (big/integer./ parameter))]
-        (when (case.if big/integer.small it)
-          {.:Left it}
-          (when (case.if big/integer.small (big/integer./ point it))
-            {.:Left it}
-            (nominal.of +0)
-            
-            {.:Right it}
-            (nominal.of it))
-          
-          {.:Right it}
-          (nominal.of it))))
-    )
-  )
+                              (the .public (/ @ parameter subject)
+                                   (for_any (_ @)
+                                            (-> (Point @) (Fixed @) (Fixed @)
+                                                (Fixed @)))
+                                   (let [point (case.some big/integer.small (.integer (/64.bit (nominal.as Point @))))
+                                         subject (case.some big/integer.small (nominal.as subject))
+                                         parameter (case.some big/integer.small (nominal.as parameter))
+                                         it (|> subject
+                                                (big/integer.x point)
+                                                (big/integer./ parameter))]
+                                        (when (case.if big/integer.small it)
+                                              {.:Left it}
+                                              (when (case.if big/integer.small (big/integer./ point it))
+                                                    {.:Left it}
+                                                    (nominal.of +0)
+                                                    
+                                                    {.:Right it}
+                                                    (nominal.of it))
+                                              
+                                              {.:Right it}
+                                              (nominal.of it))))
+                              )
+               )
 
 (the .public (equality @)
-  (for_any (_ @)
-    (-> (Point @)
-        (Equality (Fixed @))))
-  (implementation
-   (the = (..= @))
-   ))
+     (for_any (_ @)
+              (-> (Point @)
+                  (Equality (Fixed @))))
+     (implementation
+      (the = (..= @))
+      ))
 
 (the .public (order @)
-  (for_any (_ @)
-    (-> (Point @)
-        (Order (Fixed @))))
-  (implementation
-   (the equality (..equality @))
-   (the < (..< @))
-   ))
+     (for_any (_ @)
+              (-> (Point @)
+                  (Order (Fixed @))))
+     (implementation
+      (the equality (..equality @))
+      (the < (..< @))
+      ))
 
 (the .public (as_text @ it)
-  (for_any (_ @)
-    (-> (Point @)
-        (text.Injection (Fixed @))))
-  (text (%.integer (..units @ it))
-        (%.revolution (..sub_units @ it))))
+     (for_any (_ @)
+              (-> (Point @)
+                  (text.Injection (Fixed @))))
+     (text (%.integer (..units @ it))
+           (%.revolution (..sub_units @ it))))

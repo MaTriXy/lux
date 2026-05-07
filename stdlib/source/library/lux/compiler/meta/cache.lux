@@ -13,29 +13,29 @@
     ["[0]" text]]]])
 
 (the .public path
-  file.Path
-  "cache")
+     file.Path
+     "cache")
 
 (the .public (path? fs it)
-  (for_any (_ !)
-    (-> (file.System !)
-        (Predicate file.Path)))
-  (let [prefix (text ..path (by fs delimiter))]
-    (or (text.starts_with? prefix it)
-        (text.= ..path it))))
+     (for_any (_ !)
+              (-> (file.System !)
+                  (Predicate file.Path)))
+     (let [prefix (text ..path (by fs delimiter))]
+          (and/or (text.starts_with? prefix it)
+                  (text.= ..path it))))
 
 (the .public (enabled? fs)
-  (for_any (_ !)
-    (-> (file.System !)
-        (! Bit)))
-  (by fs directory? ..path))
+     (for_any (_ !)
+              (-> (file.System !)
+                  (! Bit)))
+     (by fs directory? ..path))
 
 (the .public (enable! ! fs)
-  (for_any (_ !)
-    (-> (Monad !) (file.System !)
-        (! (Try Any))))
-  (monad.let !
-    [? (..enabled? fs)]
-    (if ?
-        (pure {try.:Success []})
-        (file.make_directories ! fs ..path))))
+     (for_any (_ !)
+              (-> (Monad !) (file.System !)
+                  (! (Try Any))))
+     (monad.let !
+                [? (..enabled? fs)]
+                (if ?
+                    (pure {try.:Success []})
+                    (file.make_directories ! fs ..path))))

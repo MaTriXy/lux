@@ -1,6 +1,6 @@
 (.using
  [library
-  [lux (.except let if or and)
+  [lux (.except let if and)
    [abstract
     ["[0]" monad]]
    [error
@@ -20,98 +20,98 @@
 ... https://en.wikipedia.org/wiki/Mathematical_proof
 ... https://en.wikipedia.org/wiki/Formal_proof
 (every .public Proof
-  (in.Substitution ?.Proposition))
+       (in.Substitution ?.Proposition))
 
 (the .public (let [identity proof] body
-               context it)
-  (for_any (_ it)
-    (-> [?.Proposition (in.Fact ?.Proposition it)]
-        (-> it Proof)
-        Proof))
-  (monad.let try.monad
-    [value (proof context identity)]
-    (body value context it)))
+                  context it)
+     (for_any (_ it)
+              (-> [?.Proposition (in.Fact ?.Proposition it)]
+                  (-> it Proof)
+                  Proof))
+     (monad.let try.monad
+                [value (proof context identity)]
+                (body value context it)))
 
 (the .public (=' left right
                  context it)
-  (-> in.Rule in.Rule
-      (in.Fact ?.Proposition ?.Proposition))
-  (monad.let try.monad
-    [[slow fast] (?.identity it)
-     slow (left context slow)
-     fast (right context fast)]
-    (pure {?.:Identity [?.:slow slow
-                        ?.:fast fast]})))
+     (-> in.Rule in.Rule
+         (in.Fact ?.Proposition ?.Proposition))
+     (monad.let try.monad
+                [[slow fast] (?.identity it)
+                 slow (left context slow)
+                 fast (right context fast)]
+                (pure {?.:Identity [?.:slow slow
+                                    ?.:fast fast]})))
 
 (the .public (= left right
                 context it)
-  (-> in.Rule in.Rule
-      Proof)
-  (monad.let try.monad
-    [it' (=' left right context it)
-     [slow fast] (?.identity it')]
-    (.if (.with analysis.equality
-           (= slow fast))
-         (pure it)
-         (exception.except by.contradiction [slow fast]))))
+     (-> in.Rule in.Rule
+         Proof)
+     (monad.let try.monad
+                [it' (=' left right context it)
+                 [slow fast] (?.identity it')]
+                (.if (.with analysis.equality
+                            (= slow fast))
+                     (pure it)
+                     (exception.except by.contradiction [slow fast]))))
 
 ... https://en.wikipedia.org/wiki/Q.E.D.
 (the .public qed
-  Proof
-  (= in.any
-     in.any))
+     Proof
+     (= in.any
+        in.any))
 
 (the .public (if then
                  context it)
-  (-> (-> ?.Proposition Proof)
-      Proof)
-  (monad.let try.monad
-    [[premise conclusion] (?.entailment it)]
-    ((then premise) context conclusion)))
+     (-> (-> ?.Proposition Proof)
+         Proof)
+     (monad.let try.monad
+                [[premise conclusion] (?.entailment it)]
+                ((then premise) context conclusion)))
 
 (the Case
-  (type (Change Proof)))
+     (type (Change Proof)))
 
 (the (case proposition)
-  (-> ?.Proposition
-      Case)
-  (function (_ proof
-               context it)
-    (monad.let try.monad
-      [_ (proof context proposition)]
-      (pure it))))
+     (-> ?.Proposition
+         Case)
+     (function (_ proof
+                  context it)
+               (monad.let try.monad
+                          [_ (proof context proposition)]
+                          (pure it))))
 
 (the .public (or then
                  context it)
-  (-> (-> Case Case
-          Proof)
-      Proof)
-  (monad.let try.monad
-    [[this that] (?.disjunction it)]
-    ((then (..case this) (..case that)) context it)))
+     (-> (-> Case Case
+             Proof)
+         Proof)
+     (monad.let try.monad
+                [[this that] (?.disjunction it)]
+                ((then (..case this) (..case that)) context it)))
 
 (the .public (and of_this of_that
                   context it)
-  (-> Proof Proof
-      Proof)
-  (monad.let try.monad
-    [[this that] (?.conjunction it)
-     _ (of_this context this)
-     _ (of_that context that)]
-    (pure it)))
+     (-> Proof Proof
+         Proof)
+     (monad.let try.monad
+                [[this that] (?.conjunction it)
+                 _ (of_this context this)
+                 _ (of_that context that)]
+                (pure it)))
 
 ... https://en.wikipedia.org/wiki/Axiom
 (the .public (axiom context it)
-  Proof
-  {try.:Success it})
+     Proof
+     {try.:Success it})
 
 (the .public (let_pair value body
                        context it)
-  (-> (Try ?.Proposition)
-      (-> [?.Proposition ?.Proposition]
-          Proof)
-      Proof)
-  (monad.let try.monad
-    [value value
-     value (?.conjunction value)]
-    ((body value) context it)))
+     (-> (Try ?.Proposition)
+         (-> [?.Proposition ?.Proposition]
+             Proof)
+         Proof)
+     (monad.let try.monad
+                [value value
+                 value (?.conjunction value)]
+                ((body value) context it)))

@@ -53,332 +53,332 @@
 (/.the java/lang/Object)
 
 (/.the (java/lang/Class a)
-  (getName [] java/lang/String))
+       (getName [] java/lang/String))
 
 (template.with [<name> <type> <conversion> <jvm_analogue> <lux> <=>]
-  [(the (<name> left right)
-     (-> <type> <type>
-         Bit)
-     (<=> (as (-> <jvm_analogue> <lux>) (<conversion> left))
-          (as (-> <jvm_analogue> <lux>) (<conversion> right))))]
+               [(the (<name> left right)
+                     (-> <type> <type>
+                         Bit)
+                     (<=> (as (-> <jvm_analogue> <lux>) (<conversion> left))
+                          (as (-> <jvm_analogue> <lux>) (<conversion> right))))]
 
-  [[boolean:= /.Boolean <| /.Boolean Bit bit.=]
-   [byte:= /.Byte /.byte_to_long /.Long Integer i.=]
-   [short:= /.Short /.short_to_long /.Long Int i.=]
-   [integer:= /.Integer /.int_to_long /.Long Integer i.=]
-   [long:= /.Long <|  /.Long Integer i.=]
-   [float:= /.Float /.float_to_double /.Double Real r.=]
-   [double:= /.Double <| /.Double Real r.=]
-   [character:= /.Character /.char_to_long /.Long Integer i.=]])
+               [[boolean:= /.Boolean <| /.Boolean Bit bit.=]
+                [byte:= /.Byte /.byte_to_long /.Long Integer i.=]
+                [short:= /.Short /.short_to_long /.Long Int i.=]
+                [integer:= /.Integer /.int_to_long /.Long Integer i.=]
+                [long:= /.Long <|  /.Long Integer i.=]
+                [float:= /.Float /.float_to_double /.Double Real r.=]
+                [double:= /.Double <| /.Double Real r.=]
+                [character:= /.Character /.char_to_long /.Long Integer i.=]])
 
 (syntax.the (macro_error [expression ?list.any])
-  (function (_ lux)
-    (|> (expansion.single expression)
-        (meta.value lux)
-        (pipe.when
-          {try.:Success expansion}
-          {try.:Failure "OOPS!"}
-          
-          {try.:Failure error}
-          {try.:Success [lux (list (code.text error))]}))))
+            (function (_ lux)
+                      (|> (expansion.single expression)
+                          (meta.value lux)
+                          (pipe.when
+                           {try.:Success expansion}
+                           {try.:Failure "OOPS!"}
+                           
+                           {try.:Failure error}
+                           {try.:Success [lux (list (code.text error))]}))))
 
 (the for_conversions
-  Test
-  (monad.let [! random.monad]
-    [long (by ! each (|>> /.as_long) random.integer)
-     integer (by ! each (|>> /.as_int) random.integer)
-     byte (by ! each (|>> /.as_byte) random.integer)
-     short (by ! each (|>> /.as_short) random.integer)
-     float (|> random.real
-               (random.only (|>> r.not_a_number? not))
-               (by ! each (|>> /.as_float)))]
-    (`` (all _.and
-             (,, (template.with [<sample> <=> <to> <from>]
-                   [(_.coverage [<to> <from>]
-                      (or (|> <sample> <to> <from> (<=> <sample>))
-                          (let [capped (|> <sample> <to> <from>)]
-                            (|> capped <to> <from> (<=> capped)))))]
+     Test
+     (monad.let [! random.monad]
+                [long (by ! each (|>> /.as_long) random.integer)
+                 integer (by ! each (|>> /.as_int) random.integer)
+                 byte (by ! each (|>> /.as_byte) random.integer)
+                 short (by ! each (|>> /.as_short) random.integer)
+                 float (|> random.real
+                           (random.only (|>> r.not_a_number? not))
+                           (by ! each (|>> /.as_float)))]
+                (`` (all _.and
+                         (,, (template.with [<sample> <=> <to> <from>]
+                                            [(_.coverage [<to> <from>]
+                                                         (and/or (|> <sample> <to> <from> (<=> <sample>))
+                                                                 (let [capped (|> <sample> <to> <from>)]
+                                                                      (|> capped <to> <from> (<=> capped)))))]
 
-                   [[long long:= /.long_to_byte /.byte_to_long]
-                    [long long:= /.long_to_short /.short_to_long]
-                    [long long:= /.long_to_int /.int_to_long]
-                    [long long:= /.long_to_float /.float_to_long]
-                    [long long:= /.long_to_double /.double_to_long]
-                    [long long:= /.long_to_char /.char_to_long]
+                                            [[long long:= /.long_to_byte /.byte_to_long]
+                                             [long long:= /.long_to_short /.short_to_long]
+                                             [long long:= /.long_to_int /.int_to_long]
+                                             [long long:= /.long_to_float /.float_to_long]
+                                             [long long:= /.long_to_double /.double_to_long]
+                                             [long long:= /.long_to_char /.char_to_long]
 
-                    [integer integer:= /.int_to_double /.double_to_int]
-                    [integer integer:= /.int_to_float /.float_to_int]
-                    [integer integer:= /.int_to_char /.char_to_int]
+                                             [integer integer:= /.int_to_double /.double_to_int]
+                                             [integer integer:= /.int_to_float /.float_to_int]
+                                             [integer integer:= /.int_to_char /.char_to_int]
 
-                    [byte byte:= /.byte_to_int /.int_to_byte]
-                    [short short:= /.short_to_int /.int_to_short]
-                    [byte byte:= /.byte_to_char /.char_to_byte]
-                    [short short:= /.short_to_char /.char_to_short]
-                    [float float:= /.float_to_double /.double_to_float]]))))))
+                                             [byte byte:= /.byte_to_int /.int_to_byte]
+                                             [short short:= /.short_to_int /.int_to_short]
+                                             [byte byte:= /.byte_to_char /.char_to_byte]
+                                             [short short:= /.short_to_char /.char_to_short]
+                                             [float float:= /.float_to_double /.double_to_float]]))))))
 
 (the for_arrays
-  Test
-  (monad.let [! random.monad]
-    [size (|> random.natural (by ! each (|>> (n.% 100) (n.major 1))))
-     idx (|> random.natural (by ! each (n.% size)))
-     value (by ! each (|>> /.as_long) random.integer)]
-    (all _.and
-         (_.coverage [/.array /.length]
-           (|> size
-               (/.array java/lang/Long)
-               /.length
-               (n.= size)))
-         (_.coverage [/.write! /.read!]
-           (|> (/.array java/lang/Long size)
-               (/.write! idx value)
-               (/.read! idx)
-               /.of_long
-               (i.= (/.of_long value))))
-         (_.coverage [/.cannot_convert_to_jvm_type]
-           (let [array (as (-> (Array Any)
-                               (Array Nothing))
-                           (array.empty 1))]
-             (|> array
-                 /.length
-                 ..macro_error
-                 (text.contains? (its exception.:label /.cannot_convert_to_jvm_type))))))))
+     Test
+     (monad.let [! random.monad]
+                [size (|> random.natural (by ! each (|>> (n.% 100) (n.major 1))))
+                 idx (|> random.natural (by ! each (n.% size)))
+                 value (by ! each (|>> /.as_long) random.integer)]
+                (all _.and
+                     (_.coverage [/.array /.length]
+                                 (|> size
+                                     (/.array java/lang/Long)
+                                     /.length
+                                     (n.= size)))
+                     (_.coverage [/.write! /.read!]
+                                 (|> (/.array java/lang/Long size)
+                                     (/.write! idx value)
+                                     (/.read! idx)
+                                     /.of_long
+                                     (i.= (/.of_long value))))
+                     (_.coverage [/.cannot_convert_to_jvm_type]
+                                 (let [array (as (-> (Array Any)
+                                                     (Array Nothing))
+                                                 (array.empty 1))]
+                                      (|> array
+                                          /.length
+                                          ..macro_error
+                                          (text.contains? (its exception.:label /.cannot_convert_to_jvm_type))))))))
 
 (the for_miscellaneous
-  Test
-  (`` (monad.let [! random.monad]
-        [sample (by ! each (|>> (as (-> Text java/lang/Object)))
-                    (random.ascii 1))
-         boolean (by ! each (|>> /.as_boolean) random.bit)
-         byte (by ! each (|>> /.as_byte) random.integer)
-         short (by ! each (|>> /.as_short) random.integer)
-         integer (by ! each (|>> /.as_int) random.integer)
-         long (by ! each (|>> /.as_long) random.integer)
-         float (|> random.real
-                   (random.only (|>> r.not_a_number? not))
-                   (by ! each (|>> /.as_float)))
-         double (|> random.real
-                    (random.only (|>> r.not_a_number? not))
-                    (by ! each (|>> /.as_double)))
-         character (by ! each (|>> /.as_int /.int_to_char) random.integer)
-         string (by ! each (|>> /.as_string)
-                    (random.ascii 1))
+     Test
+     (`` (monad.let [! random.monad]
+                    [sample (by ! each (|>> (as (-> Text java/lang/Object)))
+                                (random.ascii 1))
+                     boolean (by ! each (|>> /.as_boolean) random.bit)
+                     byte (by ! each (|>> /.as_byte) random.integer)
+                     short (by ! each (|>> /.as_short) random.integer)
+                     integer (by ! each (|>> /.as_int) random.integer)
+                     long (by ! each (|>> /.as_long) random.integer)
+                     float (|> random.real
+                               (random.only (|>> r.not_a_number? not))
+                               (by ! each (|>> /.as_float)))
+                     double (|> random.real
+                                (random.only (|>> r.not_a_number? not))
+                                (by ! each (|>> /.as_double)))
+                     character (by ! each (|>> /.as_int /.int_to_char) random.integer)
+                     string (by ! each (|>> /.as_string)
+                                (random.ascii 1))
 
-         bit/0 random.bit]
-        (all _.and
-             (_.coverage [/.as]
-               (and (when (/.as java/lang/String sample) {.:Some _} true {.:None} false)
-                    (when (/.as java/lang/Long sample) {.:Some _} false {.:None} true)
-                    (when (/.as java/lang/Object sample) {.:Some _} true {.:None} false)
-                    (when (/.as java/lang/Object (/.null)) {.:Some _} false {.:None} true)))
-             (_.coverage [/.synchronized]
-               (/.synchronized sample true))
-             (_.coverage [/.class_for]
-               (text.= "java.lang.Class" (/.of_string (java/lang/Class:getName [] (/.class_for java/lang/Class)))))
-             (_.coverage [/.null /.null?]
-               (and (/.null? (/.null))
-                    (not (/.null? sample))))
-             (_.coverage [/.???]
-               (and (|> (/.??? (/.null))
-                        (is (Maybe java/lang/Object))
-                        (pipe.when
-                          {.:None}
-                          true
-                          
-                          {.:Some _}
-                          false))
-                    (|> (/.??? sample)
-                        (is (Maybe java/lang/Object))
-                        (pipe.when
-                          {.:Some _}
-                          true
-                          
-                          {.:None}
-                          false))))
-             (_.coverage [/.!!!]
-               (and (|> (/.??? (/.null))
-                        /.!!!
-                        /.null?)
-                    (|> (/.??? sample)
-                        /.!!!
-                        /.null?
-                        not)))
-             (,, (template.with [<object> <primitive> <jvm:value> <jvm:=>
-                                 <lux:value> <as> <of> <lux:=>]
-                   [(_.coverage [<object> <primitive>]
-                      (|> <jvm:value>
-                          (is <object>)
-                          .jvm_object_cast#
-                          (is <primitive>)
-                          .jvm_object_cast#
-                          (is <object>)
-                          (<jvm:=> <jvm:value>)))
-                    (_.coverage [<as> <of>]
-                      (|> <lux:value>
-                          <as>
-                          <of>
-                          (<lux:=> <lux:value>)))]
+                     bit/0 random.bit]
+                    (all _.and
+                         (_.coverage [/.as]
+                                     (and (when (/.as java/lang/String sample) {.:Some _} true {.:None} false)
+                                          (when (/.as java/lang/Long sample) {.:Some _} false {.:None} true)
+                                          (when (/.as java/lang/Object sample) {.:Some _} true {.:None} false)
+                                          (when (/.as java/lang/Object (/.null)) {.:Some _} false {.:None} true)))
+                         (_.coverage [/.synchronized]
+                                     (/.synchronized sample true))
+                         (_.coverage [/.class_for]
+                                     (text.= "java.lang.Class" (/.of_string (java/lang/Class:getName [] (/.class_for java/lang/Class)))))
+                         (_.coverage [/.null /.null?]
+                                     (and (/.null? (/.null))
+                                          (not (/.null? sample))))
+                         (_.coverage [/.???]
+                                     (and (|> (/.??? (/.null))
+                                              (is (Maybe java/lang/Object))
+                                              (pipe.when
+                                               {.:None}
+                                               true
+                                               
+                                               {.:Some _}
+                                               false))
+                                          (|> (/.??? sample)
+                                              (is (Maybe java/lang/Object))
+                                              (pipe.when
+                                               {.:Some _}
+                                               true
+                                               
+                                               {.:None}
+                                               false))))
+                         (_.coverage [/.!!!]
+                                     (and (|> (/.??? (/.null))
+                                              /.!!!
+                                              /.null?)
+                                          (|> (/.??? sample)
+                                              /.!!!
+                                              /.null?
+                                              not)))
+                         (,, (template.with [<object> <primitive> <jvm:value> <jvm:=>
+                                             <lux:value> <as> <of> <lux:=>]
+                                            [(_.coverage [<object> <primitive>]
+                                                         (|> <jvm:value>
+                                                             (is <object>)
+                                                             .jvm_object_cast#
+                                                             (is <primitive>)
+                                                             .jvm_object_cast#
+                                                             (is <object>)
+                                                             (<jvm:=> <jvm:value>)))
+                                             (_.coverage [<as> <of>]
+                                                         (|> <lux:value>
+                                                             <as>
+                                                             <of>
+                                                             (<lux:=> <lux:value>)))]
 
-                   [[/.Boolean /.boolean boolean boolean:=
-                     bit/0 /.as_boolean /.of_boolean bit.=]
-                    [/.Byte /.byte byte byte:=
-                     (/.of_byte byte) /.as_byte /.of_byte i.=]
-                    [/.Short /.short short short:=
-                     (/.of_short short) /.as_short /.of_short i.=]
-                    [/.Integer /.int integer integer:=
-                     (/.of_int integer) /.as_int /.of_int i.=]
-                    [/.Long /.long long long:=
-                     (/.of_long long) /.as_long /.of_long i.=]
-                    [/.Float /.float float float:=
-                     (/.of_float float) /.as_float /.of_float r.=]
-                    [/.Double /.double double double:=
-                     (/.of_double double) /.as_double /.of_double r.=]
-                    [/.Character /.char character character:=
-                     (/.of_char character) /.as_char /.of_char i.=]]))
-             (_.coverage [/.String /.as_string /.of_string]
-               (let [it (/.of_string string)]
-                 (|> it
-                     /.as_string
-                     /.of_string
-                     (text.= it))))
-             (_.coverage [/.cannot_cast_to_non_object]
-               (text.contains? (its exception.:label /.cannot_cast_to_non_object)
-                               (macro_error (/.is boolean (is /.Boolean boolean)))))
-             (_.coverage [/.is]
-               (|> string
-                   (/.is java/lang/Object)
-                   (identical? (as (-> java/lang/String java/lang/Object)
-                                   string))))
-             (_.coverage [/.is?]
-               (and (/.is? java/lang/String (as (-> Any java/lang/Object) string))
-                    (/.is? java/lang/Object (as (-> Any java/lang/Object) string))
-                    (not (/.is? java/lang/Boolean (as (-> Any java/lang/Object) string)))))
-             (_.coverage [/.type]
-               (and (and (type.= /.Boolean (/.type java/lang/Boolean))
-                         (type.= /.Boolean (/.type boolean)))
-                    (and (type.= /.Byte (/.type java/lang/Byte))
-                         (type.= /.Byte (/.type byte)))
-                    (and (type.= /.Short (/.type java/lang/Short))
-                         (type.= /.Short (/.type short)))
-                    (and (type.= /.Integer (/.type java/lang/Integer))
-                         (type.= /.Integer (/.type int)))
-                    (and (type.= /.Long (/.type java/lang/Long))
-                         (type.= /.Long (/.type long)))
-                    (and (type.= /.Float (/.type java/lang/Float))
-                         (type.= /.Float (/.type float)))
-                    (and (type.= /.Double (/.type java/lang/Double))
-                         (type.= /.Double (/.type double)))
-                    (and (type.= /.Character (/.type java/lang/Character))
-                         (type.= /.Character (/.type char)))))
-             ))))
+                                            [[/.Boolean /.boolean boolean boolean:=
+                                              bit/0 /.as_boolean /.of_boolean bit.=]
+                                             [/.Byte /.byte byte byte:=
+                                              (/.of_byte byte) /.as_byte /.of_byte i.=]
+                                             [/.Short /.short short short:=
+                                              (/.of_short short) /.as_short /.of_short i.=]
+                                             [/.Integer /.int integer integer:=
+                                              (/.of_int integer) /.as_int /.of_int i.=]
+                                             [/.Long /.long long long:=
+                                              (/.of_long long) /.as_long /.of_long i.=]
+                                             [/.Float /.float float float:=
+                                              (/.of_float float) /.as_float /.of_float r.=]
+                                             [/.Double /.double double double:=
+                                              (/.of_double double) /.as_double /.of_double r.=]
+                                             [/.Character /.char character character:=
+                                              (/.of_char character) /.as_char /.of_char i.=]]))
+                         (_.coverage [/.String /.as_string /.of_string]
+                                     (let [it (/.of_string string)]
+                                          (|> it
+                                              /.as_string
+                                              /.of_string
+                                              (text.= it))))
+                         (_.coverage [/.cannot_cast_to_non_object]
+                                     (text.contains? (its exception.:label /.cannot_cast_to_non_object)
+                                                     (macro_error (/.is boolean (is /.Boolean boolean)))))
+                         (_.coverage [/.is]
+                                     (|> string
+                                         (/.is java/lang/Object)
+                                         (identical? (as (-> java/lang/String java/lang/Object)
+                                                         string))))
+                         (_.coverage [/.is?]
+                                     (and (/.is? java/lang/String (as (-> Any java/lang/Object) string))
+                                          (/.is? java/lang/Object (as (-> Any java/lang/Object) string))
+                                          (not (/.is? java/lang/Boolean (as (-> Any java/lang/Object) string)))))
+                         (_.coverage [/.type]
+                                     (and (and (type.= /.Boolean (/.type java/lang/Boolean))
+                                               (type.= /.Boolean (/.type boolean)))
+                                          (and (type.= /.Byte (/.type java/lang/Byte))
+                                               (type.= /.Byte (/.type byte)))
+                                          (and (type.= /.Short (/.type java/lang/Short))
+                                               (type.= /.Short (/.type short)))
+                                          (and (type.= /.Integer (/.type java/lang/Integer))
+                                               (type.= /.Integer (/.type int)))
+                                          (and (type.= /.Long (/.type java/lang/Long))
+                                               (type.= /.Long (/.type long)))
+                                          (and (type.= /.Float (/.type java/lang/Float))
+                                               (type.= /.Float (/.type float)))
+                                          (and (type.= /.Double (/.type java/lang/Double))
+                                               (type.= /.Double (/.type double)))
+                                          (and (type.= /.Character (/.type java/lang/Character))
+                                               (type.= /.Character (/.type char)))))
+                         ))))
 
 (/.interface test/TestInterface0
              ([] actual0 [] java/lang/Long))
 
 (/.the test/TestInterface0
-  (actual0 [] java/lang/Long))
+       (actual0 [] java/lang/Long))
 
 (/.interface test/TestInterface1
              ([] actual1 [java/lang/Boolean] java/lang/Long "throws" [java/lang/Throwable]))
 
 (/.the test/TestInterface1
-  (actual1 [java/lang/Boolean] "try" java/lang/Long))
+       (actual1 [java/lang/Boolean] "try" java/lang/Long))
 
 (/.interface test/TestInterface2
              ([a] actual2 [a] a))
 
 (/.the test/TestInterface2
-  ([a] actual2 [a] a))
+       ([a] actual2 [a] a))
 
 (/.interface (test/TestInterface3 a)
              ([] actual3 [] a))
 
 (/.the (test/TestInterface3 a)
-  (actual3 [] a))
+       (actual3 [] a))
 
 (/.interface test/TestInterface4
              ([] actual4 [long long] long))
 
 (/.the test/TestInterface4
-  (actual4 [long long] long))
+       (actual4 [long long] long))
 
 (the for_interface
-  Test
-  (monad.let random.monad
-    [expected random.natural
-     left random.integer
-     right random.integer
-     .let [object/0 (/.object [] [test/TestInterface0]
-                      []
-                      (test/TestInterface0
-                       [] (actual0 self [])
-                       java/lang/Long
-                       (/.as_long (.integer expected))))
-           example/0!
-           (identical? (is Any expected)
-                       (is Any (test/TestInterface0:actual0 [] object/0)))
+     Test
+     (monad.let random.monad
+                [expected random.natural
+                 left random.integer
+                 right random.integer
+                 .let [object/0 (/.object [] [test/TestInterface0]
+                                          []
+                                          (test/TestInterface0
+                                           [] (actual0 self [])
+                                           java/lang/Long
+                                           (/.as_long (.integer expected))))
+                       example/0!
+                       (identical? (is Any expected)
+                                   (is Any (test/TestInterface0:actual0 [] object/0)))
 
-           object/1 (/.object [] [test/TestInterface1]
-                      []
-                      (test/TestInterface1
-                       [] (actual1 self [throw? java/lang/Boolean])
-                       java/lang/Long
-                       "throws" [java/lang/Throwable]
-                       (if (not (/.of_boolean throw?))
-                           (/.as_long (.integer expected))
-                           (halt! "YOLO"))))
-           example/1!
-           (and (when (test/TestInterface1:actual1 [(/.as_boolean false)] object/1)
-                  {try.:Success actual}
-                  (identical? (is Any expected)
-                              (is Any actual))
-                  
-                  {try.:Failure error}
-                  false)
-                (when (test/TestInterface1:actual1 [(/.as_boolean true)] object/1)
-                  {try.:Success actual}
-                  false
-                  
-                  {try.:Failure error}
-                  true))
+                       object/1 (/.object [] [test/TestInterface1]
+                                          []
+                                          (test/TestInterface1
+                                           [] (actual1 self [throw? java/lang/Boolean])
+                                           java/lang/Long
+                                           "throws" [java/lang/Throwable]
+                                           (if (not (/.of_boolean throw?))
+                                               (/.as_long (.integer expected))
+                                               (halt! "YOLO"))))
+                       example/1!
+                       (and (when (test/TestInterface1:actual1 [(/.as_boolean false)] object/1)
+                                  {try.:Success actual}
+                                  (identical? (is Any expected)
+                                              (is Any actual))
+                                  
+                                  {try.:Failure error}
+                                  false)
+                            (when (test/TestInterface1:actual1 [(/.as_boolean true)] object/1)
+                                  {try.:Success actual}
+                                  false
+                                  
+                                  {try.:Failure error}
+                                  true))
 
-           object/2 (/.object [] [test/TestInterface2]
-                      []
-                      (test/TestInterface2
-                       [a] (actual2 self [input a])
-                       a
-                       input))
-           example/2!
-           (identical? (is Any expected)
-                       (is Any (test/TestInterface2:actual2 [(/.as_long (.integer expected))] object/2)))
+                       object/2 (/.object [] [test/TestInterface2]
+                                          []
+                                          (test/TestInterface2
+                                           [a] (actual2 self [input a])
+                                           a
+                                           input))
+                       example/2!
+                       (identical? (is Any expected)
+                                   (is Any (test/TestInterface2:actual2 [(/.as_long (.integer expected))] object/2)))
 
-           object/3 (/.object [] [(test/TestInterface3 java/lang/Long)]
-                      []
-                      ((test/TestInterface3 a)
-                       [] (actual3 self [])
-                       a
-                       (/.as_long (.integer expected))))
-           example/3!
-           (identical? (is Any expected)
-                       (is Any (test/TestInterface3:actual3 [] object/3)))
+                       object/3 (/.object [] [(test/TestInterface3 java/lang/Long)]
+                                          []
+                                          ((test/TestInterface3 a)
+                                           [] (actual3 self [])
+                                           a
+                                           (/.as_long (.integer expected))))
+                       example/3!
+                       (identical? (is Any expected)
+                                   (is Any (test/TestInterface3:actual3 [] object/3)))
 
-           example/4!
-           (let [expected (i.+ left right)
-                 object/4 (/.object [] [test/TestInterface4]
-                            []
-                            (test/TestInterface4
-                             [] (actual4 self [actual_left long
-                                               actual_right long])
-                             long
-                             (/.as_long (i.+ (/.of_long actual_left)
-                                             (/.of_long actual_right)))))]
-             (i.= expected
-                  (/.of_long (test/TestInterface4:actual4 [left right] object/4))))]]
-    (_.coverage [/.interface /.object]
-      (and example/0!
-           example/1!
-           example/2!
-           example/3!
-           example/4!))))
+                       example/4!
+                       (let [expected (i.+ left right)
+                             object/4 (/.object [] [test/TestInterface4]
+                                                []
+                                                (test/TestInterface4
+                                                 [] (actual4 self [actual_left long
+                                                                   actual_right long])
+                                                 long
+                                                 (/.as_long (i.+ (/.of_long actual_left)
+                                                                 (/.of_long actual_right)))))]
+                            (i.= expected
+                                 (/.of_long (test/TestInterface4:actual4 [left right] object/4))))]]
+                (_.coverage [/.interface /.object]
+                            (and example/0!
+                                 example/1!
+                                 example/2!
+                                 example/3!
+                                 example/4!))))
 
 (/.class "final" test/TestClass0 [test/TestInterface0]
          ("private" value java/lang/Long)
@@ -391,7 +391,7 @@
                               (/.get value self)))
 
 (/.the test/TestClass0
-  (new [java/lang/Long]))
+       (new [java/lang/Long]))
 
 (/.class "final" test/TestClass1 [test/TestInterface1]
          ("private" value java/lang/Long)
@@ -407,7 +407,7 @@
                                   (halt! "YOLO"))))
 
 (/.the test/TestClass1
-  (new [java/lang/Long]))
+       (new [java/lang/Long]))
 
 (/.class "final" test/TestClass2 [test/TestInterface2]
          ("public" [] (new self []) []
@@ -419,7 +419,7 @@
           input))
 
 (/.the test/TestClass2
-  (new []))
+       (new []))
 
 (/.class "final" (test/TestClass3 a) [(test/TestInterface3 a)]
          ("private" value a)
@@ -433,7 +433,7 @@
           (/.get value self)))
 
 (/.the (test/TestClass3 a)
-  (new [a]))
+       (new [a]))
 
 (/.class "final" test/TestClass4 []
          ("public" [] (new self []) []
@@ -443,8 +443,8 @@
           value))
 
 (/.the test/TestClass4
-  (new [])
-  (actual4 [java/lang/Long] java/lang/Long))
+       (new [])
+       (actual4 [java/lang/Long] java/lang/Long))
 
 (/.class "final" test/TestClass5 []
          ("public" [] (new self []) []
@@ -455,7 +455,7 @@
           value))
 
 (/.the test/TestClass5
-  ("static" actual5 [java/lang/Long] java/lang/Long))
+       ("static" actual5 [java/lang/Long] java/lang/Long))
 
 (/.class "abstract" test/TestClass6 []
          ("public" [] (new self []) []
@@ -465,7 +465,7 @@
           java/lang/Long))
 
 (/.the test/TestClass6
-  (actual6 [java/lang/Long] java/lang/Long))
+       (actual6 [java/lang/Long] java/lang/Long))
 
 (/.class "final" test/TestClass7 test/TestClass6 []
          ("public" [] (new self []) []
@@ -477,7 +477,7 @@
           input))
 
 (/.the test/TestClass7
-  (new []))
+       (new []))
 
 (/.class "final" test/TestClass8 [test/TestInterface4]
          ("public" [] (new self []) []
@@ -492,7 +492,7 @@
                 (/.of_long actual_right)))))
 
 (/.the test/TestClass8
-  (new []))
+       (new []))
 
 (/.class "final" (test/TestClass9 a) []
          ("private" value9 a)
@@ -506,9 +506,9 @@
           (/.get value9 self)))
 
 (/.the (test/TestClass9 a)
-  (new [a])
-  (set_actual9 [a] void)
-  (get_actual9 [] a))
+       (new [a])
+       (set_actual9 [a] void)
+       (get_actual9 [] a))
 
 (/.class "final" (test/TestClass10 a) []
          ("public" value10 a)
@@ -517,8 +517,8 @@
           (/.set value10 init self)))
 
 (/.the (test/TestClass10 a)
-  (new [a])
-  (value10 a))
+       (new [a])
+       (value10 a))
 
 (/.class "final" (test/TestClass11 a) []
          ("public" value11 a)
@@ -527,8 +527,8 @@
           (/.set value11 init self)))
 
 (/.the (test/TestClass11 a)
-  (new [a])
-  ("read_only" value11 a))
+       (new [a])
+       ("read_only" value11 a))
 
 (/.class "final" (test/TestClass12 a) []
          ("public" value12_a a)
@@ -538,17 +538,17 @@
 
          ("public" [] (new self [init a]) []
           (exec
-            (/.set value12_a init self)
-            (/.set value12_b init self)
-            (/.set value12_c init self)
-            (/.set value12_d init self))))
+           (/.set value12_a init self)
+           (/.set value12_b init self)
+           (/.set value12_c init self)
+           (/.set value12_d init self))))
 
 (/.the (test/TestClass12 a)
-  (new [a])
-  ("read_only" value12_a a)
-  ("read_only" value12_b a)
-  ("read_only" value12_c a)
-  ("read_only" value12_d a))
+       (new [a])
+       ("read_only" value12_a a)
+       ("read_only" value12_b a)
+       ("read_only" value12_c a)
+       ("read_only" value12_d a))
 
 (/.class "final" test/TestClass_13 []
          ("public" [] (new self []) []
@@ -563,224 +563,224 @@
                                         (macro_error (/.call identity_13_0 [] self))))))
 
 (/.the test/TestClass_13
-  (new [])
-  ([A] identity_13_0 [A] A)
-  ([A] identity_13_1 [A] A)
-  (if_13 [] boolean))
+       (new [])
+       ([A] identity_13_0 [A] A)
+       ([A] identity_13_1 [A] A)
+       (if_13 [] boolean))
 
 (the for_class
-  Test
-  (monad.let [! random.monad]
-    [expected random.natural
-     left random.integer
-     right random.integer
+     Test
+     (monad.let [! random.monad]
+                [expected random.natural
+                 left random.integer
+                 right random.integer
 
-     .let [object/0 (test/TestClass0:new [(/.as_long (.integer expected))])
-           example/0!
-           (n.= expected
-                (.natural (/.of_long (test/TestInterface0:actual0 [] object/0))))
+                 .let [object/0 (test/TestClass0:new [(/.as_long (.integer expected))])
+                       example/0!
+                       (n.= expected
+                            (.natural (/.of_long (test/TestInterface0:actual0 [] object/0))))
 
-           object/1 (test/TestClass1:new [(/.as_long (.integer expected))])
-           example/1!
-           (and (when (test/TestInterface1:actual1 [(/.as_boolean false)] object/1)
-                  {try.:Success actual}
-                  (n.= expected
-                       (.natural (/.of_long actual)))
-                  
-                  {try.:Failure error}
-                  false)
-                (when (test/TestInterface1:actual1 [(/.as_boolean true)] object/1)
-                  {try.:Success actual}
-                  false
-                  
-                  {try.:Failure error}
-                  true))
+                       object/1 (test/TestClass1:new [(/.as_long (.integer expected))])
+                       example/1!
+                       (and (when (test/TestInterface1:actual1 [(/.as_boolean false)] object/1)
+                                  {try.:Success actual}
+                                  (n.= expected
+                                       (.natural (/.of_long actual)))
+                                  
+                                  {try.:Failure error}
+                                  false)
+                            (when (test/TestInterface1:actual1 [(/.as_boolean true)] object/1)
+                                  {try.:Success actual}
+                                  false
+                                  
+                                  {try.:Failure error}
+                                  true))
 
-           object/2 (test/TestClass2:new [])
-           example/2!
-           (n.= expected
-                (.natural (/.of_long (as (-> Any /.Long) (test/TestInterface2:actual2 [(/.as_long (.integer expected))] object/2)))))
+                       object/2 (test/TestClass2:new [])
+                       example/2!
+                       (n.= expected
+                            (.natural (/.of_long (as (-> Any /.Long) (test/TestInterface2:actual2 [(/.as_long (.integer expected))] object/2)))))
 
-           object/3 (is (test/TestClass3 java/lang/Long)
-                        (test/TestClass3:new [(/.as_long (.integer expected))]))
-           example/3!
-           (n.= expected
-                (.natural (/.of_long (as (-> Any /.Long) (test/TestInterface3:actual3 [] object/3)))))
+                       object/3 (is (test/TestClass3 java/lang/Long)
+                                    (test/TestClass3:new [(/.as_long (.integer expected))]))
+                       example/3!
+                       (n.= expected
+                            (.natural (/.of_long (as (-> Any /.Long) (test/TestInterface3:actual3 [] object/3)))))
 
-           object/4 (test/TestClass4:new [])
-           example/4!
-           (n.= expected
-                (.natural (/.of_long (test/TestClass4:actual4 [(/.as_long (.integer expected))] object/4))))
+                       object/4 (test/TestClass4:new [])
+                       example/4!
+                       (n.= expected
+                            (.natural (/.of_long (test/TestClass4:actual4 [(/.as_long (.integer expected))] object/4))))
 
-           example/5!
-           (n.= expected
-                (.natural (/.of_long (test/TestClass5:actual5 [(/.as_long (.integer expected))]))))
+                       example/5!
+                       (n.= expected
+                            (.natural (/.of_long (test/TestClass5:actual5 [(/.as_long (.integer expected))]))))
 
-           object/7 (test/TestClass7:new [])
-           example/7!
-           (n.= expected
-                (.natural (/.of_long (test/TestClass6:actual6 [(/.as_long (.integer expected))] object/7))))
+                       object/7 (test/TestClass7:new [])
+                       example/7!
+                       (n.= expected
+                            (.natural (/.of_long (test/TestClass6:actual6 [(/.as_long (.integer expected))] object/7))))
 
-           example_8!
-           (let [expected (i.+ left right)
-                 object_8 (test/TestClass8:new [])]
-             (i.= expected
-                  (/.of_long (test/TestInterface4:actual4 [(/.as_long left) (/.as_long right)] object_8))))]
+                       example_8!
+                       (let [expected (i.+ left right)
+                             object_8 (test/TestClass8:new [])]
+                            (i.= expected
+                                 (/.of_long (test/TestInterface4:actual4 [(/.as_long left) (/.as_long right)] object_8))))]
 
-     .let [random_long (is (Random java/lang/Long)
-                           (by ! each (|>> /.as_long)
-                               random.integer))]
-     dummy/0 random_long
-     dummy/1 random_long
-     dummy/2 random_long
-     .let [object/9 (/.to (is (test/TestClass9 java/lang/Long)
-                              (test/TestClass9:new [dummy/0]))
-                          (test/TestClass9:set_actual9 [dummy/1])
-                          (test/TestClass9:set_actual9 [dummy/2]))
-           example/9!
-           (|> object/9
-               (test/TestClass9:get_actual9 [])
-               (as (-> Any Integer))
-               /.as_long
-               (identical? dummy/2))
+                 .let [random_long (is (Random java/lang/Long)
+                                       (by ! each (|>> /.as_long)
+                                           random.integer))]
+                 dummy/0 random_long
+                 dummy/1 random_long
+                 dummy/2 random_long
+                 .let [object/9 (/.to (is (test/TestClass9 java/lang/Long)
+                                          (test/TestClass9:new [dummy/0]))
+                                      (test/TestClass9:set_actual9 [dummy/1])
+                                      (test/TestClass9:set_actual9 [dummy/2]))
+                       example/9!
+                       (|> object/9
+                           (test/TestClass9:get_actual9 [])
+                           (as (-> Any Integer))
+                           /.as_long
+                           (identical? dummy/2))
 
-           object/10 (is (test/TestClass10 java/lang/Long)
-                         (test/TestClass10:new [dummy/0]))
-           example/10!
-           (and (|> object/10
-                    test/TestClass10:value10
-                    io.value
-                    (as (-> Any /.Long))
-                    (identical? dummy/0))
-                (|> object/10
-                    (test/TestClass10:value10 dummy/1)
-                    io.value
-                    test/TestClass10:value10
-                    io.value
-                    (as (-> Any /.Long))
-                    (identical? dummy/1)))
+                       object/10 (is (test/TestClass10 java/lang/Long)
+                                     (test/TestClass10:new [dummy/0]))
+                       example/10!
+                       (and (|> object/10
+                                test/TestClass10:value10
+                                io.value
+                                (as (-> Any /.Long))
+                                (identical? dummy/0))
+                            (|> object/10
+                                (test/TestClass10:value10 dummy/1)
+                                io.value
+                                test/TestClass10:value10
+                                io.value
+                                (as (-> Any /.Long))
+                                (identical? dummy/1)))
 
-           object/11 (is (test/TestClass11 java/lang/Long)
-                         (test/TestClass11:new [dummy/0]))
-           example/11!
-           (and (|> object/11
-                    test/TestClass11:value11
-                    (as (-> Any /.Long))
-                    (identical? dummy/0))
-                (|> object/11
-                    (test/TestClass11:value11 dummy/1)
-                    macro_error
-                    (text.contains? (its exception.:label /.cannot_write_to_field))))]]
-    (all _.and
-         (_.coverage [/.class /.the
-                      /.get /.cannot_get_field
-                      /.set /.cannot_set_field]
-           (and example/0!
-                example/1!
-                example/2!
-                example/3!
-                example/4!
-                example/5!
-                example/7!
-                example_8!
-                example/10!
-                ))
-         (_.coverage [/.cannot_write_to_field]
-           example/11!)
-         (_.coverage [/.to]
-           example/9!)
-         (_.coverage [/.Privacy
-                      /.:Public /.:Private /.:Protected /.:Default]
-           (let [object (is (test/TestClass12 java/lang/Long)
-                            (test/TestClass12:new [dummy/0]))]
-             (`` (and (|> object
-                          test/TestClass12:value12_a
-                          (as (-> Any /.Long))
-                          (identical? dummy/0))
-                      (,, (template.with [,field]
-                            [(when (try (,field object))
-                               {try.:Failure error}
-                               true
+                       object/11 (is (test/TestClass11 java/lang/Long)
+                                     (test/TestClass11:new [dummy/0]))
+                       example/11!
+                       (and (|> object/11
+                                test/TestClass11:value11
+                                (as (-> Any /.Long))
+                                (identical? dummy/0))
+                            (|> object/11
+                                (test/TestClass11:value11 dummy/1)
+                                macro_error
+                                (text.contains? (its exception.:label /.cannot_write_to_field))))]]
+                (all _.and
+                     (_.coverage [/.class /.the
+                                  /.get /.cannot_get_field
+                                  /.set /.cannot_set_field]
+                                 (and example/0!
+                                      example/1!
+                                      example/2!
+                                      example/3!
+                                      example/4!
+                                      example/5!
+                                      example/7!
+                                      example_8!
+                                      example/10!
+                                      ))
+                     (_.coverage [/.cannot_write_to_field]
+                                 example/11!)
+                     (_.coverage [/.to]
+                                 example/9!)
+                     (_.coverage [/.Privacy
+                                  /.:Public /.:Private /.:Protected /.:Default]
+                                 (let [object (is (test/TestClass12 java/lang/Long)
+                                                  (test/TestClass12:new [dummy/0]))]
+                                      (`` (and (|> object
+                                                   test/TestClass12:value12_a
+                                                   (as (-> Any /.Long))
+                                                   (identical? dummy/0))
+                                               (,, (template.with [,field]
+                                                                  [(when (try (,field object))
+                                                                         {try.:Failure error}
+                                                                         true
 
-                               else
-                               false)]
+                                                                         else
+                                                                         false)]
 
-                            [[test/TestClass12:value12_b]
-                             [test/TestClass12:value12_c]
-                             [test/TestClass12:value12_d]]))))))
-         (_.coverage [/.call /.cannot_call_method]
-           (let [expected (/.as_long left)]
-             (and (|> (test/TestClass_13:new [])
-                      (test/TestClass_13:identity_13_0 [expected])
-                      (identical? expected))
-                  (|> (test/TestClass_13:new [])
-                      (test/TestClass_13:identity_13_1 [expected])
-                      (identical? expected)))))
-         (_.coverage [/.insufficient_parameters]
-           (|> (test/TestClass_13:new [])
-               (test/TestClass_13:if_13 [])
-               /.of_boolean))
-         )))
+                                                                  [[test/TestClass12:value12_b]
+                                                                   [test/TestClass12:value12_c]
+                                                                   [test/TestClass12:value12_d]]))))))
+                     (_.coverage [/.call /.cannot_call_method]
+                                 (let [expected (/.as_long left)]
+                                      (and (|> (test/TestClass_13:new [])
+                                               (test/TestClass_13:identity_13_0 [expected])
+                                               (identical? expected))
+                                           (|> (test/TestClass_13:new [])
+                                               (test/TestClass_13:identity_13_1 [expected])
+                                               (identical? expected)))))
+                     (_.coverage [/.insufficient_parameters]
+                                 (|> (test/TestClass_13:new [])
+                                     (test/TestClass_13:if_13 [])
+                                     /.of_boolean))
+                     )))
 
 (syntax.the (expands? [expression ?list.any])
-  (function (_ lux)
-    (|> (expansion.single expression)
-        (meta.value lux)
-        (pipe.when
-          {try.:Success expansion}
-          true
-          
-          {try.:Failure error}
-          false)
-        code.bit
-        list
-        [lux]
-        {try.:Success})))
+            (function (_ lux)
+                      (|> (expansion.single expression)
+                          (meta.value lux)
+                          (pipe.when
+                           {try.:Success expansion}
+                           true
+                           
+                           {try.:Failure error}
+                           false)
+                          code.bit
+                          list
+                          [lux]
+                          {try.:Success})))
 
 (the for_exception
-  Test
-  (monad.let [! random.monad]
-    [var/0 (random.lower_cased 1)
-     var/1 (random.lower_cased 2)
-     var/2 (random.lower_cased 3)]
-    (all _.and
-         (_.coverage [/.class_names_cannot_contain_periods]
-           (expansion.let [<class> (template.name ["java.lang.Float"])]
-             (not (expands? (/.the <class>)))))
-         (_.coverage [/.class_name_cannot_be_a_type_variable]
-           (and (not (expands? (/.the (java/lang/Double a)
-                                 (invalid [] (a java/lang/String)))))
-                (not (expands? (/.the java/lang/Double
-                                 ([a] invalid [] (a java/lang/String)))))))
-         (_.coverage [/.unknown_type_variable]
-           (let [type_variable ((debug.private /.type_variable) (list (jvm.var var/0) (jvm.var var/1)))]
-             (and (|> type_variable
-                      (?list.value (list (code.local var/0)))
-                      (try:each (|>> (jvm.= (jvm.var var/0))))
-                      (try.else false))
-                  (|> type_variable
-                      (?list.value (list (code.local var/1)))
-                      (try:each (|>> (jvm.= (jvm.var var/1))))
-                      (try.else false))
-                  (|> type_variable
-                      (?list.value (list (code.local var/2)))
-                      (pipe.when
-                        {try.:Failure error}
-                        (exception.is? /.unknown_type_variable error)
-                        
-                        _
-                        false)))))
-         )))
+     Test
+     (monad.let [! random.monad]
+                [var/0 (random.lower_cased 1)
+                 var/1 (random.lower_cased 2)
+                 var/2 (random.lower_cased 3)]
+                (all _.and
+                     (_.coverage [/.class_names_cannot_contain_periods]
+                                 (expansion.let [<class> (template.name ["java.lang.Float"])]
+                                                (not (expands? (/.the <class>)))))
+                     (_.coverage [/.class_name_cannot_be_a_type_variable]
+                                 (and (not (expands? (/.the (java/lang/Double a)
+                                                            (invalid [] (a java/lang/String)))))
+                                      (not (expands? (/.the java/lang/Double
+                                                            ([a] invalid [] (a java/lang/String)))))))
+                     (_.coverage [/.unknown_type_variable]
+                                 (let [type_variable ((debug.private /.type_variable) (list (jvm.var var/0) (jvm.var var/1)))]
+                                      (and (|> type_variable
+                                               (?list.value (list (code.local var/0)))
+                                               (try:each (|>> (jvm.= (jvm.var var/0))))
+                                               (try.else false))
+                                           (|> type_variable
+                                               (?list.value (list (code.local var/1)))
+                                               (try:each (|>> (jvm.= (jvm.var var/1))))
+                                               (try.else false))
+                                           (|> type_variable
+                                               (?list.value (list (code.local var/2)))
+                                               (pipe.when
+                                                {try.:Failure error}
+                                                (exception.is? /.unknown_type_variable error)
+                                                
+                                                _
+                                                false)))))
+                     )))
 
 (the .public test
-  (<| (_.covering /._)
-      (all _.and
-           ..for_conversions
-           ..for_arrays
-           ..for_miscellaneous
-           ..for_interface
-           ..for_class
-           ..for_exception
+     (<| (_.covering /._)
+         (all _.and
+              ..for_conversions
+              ..for_arrays
+              ..for_miscellaneous
+              ..for_interface
+              ..for_class
+              ..for_exception
 
-           $/export.test
-           )))
+              $/export.test
+              )))

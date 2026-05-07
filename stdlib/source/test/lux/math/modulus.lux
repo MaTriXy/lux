@@ -22,52 +22,52 @@
   ["[0]" /]])
 
 (syntax.the (|divisor| [])
-  (monad.let meta.monad
-    [divisor meta.seed]
-    (pure (list (code.integer (when divisor
-                                0 +1
-                                _ (.integer divisor)))))))
+            (monad.let meta.monad
+                       [divisor meta.seed]
+                       (pure (list (code.integer (when divisor
+                                                       0 +1
+                                                       _ (.integer divisor)))))))
 
 (the .public (random range)
-  (for_some (_ %)
-    (-> Integer
-        (Random (/.Modulus %))))
-  (|> random.integer
-      (by random.monad each (i.% range))
-      (random.one (|>> /.modulus try.maybe))))
+     (for_some (_ %)
+               (-> Integer
+                   (Random (/.Modulus %))))
+     (|> random.integer
+         (by random.monad each (i.% range))
+         (random.one (|>> /.modulus try.maybe))))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (_.for [/.Modulus])
-      (monad.let random.monad
-        [divisor random.integer
-         modulus (..random +1,000,000)
-         dividend random.integer]
-        (all _.and
-             (_.coverage [/.modulus /.divisor]
-               (when (/.modulus divisor)
-                 {try.:Success modulus}
-                 (i.= divisor (/.divisor modulus))
-                 
-                 {try.:Failure error}
-                 (i.= +0 divisor)))
-             (_.coverage [/.zero_cannot_be_a_modulus]
-               (when (/.modulus +0)
-                 {try.:Failure error}
-                 (exception.is? /.zero_cannot_be_a_modulus error)
+     Test
+     (<| (_.covering /._)
+         (_.for [/.Modulus])
+         (monad.let random.monad
+                    [divisor random.integer
+                     modulus (..random +1,000,000)
+                     dividend random.integer]
+                    (all _.and
+                         (_.coverage [/.modulus /.divisor]
+                                     (when (/.modulus divisor)
+                                           {try.:Success modulus}
+                                           (i.= divisor (/.divisor modulus))
+                                           
+                                           {try.:Failure error}
+                                           (i.= +0 divisor)))
+                         (_.coverage [/.zero_cannot_be_a_modulus]
+                                     (when (/.modulus +0)
+                                           {try.:Failure error}
+                                           (exception.is? /.zero_cannot_be_a_modulus error)
 
-                 {try.:Success modulus}
-                 false))
-             (_.coverage [/.literal]
-               (expansion.let [<divisor> (|divisor|)]
-                 (i.= <divisor> (/.divisor (/.literal <divisor>)))))
-             (_.coverage [/.=]
-               (expansion.let [<divisor> (|divisor|)]
-                 (/.= (/.literal <divisor>)
-                      (/.literal <divisor>))))
-             (_.coverage [/.congruent?]
-               (and (/.congruent? modulus dividend dividend)
-                    (or (not (/.congruent? modulus dividend (++ dividend)))
-                        (i.= +1 (/.divisor modulus)))))
-             ))))
+                                           {try.:Success modulus}
+                                           false))
+                         (_.coverage [/.literal]
+                                     (expansion.let [<divisor> (|divisor|)]
+                                                    (i.= <divisor> (/.divisor (/.literal <divisor>)))))
+                         (_.coverage [/.=]
+                                     (expansion.let [<divisor> (|divisor|)]
+                                                    (/.= (/.literal <divisor>)
+                                                         (/.literal <divisor>))))
+                         (_.coverage [/.congruent?]
+                                     (and (/.congruent? modulus dividend dividend)
+                                          (and/or (not (/.congruent? modulus dividend (++ dividend)))
+                                                  (i.= +1 (/.divisor modulus)))))
+                         ))))

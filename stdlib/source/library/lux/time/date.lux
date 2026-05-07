@@ -39,370 +39,370 @@
   ["[0]" month (.only Month)]])
 
 (the month_by_number
-  (Dictionary Natural Month)
-  (list.mix (function (_ month mapping)
-              (dictionary.has (month.number month) month mapping))
-            month.year
-            (dictionary.empty n.hash)))
+     (Dictionary Natural Month)
+     (list.mix (function (_ month mapping)
+                         (dictionary.has (month.number month) month mapping))
+               month.year
+               (dictionary.empty n.hash)))
 
 (the minimum_day
-  1)
+     1)
 
 (the (month_days year month)
-  (-> Year Month
-      Natural)
-  (if (year.leap? year)
-      (month.leap_year_days month)
-      (month.days month)))
+     (-> Year Month
+         Natural)
+     (if (year.leap? year)
+         (month.leap_year_days month)
+         (month.days month)))
 
 (the (invalid_day? year month day)
-  (-> Year Month Natural
-      Bit)
-  (or (n.< ..minimum_day day)
-      (n.> (..month_days year month) day)))
+     (-> Year Month Natural
+         Bit)
+     (and/or (n.< ..minimum_day day)
+             (n.> (..month_days year month) day)))
 
 (exception.the .public (invalid_day [year month day])
-  (Exception [Year Month Natural])
-  (exception.report
-   (list ["Value" (n:as day)]
-         ["Minimum" (n:as ..minimum_day)]
-         ["Maximum" (n:as (..month_days year month))]
-         ["Year" (by year.text as year)]
-         ["Month" (n:as (month.number month))])))
+               (Exception [Year Month Natural])
+               (exception.report
+                (list ["Value" (n:as day)]
+                      ["Minimum" (n:as ..minimum_day)]
+                      ["Maximum" (n:as (..month_days year month))]
+                      ["Year" (by year.text as year)]
+                      ["Month" (n:as (month.number month))])))
 
 ... https://en.wikipedia.org/wiki/Delimiter
 (the delimiter
-  "-")
+     "-")
 
 (nominal.every .public Date
-  (Record
-   [:year Year
-    :month Month
-    :day Natural])
+               (Record
+                [:year Year
+                 :month Month
+                 :day Natural])
 
-  (the .public (date year month day_of_month)
-    (-> Year Month Natural
-        (Try Date))
-    (if (..invalid_day? year month day_of_month)
-        (exception.except ..invalid_day [year month day_of_month])
-        {try.:Success
-         (nominal.of
-          [:year year
-           :month month
-           :day day_of_month])}))
+               (the .public (date year month day_of_month)
+                    (-> Year Month Natural
+                        (Try Date))
+                    (if (..invalid_day? year month day_of_month)
+                        (exception.except ..invalid_day [year month day_of_month])
+                        {try.:Success
+                         (nominal.of
+                          [:year year
+                           :month month
+                           :day day_of_month])}))
 
-  (the .public epoch
-    Date
-    (try.trusted
-     (..date year.epoch
-             {month.:January}
-             ..minimum_day)))
+               (the .public epoch
+                    Date
+                    (try.trusted
+                     (..date year.epoch
+                             {month.:January}
+                             ..minimum_day)))
 
-  (template.with [<name> <type> <field>]
-                 [(the .public <name>
-                    (-> Date
-                        <type>)
-                    (|>> nominal.as
-                         (its <field>)))]
+               (template.with [<name> <type> <field>]
+                              [(the .public <name>
+                                    (-> Date
+                                        <type>)
+                                    (|>> nominal.as
+                                         (its <field>)))]
 
-                 [[year Year :year]
-                  [month Month :month]
-                  [day_of_month Natural :day]])
+                              [[year Year :year]
+                               [month Month :month]
+                               [day_of_month Natural :day]])
 
-  (the .public equality
-    (Equality Date)
-    (by equality.functor
-        each (|>> nominal.as)
-        (all pair.equality
-             year.equality
-             month.equality
-             n.equality
-             )))
+               (the .public equality
+                    (Equality Date)
+                    (by equality.functor
+                        each (|>> nominal.as)
+                        (all pair.equality
+                             year.equality
+                             month.equality
+                             n.equality
+                             )))
 
-  (alias [=]
-         ..equality)
+               (alias [=]
+                      ..equality)
 
-  (the .public order
-    (Order Date)
-    (implementation
-     (the equality ..equality)
-     
-     (the (< reference it)
-       (let [reference (nominal.as reference)
-             it (nominal.as it)]
-         (<| (or (by year.order <
-                     (its :year reference)
-                     (its :year it)))
-             (and (by year.equality =
-                      (its :year reference)
-                      (its :year it)))
-             
-             (or (by month.order <
-                     (its :month reference)
-                     (its :month it)))
-             (and (by month.order =
-                      (its :month reference)
-                      (its :month it)))
-             
-             (n.< (its :day reference)
-                  (its :day it)))))))
+               (the .public order
+                    (Order Date)
+                    (implementation
+                     (the equality ..equality)
+                     
+                     (the (< reference it)
+                          (let [reference (nominal.as reference)
+                                it (nominal.as it)]
+                               (<| (and/or (by year.order <
+                                               (its :year reference)
+                                               (its :year it)))
+                                   (and (by year.equality =
+                                            (its :year reference)
+                                            (its :year it)))
+                                   
+                                   (and/or (by month.order <
+                                               (its :month reference)
+                                               (its :month it)))
+                                   (and (by month.order =
+                                            (its :month reference)
+                                            (its :month it)))
+                                   
+                                   (n.< (its :day reference)
+                                        (its :day it)))))))
 
-  (order.for [] Date ..order)
-  )
+               (order.for [] Date ..order)
+               )
 
 (the section_of
-  (Projection Natural)
-  (?.of n.base_10 (<text>.exactly 2 <text>.base_10)))
+     (Projection Natural)
+     (?.of n.base_10 (<text>.exactly 2 <text>.base_10)))
 
 (the millis_of
-  (Projection Natural)
-  (?.either (|> (<text>.at_most 3 <text>.base_10)
-                (?.of n.base_10)
-                (?.after (<text>.this ".")))
-            (by ?.monad pure 0)))
+     (Projection Natural)
+     (?.either (|> (<text>.at_most 3 <text>.base_10)
+                   (?.of n.base_10)
+                   (?.after (<text>.this ".")))
+               (by ?.monad pure 0)))
 
 (template.with [<minimum> <maximum> <projection> <exception>]
                [(exception.the .public (<exception> value)
-                  (Exception Natural)
-                  (exception.report
-                   (list ["Value" (n:as value)]
-                         ["Minimum" (n:as <minimum>)]
-                         ["Maximum" (n:as <maximum>)])))
+                               (Exception Natural)
+                               (exception.report
+                                (list ["Value" (n:as value)]
+                                      ["Minimum" (n:as <minimum>)]
+                                      ["Maximum" (n:as <maximum>)])))
 
                 (the <projection>
-                  (Projection Natural)
-                  (monad.let ?.monad
-                    [value ..section_of]
-                    (if (or (n.< <minimum> value)
-                            (n.> <maximum> value))
-                        (?.of_try (exception.except <exception> [value]))
-                        (pure value))))]
+                     (Projection Natural)
+                     (monad.let ?.monad
+                                [value ..section_of]
+                                (if (and/or (n.< <minimum> value)
+                                            (n.> <maximum> value))
+                                    (?.of_try (exception.except <exception> [value]))
+                                    (pure value))))]
 
                [[1 12 month_of invalid_month]])
 
 (the .public of_text
-  (Projection Date)
-  (monad.let ?.monad
-    [utc_year year.of_text
-     _ (<text>.this ..delimiter)
-     utc_month ..month_of
-     _ (<text>.this ..delimiter)
-     .let [month (maybe.trusted (dictionary.value utc_month ..month_by_number))]
-     utc_day ..section_of]
-    (?.of_try (..date utc_year month utc_day))))
+     (Projection Date)
+     (monad.let ?.monad
+                [utc_year year.of_text
+                 _ (<text>.this ..delimiter)
+                 utc_month ..month_of
+                 _ (<text>.this ..delimiter)
+                 .let [month (maybe.trusted (dictionary.value utc_month ..month_by_number))]
+                 utc_day ..section_of]
+                (?.of_try (..date utc_year month utc_day))))
 
 (the .public (as_text value)
-  (text.Injection Date)
-  (let [segment (by (n.padded 2 n.base_10) as)]
-    (.text (by year.text as (..year value))
-           ..delimiter (segment (|> value ..month month.number))
-           ..delimiter (segment (..day_of_month value)))))
+     (text.Injection Date)
+     (let [segment (by (n.padded 2 n.base_10) as)]
+          (.text (by year.text as (..year value))
+                 ..delimiter (segment (|> value ..month month.number))
+                 ..delimiter (segment (..day_of_month value)))))
 
 (the .public text
-  (Format Text Date)
-  (implementation
-   (the as ..as_text)
-   (the of (<text>.value ..of_text))))
+     (Format Text Date)
+     (implementation
+      (the as ..as_text)
+      (the of (<text>.value ..of_text))))
 
 (the Span
-  Natural)
+     Natural)
 
 (the days_per_leap
-  Span
-  (|> year.days
-      (n.x 4)
-      (n.+ 1)))
+     Span
+     (|> year.days
+         (n.x 4)
+         (n.+ 1)))
 
 (the days_per_century
-  Span
-  (let [leaps_per_century (n./ year.leap
-                               year.century)]
-    (|> year.century
-        (n.x year.days)
-        (n.+ leaps_per_century)
-        (n.- 1))))
+     Span
+     (let [leaps_per_century (n./ year.leap
+                                  year.century)]
+          (|> year.century
+              (n.x year.days)
+              (n.+ leaps_per_century)
+              (n.- 1))))
 
 (the days_per_era
-  Span
-  (let [centuries_per_era (n./ year.century
-                               year.era)]
-    (|> centuries_per_era
-        (n.x ..days_per_century)
-        (n.+ 1))))
+     Span
+     (let [centuries_per_era (n./ year.century
+                                  year.era)]
+          (|> centuries_per_era
+              (n.x ..days_per_century)
+              (n.+ 1))))
 
 (the days_since_epoch
-  Span
-  (let [years:70 70
-        leaps:70 (n./ year.leap
-                      years:70)
-        days:70 (|> years:70
-                    (n.x year.days)
-                    (n.+ leaps:70))
-        ... The epoch is being calculated from March 1st, instead of January 1st.
-        january_&_february (n.+ (month.days {month.:January})
-                                (month.days {month.:February}))]
-    (|> 0
-        ... 1600/01/01
-        (n.+ (n.x 4 days_per_era))
-        ... 1900/01/01
-        (n.+ (n.x 3 days_per_century))
-        ... 1970/01/01
-        (n.+ days:70)
-        ... 1970/03/01
-        (n.- january_&_february))))
+     Span
+     (let [years:70 70
+           leaps:70 (n./ year.leap
+                         years:70)
+           days:70 (|> years:70
+                       (n.x year.days)
+                       (n.+ leaps:70))
+           ... The epoch is being calculated from March 1st, instead of January 1st.
+           january_&_february (n.+ (month.days {month.:January})
+                                   (month.days {month.:February}))]
+          (|> 0
+              ... 1600/01/01
+              (n.+ (n.x 4 days_per_era))
+              ... 1900/01/01
+              (n.+ (n.x 3 days_per_century))
+              ... 1970/01/01
+              (n.+ days:70)
+              ... 1970/03/01
+              (n.- january_&_february))))
 
 (the Civil_Month
-  Natural)
+     Natural)
 
 (the Internal_Month
-  Integer)
+     Integer)
 
 (the first_month_of_civil_year
-  Civil_Month
-  3)
+     Civil_Month
+     3)
 
 (expansion.let [<pull> +3
                 <push> +9]
-  (these (the (internal_month civil_month)
-           (-> Civil_Month
-               Internal_Month)
-           (if (n.< ..first_month_of_civil_year civil_month)
-               (i.+ <push> (.integer civil_month))
-               (i.- <pull> (.integer civil_month))))
+               (these (the (internal_month civil_month)
+                           (-> Civil_Month
+                               Internal_Month)
+                           (if (n.< ..first_month_of_civil_year civil_month)
+                               (i.+ <push> (.integer civil_month))
+                               (i.- <pull> (.integer civil_month))))
 
-         (the (civil_month internal_month)
-           (-> Internal_Month
-               Civil_Month)
-           (.natural (if (i.< +10 internal_month)
-                         (i.+ <pull> internal_month)
-                         (i.- <push> internal_month))))))
+                      (the (civil_month internal_month)
+                           (-> Internal_Month
+                               Civil_Month)
+                           (.natural (if (i.< +10 internal_month)
+                                         (i.+ <pull> internal_month)
+                                         (i.- <push> internal_month))))))
 
 (the Day_Of_Year
-  Integer)
+     Integer)
 
 (expansion.let [<up> +153
                 <translation> +2
                 <down> +5]
-  (these (the day_of_year_from_month
-           (-> Civil_Month
-               Day_Of_Year)
-           (|>> ..internal_month
-                (i.x <up>)
-                (i.+ <translation>)
-                (i./ <down>)))
+               (these (the day_of_year_from_month
+                           (-> Civil_Month
+                               Day_Of_Year)
+                           (|>> ..internal_month
+                                (i.x <up>)
+                                (i.+ <translation>)
+                                (i./ <down>)))
 
-         (the month_from_day_of_year
-           (-> Day_Of_Year
-               Civil_Month)
-           (|>> (i.x <down>)
-                (i.+ <translation>)
-                (i./ <up>)
-                ..civil_month))))
+                      (the month_from_day_of_year
+                           (-> Day_Of_Year
+                               Civil_Month)
+                           (|>> (i.x <down>)
+                                (i.+ <translation>)
+                                (i./ <up>)
+                                ..civil_month))))
 
 (the last_era_leap_day
-  (.integer (-- ..days_per_leap)))
+     (.integer (-- ..days_per_leap)))
 
 (the last_era_day
-  (.integer (-- ..days_per_era)))
+     (.integer (-- ..days_per_era)))
 
 (the Civil_Year
-  Integer)
+     Integer)
 
 (the (civil_year utc_month utc_year)
-  (-> Civil_Month Year
-      Civil_Year)
-  (let [... Coercing, because the year is already in external form.
-        utc_year (as (-> Year Civil_Year) utc_year)]
-    (if (n.< ..first_month_of_civil_year utc_month)
-        (-- utc_year)
-        utc_year)))
+     (-> Civil_Month Year
+         Civil_Year)
+     (let [... Coercing, because the year is already in external form.
+           utc_year (as (-> Year Civil_Year) utc_year)]
+          (if (n.< ..first_month_of_civil_year utc_month)
+              (-- utc_year)
+              utc_year)))
 
 ... http://howardhinnant.github.io/date_algorithms.html
 (the .public (as_days date)
-  (-> Date
-      Day_Of_Year)
-  (let [utc_month (|> date ..month month.number)
-        civil_year (..civil_year utc_month (..year date))
-        era (|> (if (i.< +0 civil_year)
-                    (i.- (.integer (-- year.era))
-                         civil_year)
-                    civil_year)
-                (i./ (.integer year.era)))
-        year_of_era (i.- (i.x (.integer year.era)
-                              era)
-                         civil_year)
-        day_of_year (|> utc_month
-                        ..day_of_year_from_month
-                        (i.+ (.integer (-- (..day_of_month date)))))
-        day_of_era (|> day_of_year
-                       (i.+ (i.x (.integer year.days) year_of_era))
-                       (i.+ (i./ (.integer year.leap) year_of_era))
-                       (i.- (i./ (.integer year.century) year_of_era)))]
-    (|> (i.x (.integer ..days_per_era) era)
-        (i.+ day_of_era)
-        (i.- (.integer ..days_since_epoch)))))
+     (-> Date
+         Day_Of_Year)
+     (let [utc_month (|> date ..month month.number)
+           civil_year (..civil_year utc_month (..year date))
+           era (|> (if (i.< +0 civil_year)
+                       (i.- (.integer (-- year.era))
+                            civil_year)
+                       civil_year)
+                   (i./ (.integer year.era)))
+           year_of_era (i.- (i.x (.integer year.era)
+                                 era)
+                            civil_year)
+           day_of_year (|> utc_month
+                           ..day_of_year_from_month
+                           (i.+ (.integer (-- (..day_of_month date)))))
+           day_of_era (|> day_of_year
+                          (i.+ (i.x (.integer year.days) year_of_era))
+                          (i.+ (i./ (.integer year.leap) year_of_era))
+                          (i.- (i./ (.integer year.century) year_of_era)))]
+          (|> (i.x (.integer ..days_per_era) era)
+              (i.+ day_of_era)
+              (i.- (.integer ..days_since_epoch)))))
 
 ... http://howardhinnant.github.io/date_algorithms.html
 (the .public (of_days days)
-  (-> Day_Of_Year
-      Date)
-  (let [days (i.+ (.integer ..days_since_epoch) days)
-        era (|> (if (i.< +0 days)
-                    (i.- ..last_era_day days)
-                    days)
-                (i./ (.integer ..days_per_era)))
-        day_of_era (i.- (i.x (.integer ..days_per_era) era) days)
-        year_of_era (|> day_of_era
-                        (i.- (i./ ..last_era_leap_day day_of_era))
-                        (i.+ (i./ (.integer ..days_per_century) day_of_era))
-                        (i.- (i./ ..last_era_day day_of_era))
-                        (i./ (.integer year.days)))
-        year (i.+ (i.x (.integer year.era) era)
-                  year_of_era)
-        day_of_year (|> day_of_era
-                        (i.- (i.x (.integer year.days) year_of_era))
-                        (i.- (i./ (.integer year.leap) year_of_era))
-                        (i.+ (i./ (.integer year.century) year_of_era)))
-        month (..month_from_day_of_year day_of_year)
-        day (|> day_of_year
-                (i.- (..day_of_year_from_month month))
-                (i.+ +1)
-                .natural)
-        year (if (n.< ..first_month_of_civil_year month)
-                 (++ year)
-                 year)]
-    ... Coercing, because the year is already in internal form.
-    (try.trusted
-     (..date (as (-> Civil_Year Year) year)
-             (maybe.trusted (dictionary.value month ..month_by_number))
-             day))))
+     (-> Day_Of_Year
+         Date)
+     (let [days (i.+ (.integer ..days_since_epoch) days)
+           era (|> (if (i.< +0 days)
+                       (i.- ..last_era_day days)
+                       days)
+                   (i./ (.integer ..days_per_era)))
+           day_of_era (i.- (i.x (.integer ..days_per_era) era) days)
+           year_of_era (|> day_of_era
+                           (i.- (i./ ..last_era_leap_day day_of_era))
+                           (i.+ (i./ (.integer ..days_per_century) day_of_era))
+                           (i.- (i./ ..last_era_day day_of_era))
+                           (i./ (.integer year.days)))
+           year (i.+ (i.x (.integer year.era) era)
+                     year_of_era)
+           day_of_year (|> day_of_era
+                           (i.- (i.x (.integer year.days) year_of_era))
+                           (i.- (i./ (.integer year.leap) year_of_era))
+                           (i.+ (i./ (.integer year.century) year_of_era)))
+           month (..month_from_day_of_year day_of_year)
+           day (|> day_of_year
+                   (i.- (..day_of_year_from_month month))
+                   (i.+ +1)
+                   .natural)
+           year (if (n.< ..first_month_of_civil_year month)
+                    (++ year)
+                    year)]
+          ... Coercing, because the year is already in internal form.
+          (try.trusted
+           (..date (as (-> Civil_Year Year) year)
+                   (maybe.trusted (dictionary.value month ..month_by_number))
+                   day))))
 
 (the .public enum
-  (Enum Date)
-  (implementation
-   (the order ..order)
+     (Enum Date)
+     (implementation
+      (the order ..order)
 
-   (the succ
-     (|>> ..as_days ++ ..of_days))
+      (the succ
+           (|>> ..as_days ++ ..of_days))
 
-   (the pred
-     (|>> ..as_days -- ..of_days))))
+      (the pred
+           (|>> ..as_days -- ..of_days))))
 
 (the .public random
-  (Random Date)
-  (random.try
-   (monad.let [! random.monad]
-     [year year.random
-      month month.random
-      day_of_month (by ! each (n.% (month.days month))
-                       random.natural)]
-     (pure (..date year month day_of_month)))))
+     (Random Date)
+     (random.try
+      (monad.let [! random.monad]
+                 [year year.random
+                  month month.random
+                  day_of_month (by ! each (n.% (month.days month))
+                                   random.natural)]
+                 (pure (..date year month day_of_month)))))
 
 (syntax.the .public (literal [it ?code.text])
-  (when (by ..text of it)
-    {try.:Success _}
-    (pure (list (` (is ..Date
-                       (try.trusted (by ..text (,' of) (, (code.text it))))))))
-    
-    {try.:Failure error}
-    (meta.failure error)))
+            (when (by ..text of it)
+                  {try.:Success _}
+                  (pure (list (` (is ..Date
+                                     (try.trusted (by ..text (,' of) (, (code.text it))))))))
+                  
+                  {try.:Failure error}
+                  (meta.failure error)))

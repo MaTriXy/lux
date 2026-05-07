@@ -25,69 +25,69 @@
   ["[0]T" rgb]])
 
 (the .public value
-  (Random /.Value)
-  (random:each /.value random.unit_real))
+     (Random /.Value)
+     (random:each /.value random.unit_real))
 
 (the .public random
-  (Random /.CMYK)
-  (monad.let random.monad
-    [cyan ..value
-     magenta ..value
-     yellow ..value
-     key ..value]
-    (pure [/.:cyan cyan
-           /.:magenta magenta
-           /.:yellow yellow
-           /.:key key])))
+     (Random /.CMYK)
+     (monad.let random.monad
+                [cyan ..value
+                 magenta ..value
+                 yellow ..value
+                 key ..value]
+                (pure [/.:cyan cyan
+                       /.:magenta magenta
+                       /.:yellow yellow
+                       /.:key key])))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (monad.let [! random.monad]
-        [expected_value ..value
-         expected_rgb rgbT.random
-         expected_cmyk ..random
+     Test
+     (<| (_.covering /._)
+         (monad.let [! random.monad]
+                    [expected_value ..value
+                     expected_rgb rgbT.random
+                     expected_cmyk ..random
 
-         possible_value random.unit_real
-         .let [delta +0.000000001]])
-      (all _.and
-           (_.for [/.Value]
-                  (all _.and
-                       (_.coverage [/.value?]
-                         (and (/.value? expected_value)
-                              (not (/.value? (r.+ delta /.most)))
-                              (not (/.value? (r.- delta /.least)))))
-                       (_.coverage [/.value]
-                         (if (/.value? possible_value)
-                             (|> possible_value
-                                 /.value
-                                 (r.= possible_value))
-                             (or (r.= /.least (/.value possible_value))
-                                 (r.= /.most (/.value possible_value)))))
-                       (_.coverage [/.least]
-                         (and (r.< /.most
-                                   /.least)
-                              (/.value? /.least)
-                              (/.value? (r.+ delta /.least))
-                              (not (/.value? (r.- delta /.least)))))
-                       (_.coverage [/.most]
-                         (and (r.> /.least
-                                   /.most)
-                              (/.value? /.most)
-                              (/.value? (r.- delta /.most))
-                              (not (/.value? (r.+ delta /.most)))))
-                       ))
-           (_.for [/.CMYK
-                   /.:cyan /.:magenta /.:yellow /.:key]
-                  (all _.and
-                       (_.for [/.equality /.=]
-                              (static.when (identical? /.equality /.=)
-                                (equalityT.spec /.equality ..random)))
+                     possible_value random.unit_real
+                     .let [delta +0.000000001]])
+         (all _.and
+              (_.for [/.Value]
+                     (all _.and
+                          (_.coverage [/.value?]
+                                      (and (/.value? expected_value)
+                                           (not (/.value? (r.+ delta /.most)))
+                                           (not (/.value? (r.- delta /.least)))))
+                          (_.coverage [/.value]
+                                      (if (/.value? possible_value)
+                                          (|> possible_value
+                                              /.value
+                                              (r.= possible_value))
+                                          (and/or (r.= /.least (/.value possible_value))
+                                                  (r.= /.most (/.value possible_value)))))
+                          (_.coverage [/.least]
+                                      (and (r.< /.most
+                                                /.least)
+                                           (/.value? /.least)
+                                           (/.value? (r.+ delta /.least))
+                                           (not (/.value? (r.- delta /.least)))))
+                          (_.coverage [/.most]
+                                      (and (r.> /.least
+                                                /.most)
+                                           (/.value? /.most)
+                                           (/.value? (r.- delta /.most))
+                                           (not (/.value? (r.+ delta /.most)))))
+                          ))
+              (_.for [/.CMYK
+                      /.:cyan /.:magenta /.:yellow /.:key]
+                     (all _.and
+                          (_.for [/.equality /.=]
+                                 (static.when (identical? /.equality /.=)
+                                              (equalityT.spec /.equality ..random)))
 
-                       (_.coverage [/.of_rgb /.rgb]
-                         (|> expected_rgb
-                             /.of_rgb
-                             /.rgb
-                             (by rgb.equality = expected_rgb)))
-                       ))
-           )))
+                          (_.coverage [/.of_rgb /.rgb]
+                                      (|> expected_rgb
+                                          /.of_rgb
+                                          /.rgb
+                                          (by rgb.equality = expected_rgb)))
+                          ))
+              )))

@@ -1,6 +1,6 @@
 (.using
  [library
-  [lux (.except and or not false true)
+  [lux (.except and and/or not false true)
    [abstract
     [equality (.only Equality)]
     [hash (.only Hash)]
@@ -14,47 +14,47 @@
    ["n" natural]]])
 
 (the .public Number
-  .I64)
+     .I64)
 
 (the with_template (.in_module# .prelude .with_template))
 
 (the .public bits_per_byte
-  8)
+     8)
 
 (the .public bytes_per_i64
-  8)
+     8)
 
 (the .public width
-  Natural
-  (n.x ..bits_per_byte
-       ..bytes_per_i64))
+     Natural
+     (n.x ..bits_per_byte
+          ..bytes_per_i64))
 
 ... TODO: Do some form of type specialization.
 (every .public Shift
-  Natural)
+       Natural)
 
 (the .public shift
-  (-> Natural
-      Shift)
-  (n.% ..width))
+     (-> Natural
+         Shift)
+     (n.% ..width))
 
 (the .public (opposite it)
-  (Change Shift)
-  (n.- (shift it) ..width))
+     (Change Shift)
+     (n.- (shift it) ..width))
 
 (with_template [<parameter_type> <name> <op>]
-  [(the .public (<name> parameter subject)
-     (for_any (_ it)
-       (-> <parameter_type>
-           (Change (I64 it))))
-     (<op> parameter subject))]
+               [(the .public (<name> parameter subject)
+                     (for_any (_ it)
+                              (-> <parameter_type>
+                                  (Change (I64 it))))
+                     (<op> parameter subject))]
 
-  [[(I64 Any) or .i64_or#]
-   [(I64 Any) xor .i64_xor#]
-   [(I64 Any) and .i64_and#]
-   
-   [Shift << .i64_left#]
-   [Shift >> .i64_right#]])
+               [[(I64 Any) and/or .i64_or#]
+                [(I64 Any) xor .i64_xor#]
+                [(I64 Any) and .i64_and#]
+                
+                [Shift << .i64_left#]
+                [Shift >> .i64_right#]])
 
 (alias [left_shifted]
        ..<<)
@@ -64,205 +64,205 @@
 
 ... https://en.wikipedia.org/wiki/Mask_(computing)
 (every .public Mask
-  I64)
+       I64)
 
 (every .public Address
-  Natural)
+       Natural)
 
 (the .public (bit position)
-  (-> Address
-      Mask)
-  (|> 1 .i64 (<< (n.% ..width position))))
+     (-> Address
+         Mask)
+     (|> 1 .i64 (<< (n.% ..width position))))
 
 (the .public sign
-  Mask
-  (..bit (-- ..width)))
+     Mask
+     (..bit (-- ..width)))
 
 (the .public false
-  Mask
-  (.i64 +0))
+     Mask
+     (.i64 +0))
 
 (the .public true
-  Mask
-  (.i64 -1))
+     Mask
+     (.i64 -1))
 
 (the .public not
-  (for_any (_ it)
-    (Change (I64 it)))
-  (..xor ..true))
+     (for_any (_ it)
+              (Change (I64 it)))
+     (..xor ..true))
 
 (the .public (mask amount_of_bits)
-  (-> Natural
-      Mask)
-  (when amount_of_bits
-    0 ..false
-    bits (when (n.% ..width bits)
-           0 ..true
-           bits (|> 1 .i64 (<< (n.% ..width bits)) .--))))
+     (-> Natural
+         Mask)
+     (when amount_of_bits
+           0 ..false
+           bits (when (n.% ..width bits)
+                      0 ..true
+                      bits (|> 1 .i64 (<< (n.% ..width bits)) .--))))
 
 (the (with_shift shift value)
-  (-> Shift
-      (Change Natural))
-  (|> value
-      (>> shift)
-      (n.+ value)))
+     (-> Shift
+         (Change Natural))
+     (|> value
+         (>> shift)
+         (n.+ value)))
 
 (the .public (ones it)
-  (-> (I64 Any)
-      Natural)
-  (let [ones' (n.- (|> it (>> 1) (..and 6148914691236517205) i64)
-                   (i64 it))]
-    (|> ones'
-        (>> 2) (..and 3689348814741910323) (n.+ (..and 3689348814741910323 ones'))
-        (with_shift 4) (..and 1085102592571150095)
-        (with_shift 8)
-        (with_shift 16)
-        (with_shift 32)
-        (..and 127))))
+     (-> (I64 Any)
+         Natural)
+     (let [ones' (n.- (|> it (>> 1) (..and 6148914691236517205) i64)
+                      (i64 it))]
+          (|> ones'
+              (>> 2) (..and 3689348814741910323) (n.+ (..and 3689348814741910323 ones'))
+              (with_shift 4) (..and 1085102592571150095)
+              (with_shift 8)
+              (with_shift 16)
+              (with_shift 32)
+              (..and 127))))
 
 (the .public (zero index input)
-  (for_any (_ it)
-    (-> Address
-        (Change (I64 it))))
-  (|> index ..bit ..not (..and input)))
+     (for_any (_ it)
+              (-> Address
+                  (Change (I64 it))))
+     (|> index ..bit ..not (..and input)))
 
 (with_template [<name> <op>]
-  [(the .public (<name> index input)
-     (for_any (_ it)
-       (-> Address
-           (Change (I64 it))))
-     (|> index ..bit (<op> input)))]
+               [(the .public (<name> index input)
+                     (for_any (_ it)
+                              (-> Address
+                                  (Change (I64 it))))
+                     (|> index ..bit (<op> input)))]
 
-  [[one     ..or]
-   [flipped ..xor]])
+               [[one     ..and/or]
+                [flipped ..xor]])
 
 (the .public (zero? index input)
-  (-> Address
-      (Predicate (I64 Any)))
-  (|> (.i64 input)
-      (..and (..bit index))
-      (n.= 0)))
+     (-> Address
+         (Predicate (I64 Any)))
+     (|> (.i64 input)
+         (..and (..bit index))
+         (n.= 0)))
 
 (the .public (one? index input)
-  (-> Address
-      (Predicate (I64 Any)))
-  (.not (..zero? index input)))
+     (-> Address
+         (Predicate (I64 Any)))
+     (.not (..zero? index input)))
 
 (every .public Rotation
-  Shift)
+       Shift)
 
 (with_template [<name> <forward> <backward>]
-  [(the .public (<name> distance input)
-     (for_any (_ it)
-       (-> Rotation
-           (Change (I64 it))))
-     (..or (<forward> (shift distance) input)
-           (<backward> (opposite distance) input)))]
+               [(the .public (<name> distance input)
+                     (for_any (_ it)
+                              (-> Rotation
+                                  (Change (I64 it))))
+                     (..and/or (<forward> (shift distance) input)
+                               (<backward> (opposite distance) input)))]
 
-  [[left_rotated  << >>]
-   [right_rotated >> <<]])
+               [[left_rotated  << >>]
+                [right_rotated >> <<]])
 
 (the .public (region offset size)
-  (-> Rotation Natural
-      Mask)
-  (..left_rotated offset (..mask size)))
+     (-> Rotation Natural
+         Mask)
+     (..left_rotated offset (..mask size)))
 
 (the .public equality
-  (for_any (_ it)
-    (Equality (I64 it)))
-  (implementation
-   (the (= expected actual)
-     (.i64_=# expected actual))))
+     (for_any (_ it)
+              (Equality (I64 it)))
+     (implementation
+      (the (= expected actual)
+           (.i64_=# expected actual))))
 
 (alias [=]
        ..equality)
 
 (the .public hash
-  (for_any (_ it)
-    (Hash (I64 it)))
-  (implementation
-   (the equality ..equality)
+     (for_any (_ it)
+              (Hash (I64 it)))
+     (implementation
+      (the equality ..equality)
 
-   (the hash (|>> .natural))))
+      (the hash (|>> .natural))))
 
 (with_template [<monoid> <identity> <composite>]
-  [(the .public <monoid>
-     (for_any (_ it)
-       (Monoid (I64 it)))
-     (implementation
-      (the identity <identity>)
-      (the composite <composite>)))]
+               [(the .public <monoid>
+                     (for_any (_ it)
+                              (Monoid (I64 it)))
+                     (implementation
+                      (the identity <identity>)
+                      (the composite <composite>)))]
 
-  [[disjunction ..false ..or]
-   [conjunction ..true ..and]])
+               [[disjunction ..false ..and/or]
+                [conjunction ..true ..and]])
 
 (the .public in_reverse
-  (for_any (_ it)
-    (Change (I64 it)))
-  (let [swapper (is (-> Natural
-                        (for_any (_ it)
-                          (Change (I64 it))))
-                    (function (_ power)
-                      (let [size (<< power 1)
-                            repetitions (is (-> Natural
-                                                (Change Text))
-                                            (function (_ times character)
-                                              (loop (of [iterations 1
-                                                         output character])
-                                                (if (n.< times iterations)
-                                                    (of (++ iterations)
-                                                        (.text_composite# character output))
-                                                    output))))
-                            pattern (repetitions (n./ (n.+ size size) ..width)
-                                                 (.text_composite# (repetitions size "1")
-                                                                   (repetitions size "0")))
+     (for_any (_ it)
+              (Change (I64 it)))
+     (let [swapper (is (-> Natural
+                           (for_any (_ it)
+                                    (Change (I64 it))))
+                       (function (_ power)
+                                 (let [size (<< power 1)
+                                       repetitions (is (-> Natural
+                                                           (Change Text))
+                                                       (function (_ times character)
+                                                                 (loop (of [iterations 1
+                                                                            output character])
+                                                                       (if (n.< times iterations)
+                                                                           (of (++ iterations)
+                                                                               (.text_composite# character output))
+                                                                           output))))
+                                       pattern (repetitions (n./ (n.+ size size) ..width)
+                                                            (.text_composite# (repetitions size "1")
+                                                                              (repetitions size "0")))
 
-                            high (try.trusted (by n.base_02 of pattern))
-                            low (..right_rotated size high)]
-                        (function (_ value)
-                          (..or (>> size (..and high value))
-                                (<< size (..and low value)))))))
-        
-        swap_01 (swapper 0)
-        swap_02 (swapper 1)
-        swap_04 (swapper 2)
-        swap_08 (swapper 3)
-        swap_16 (swapper 4)
-        swap_32 (swapper 5)]
-    (|>> swap_32
-         swap_16
-         swap_08
-         swap_04
-         swap_02
-         swap_01)))
+                                       high (try.trusted (by n.base_02 of pattern))
+                                       low (..right_rotated size high)]
+                                      (function (_ value)
+                                                (..and/or (>> size (..and high value))
+                                                          (<< size (..and low value)))))))
+           
+           swap_01 (swapper 0)
+           swap_02 (swapper 1)
+           swap_04 (swapper 2)
+           swap_08 (swapper 3)
+           swap_16 (swapper 4)
+           swap_32 (swapper 5)]
+          (|>> swap_32
+               swap_16
+               swap_08
+               swap_04
+               swap_02
+               swap_01)))
 
 (with_template [<--> <++>]
-  [(alias [<-->]
-          .--)
+               [(alias [<-->]
+                       .--)
 
-   (alias [<++>]
-          .++)]
+                (alias [<++>]
+                       .++)]
 
-  [[decrement increment]
-   [less more]
-   [previous next]
-   [before after]])
+               [[decrement increment]
+                [less more]
+                [previous next]
+                [before after]])
 
 (the (highest_bit' shift it)
-  (-> Natural (I64 Any)
-      Natural)
-  (when (.natural it)
-    0 0
-    _ (when shift
-        0 0
-        _ (let [cut_off (<< shift 1)]
-            (if (n.< cut_off (.natural it))
-                (highest_bit' (>> 1 shift) it)
-                (n.+ shift (highest_bit' (>> 1 shift) (>> shift it))))))))
+     (-> Natural (I64 Any)
+         Natural)
+     (when (.natural it)
+           0 0
+           _ (when shift
+                   0 0
+                   _ (let [cut_off (<< shift 1)]
+                          (if (n.< cut_off (.natural it))
+                              (highest_bit' (>> 1 shift) it)
+                              (n.+ shift (highest_bit' (>> 1 shift) (>> shift it))))))))
 
 (the .public (highest_bit it)
-  (-> (I64 Any)
-      Natural)
-  (when (.natural it)
-    0 ..width
-    _ (highest_bit' 32 it)))
+     (-> (I64 Any)
+         Natural)
+     (when (.natural it)
+           0 ..width
+           _ (highest_bit' 32 it)))

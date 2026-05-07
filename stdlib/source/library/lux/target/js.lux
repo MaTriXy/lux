@@ -1,7 +1,7 @@
 (.using
  [library
   [lux (.except Code Label
-                or and function if undefined comment not try ++ -- its type_of , when)
+                and/or and function if undefined comment not try ++ -- its type_of , when)
    [control
     ["[0]" pipe]]
    [data
@@ -21,488 +21,488 @@
     ["[0]" nominal]]]])
 
 (the expression
-  (text.enclosed ["(" ")"]))
+     (text.inside ["(" ")"]))
 
 (the element
-  (text.enclosed ["[" "]"]))
+     (text.inside ["[" "]"]))
 
 ... Added the carriage return for better Windows compatibility.
 (the \n+
-  Text
-  (text text.carriage_return \n))
+     Text
+     (text text.carriage_return \n))
 
 (the nested
-  (-> Text
-      Text)
-  (|>> (text \n+)
-       (text.replaced \n (text \n text.tab))))
+     (-> Text
+         Text)
+     (|>> (text \n+)
+          (text.replaced \n (text \n text.tab))))
 
 (nominal.every .public (Code brand)
-  Text
+               Text
 
-  (the .public code
-    (-> (Code Any)
-        Text)
-    (|>> nominal.as))
+               (the .public code
+                    (-> (Code Any)
+                        Text)
+                    (|>> nominal.as))
 
-  (template.with [<type> <super>+]
-                 [(expansion.let [<brand> (template.name [<type> "'"])]
-                    (these (nominal.every (<brand> brand) Any)
-                           (`` (every .public <type> (|> Any <brand> (,, (template.spliced <super>+)))))))]
-                 
-                 [[Expression [Code]]
-                  [Computation [Expression' Code]]
-                  [Location [Computation' Expression' Code]]
-                  [Statement [Code]]])
+               (template.with [<type> <super>+]
+                              [(expansion.let [<brand> (template.name [<type> "'"])]
+                                              (these (nominal.every (<brand> brand) Any)
+                                                     (`` (every .public <type> (|> Any <brand> (,, (template.spliced <super>+)))))))]
+                              
+                              [[Expression [Code]]
+                               [Computation [Expression' Code]]
+                               [Location [Computation' Expression' Code]]
+                               [Statement [Code]]])
 
-  (template.with [<type> <super>+]
-                 [(expansion.let [<brand> (template.name [<type> "'"])]
-                    (these (nominal.every <brand> Any)
-                           (`` (every .public <type> (|> <brand> (,, (template.spliced <super>+)))))))]
+               (template.with [<type> <super>+]
+                              [(expansion.let [<brand> (template.name [<type> "'"])]
+                                              (these (nominal.every <brand> Any)
+                                                     (`` (every .public <type> (|> <brand> (,, (template.spliced <super>+)))))))]
 
-                 [[Var [Location' Computation' Expression' Code]]
-                  [Access [Location' Computation' Expression' Code]]
-                  [Literal [Computation' Expression' Code]]
-                  [Loop [Statement' Code]]
-                  [Label [Code]]])
+                              [[Var [Location' Computation' Expression' Code]]
+                               [Access [Location' Computation' Expression' Code]]
+                               [Literal [Computation' Expression' Code]]
+                               [Loop [Statement' Code]]
+                               [Label [Code]]])
 
-  (template.with [<name> <literal>]
-                 [(the .public <name>
-                    Literal
-                    (nominal.of <literal>))]
+               (template.with [<name> <literal>]
+                              [(the .public <name>
+                                    Literal
+                                    (nominal.of <literal>))]
 
-                 [[null "null"]
-                  [undefined "undefined"]])
+                              [[null "null"]
+                               [undefined "undefined"]])
 
-  (the .public boolean
-    (-> Bit
-        Literal)
-    (|>> (pipe.when
-           0b "false"
-           1b "true")
-         nominal.of))
+               (the .public boolean
+                    (-> Bit
+                        Literal)
+                    (|>> (pipe.when
+                          0b "false"
+                          1b "true")
+                         nominal.of))
 
-  (the .public (number value)
-    (-> Real
-        Literal)
-    (nominal.of
-     (.if (r.not_a_number? value)
-          "NaN"
+               (the .public (number value)
+                    (-> Real
+                        Literal)
+                    (nominal.of
+                     (.if (r.not_a_number? value)
+                          "NaN"
 
-          (r.= r.positive_infinity value)
-          "Infinity"
-          
-          (r.= r.negative_infinity value)
-          "-Infinity"
+                          (r.= r.positive_infinity value)
+                          "Infinity"
+                          
+                          (r.= r.negative_infinity value)
+                          "-Infinity"
 
-          ... else
-          (|> value %.real ..expression))))
+                          ... else
+                          (|> value %.real ..expression))))
 
-  (the safe
-    (-> Text
-        Text)
-    (`` (|>> (,, (template.with [<replace> <find>]
-                                [(text.replaced <find> <replace>)]
+               (the safe
+                    (-> Text
+                        Text)
+                    (`` (|>> (,, (template.with [<replace> <find>]
+                                                [(text.replaced <find> <replace>)]
 
-                                [["\\" "\"]
-                                 ["\t" text.tab]
-                                 ["\v" text.vertical_tab]
-                                 ["\0" text.null]
-                                 ["\b" text.back_space]
-                                 ["\f" text.form_feed]
-                                 ["\n" \n]
-                                 ["\r" text.carriage_return]
-                                 [(text "\" text.double_quote)
-                                  text.double_quote]]))
-             )))
+                                                [["\\" "\"]
+                                                 ["\t" text.tab]
+                                                 ["\v" text.vertical_tab]
+                                                 ["\0" text.null]
+                                                 ["\b" text.back_space]
+                                                 ["\f" text.form_feed]
+                                                 ["\n" \n]
+                                                 ["\r" text.carriage_return]
+                                                 [(text "\" text.double_quote)
+                                                  text.double_quote]]))
+                             )))
 
-  (the .public string
-    (-> Text
-        Literal)
-    (|>> ..safe
-         (text.enclosed [text.double_quote text.double_quote])
-         nominal.of))
+               (the .public string
+                    (-> Text
+                        Literal)
+                    (|>> ..safe
+                         (text.inside [text.double_quote text.double_quote])
+                         nominal.of))
 
-  ... https://en.wikipedia.org/wiki/Delimiter
-  (the argument_delimiter ", ")
-  (the field_delimiter ": ")
-  (the statement_suffix ";")
+               ... https://en.wikipedia.org/wiki/Delimiter
+               (the argument_delimiter ", ")
+               (the field_delimiter ": ")
+               (the statement_suffix ";")
 
-  (the .public array
-    (-> (List Expression)
-        Computation)
-    (|>> (list:each ..code)
-         (text.interposed ..argument_delimiter)
-         ..element
-         nominal.of))
+               (the .public array
+                    (-> (List Expression)
+                        Computation)
+                    (|>> (list:each ..code)
+                         (text.interposed ..argument_delimiter)
+                         ..element
+                         nominal.of))
 
-  (the .public var
-    (-> Text
-        Var)
-    (|>> nominal.of))
+               (the .public var
+                    (-> Text
+                        Var)
+                    (|>> nominal.of))
 
-  (the .public (at index array_or_object)
-    (-> Expression Expression
-        Access)
-    (nominal.of
-     (text (nominal.as array_or_object) (..element (nominal.as index)))))
+               (the .public (at index array_or_object)
+                    (-> Expression Expression
+                        Access)
+                    (nominal.of
+                     (text (nominal.as array_or_object) (..element (nominal.as index)))))
 
-  (the .public (its field object)
-    (-> Text Expression
-        Access)
-    (nominal.of
-     (text (nominal.as object) "." field)))
+               (the .public (its field object)
+                    (-> Text Expression
+                        Access)
+                    (nominal.of
+                     (text (nominal.as object) "." field)))
 
-  (the .public (of inputs function)
-    (-> (List Expression) Expression
-        Computation)
-    (|> inputs
-        (list:each ..code)
-        (text.interposed ..argument_delimiter)
-        ..expression
-        (text (nominal.as function))
-        nominal.of))
+               (the .public (of inputs function)
+                    (-> (List Expression) Expression
+                        Computation)
+                    (|> inputs
+                        (list:each ..code)
+                        (text.interposed ..argument_delimiter)
+                        ..expression
+                        (text (nominal.as function))
+                        nominal.of))
 
-  (the .public (do method inputs object)
-    (-> Text (List Expression) Expression
-        Computation)
-    (|> object
-        (..its method)
-        (of inputs)))
+               (the .public (do method inputs object)
+                    (-> Text (List Expression) Expression
+                        Computation)
+                    (|> object
+                        (..its method)
+                        (of inputs)))
 
-  (the .public object
-    (-> (List [Text Expression])
-        Computation)
-    (|>> (list:each (.function (_ [key val])
-                      (text (nominal.as (..string key)) ..field_delimiter (nominal.as val))))
-         (text.interposed ..argument_delimiter)
-         (text.enclosed ["{" "}"])
-         ..expression
-         nominal.of))
+               (the .public object
+                    (-> (List [Text Expression])
+                        Computation)
+                    (|>> (list:each (.function (_ [key val])
+                                               (text (nominal.as (..string key)) ..field_delimiter (nominal.as val))))
+                         (text.interposed ..argument_delimiter)
+                         (text.inside ["{" "}"])
+                         ..expression
+                         nominal.of))
 
-  (the .public (, pre post)
-    (-> Expression Expression
-        Computation)
-    (|> (text (nominal.as pre) ..argument_delimiter (nominal.as post))
-        ..expression
-        nominal.of))
-
-  (the .public (then pre post)
-    (-> Statement Statement
-        Statement)
-    (nominal.of
-     (text (nominal.as pre)
-           \n+
-           (nominal.as post))))
-
-  (the block
-    (-> Statement
-        Text)
-    (let [close (text \n+ "}")]
-      (|>> nominal.as
-           ..nested
-           (text.enclosed ["{"
-                           close]))))
-
-  (the .public (function_definition name inputs body)
-    (-> Var (List Var) Statement
-        Statement)
-    (|> body
-        ..block
-        (text "function " (nominal.as name)
-              (|> inputs
-                  (list:each ..code)
-                  (text.interposed ..argument_delimiter)
-                  ..expression)
-              " ")
-        nominal.of))
-
-  (the .public (function name inputs body)
-    (-> Var (List Var) Statement
-        Computation)
-    (|> (..function_definition name inputs body)
-        nominal.as
-        ..expression
-        nominal.of))
-
-  (the .public (closure inputs body)
-    (-> (List Var) Statement
-        Computation)
-    (|> body
-        ..block
-        (text "function"
-              (|> inputs
-                  (list:each ..code)
-                  (text.interposed ..argument_delimiter)
-                  ..expression)
-              " ")
-        ..expression
-        nominal.of))
-
-  (template.with [<name> <op>]
-                 [(the .public (<name> param subject)
+               (the .public (, pre post)
                     (-> Expression Expression
                         Computation)
-                    (|> (text (nominal.as subject) " " <op> " " (nominal.as param))
+                    (|> (text (nominal.as pre) ..argument_delimiter (nominal.as post))
                         ..expression
-                        nominal.of))]
+                        nominal.of))
 
-                 [[=  "==="]
-                  [<  "<"]
-                  [<= "<="]
-                  [>  ">"]
-                  [>= ">="]
-                  
-                  [+  "+"]
-                  [-  "-"]
-                  [*  "*"]
-                  [/  "/"]
-                  [%  "%"]
+               (the .public (then pre post)
+                    (-> Statement Statement
+                        Statement)
+                    (nominal.of
+                     (text (nominal.as pre)
+                           \n+
+                           (nominal.as post))))
 
-                  [left_shift "<<"]
-                  [arithmetic_right_shift ">>"]
-                  [logic_right_shift ">>>"]
+               (the block
+                    (-> Statement
+                        Text)
+                    (let [close (text \n+ "}")]
+                         (|>> nominal.as
+                              ..nested
+                              (text.inside ["{"
+                                            close]))))
 
-                  [or      "||"]
-                  [and     "&&"]
-                  
-                  [bit_xor "^"]
-                  [bit_or  "|"]
-                  [bit_and "&"]])
+               (the .public (function_definition name inputs body)
+                    (-> Var (List Var) Statement
+                        Statement)
+                    (|> body
+                        ..block
+                        (text "function " (nominal.as name)
+                              (|> inputs
+                                  (list:each ..code)
+                                  (text.interposed ..argument_delimiter)
+                                  ..expression)
+                              " ")
+                        nominal.of))
 
-  (template.with [<prefix> <name>]
-                 [(the .public <name>
+               (the .public (function name inputs body)
+                    (-> Var (List Var) Statement
+                        Computation)
+                    (|> (..function_definition name inputs body)
+                        nominal.as
+                        ..expression
+                        nominal.of))
+
+               (the .public (closure inputs body)
+                    (-> (List Var) Statement
+                        Computation)
+                    (|> body
+                        ..block
+                        (text "function"
+                              (|> inputs
+                                  (list:each ..code)
+                                  (text.interposed ..argument_delimiter)
+                                  ..expression)
+                              " ")
+                        ..expression
+                        nominal.of))
+
+               (template.with [<name> <op>]
+                              [(the .public (<name> param subject)
+                                    (-> Expression Expression
+                                        Computation)
+                                    (|> (text (nominal.as subject) " " <op> " " (nominal.as param))
+                                        ..expression
+                                        nominal.of))]
+
+                              [[=  "==="]
+                               [<  "<"]
+                               [<= "<="]
+                               [>  ">"]
+                               [>= ">="]
+                               
+                               [+  "+"]
+                               [-  "-"]
+                               [*  "*"]
+                               [/  "/"]
+                               [%  "%"]
+
+                               [left_shift "<<"]
+                               [arithmetic_right_shift ">>"]
+                               [logic_right_shift ">>>"]
+
+                               [and/or  "||"]
+                               [and     "&&"]
+                               
+                               [bit_xor "^"]
+                               [bit_or  "|"]
+                               [bit_and "&"]])
+
+               (template.with [<prefix> <name>]
+                              [(the .public <name>
+                                    (-> Expression
+                                        Computation)
+                                    (|>> nominal.as
+                                         (text.prefix <prefix>)
+                                         ..expression
+                                         nominal.of))]
+
+                              [["!" not]
+                               ["~" bit_not]
+                               ["-" opposite]])
+
+               (template.with [<name> <input> <injection>]
+                              [... A 32-bit integer expression.
+                               (the .public (<name> value)
+                                    (-> <input>
+                                        Computation)
+                                    (nominal.of
+                                     (..expression (text (<injection> value) "|0"))))]
+
+                              [[to_i32 Expression nominal.as]
+                               [i32 Integer %.integer]])
+
+               (the .public (int value)
+                    (-> Integer
+                        Literal)
+                    (nominal.of
+                     (.if (i.< +0 value)
+                          (%.integer value)
+                          (%.natural (.natural value)))))
+
+               (the .public (? test then else)
+                    (-> Expression Expression Expression
+                        Computation)
+                    (|> (text (nominal.as test)
+                              " ? " (nominal.as then)
+                              " : " (nominal.as else))
+                        ..expression
+                        nominal.of))
+
+               (the .public type_of
                     (-> Expression
                         Computation)
                     (|>> nominal.as
-                         (text.prefix <prefix>)
+                         (text "typeof ")
                          ..expression
-                         nominal.of))]
+                         nominal.of))
 
-                 [["!" not]
-                  ["~" bit_not]
-                  ["-" opposite]])
-
-  (template.with [<name> <input> <injection>]
-                 [... A 32-bit integer expression.
-                  (the .public (<name> value)
-                    (-> <input>
+               (the .public (new constructor inputs)
+                    (-> Expression (List Expression)
                         Computation)
-                    (nominal.of
-                     (..expression (text (<injection> value) "|0"))))]
+                    (|> (text "new " (nominal.as constructor)
+                              (|> inputs
+                                  (list:each ..code)
+                                  (text.interposed ..argument_delimiter)
+                                  ..expression))
+                        ..expression
+                        nominal.of))
 
-                 [[to_i32 Expression nominal.as]
-                  [i32 Integer %.integer]])
+               (the .public ;
+                    (-> Expression
+                        Statement)
+                    (|>> nominal.as
+                         (text.suffix ..statement_suffix)
+                         nominal.of))
 
-  (the .public (int value)
-    (-> Integer
-        Literal)
-    (nominal.of
-     (.if (i.< +0 value)
-          (%.integer value)
-          (%.natural (.natural value)))))
-
-  (the .public (? test then else)
-    (-> Expression Expression Expression
-        Computation)
-    (|> (text (nominal.as test)
-              " ? " (nominal.as then)
-              " : " (nominal.as else))
-        ..expression
-        nominal.of))
-
-  (the .public type_of
-    (-> Expression
-        Computation)
-    (|>> nominal.as
-         (text "typeof ")
-         ..expression
-         nominal.of))
-
-  (the .public (new constructor inputs)
-    (-> Expression (List Expression)
-        Computation)
-    (|> (text "new " (nominal.as constructor)
-              (|> inputs
-                  (list:each ..code)
-                  (text.interposed ..argument_delimiter)
-                  ..expression))
-        ..expression
-        nominal.of))
-
-  (the .public ;
-    (-> Expression
-        Statement)
-    (|>> nominal.as
-         (text.suffix ..statement_suffix)
-         nominal.of))
-
-  (the .public use_strict
-    Statement
-    (nominal.of
-     (text text.double_quote "use strict" text.double_quote ..statement_suffix)))
-
-  (the .public (declare name)
-    (-> Var
-        Statement)
-    (nominal.of
-     (text "var " (nominal.as name) ..statement_suffix)))
-
-  (the .public (define name value)
-    (-> Var Expression
-        Statement)
-    (nominal.of
-     (text "var " (nominal.as name) " = " (nominal.as value) ..statement_suffix)))
-
-  (the .public (set name value)
-    (-> Location Expression
-        Expression)
-    (nominal.of
-     (text (nominal.as name) " = " (nominal.as value))))
-
-  (the .public (throw message)
-    (-> Expression
-        Statement)
-    (nominal.of
-     (text "throw " (nominal.as message) ..statement_suffix)))
-
-  (the .public (return value)
-    (-> Expression
-        Statement)
-    (nominal.of
-     (text "return " (nominal.as value) ..statement_suffix)))
-
-  (the .public delete
-    (-> Location
-        Expression)
-    (|>> nominal.as
-         (text "delete ")
-         ..expression
-         nominal.of))
-
-  (the .public (if test then! else!)
-    (-> Expression Statement Statement
-        Statement)
-    (nominal.of
-     (text "if(" (nominal.as test) ") "
-           (..block then!)
-           " else "
-           (..block else!))))
-
-  (the .public (when test then!)
-    (-> Expression Statement
-        Statement)
-    (nominal.of
-     (text "if(" (nominal.as test) ") "
-           (..block then!))))
-
-  (the .public (while test body)
-    (-> Expression Statement
-        Loop)
-    (nominal.of
-     (text "while(" (nominal.as test) ") "
-           (..block body))))
-
-  (the .public (do_while test body)
-    (-> Expression Statement
-        Loop)
-    (nominal.of
-     (text "do " (..block body)
-           " while(" (nominal.as test) ")" ..statement_suffix)))
-
-  (the .public (try body [exception catch])
-    (-> Statement [Var Statement]
-        Statement)
-    (nominal.of
-     (text "try "
-           (..block body)
-           " catch(" (nominal.as exception) ") "
-           (..block catch))))
-
-  (the .public (for var init condition update iteration)
-    (-> Var Expression Expression Expression Statement
-        Loop)
-    (nominal.of
-     (text "for(" (nominal.as (..define var init))
-           " " (nominal.as condition)
-           ..statement_suffix " " (nominal.as update)
-           ")"
-           (..block iteration))))
-
-  (the .public label
-    (-> Text
-        Label)
-    (|>> nominal.of))
-
-  (the .public (with_label label loop)
-    (-> Label Loop
-        Statement)
-    (nominal.of
-     (text (nominal.as label) ": " (nominal.as loop))))
-
-  (template.with [<keyword> <0> <1>]
-                 [(the .public <0>
+               (the .public use_strict
                     Statement
                     (nominal.of
-                     (text <keyword> ..statement_suffix)))
+                     (text text.double_quote "use strict" text.double_quote ..statement_suffix)))
 
-                  (the .public (<1> label)
-                    (-> Label
+               (the .public (declare name)
+                    (-> Var
                         Statement)
                     (nominal.of
-                     (text <keyword> " " (nominal.as label) ..statement_suffix)))]
+                     (text "var " (nominal.as name) ..statement_suffix)))
 
-                 [["break"    break    break_at]
-                  ["continue" continue continue_at]])
+               (the .public (define name value)
+                    (-> Var Expression
+                        Statement)
+                    (nominal.of
+                     (text "var " (nominal.as name) " = " (nominal.as value) ..statement_suffix)))
 
-  (template.with [<name> <js>]
-                 [(the .public <name>
+               (the .public (set name value)
+                    (-> Location Expression
+                        Expression)
+                    (nominal.of
+                     (text (nominal.as name) " = " (nominal.as value))))
+
+               (the .public (throw message)
+                    (-> Expression
+                        Statement)
+                    (nominal.of
+                     (text "throw " (nominal.as message) ..statement_suffix)))
+
+               (the .public (return value)
+                    (-> Expression
+                        Statement)
+                    (nominal.of
+                     (text "return " (nominal.as value) ..statement_suffix)))
+
+               (the .public delete
                     (-> Location
                         Expression)
                     (|>> nominal.as
-                         (text.suffix <js>)
-                         nominal.of))]
+                         (text "delete ")
+                         ..expression
+                         nominal.of))
 
-                 [[++ "++"]
-                  [-- "--"]])
+               (the .public (if test then! else!)
+                    (-> Expression Statement Statement
+                        Statement)
+                    (nominal.of
+                     (text "if(" (nominal.as test) ") "
+                           (..block then!)
+                           " else "
+                           (..block else!))))
 
-  (the .public (comment commentary on)
-    (for_any (_ kind)
-      (-> Text (Code kind)
-          (Code kind)))
-    (nominal.of
-     (text "/* "  commentary " */" " " (nominal.as on))))
+               (the .public (when test then!)
+                    (-> Expression Statement
+                        Statement)
+                    (nominal.of
+                     (text "if(" (nominal.as test) ") "
+                           (..block then!))))
 
-  (the .public (switch input cases default)
-    (-> Expression (List [(List Literal) Statement]) (Maybe Statement)
-        Statement)
-    (nominal.of
-     (text "switch (" (nominal.as input) ") "
-           (|> (text (|> cases
-                         (list:each (.function (_ [when then])
-                                      (text (|> when
-                                                (list:each (|>> nominal.as (text.enclosed ["case " ":"])))
-                                                (text.interposed \n+))
-                                            (..nested (nominal.as then)))))
-                         (text.interposed \n+))
-                     \n+
-                     (.when default
-                       {.:Some default}
-                       (text "default:"
-                             (..nested (nominal.as default)))
-                       
-                       {.:None}
-                       ""))
-               nominal.of
-               ..block))))
-  )
+               (the .public (while test body)
+                    (-> Expression Statement
+                        Loop)
+                    (nominal.of
+                     (text "while(" (nominal.as test) ") "
+                           (..block body))))
+
+               (the .public (do_while test body)
+                    (-> Expression Statement
+                        Loop)
+                    (nominal.of
+                     (text "do " (..block body)
+                           " while(" (nominal.as test) ")" ..statement_suffix)))
+
+               (the .public (try body [exception catch])
+                    (-> Statement [Var Statement]
+                        Statement)
+                    (nominal.of
+                     (text "try "
+                           (..block body)
+                           " catch(" (nominal.as exception) ") "
+                           (..block catch))))
+
+               (the .public (for var init condition update iteration)
+                    (-> Var Expression Expression Expression Statement
+                        Loop)
+                    (nominal.of
+                     (text "for(" (nominal.as (..define var init))
+                           " " (nominal.as condition)
+                           ..statement_suffix " " (nominal.as update)
+                           ")"
+                           (..block iteration))))
+
+               (the .public label
+                    (-> Text
+                        Label)
+                    (|>> nominal.of))
+
+               (the .public (with_label label loop)
+                    (-> Label Loop
+                        Statement)
+                    (nominal.of
+                     (text (nominal.as label) ": " (nominal.as loop))))
+
+               (template.with [<keyword> <0> <1>]
+                              [(the .public <0>
+                                    Statement
+                                    (nominal.of
+                                     (text <keyword> ..statement_suffix)))
+
+                               (the .public (<1> label)
+                                    (-> Label
+                                        Statement)
+                                    (nominal.of
+                                     (text <keyword> " " (nominal.as label) ..statement_suffix)))]
+
+                              [["break"    break    break_at]
+                               ["continue" continue continue_at]])
+
+               (template.with [<name> <js>]
+                              [(the .public <name>
+                                    (-> Location
+                                        Expression)
+                                    (|>> nominal.as
+                                         (text.suffix <js>)
+                                         nominal.of))]
+
+                              [[++ "++"]
+                               [-- "--"]])
+
+               (the .public (comment commentary on)
+                    (for_any (_ kind)
+                             (-> Text (Code kind)
+                                 (Code kind)))
+                    (nominal.of
+                     (text "/* "  commentary " */" " " (nominal.as on))))
+
+               (the .public (switch input cases default)
+                    (-> Expression (List [(List Literal) Statement]) (Maybe Statement)
+                        Statement)
+                    (nominal.of
+                     (text "switch (" (nominal.as input) ") "
+                           (|> (text (|> cases
+                                         (list:each (.function (_ [when then])
+                                                               (text (|> when
+                                                                         (list:each (|>> nominal.as (text.inside ["case " ":"])))
+                                                                         (text.interposed \n+))
+                                                                     (..nested (nominal.as then)))))
+                                         (text.interposed \n+))
+                                     \n+
+                                     (.when default
+                                            {.:Some default}
+                                            (text "default:"
+                                                  (..nested (nominal.as default)))
+                                            
+                                            {.:None}
+                                            ""))
+                               nominal.of
+                               ..block))))
+               )
 
 (template.with [<on> <arg>+ <type>+ <function>+]
                [(`` (the (<on> function)
-                      (-> Expression (,, (template.spliced <type>+))
-                          Computation)
-                      (.function (_ (,, (template.spliced <arg>+)))
-                        (..of (list (,, (template.spliced <arg>+))) function))))
+                         (-> Expression (,, (template.spliced <type>+))
+                             Computation)
+                         (.function (_ (,, (template.spliced <arg>+)))
+                                    (..of (list (,, (template.spliced <arg>+))) function))))
 
                 (template.with [<definition> <function>]
                                [(the .public <definition> (<on> (..var <function>)))]

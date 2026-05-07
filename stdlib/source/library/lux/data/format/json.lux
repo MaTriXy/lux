@@ -2,7 +2,7 @@
  [library
   [lux (.except Array
                 has text natural integer revolution list
-                or and
+                and
                 variant record)
    [abstract
     [equality (.only Equality)]
@@ -281,7 +281,7 @@
 (the string_as_text
      (text.Injection String)
      (|>> escape.escaped
-          (text.enclosed [text.double_quote text.double_quote])))
+          (text.inside [text.double_quote text.double_quote])))
 
 (comment "https://en.wikipedia.org/wiki/Delimiter"
          (template.with [<token> <name>]
@@ -303,7 +303,7 @@
          (text.Injection Array))
      (|>> (list:each as_text)
           (text.interposed ..delimiter_of_value)
-          (text.enclosed [..start_of_array ..end_of_array])))
+          (text.inside [..start_of_array ..end_of_array])))
 
 (the (kv_as_text as_text [key value])
      (-> (text.Injection JSON)
@@ -318,7 +318,7 @@
      (|>> dictionary.entries
           (list:each (..kv_as_text as_text))
           (text.interposed ..delimiter_of_value)
-          (text.enclosed [..start_of_object ..end_of_object])))
+          (text.inside [..start_of_object ..end_of_object])))
 
 (the .public (as_text json)
      (text.Injection JSON)
@@ -848,8 +848,8 @@
                 (the (as it)
                      (.list (by format as it)))
                 (the (of it)
-                     (if (.or (not end?)
-                              (natural.= (++ index) (list.size it)))
+                     (if (.and/or (not end?)
+                                  (natural.= (++ index) (list.size it)))
                          (monad.let try.monad
                                     [it (list.item index it)]
                                     (by format of it))

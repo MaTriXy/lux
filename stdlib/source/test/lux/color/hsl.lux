@@ -30,115 +30,115 @@
   ["[0]T" rgb]])
 
 (template.with [<name> <as> <of>]
-  [(the <name>
-     (Random /.Value)
-     (let [range (r.natural (<as> +1.0))]
-       (|> random.natural
-           (random:each (|>> (n.% range)
-                             n.real
-                             <of>
-                             /.value)))))]
+               [(the <name>
+                     (Random /.Value)
+                     (let [range (r.natural (<as> +1.0))]
+                          (|> random.natural
+                              (random:each (|>> (n.% range)
+                                                n.real
+                                                <of>
+                                                /.value)))))]
 
-  [[degree r.as_degree r.of_degree]
-   [per_cent r.as_per_cent r.of_per_cent]])
+               [[degree r.as_degree r.of_degree]
+                [per_cent r.as_per_cent r.of_per_cent]])
 
 (the .public value
-  (Random /.Value)
-  (random:each /.value random.unit_real))
+     (Random /.Value)
+     (random:each /.value random.unit_real))
 
 (the .public random
-  (Random /.HSL)
-  (monad.let random.monad
-    [hue ..degree
-     saturation ..per_cent
-     luminance ..per_cent]
-    (pure (/.hsl hue saturation luminance))))
+     (Random /.HSL)
+     (monad.let random.monad
+                [hue ..degree
+                 saturation ..per_cent
+                 luminance ..per_cent]
+                (pure (/.hsl hue saturation luminance))))
 
 (the rgb_error_margin
-  +1.8)
+     +1.8)
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (monad.let [! random.monad]
-        [expected_value ..value
-         expected_rgb rgbT.random
-         expected_hsl ..random
+     Test
+     (<| (_.covering /._)
+         (monad.let [! random.monad]
+                    [expected_value ..value
+                     expected_rgb rgbT.random
+                     expected_hsl ..random
 
-         possible_value (random.only (|>> r.not_a_number? not)
-                                     random.real)
+                     possible_value (random.only (|>> r.not_a_number? not)
+                                                 random.real)
 
-         mediocre (|> ..random
-                      (random.only (|>> (its /.:saturation)
-                                        ((function (_ it)
-                                           (and (r.>= +0.25 it)
-                                                (r.<= +0.75 it)))))))
-         ratio (|> random.unit_real (random.only (r.>= +0.5)))
-         .let [delta +0.000000001]
+                     mediocre (|> ..random
+                                  (random.only (|>> (its /.:saturation)
+                                                    ((function (_ it)
+                                                               (and (r.>= +0.25 it)
+                                                                    (r.<= +0.75 it)))))))
+                     ratio (|> random.unit_real (random.only (r.>= +0.5)))
+                     .let [delta +0.000000001]
 
-         left ..random
-         right ..random])
-      (all _.and
-           (_.for [/.Value]
-                  (all _.and
-                       (_.coverage [/.value?]
-                         (and (/.value? expected_value)
-                              (not (/.value? (r.+ delta /.most)))
-                              (not (/.value? (r.- delta /.least)))))
-                       (_.coverage [/.value]
-                         (if (/.value? possible_value)
-                             (|> possible_value
-                                 /.value
-                                 (r.= possible_value))
-                             (or (r.= /.least (/.value possible_value))
-                                 (r.= /.most (/.value possible_value)))))
-                       (_.coverage [/.least]
-                         (and (r.< /.most
-                                   /.least)
-                              (/.value? /.least)
-                              (/.value? (r.+ delta /.least))
-                              (not (/.value? (r.- delta /.least)))))
-                       (_.coverage [/.most]
-                         (and (r.> /.least
-                                   /.most)
-                              (/.value? /.most)
-                              (/.value? (r.- delta /.most))
-                              (not (/.value? (r.+ delta /.most)))))
-                       ))
-           (_.for [/.HSL
-                   /.:hue /.:saturation /.:luminance]
-                  (`` (all _.and
-                           (_.for [/.equality /.=]
-                                  (static.when (identical? /.equality /.=)
-                                    (equalityT.spec /.equality ..random)))
+                     left ..random
+                     right ..random])
+         (all _.and
+              (_.for [/.Value]
+                     (all _.and
+                          (_.coverage [/.value?]
+                                      (and (/.value? expected_value)
+                                           (not (/.value? (r.+ delta /.most)))
+                                           (not (/.value? (r.- delta /.least)))))
+                          (_.coverage [/.value]
+                                      (if (/.value? possible_value)
+                                          (|> possible_value
+                                              /.value
+                                              (r.= possible_value))
+                                          (and/or (r.= /.least (/.value possible_value))
+                                                  (r.= /.most (/.value possible_value)))))
+                          (_.coverage [/.least]
+                                      (and (r.< /.most
+                                                /.least)
+                                           (/.value? /.least)
+                                           (/.value? (r.+ delta /.least))
+                                           (not (/.value? (r.- delta /.least)))))
+                          (_.coverage [/.most]
+                                      (and (r.> /.least
+                                                /.most)
+                                           (/.value? /.most)
+                                           (/.value? (r.- delta /.most))
+                                           (not (/.value? (r.+ delta /.most)))))
+                          ))
+              (_.for [/.HSL
+                      /.:hue /.:saturation /.:luminance]
+                     (`` (all _.and
+                              (_.for [/.equality /.=]
+                                     (static.when (identical? /.equality /.=)
+                                                  (equalityT.spec /.equality ..random)))
 
-                           (_.coverage [/.hsl]
-                             (|> (/.hsl (its /.:hue expected_hsl)
-                                        (its /.:saturation expected_hsl)
-                                        (its /.:luminance expected_hsl))
-                                 (by /.equality = expected_hsl)))
-                           (_.coverage [/.of_rgb /.rgb]
-                             (|> expected_rgb
-                                 /.of_rgb
-                                 /.rgb
-                                 (by rgb.equality = expected_rgb)))
+                              (_.coverage [/.hsl]
+                                          (|> (/.hsl (its /.:hue expected_hsl)
+                                                     (its /.:saturation expected_hsl)
+                                                     (its /.:luminance expected_hsl))
+                                              (by /.equality = expected_hsl)))
+                              (_.coverage [/.of_rgb /.rgb]
+                                          (|> expected_rgb
+                                              /.of_rgb
+                                              /.rgb
+                                              (by rgb.equality = expected_rgb)))
 
-                           (_.coverage [/.saturated]
-                             (r.> (its /.:saturation mediocre)
-                                  (its /.:saturation (/.saturated ratio mediocre))))
-                           (_.coverage [/.un_saturated]
-                             (r.< (its /.:saturation mediocre)
-                                  (its /.:saturation (/.un_saturated ratio mediocre))))
-                           (_.coverage [/.gray_scale]
-                             (let [gray'ed (/.gray_scale mediocre)]
-                               (and (r.= +0.0
-                                         (its /.:saturation gray'ed))
-                                    (|> (its /.:luminance gray'ed)
-                                        (r.- (its /.:luminance mediocre))
-                                        r.absolute
-                                        (r.<= ..rgb_error_margin)))))
-                           (_.coverage [/.as_text]
-                             (bit.= (by /.equality = left right)
-                                    (text.= (/.as_text left) (/.as_text right))))
-                           )))
-           )))
+                              (_.coverage [/.saturated]
+                                          (r.> (its /.:saturation mediocre)
+                                               (its /.:saturation (/.saturated ratio mediocre))))
+                              (_.coverage [/.un_saturated]
+                                          (r.< (its /.:saturation mediocre)
+                                               (its /.:saturation (/.un_saturated ratio mediocre))))
+                              (_.coverage [/.gray_scale]
+                                          (let [gray'ed (/.gray_scale mediocre)]
+                                               (and (r.= +0.0
+                                                         (its /.:saturation gray'ed))
+                                                    (|> (its /.:luminance gray'ed)
+                                                        (r.- (its /.:luminance mediocre))
+                                                        r.absolute
+                                                        (r.<= ..rgb_error_margin)))))
+                              (_.coverage [/.as_text]
+                                          (bit.= (by /.equality = left right)
+                                                 (text.= (/.as_text left) (/.as_text right))))
+                              )))
+              )))

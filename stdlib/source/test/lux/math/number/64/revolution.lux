@@ -34,157 +34,157 @@
      ["[0]" /64]]]]])
 
 (the signature
-  Test
-  (`` (all _.and
-           (_.for [/.equality /.=]
-                  (equalityT.spec /.equality random.revolution))
-           (_.for [/.hash]
-                  (hashT.spec /.hash random.revolution))
-           (_.for [/.order /.<]
-                  (orderT.spec /.order random.revolution))
-           (_.for [/.enum]
-                  (enumT.spec /.enum random.revolution))
-           (_.for [/.interval]
-                  (intervalT.spec /.interval random.revolution))
-           (,, (template.with [<composite> <monoid>]
-                 [(_.for [<monoid> <composite>]
-                         (monoidT.spec /.equality <monoid> random.revolution))]
+     Test
+     (`` (all _.and
+              (_.for [/.equality /.=]
+                     (equalityT.spec /.equality random.revolution))
+              (_.for [/.hash]
+                     (hashT.spec /.hash random.revolution))
+              (_.for [/.order /.<]
+                     (orderT.spec /.order random.revolution))
+              (_.for [/.enum]
+                     (enumT.spec /.enum random.revolution))
+              (_.for [/.interval]
+                     (intervalT.spec /.interval random.revolution))
+              (,, (template.with [<composite> <monoid>]
+                                 [(_.for [<monoid> <composite>]
+                                         (monoidT.spec /.equality <monoid> random.revolution))]
 
-                 [[/.+ /.addition]
+                                 [[/.+ /.addition]
 
-                  [/.minor /.minimum]
-                  [/.major /.maximum]]))
-           (,, (template.with [<format>]
-                 [(_.for [<format>]
-                         (formatT.spec /.equality <format> random.revolution))]
+                                  [/.minor /.minimum]
+                                  [/.major /.maximum]]))
+              (,, (template.with [<format>]
+                                 [(_.for [<format>]
+                                         (formatT.spec /.equality <format> random.revolution))]
 
-                 [[/.base_02]
-                  [/.base_08]
-                  [/.base_10]
-                  [/.base_16]]))
-           )))
+                                 [[/.base_02]
+                                  [/.base_08]
+                                  [/.base_10]
+                                  [/.base_16]]))
+              )))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (_.for [.Revolution])
-      (monad.let random.monad
-        [expected random.revolution])
-      (`` (all _.and
-               (_.coverage [.Rev]
-                 (identical? .Revolution .Rev))
-               (_.coverage [/.Number]
-                 (identical? .Revolution /.Number))
-               (_.coverage [/.zero]
-                 (and (/.= expected (/.+ /.zero expected))
-                      (/.= expected (/.- /.zero expected))
-                      
-                      (/.= /.zero (/.x /.zero expected))))
-               (,, (template.with [<half> <whole>]
-                     [(_.coverage [<half>]
-                        (/.= <whole>
-                             (/.+ <half> <half>)))]
+     Test
+     (<| (_.covering /._)
+         (_.for [.Revolution])
+         (monad.let random.monad
+                    [expected random.revolution])
+         (`` (all _.and
+                  (_.coverage [.Rev]
+                              (identical? .Revolution .Rev))
+                  (_.coverage [/.Number]
+                              (identical? .Revolution /.Number))
+                  (_.coverage [/.zero]
+                              (and (/.= expected (/.+ /.zero expected))
+                                   (/.= expected (/.- /.zero expected))
+                                   
+                                   (/.= /.zero (/.x /.zero expected))))
+                  (,, (template.with [<half> <whole>]
+                                     [(_.coverage [<half>]
+                                                  (/.= <whole>
+                                                       (/.+ <half> <half>)))]
 
-                     [[/./1 (-- /./1)]
-                      [/./2 .0]
-                      [/./4 /./2]
-                      [/./8 /./4]
-                      [/./16 /./8]
-                      [/./32 /./16]
-                      [/./64 /./32]
-                      [/./128 /./64]
-                      [/./256 /./128]
-                      [/./512 /./256]
-                      [/./1024 /./512]
-                      [/./2048 /./1024]
-                      [/./4096 /./2048]]))
-               (monad.let random.monad
-                 [sample random.revolution]
-                 (_.coverage [/.-]
-                   (and (/.= .0 (/.- sample sample))
-                        (/.= sample (/.- .0 sample)))))
-               (monad.let [! random.monad]
-                 [left random.revolution
-                  right random.revolution]
-                 (_.coverage [/.x]
-                   (and (/.< left (/.x left right))
-                        (/.< right (/.x left right)))))
-               (monad.let [! random.monad]
-                 [.let [dividend (is (Random Revolution)
-                                     (by ! each (/64.and (number.base_16 "FFFF"))
-                                         random.revolution))
-                        divisor (is (Random Revolution)
-                                    (by ! each (|>> (/64.and (number.base_16 "F"))
-                                                    (/64.or (number.base_16 "1"))
-                                                    (/64.right_rotated 8)
-                                                    .revolution)
-                                        random.natural))]
-                  dividend (random.only (/.> .0) dividend)
-                  divisor/0 divisor
-                  divisor/1 (random.only (|>> (/.= divisor/0) not)
-                                         divisor)
-                  scale (by ! each (|>> (n.% 10) ++)
-                            random.natural)]
-                 (all _.and
-                      (_.coverage [/./]
-                        (bit.= (/.< divisor/0 divisor/1)
-                               (/.> (/./ divisor/0 dividend) (/./ divisor/1 dividend))))
-                      (_.coverage [/.%]
-                        (by /64.equality =
-                            (.i64 (n.% (.natural divisor/0) (.natural dividend)))
-                            (.i64 (/.% divisor/0 dividend))))
-                      (_.coverage [/.up /.down]
-                        (let [symmetry!
-                              (|> dividend
-                                  (/.up scale)
-                                  (/.down scale)
-                                  (/.= dividend))
+                                     [[/./1 (-- /./1)]
+                                      [/./2 .0]
+                                      [/./4 /./2]
+                                      [/./8 /./4]
+                                      [/./16 /./8]
+                                      [/./32 /./16]
+                                      [/./64 /./32]
+                                      [/./128 /./64]
+                                      [/./256 /./128]
+                                      [/./512 /./256]
+                                      [/./1024 /./512]
+                                      [/./2048 /./1024]
+                                      [/./4096 /./2048]]))
+                  (monad.let random.monad
+                             [sample random.revolution]
+                             (_.coverage [/.-]
+                                         (and (/.= .0 (/.- sample sample))
+                                              (/.= sample (/.- .0 sample)))))
+                  (monad.let [! random.monad]
+                             [left random.revolution
+                              right random.revolution]
+                             (_.coverage [/.x]
+                                         (and (/.< left (/.x left right))
+                                              (/.< right (/.x left right)))))
+                  (monad.let [! random.monad]
+                             [.let [dividend (is (Random Revolution)
+                                                 (by ! each (/64.and (number.base_16 "FFFF"))
+                                                     random.revolution))
+                                    divisor (is (Random Revolution)
+                                                (by ! each (|>> (/64.and (number.base_16 "F"))
+                                                                (/64.and/or (number.base_16 "1"))
+                                                                (/64.right_rotated 8)
+                                                                .revolution)
+                                                    random.natural))]
+                              dividend (random.only (/.> .0) dividend)
+                              divisor/0 divisor
+                              divisor/1 (random.only (|>> (/.= divisor/0) not)
+                                                     divisor)
+                              scale (by ! each (|>> (n.% 10) ++)
+                                        random.natural)]
+                             (all _.and
+                                  (_.coverage [/./]
+                                              (bit.= (/.< divisor/0 divisor/1)
+                                                     (/.> (/./ divisor/0 dividend) (/./ divisor/1 dividend))))
+                                  (_.coverage [/.%]
+                                              (by /64.equality =
+                                                  (.i64 (n.% (.natural divisor/0) (.natural dividend)))
+                                                  (.i64 (/.% divisor/0 dividend))))
+                                  (_.coverage [/.up /.down]
+                                              (let [symmetry!
+                                                    (|> dividend
+                                                        (/.up scale)
+                                                        (/.down scale)
+                                                        (/.= dividend))
 
-                              discrete_division!
-                              (/.= (/.% (.revolution scale) dividend)
-                                   (/.- (|> dividend
-                                            (/.down scale)
-                                            (/.up scale))
-                                        dividend))]
-                          (and symmetry!
-                               discrete_division!)))
-                      (_.coverage [/.ratio]
-                        (|> dividend
-                            (/.up scale)
-                            (/.ratio dividend)
-                            (n.= scale)))
-                      ))
-               (monad.let [! random.monad]
-                 [dividend random.revolution
-                  divisor (random.only (|>> (/.= .0) not)
-                                       random.revolution)]
-                 (_.coverage [/./%]
-                   (let [[quotient remainder] (/./% divisor dividend)]
-                     (and (/.= (/./ divisor dividend) quotient)
-                          (/.= (/.% divisor dividend) remainder)))))
-               (monad.let random.monad
-                 [left random.revolution
-                  right random.revolution]
-                 (all _.and
-                      (_.coverage [/.>]
-                        (bit.= (/.> left right)
-                               (/.< right left)))
-                      (_.coverage [/.<= /.>=]
-                        (bit.= (/.<= left right)
-                               (/.>= right left)))
-                      ))
-               (monad.let random.monad
-                 [sample random.natural]
-                 (_.coverage [/.reciprocal]
-                   (/.= (/.reciprocal sample)
-                        (|> sample /.reciprocal .natural /.reciprocal .natural /.reciprocal))))
-               (monad.let [! random.monad]
-                 [expected (by ! each (|>> r.absolute (r.% +1.0))
-                               random.unit_real)
-                  sample random.revolution]
-                 (_.coverage [/.real]
-                   (and (|> expected r.revolution /.real (r.= expected))
-                        (r.number? (/.real sample)))))
+                                                    discrete_division!
+                                                    (/.= (/.% (.revolution scale) dividend)
+                                                         (/.- (|> dividend
+                                                                  (/.down scale)
+                                                                  (/.up scale))
+                                                              dividend))]
+                                                   (and symmetry!
+                                                        discrete_division!)))
+                                  (_.coverage [/.ratio]
+                                              (|> dividend
+                                                  (/.up scale)
+                                                  (/.ratio dividend)
+                                                  (n.= scale)))
+                                  ))
+                  (monad.let [! random.monad]
+                             [dividend random.revolution
+                              divisor (random.only (|>> (/.= .0) not)
+                                                   random.revolution)]
+                             (_.coverage [/./%]
+                                         (let [[quotient remainder] (/./% divisor dividend)]
+                                              (and (/.= (/./ divisor dividend) quotient)
+                                                   (/.= (/.% divisor dividend) remainder)))))
+                  (monad.let random.monad
+                             [left random.revolution
+                              right random.revolution]
+                             (all _.and
+                                  (_.coverage [/.>]
+                                              (bit.= (/.> left right)
+                                                     (/.< right left)))
+                                  (_.coverage [/.<= /.>=]
+                                              (bit.= (/.<= left right)
+                                                     (/.>= right left)))
+                                  ))
+                  (monad.let random.monad
+                             [sample random.natural]
+                             (_.coverage [/.reciprocal]
+                                         (/.= (/.reciprocal sample)
+                                              (|> sample /.reciprocal .natural /.reciprocal .natural /.reciprocal))))
+                  (monad.let [! random.monad]
+                             [expected (by ! each (|>> r.absolute (r.% +1.0))
+                                           random.unit_real)
+                              sample random.revolution]
+                             (_.coverage [/.real]
+                                         (and (|> expected r.revolution /.real (r.= expected))
+                                              (r.number? (/.real sample)))))
 
-               ..signature
-               ))))
+                  ..signature
+                  ))))

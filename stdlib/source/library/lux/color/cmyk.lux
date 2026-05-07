@@ -18,94 +18,94 @@
   ["[0]" rgb (.only RGB)]])
 
 (every .public Value
-  Real)
+       Real)
 
 (template.with [<value> <name>]
-  [(the .public <name>
-     Value
-     <value>)]
+               [(the .public <name>
+                     Value
+                     <value>)]
 
-  [[+0.0 least]
-   [+1.0 most]]
-  )
+               [[+0.0 least]
+                [+1.0 most]]
+               )
 
 (the .public (value? it)
-  (Predicate Real)
-  (not (or (r.< ..least it)
-           (r.> ..most it))))
+     (Predicate Real)
+     (not (and/or (r.< ..least it)
+                  (r.> ..most it))))
 
 (the .public value
-  (-> Real
-      Value)
-  (|>> (r.major ..least)
-       (r.minor ..most)))
+     (-> Real
+         Value)
+     (|>> (r.major ..least)
+          (r.minor ..most)))
 
 (every .public CMYK
-  (Record
-   [:cyan Value
-    :magenta Value
-    :yellow Value
-    :key Value]))
+       (Record
+        [:cyan Value
+         :magenta Value
+         :yellow Value
+         :key Value]))
 
 (the .public equality
-  (Equality CMYK)
-  (all pair.equality
-       r.equality
-       r.equality
-       r.equality
-       r.equality
-       ))
+     (Equality CMYK)
+     (all pair.equality
+          r.equality
+          r.equality
+          r.equality
+          r.equality
+          ))
 
 (alias [=]
        ..equality)
 
 (the maximum
-  (-- rgb.limit))
+     (-- rgb.limit))
 
 (the rgb_factor
-  (|> ..maximum
-      .integer
-      integer.real))
+     (|> ..maximum
+         .integer
+         integer.real))
 
 (the down
-  (-> Natural
-      Real)
-  (|>> .integer integer.real (r./ rgb_factor)))
+     (-> Natural
+         Real)
+     (|>> .integer integer.real (r./ rgb_factor)))
 
 (the up
-  (-> Real
-      Natural)
-  (|>> (r.x rgb_factor) r.round r.integer .natural))
+     (-> Real
+         Natural)
+     (|>> (r.x rgb_factor) r.round r.integer .natural))
 
 (the (opposite it)
-  (Change Real)
-  (r.- it ..most))
+     (Change Real)
+     (r.- it ..most))
 
 (the .public (of_rgb it)
-  (-> RGB
-      CMYK)
-  (let [red (..down (rgb.red it))
-        green (..down (rgb.green it))
-        blue (..down (rgb.blue it))
-        key (opposite (all r.major red green blue))
-        f (if (r.< ..most key)
-              (r./ (opposite key)
-                   ..most)
-              ..least)]
-    [:cyan (|> ..most (r.- red) (r.- key) (r.x f))
-     :magenta (|> ..most (r.- green) (r.- key) (r.x f))
-     :yellow (|> ..most (r.- blue) (r.- key) (r.x f))
-     :key key]))
+     (-> RGB
+         CMYK)
+     (let [red (..down (rgb.red it))
+           green (..down (rgb.green it))
+           blue (..down (rgb.blue it))
+           key (opposite (all r.major red green blue))
+           f (if (r.< ..most key)
+                 (r./ (opposite key)
+                      ..most)
+                 ..least)]
+          [:cyan (|> ..most (r.- red) (r.- key) (r.x f))
+           :magenta (|> ..most (r.- green) (r.- key) (r.x f))
+           :yellow (|> ..most (r.- blue) (r.- key) (r.x f))
+           :key key]))
 
 (the .public (rgb it)
-  (-> CMYK
-      RGB)
-  (when (its :key it)
-    ..most
-    rgb.black
-    
-    key
-    (let [~key (opposite key)]
-      (rgb.rgb (..up (r.x ~key (opposite (its :cyan it))))
-               (..up (r.x ~key (opposite (its :magenta it))))
-               (..up (r.x ~key (opposite (its :yellow it))))))))
+     (-> CMYK
+         RGB)
+     (when (its :key it)
+           ..most
+           rgb.black
+           
+           key
+           (let [~key (opposite key)]
+                (rgb.rgb (..up (r.x ~key (opposite (its :cyan it))))
+                         (..up (r.x ~key (opposite (its :magenta it))))
+                         (..up (r.x ~key (opposite (its :yellow it))))))))

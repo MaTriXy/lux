@@ -233,11 +233,11 @@
                             {.:Some entry}
                             (let [entry_path (ffi.of_string (java/util/zip/ZipEntry:getName [] entry))
                                   entry_size (ffi.of_long (java/util/zip/ZipEntry:getSize [] entry))]
-                                 (if (not (or (ffi.of_boolean (java/util/zip/ZipEntry:isDirectory [] entry))
-                                              (or (text.starts_with? "META-INF/maven/" entry_path)
-                                                  (text.starts_with? "META-INF/leiningen/" entry_path))
-                                              (or (text.ends_with? ".SF" entry_path)
-                                                  (text.ends_with? ".DSA" entry_path))))
+                                 (if (not (and/or (ffi.of_boolean (java/util/zip/ZipEntry:isDirectory [] entry))
+                                                  (and/or (text.starts_with? "META-INF/maven/" entry_path)
+                                                          (text.starts_with? "META-INF/leiningen/" entry_path))
+                                                  (and/or (text.ends_with? ".SF" entry_path)
+                                                          (text.ends_with? ".DSA" entry_path))))
                                      (when (java/util/jar/JarOutputStream:putNextEntry [(java/util/jar/JarEntry:new [(ffi.as_string entry_path)])]
                                                                                        sink)
                                            {try.:Failure error}

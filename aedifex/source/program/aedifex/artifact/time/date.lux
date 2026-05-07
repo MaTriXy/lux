@@ -25,63 +25,63 @@
     ["[0]" month]]]])
 
 (the .public (pad value)
-  (-> Natural Text)
-  (if (n.< 10 value)
-      (text "0" (%.natural value))
-      (%.natural value)))
+     (-> Natural Text)
+     (if (n.< 10 value)
+         (text "0" (%.natural value))
+         (%.natural value)))
 
 (the min_year +1,000)
 (the max_year +9,999)
 
 (exception.the .public (year_is_out_of_range year)
-  (Exception year.Year)
-  (exception.report
-   (list ["Minimum" (%.integer ..min_year)]
-         ["Maximum" (%.integer ..max_year)]
-         ["Year" (%.integer (year.value year))])))
+               (Exception year.Year)
+               (exception.report
+                (list ["Minimum" (%.integer ..min_year)]
+                      ["Maximum" (%.integer ..max_year)]
+                      ["Year" (%.integer (year.value year))])))
 
 (nominal.every .public Date
-  date.Date
+               date.Date
 
-  (the .public epoch
-    Date
-    (nominal.of date.epoch))
+               (the .public epoch
+                    Date
+                    (nominal.of date.epoch))
 
-  (the .public (date raw)
-    (-> date.Date (Try Date))
-    (let [year (|> raw date.year year.value)]
-      (if (or (i.< ..min_year year)
-              (i.> ..max_year year))
-          (exception.except ..year_is_out_of_range [(date.year raw)])
-          {try.:Success (nominal.of raw)})))
+               (the .public (date raw)
+                    (-> date.Date (Try Date))
+                    (let [year (|> raw date.year year.value)]
+                         (if (and/or (i.< ..min_year year)
+                                     (i.> ..max_year year))
+                             (exception.except ..year_is_out_of_range [(date.year raw)])
+                             {try.:Success (nominal.of raw)})))
 
-  (the .public value
-    (-> Date date.Date)
-    (|>> nominal.as))
+               (the .public value
+                    (-> Date date.Date)
+                    (|>> nominal.as))
 
-  (the .public equality
-    (Equality Date)
-    (implementation
-     (the (= expected actual)
-       (date.= (nominal.as expected)
-               (nominal.as actual)))))
+               (the .public equality
+                    (Equality Date)
+                    (implementation
+                     (the (= expected actual)
+                          (date.= (nominal.as expected)
+                                  (nominal.as actual)))))
 
-  (alias [=]
-         ..equality)
+               (alias [=]
+                      ..equality)
 
-  (the .public (as_text value)
-    (text.Injection Date)
-    (text (|> value nominal.as date.year year.value .natural %.natural)
-          (|> value nominal.as date.month month.number ..pad)
-          (|> value nominal.as date.day_of_month ..pad)))
+               (the .public (as_text value)
+                    (text.Injection Date)
+                    (text (|> value nominal.as date.year year.value .natural %.natural)
+                          (|> value nominal.as date.month month.number ..pad)
+                          (|> value nominal.as date.day_of_month ..pad)))
 
-  (the .public of_text
-    (Projection Date)
-    (monad.let <>.monad
-      [year (<>.of n.base_10 (<text>.exactly 4 <text>.base_10))
-       year (<>.of_try (year.year (.integer year)))
-       month (<>.of n.base_10 (<text>.exactly 2 <text>.base_10))
-       month (<>.of_try (month.by_number month))
-       day_of_month (<>.of n.base_10 (<text>.exactly 2 <text>.base_10))
-       date (<>.of_try (date.date year month day_of_month))]
-      (pure (nominal.of date)))))
+               (the .public of_text
+                    (Projection Date)
+                    (monad.let <>.monad
+                               [year (<>.of n.base_10 (<text>.exactly 4 <text>.base_10))
+                                year (<>.of_try (year.year (.integer year)))
+                                month (<>.of n.base_10 (<text>.exactly 2 <text>.base_10))
+                                month (<>.of_try (month.by_number month))
+                                day_of_month (<>.of n.base_10 (<text>.exactly 2 <text>.base_10))
+                                date (<>.of_try (date.date year month day_of_month))]
+                               (pure (nominal.of date)))))

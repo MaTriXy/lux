@@ -24,100 +24,100 @@
     ["[0]" nominal]]]])
 
 (nominal.every .public (Signed brand)
-  Integer
+               Integer
 
-  (the .public value
-    (-> (Signed Any)
-        Integer)
-    (|>> nominal.as))
+               (the .public value
+                    (-> (Signed Any)
+                        Integer)
+                    (|>> nominal.as))
 
-  (the .public equality
-    (for_any (_ brand)
-      (Equality (Signed brand)))
-    (implementation
-     (the (= expected actual)
-       (i.= (nominal.as expected) (nominal.as actual)))))
+               (the .public equality
+                    (for_any (_ brand)
+                             (Equality (Signed brand)))
+                    (implementation
+                     (the (= expected actual)
+                          (i.= (nominal.as expected) (nominal.as actual)))))
 
-  (alias [=]
-         ..equality)
+               (alias [=]
+                      ..equality)
 
-  (the .public order
-    (for_any (_ brand)
-      (Order (Signed brand)))
-    (implementation
-     (the equality ..equality)
-     (the (< reference it)
-       (i.< (nominal.as reference) (nominal.as it)))))
+               (the .public order
+                    (for_any (_ brand)
+                             (Order (Signed brand)))
+                    (implementation
+                     (the equality ..equality)
+                     (the (< reference it)
+                          (i.< (nominal.as reference) (nominal.as it)))))
 
-  (order.for [brand] (Signed brand) ..order)
+               (order.for [brand] (Signed brand) ..order)
 
-  (exception.the .public (value_exceeds_the_scope [value scope])
-    (Exception [Integer Natural])
-    (exception.report
-     (list ["Value" (%.integer value)]
-           ["Scope (in bytes)" (%.natural scope)])))
+               (exception.the .public (value_exceeds_the_scope [value scope])
+                              (Exception [Integer Natural])
+                              (exception.report
+                               (list ["Value" (%.integer value)]
+                                     ["Scope (in bytes)" (%.natural scope)])))
 
-  (template.with [<bytes> <name> <size> <constructor> <maximum> <minimum> <+> <->]
-    [(expansion.let [<raw> (template.name [<name> "'"])]
-       (these (nominal.every <raw> Any)
-              (every .public <name> (Signed <raw>))))
+               (template.with [<bytes> <name> <size> <constructor> <maximum> <minimum> <+> <->]
+                              [(expansion.let [<raw> (template.name [<name> "'"])]
+                                              (these (nominal.every <raw> Any)
+                                                     (every .public <name> (Signed <raw>))))
 
-     (the .public <size> <bytes>)
-     
-     (the .public <maximum>
-       <name>
-       (|> <bytes>
-           (n.x /64.bits_per_byte)
-           --
-           /64.mask
-           nominal.of))
+                               (the .public <size> <bytes>)
+                               
+                               (the .public <maximum>
+                                    <name>
+                                    (|> <bytes>
+                                        (n.x /64.bits_per_byte)
+                                        --
+                                        /64.mask
+                                        nominal.of))
 
-     (the .public <minimum>
-       <name>
-       (let [it (nominal.as <maximum>)]
-         (nominal.of (-- (i.- it +0)))))
-     
-     (the .public <constructor>
-       (-> Integer
-           (Try <name>))
-       (let [positive (nominal.as <maximum>)
-             negative (/64.not positive)]
-         (function (_ value)
-           (if (i.= (if (i.< +0 value)
-                        (/64.or negative value)
-                        (/64.and positive value))
-                    value)
-               {try.:Success (nominal.of value)}
-               (exception.except ..value_exceeds_the_scope [value <size>])))))
+                               (the .public <minimum>
+                                    <name>
+                                    (let [it (nominal.as <maximum>)]
+                                         (nominal.of (-- (i.- it +0)))))
+                               
+                               (the .public <constructor>
+                                    (-> Integer
+                                        (Try <name>))
+                                    (let [positive (nominal.as <maximum>)
+                                          negative (/64.not positive)]
+                                         (function (_ value)
+                                                   (if (i.= (if (i.< +0 value)
+                                                                (/64.and/or negative value)
+                                                                (/64.and positive value))
+                                                            value)
+                                                       {try.:Success (nominal.of value)}
+                                                       (exception.except ..value_exceeds_the_scope [value <size>])))))
 
-     (template.with [<abstract_operation> <concrete_operation>]
-       [(the .public (<abstract_operation> parameter subject)
-          (-> <name> <name>
-              (Try <name>))
-          (<constructor>
-           (<concrete_operation> (nominal.as parameter)
-                                 (nominal.as subject))))]
+                               (template.with [<abstract_operation> <concrete_operation>]
+                                              [(the .public (<abstract_operation> parameter subject)
+                                                    (-> <name> <name>
+                                                        (Try <name>))
+                                                    (<constructor>
+                                                     (<concrete_operation> (nominal.as parameter)
+                                                                           (nominal.as subject))))]
 
-       [[<+> i.+]
-        [<-> i.-]])]
+                                              [[<+> i.+]
+                                               [<-> i.-]])]
 
-    [[1 S1 bytes/1 s1 maximum/1 minimum/1 +/1 -/1]
-     [2 S2 bytes/2 s2 maximum/2 minimum/2 +/2 -/2]])
+                              [[1 S1 bytes/1 s1 maximum/1 minimum/1 +/1 -/1]
+                               [2 S2 bytes/2 s2 maximum/2 minimum/2 +/2 -/2]])
 
-  (template.with [<name> <from> <to>]
-    [(the .public <name>
-       (-> <from>
-           <to>)
-       (|>> nominal.transmutation))]
+               (template.with [<name> <from> <to>]
+                              [(the .public <name>
+                                    (-> <from>
+                                        <to>)
+                                    (|>> nominal.transmutation))]
 
-    [[lifted/2 S1 S2]])
+                              [[lifted/2 S1 S2]])
 
-  (template.with [<injection_name> <type> <injection>]
-    [(the .public <injection_name>
-       (Injection <type>)
-       (|>> nominal.as
-            <injection>))]
+               (template.with [<injection_name> <type> <injection>]
+                              [(the .public <injection_name>
+                                    (Injection <type>)
+                                    (|>> nominal.as
+                                         <injection>))]
 
-    [[as_binary/1 S1 \\injection.bits_08]
-     [as_binary/2 S2 \\injection.bits_16]])
-  )
+                              [[as_binary/1 S1 \\injection.bits_08]
+                               [as_binary/2 S2 \\injection.bits_16]])
+               )

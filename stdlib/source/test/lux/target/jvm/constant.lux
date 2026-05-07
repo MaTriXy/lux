@@ -39,84 +39,84 @@
   ["[1][0]" pool]])
 
 (the float_-0
-  (!binary.value /.as_binary {/.:Float float.negative_zero}))
+     (!binary.value /.as_binary {/.:Float float.negative_zero}))
 
 (the float_+0
-  (!binary.value /.as_binary {/.:Float float.positive_zero}))
+     (!binary.value /.as_binary {/.:Float float.positive_zero}))
 
 (the float_nan
-  (!binary.value /.as_binary {/.:Float float.not_a_number}))
+     (!binary.value /.as_binary {/.:Float float.not_a_number}))
 
 (the double_-0
-  (!binary.value /.as_binary {/.:Double -0.0}))
+     (!binary.value /.as_binary {/.:Double -0.0}))
 
 (the double_+0
-  (!binary.value /.as_binary {/.:Double +0.0}))
+     (!binary.value /.as_binary {/.:Double +0.0}))
 
 (the double_nan
-  (!binary.value /.as_binary {/.:Double real.not_a_number}))
+     (!binary.value /.as_binary {/.:Double real.not_a_number}))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (monad.let [! random.monad]
-        [sample_0 /.random
-         sample_1 /.random])
-      (_.for [/.Constant /.random
-              /.:UTF8 /.:Integer /.:Float /.:Long
-              /.:Double /.:Class /.:String /.:Field
-              /.:Method /.:Interface_Method /.:Name_And_Type])
-      (all _.and
-           (_.for [/.equality /.=]
-                  (static.when (identical? /.equality /.=)
-                    (equalityT.spec /.equality /.random)))
+     Test
+     (<| (_.covering /._)
+         (monad.let [! random.monad]
+                    [sample_0 /.random
+                     sample_1 /.random])
+         (_.for [/.Constant /.random
+                 /.:UTF8 /.:Integer /.:Float /.:Long
+                 /.:Double /.:Class /.:String /.:Field
+                 /.:Method /.:Interface_Method /.:Name_And_Type])
+         (all _.and
+              (_.for [/.equality /.=]
+                     (static.when (identical? /.equality /.=)
+                                  (equalityT.spec /.equality /.random)))
 
-           (_.coverage [/.as_binary]
-             (let [same_value!
-                   (/.= sample_0
-                        sample_1)
+              (_.coverage [/.as_binary]
+                          (let [same_value!
+                                (/.= sample_0
+                                     sample_1)
 
-                   binary_0 (!binary.value /.as_binary sample_0)
-                   binary_1 (!binary.value /.as_binary sample_1)
-                   
-                   same_binary!
-                   (binary.= binary_0
-                             binary_1)
+                                binary_0 (!binary.value /.as_binary sample_0)
+                                binary_1 (!binary.value /.as_binary sample_1)
+                                
+                                same_binary!
+                                (binary.= binary_0
+                                          binary_1)
 
-                   special_case? (function (_ it)
-                                   (or (binary.= float_-0 it)
-                                       (binary.= float_+0 it)
-                                       (binary.= float_nan it)
-                                       (binary.= double_-0 it)
-                                       (binary.= double_+0 it)
-                                       (binary.= double_nan it)))
-                   
-                   skippable_special_case!
-                   (or (special_case? binary_0)
-                       (special_case? binary_1))]
-               (or skippable_special_case!
-                   (bit.= same_value!
-                          same_binary!))))
+                                special_case? (function (_ it)
+                                                        (and/or (binary.= float_-0 it)
+                                                                (binary.= float_+0 it)
+                                                                (binary.= float_nan it)
+                                                                (binary.= double_-0 it)
+                                                                (binary.= double_+0 it)
+                                                                (binary.= double_nan it)))
+                                
+                                skippable_special_case!
+                                (and/or (special_case? binary_0)
+                                        (special_case? binary_1))]
+                               (and/or skippable_special_case!
+                                       (bit.= same_value!
+                                              same_binary!))))
 
-           (_.coverage [/.size /.single /.double]
-             (let [example sample_0]
-               (or (bit.= (n.= /.single (/.size example))
-                          (match? (^.or {/.:UTF8 _} {/.:Integer _} {/.:Float _}
-                                        {/.:Class _} {/.:String _} {/.:Field _}
-                                        {/.:Method _} {/.:Interface_Method _} {/.:Name_And_Type _})
-                                  example))
-                   (bit.= (n.= /.double (/.size example))
-                          (match? (^.or {/.:Long _} {/.:Double _}) example)))))
+              (_.coverage [/.size /.single /.double]
+                          (let [example sample_0]
+                               (and/or (bit.= (n.= /.single (/.size example))
+                                              (match? (^.or {/.:UTF8 _} {/.:Integer _} {/.:Float _}
+                                                            {/.:Class _} {/.:String _} {/.:Field _}
+                                                            {/.:Method _} {/.:Interface_Method _} {/.:Name_And_Type _})
+                                                      example))
+                                       (bit.= (n.= /.double (/.size example))
+                                              (match? (^.or {/.:Long _} {/.:Double _}) example)))))
 
-           /tag.test
-           /utf8.test
-           /class.test
-           /name_and_type.test
-           /reference.test
-           /integer.test
-           /float.test
-           /long.test
-           /double.test
-           /string.test
-           /pool.test
-           )))
+              /tag.test
+              /utf8.test
+              /class.test
+              /name_and_type.test
+              /reference.test
+              /integer.test
+              /float.test
+              /long.test
+              /double.test
+              /string.test
+              /pool.test
+              )))

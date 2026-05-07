@@ -36,7 +36,7 @@
    ["[0]" unit]]])
 
 (the .public extension
-  "rational#")
+     "rational#")
 
 (expansion.let [,*variables (these ,Numerator ,Denominator
 
@@ -52,369 +52,369 @@
                                    ,integer_opposite ,integer_signum ,integer_greatest_common_divisor
                                    ,as_integer ,integer_small
                                    ,integer_base_10)]
-  (these (the values_of_module
-           (template.macro (_ ,*variables)
-             [(the numerator'
-                (template.macro (_ ,it)
-                  [(|> ,it
-                       nominal.as
-                       (its :numerator))]))
+               (these (the values_of_module
+                           (template.macro (_ ,*variables)
+                                           [(the numerator'
+                                                 (template.macro (_ ,it)
+                                                                 [(|> ,it
+                                                                      nominal.as
+                                                                      (its :numerator))]))
 
-              (the denominator'
-                (template.macro (_ ,it)
-                  [(|> ,it
-                       nominal.as
-                       (its :denominator))]))
+                                            (the denominator'
+                                                 (template.macro (_ ,it)
+                                                                 [(|> ,it
+                                                                      nominal.as
+                                                                      (its :denominator))]))
 
-              (the .public numerator
-                (-> Number
-                    ,Numerator)
-                (|>> numerator'))
+                                            (the .public numerator
+                                                 (-> Number
+                                                     ,Numerator)
+                                                 (|>> numerator'))
 
-              (the .public denominator
-                (-> Number
-                    ,Denominator)
-                (|>> denominator'))
+                                            (the .public denominator
+                                                 (-> Number
+                                                     ,Denominator)
+                                                 (|>> denominator'))
 
-              (the .public integer
-                (case.Case Number ,Numerator)
-                (case.new (function (_ it)
-                            (if (,natural_= ,natural_one (denominator' it))
-                                {.:Right (numerator' it)}
-                                {.:Left it}))
-                          (|>> [:denominator ,natural_one
-                                :numerator]
-                               nominal.of)))
+                                            (the .public integer
+                                                 (case.Case Number ,Numerator)
+                                                 (case.new (function (_ it)
+                                                                     (if (,natural_= ,natural_one (denominator' it))
+                                                                         {.:Right (numerator' it)}
+                                                                         {.:Left it}))
+                                                           (|>> [:denominator ,natural_one
+                                                                 :numerator]
+                                                                nominal.of)))
 
-              (template.with [,numerator ,name]
-                [(the .public ,name
-                   Number
-                   (case.some integer ,numerator))]
+                                            (template.with [,numerator ,name]
+                                                           [(the .public ,name
+                                                                 Number
+                                                                 (case.some integer ,numerator))]
 
-                [[,integer_zero zero]
-                 [,integer_positive_one positive_one]
-                 [,integer_negative_one negative_one]])
+                                                           [[,integer_zero zero]
+                                                            [,integer_positive_one positive_one]
+                                                            [,integer_negative_one negative_one]])
 
-              (template.with [<numerator> ,name]
-                [(the .public ,name
-                   Number
-                   (nominal.of [:numerator <numerator>
-                                :denominator ,natural_zero]))]
+                                            (template.with [<numerator> ,name]
+                                                           [(the .public ,name
+                                                                 Number
+                                                                 (nominal.of [:numerator <numerator>
+                                                                              :denominator ,natural_zero]))]
 
-                [[,integer_positive_one infinity]
-                 ... https://en.wikipedia.org/wiki/Indeterminate_form
-                 [,integer_zero indeterminate]])
+                                                           [[,integer_positive_one infinity]
+                                                            ... https://en.wikipedia.org/wiki/Indeterminate_form
+                                                            [,integer_zero indeterminate]])
 
-              (the .public (new denominator numerator)
-                (-> ,Denominator ,Numerator
-                    Number)
-                (if (,natural_= ,natural_zero denominator)
-                    (if (,integer_= ,integer_zero numerator)
-                        indeterminate
-                        infinity)
-                    (let [common (,integer_greatest_common_divisor numerator (,as_integer denominator))]
-                      (nominal.of (if (,integer_= ,integer_positive_one common)
-                                      [:numerator numerator
-                                       :denominator denominator]
-                                      [:numerator (,integer_/ common numerator)
-                                       :denominator (,as_natural (,integer_/ common (,as_integer denominator)))])))))
-              ]))
+                                            (the .public (new denominator numerator)
+                                                 (-> ,Denominator ,Numerator
+                                                     Number)
+                                                 (if (,natural_= ,natural_zero denominator)
+                                                     (if (,integer_= ,integer_zero numerator)
+                                                         indeterminate
+                                                         infinity)
+                                                     (let [common (,integer_greatest_common_divisor numerator (,as_integer denominator))]
+                                                          (nominal.of (if (,integer_= ,integer_positive_one common)
+                                                                          [:numerator numerator
+                                                                           :denominator denominator]
+                                                                          [:numerator (,integer_/ common numerator)
+                                                                           :denominator (,as_natural (,integer_/ common (,as_integer denominator)))])))))
+                                            ]))
 
-         (the order_of_module
-           (template.macro (_ ,*variables)
-             [(the .public (= parameter subject)
-                (-> Number Number
-                    Bit)
-                (and (,integer_= (numerator' parameter)
-                                 (numerator' subject))
-                     (,natural_= (denominator' parameter)
-                                 (denominator' subject))))
-              
-              (the .public equality
-                (equality.Equality Number)
-                (implementation
-                 (the = =)))
+                      (the order_of_module
+                           (template.macro (_ ,*variables)
+                                           [(the .public (= parameter subject)
+                                                 (-> Number Number
+                                                     Bit)
+                                                 (and (,integer_= (numerator' parameter)
+                                                                  (numerator' subject))
+                                                      (,natural_= (denominator' parameter)
+                                                                  (denominator' subject))))
+                                            
+                                            (the .public equality
+                                                 (equality.Equality Number)
+                                                 (implementation
+                                                  (the = =)))
 
-              (the (equal parameter subject)
-                (-> Number Number
-                    [,Numerator ,Numerator])
-                [(,integer_x (,as_integer (denominator' subject))
-                             (numerator' parameter))
-                 (,integer_x (,as_integer (denominator' parameter))
-                             (numerator' subject))])
+                                            (the (equal parameter subject)
+                                                 (-> Number Number
+                                                     [,Numerator ,Numerator])
+                                                 [(,integer_x (,as_integer (denominator' subject))
+                                                              (numerator' parameter))
+                                                  (,integer_x (,as_integer (denominator' parameter))
+                                                              (numerator' subject))])
 
-              (the .public (~ reference it)
-                (-> Number Number
-                    Bit)
-                (let [[reference it] (equal reference it)]
-                  (,integer_= reference it)))
+                                            (the .public (~ reference it)
+                                                 (-> Number Number
+                                                     Bit)
+                                                 (let [[reference it] (equal reference it)]
+                                                      (,integer_= reference it)))
 
-              (the .public (< parameter subject)
-                (-> Number Number
-                    Bit)
-                (let [[parameter subject] (equal parameter subject)]
-                  (,integer_< parameter subject)))
+                                            (the .public (< parameter subject)
+                                                 (-> Number Number
+                                                     Bit)
+                                                 (let [[parameter subject] (equal parameter subject)]
+                                                      (,integer_< parameter subject)))
 
-              (the .public (> parameter subject)
-                (-> Number Number
-                    Bit)
-                (< subject parameter))
+                                            (the .public (> parameter subject)
+                                                 (-> Number Number
+                                                     Bit)
+                                                 (< subject parameter))
 
-              (template.with [,<>= ,<>]
-                [(the .public (,<>= parameter subject)
-                   (-> Number Number
-                       Bit)
-                   (or (,<> parameter subject)
-                       (= parameter subject)))]
+                                            (template.with [,<>= ,<>]
+                                                           [(the .public (,<>= parameter subject)
+                                                                 (-> Number Number
+                                                                     Bit)
+                                                                 (and/or (,<> parameter subject)
+                                                                         (= parameter subject)))]
 
-                [[<= <]
-                 [>= >]])
+                                                           [[<= <]
+                                                            [>= >]])
 
-              (the .public order
-                (order.Order Number)
-                (implementation
-                 (the equality equality)
-                 (the < <)))
+                                            (the .public order
+                                                 (order.Order Number)
+                                                 (implementation
+                                                  (the equality equality)
+                                                  (the < <)))
 
-              (template.with [,name <test>]
-                [(the .public (,name left right)
-                   (-> Number Number
-                       Number)
-                   (if (<test> right left)
-                       left
-                       right))]
+                                            (template.with [,name <test>]
+                                                           [(the .public (,name left right)
+                                                                 (-> Number Number
+                                                                     Number)
+                                                                 (if (<test> right left)
+                                                                     left
+                                                                     right))]
 
-                [[minor <]
-                 [major >]])
-              ]))
+                                                           [[minor <]
+                                                            [major >]])
+                                            ]))
 
-         (the arithmetic_of_module_1/2
-           (template.macro (_ ,*variables)
-             [(the .public (+ parameter subject)
-                (-> Number Number
-                    Number)
-                (new (,natural_x (denominator' parameter)
-                                 (denominator' subject))
-                     (let [[parameter subject] (equal parameter subject)]
-                       (,integer_+ parameter subject))))
+                      (the arithmetic_of_module_1/2
+                           (template.macro (_ ,*variables)
+                                           [(the .public (+ parameter subject)
+                                                 (-> Number Number
+                                                     Number)
+                                                 (new (,natural_x (denominator' parameter)
+                                                                  (denominator' subject))
+                                                      (let [[parameter subject] (equal parameter subject)]
+                                                           (,integer_+ parameter subject))))
 
-              (the .public (- parameter subject)
-                (-> Number Number
-                    Number)
-                (new (,natural_x (denominator' parameter)
-                                 (denominator' subject))
-                     (let [[parameter subject] (equal parameter subject)]
-                       (,integer_- parameter subject))))
+                                            (the .public (- parameter subject)
+                                                 (-> Number Number
+                                                     Number)
+                                                 (new (,natural_x (denominator' parameter)
+                                                                  (denominator' subject))
+                                                      (let [[parameter subject] (equal parameter subject)]
+                                                           (,integer_- parameter subject))))
 
-              (the .public (x parameter subject)
-                (-> Number Number
-                    Number)
-                (new (,natural_x (denominator' parameter)
-                                 (denominator' subject))
-                     (,integer_x (numerator' parameter)
-                                 (numerator' subject))))
+                                            (the .public (x parameter subject)
+                                                 (-> Number Number
+                                                     Number)
+                                                 (new (,natural_x (denominator' parameter)
+                                                                  (denominator' subject))
+                                                      (,integer_x (numerator' parameter)
+                                                                  (numerator' subject))))
 
-              (the .public (reciprocal it)
-                (Change Number)
-                (nominal.of (if (,integer_< ,integer_zero (numerator' it))
-                                ... Negative
-                                [:numerator (,integer_opposite (,as_integer (denominator' it)))
-                                 :denominator (,as_natural (,integer_opposite (numerator' it)))]
-                                ... Positive
-                                [:numerator (,as_integer (denominator' it))
-                                 :denominator (,as_natural (numerator' it))])))
+                                            (the .public (reciprocal it)
+                                                 (Change Number)
+                                                 (nominal.of (if (,integer_< ,integer_zero (numerator' it))
+                                                                 ... Negative
+                                                                 [:numerator (,integer_opposite (,as_integer (denominator' it)))
+                                                                  :denominator (,as_natural (,integer_opposite (numerator' it)))]
+                                                                 ... Positive
+                                                                 [:numerator (,as_integer (denominator' it))
+                                                                  :denominator (,as_natural (numerator' it))])))
 
-              (the .public (/ parameter subject)
-                (-> Number Number
-                    Number)
-                (x (reciprocal parameter) subject))
+                                            (the .public (/ parameter subject)
+                                                 (-> Number Number
+                                                     Number)
+                                                 (x (reciprocal parameter) subject))
 
-              (the .public (% parameter subject)
-                (-> Number Number
-                    Number)
-                (let [quot (let [[parameter subject] (equal parameter subject)]
-                             (,integer_/ parameter subject))
-                      whole (|> parameter
-                                nominal.as
-                                (revised :numerator (,integer_x quot))
-                                nominal.of)]
-                  (- whole subject)))
-              ]))
+                                            (the .public (% parameter subject)
+                                                 (-> Number Number
+                                                     Number)
+                                                 (let [quot (let [[parameter subject] (equal parameter subject)]
+                                                                 (,integer_/ parameter subject))
+                                                       whole (|> parameter
+                                                                 nominal.as
+                                                                 (revised :numerator (,integer_x quot))
+                                                                 nominal.of)]
+                                                      (- whole subject)))
+                                            ]))
 
-         (the arithmetic_of_module_2/2
-           (template.macro (_ ,*variables)
-             [(every .public Exponent
-                fraction.Exponent)
+                      (the arithmetic_of_module_2/2
+                           (template.macro (_ ,*variables)
+                                           [(every .public Exponent
+                                                   fraction.Exponent)
 
-              ... https://en.wikipedia.org/wiki/Exponentiation
-              ... https://en.wikipedia.org/wiki/Exponentiation_by_squaring
-              (the .public (^ power base)
-                (-> Exponent Number
-                    Number)
-                (if (.int_<# +0 power)
-                    (reciprocal (^ (integer.opposite power)
-                                   base))
-                    (loop (^ [power power
-                              base base
-                              it positive_one])
-                      (if (.i64_=# +0 power)
-                          it
-                          (^ (.i64_right# 1 power)
-                             (x base base)
-                             (if (.i64_=# +1 (.i64_and# +1 power))
-                                 (x base it)
-                                 it))))))
+                                            ... https://en.wikipedia.org/wiki/Exponentiation
+                                            ... https://en.wikipedia.org/wiki/Exponentiation_by_squaring
+                                            (the .public (^ power base)
+                                                 (-> Exponent Number
+                                                     Number)
+                                                 (if (.int_<# +0 power)
+                                                     (reciprocal (^ (integer.opposite power)
+                                                                    base))
+                                                     (loop (^ [power power
+                                                               base base
+                                                               it positive_one])
+                                                           (if (.i64_=# +0 power)
+                                                               it
+                                                               (^ (.i64_right# 1 power)
+                                                                  (x base base)
+                                                                  (if (.i64_=# +1 (.i64_and# +1 power))
+                                                                      (x base it)
+                                                                      it))))))
 
-              (the .public (opposite it)
-                (Change Number)
-                (- it zero))
+                                            (the .public (opposite it)
+                                                 (Change Number)
+                                                 (- it zero))
 
-              (the .public (absolute it)
-                (Change Number)
-                (if (< zero it)
-                    (opposite it)
-                    it))
+                                            (the .public (absolute it)
+                                                 (Change Number)
+                                                 (if (< zero it)
+                                                     (opposite it)
+                                                     it))
 
-              (the .public signum
-                (Change Number)
-                (|>> (numerator')
-                     ,integer_signum
-                     (case.some integer)))
+                                            (the .public signum
+                                                 (Change Number)
+                                                 (|>> (numerator')
+                                                      ,integer_signum
+                                                      (case.some integer)))
 
-              (template.with [,composite ,identity ,name]
-                [(the .public ,name
-                   (monoid.Monoid Number)
-                   (implementation
-                    (the identity ,identity)
-                    (the composite ,composite)))]
-                
-                [[+ zero addition]
-                 [x positive_one multiplication]])
-              ]))
+                                            (template.with [,composite ,identity ,name]
+                                                           [(the .public ,name
+                                                                 (monoid.Monoid Number)
+                                                                 (implementation
+                                                                  (the identity ,identity)
+                                                                  (the composite ,composite)))]
+                                                           
+                                                           [[+ zero addition]
+                                                            [x positive_one multiplication]])
+                                            ]))
 
-         (the arithmetic_of_module
-           (template.macro (_ ,*variables)
-             [(..arithmetic_of_module_1/2 ,*variables)
-              (..arithmetic_of_module_2/2 ,*variables)]))
+                      (the arithmetic_of_module
+                           (template.macro (_ ,*variables)
+                                           [(..arithmetic_of_module_1/2 ,*variables)
+                                            (..arithmetic_of_module_2/2 ,*variables)]))
 
-         (the properties_of_module
-           (template.macro (_ ,*variables)
-             [(template.with [,order ,name]
-                [(the .public ,name
-                   (predicate.Predicate Number)
-                   (,order zero))]
+                      (the properties_of_module
+                           (template.macro (_ ,*variables)
+                                           [(template.with [,order ,name]
+                                                           [(the .public ,name
+                                                                 (predicate.Predicate Number)
+                                                                 (,order zero))]
 
-                [[= neutral?]
-                 [< negative?]
-                 [> positive?]])
+                                                           [[= neutral?]
+                                                            [< negative?]
+                                                            [> positive?]])
 
-              (template.with [,/% ,name ,reference]
-                [(the .public (,name it)
-                   (Change Number)
-                   (new ,reference
-                        (,/% (,as_integer (denominator' it))
-                             (numerator' it))))]
+                                            (template.with [,/% ,name ,reference]
+                                                           [(the .public (,name it)
+                                                                 (Change Number)
+                                                                 (new ,reference
+                                                                      (,/% (,as_integer (denominator' it))
+                                                                           (numerator' it))))]
 
-                [[,integer_/ whole ,natural_one]
-                 [,integer_% partial (denominator' it)]])
-              ]))
+                                                           [[,integer_/ whole ,natural_one]
+                                                            [,integer_% partial (denominator' it)]])
+                                            ]))
 
-         (the formats_of_module
-           (template.macro (_ ,*variables)
-             [... https://en.wikipedia.org/wiki/Delimiter
-              (the .public delimiter
-                fraction.delimiter)
+                      (the formats_of_module
+                           (template.macro (_ ,*variables)
+                                           [... https://en.wikipedia.org/wiki/Delimiter
+                                            (the .public delimiter
+                                                 fraction.delimiter)
 
-              (the .public text
-                (format.Format Text Number)
-                (implementation
-                 (the (as it)
-                   (.text (by ,integer_base_10 as (numerator' it))
-                          fraction.delimiter
-                          (by ,natural_base_10 as (denominator' it))))
+                                            (the .public text
+                                                 (format.Format Text Number)
+                                                 (implementation
+                                                  (the (as it)
+                                                       (.text (by ,integer_base_10 as (numerator' it))
+                                                              fraction.delimiter
+                                                              (by ,natural_base_10 as (denominator' it))))
 
-                 (the (of input)
-                   (when (text.split_by fraction.delimiter input)
-                     {.:Some [num denom]}
-                     (monad.let try.monad
-                       [numerator (by ,integer_base_10 of num)
-                        denominator (by ,natural_base_10 of denom)]
-                       (pure (new denominator
-                                  numerator)))
-                     
-                     {.:None}
-                     {try.:Failure error.not_valid}))))
+                                                  (the (of input)
+                                                       (when (text.split_by fraction.delimiter input)
+                                                             {.:Some [num denom]}
+                                                             (monad.let try.monad
+                                                                        [numerator (by ,integer_base_10 of num)
+                                                                         denominator (by ,natural_base_10 of denom)]
+                                                                        (pure (new denominator
+                                                                                   numerator)))
+                                                             
+                                                             {.:None}
+                                                             {try.:Failure error.not_valid}))))
 
-              (template.with [<format> <as> <of> ,unit]
-                [(expansion.let [,exchange_rate (these (case.some integer (,integer_small (.integer (its unit.:factor ,unit)))))]
-                   (these (the .public <as>
-                            (Change Number)
-                            (x ,exchange_rate))
-                          
-                          (the .public <of>
-                            (Change Number)
-                            (/ ,exchange_rate))
-                          
-                          (the .public <format>
-                            (format.Format Text Number)
-                            (let [suffix (its unit.:suffix ,unit)]
-                              (implementation
-                               (the as
-                                 (|>> <as>
-                                      whole
-                                      (case.if integer)
-                                      (function.or (function.constant ,integer_zero)
-                                                   function.identity)
-                                      (by ,integer_base_10 as)
-                                      (text.suffix suffix)))
+                                            (template.with [<format> <as> <of> ,unit]
+                                                           [(expansion.let [,exchange_rate (these (case.some integer (,integer_small (.integer (its unit.:factor ,unit)))))]
+                                                                           (these (the .public <as>
+                                                                                       (Change Number)
+                                                                                       (x ,exchange_rate))
+                                                                                  
+                                                                                  (the .public <of>
+                                                                                       (Change Number)
+                                                                                       (/ ,exchange_rate))
+                                                                                  
+                                                                                  (the .public <format>
+                                                                                       (format.Format Text Number)
+                                                                                       (let [suffix (its unit.:suffix ,unit)]
+                                                                                            (implementation
+                                                                                             (the as
+                                                                                                  (|>> <as>
+                                                                                                       whole
+                                                                                                       (case.if integer)
+                                                                                                       (function.or (function.constant ,integer_zero)
+                                                                                                                    function.identity)
+                                                                                                       (by ,integer_base_10 as)
+                                                                                                       (text.suffix suffix)))
 
-                               (the (of it)
-                                 (when (text.split_by suffix it)
-                                   {.:Some [it ""]}
-                                   (|> it
-                                       (by ,integer_base_10 of)
-                                       (by try.functor each (|>> (case.some integer)
-                                                                 <of>)))
-                                   
-                                   _
-                                   {try.:Failure error.not_valid})))))))]
+                                                                                             (the (of it)
+                                                                                                  (when (text.split_by suffix it)
+                                                                                                        {.:Some [it ""]}
+                                                                                                        (|> it
+                                                                                                            (by ,integer_base_10 of)
+                                                                                                            (by try.functor each (|>> (case.some integer)
+                                                                                                                                      <of>)))
+                                                                                                        
+                                                                                                        _
+                                                                                                        {try.:Failure error.not_valid})))))))]
 
-                [[degree as_degree of_degree unit.degree]
-                 [gradian as_gradian of_gradian unit.gradian]
-                 [per_cent as_per_cent of_per_cent unit.per_cent]
-                 [per_mille as_per_mille of_per_mille unit.per_mille]
-                 [per_myriad as_per_myriad of_per_myriad unit.per_myriad]])
-              ]))
+                                                           [[degree as_degree of_degree unit.degree]
+                                                            [gradian as_gradian of_gradian unit.gradian]
+                                                            [per_cent as_per_cent of_per_cent unit.per_cent]
+                                                            [per_mille as_per_mille of_per_mille unit.per_mille]
+                                                            [per_myriad as_per_myriad of_per_myriad unit.per_myriad]])
+                                            ]))
 
-         (the .public module
-           (template.macro (_ ,*variables)
-             [... [Rational number](https://en.wikipedia.org/wiki/Rational_number)
-              (nominal.every .public Number
-                (Record
-                 [:numerator ,Numerator
-                  :denominator ,Denominator])
+                      (the .public module
+                           (template.macro (_ ,*variables)
+                                           [... [Rational number](https://en.wikipedia.org/wiki/Rational_number)
+                                            (nominal.every .public Number
+                                                           (Record
+                                                            [:numerator ,Numerator
+                                                             :denominator ,Denominator])
 
-                (..values_of_module ,*variables)
-                (..order_of_module ,*variables)
-                (..arithmetic_of_module ,*variables)
-                (..properties_of_module ,*variables)
-                (..formats_of_module ,*variables)
+                                                           (..values_of_module ,*variables)
+                                                           (..order_of_module ,*variables)
+                                                           (..arithmetic_of_module ,*variables)
+                                                           (..properties_of_module ,*variables)
+                                                           (..formats_of_module ,*variables)
 
-                (the .public (approximately? margin_of_error standard value)
-                  (-> Number Number Number
-                      Bit)
-                  (<= margin_of_error
-                      (- (minor standard value)
-                         (major standard value))))
+                                                           (the .public (approximately? margin_of_error standard value)
+                                                                (-> Number Number Number
+                                                                    Bit)
+                                                                (<= margin_of_error
+                                                                    (- (minor standard value)
+                                                                       (major standard value))))
 
-                (the .public (inversion origin it)
-                  (-> Number Number
-                      Number)
-                  (/ (/ origin it) origin)))
+                                                           (the .public (inversion origin it)
+                                                                (-> Number Number
+                                                                    Number)
+                                                                (/ (/ origin it) origin)))
 
-              ... https://en.wikipedia.org/wiki/Number#Classification
-              (alias [Rational Q]
-                     Number)]))))
+                                            ... https://en.wikipedia.org/wiki/Number#Classification
+                                            (alias [Rational Q]
+                                                   Number)]))))
 
 (..module ..Integer ..Natural
           
@@ -432,19 +432,19 @@
           integer.base_10)
 
 (the .public smallest
-  Number
-  (new (by natural.interval maximum) +1))
+     Number
+     (new (by natural.interval maximum) +1))
 
 (the .public most_positive
-  Number
-  (case.some ..integer (by integer.interval maximum)))
+     Number
+     (case.some ..integer (by integer.interval maximum)))
 
 (the .public most_negative
-  Number
-  (case.some ..integer (by integer.interval minimum)))
+     Number
+     (case.some ..integer (by integer.interval minimum)))
 
 (the .public (real it)
-  (-> Number
-      Real)
-  (r./ (natural.real (..denominator it))
-       (integer.real (..numerator it))))
+     (-> Number
+         Real)
+     (r./ (natural.real (..denominator it))
+          (integer.real (..numerator it))))

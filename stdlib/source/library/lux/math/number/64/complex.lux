@@ -30,376 +30,376 @@
      ["<[1]>" \\projection]]]]])
 
 (every .public Complex
-  (Record
-   [:real Real
-    :imaginary Real]))
+       (Record
+        [:real Real
+         :imaginary Real]))
 
 (the .public Number
-  ..Complex)
+     ..Complex)
 
 (syntax.the .public (complex [real ?list.any
                               ?imaginary (<>.maybe ?list.any)])
-  (pure (list (` [..:real (, real)
-                  ..:imaginary (, (maybe.else (' r.zero) ?imaginary))]))))
+            (pure (list (` [..:real (, real)
+                            ..:imaginary (, (maybe.else (' r.zero) ?imaginary))]))))
 
 (the .public zero
-  Complex
-  (..complex r.zero r.zero))
+     Complex
+     (..complex r.zero r.zero))
 
 (the .public positive_one
-  Complex
-  (..complex r.positive_one r.zero))
+     Complex
+     (..complex r.positive_one r.zero))
 
 (the .public negative_one
-  Complex
-  (..complex r.negative_one r.zero))
+     Complex
+     (..complex r.negative_one r.zero))
 
 (the .public i
-  Complex
-  (..complex r.zero r.positive_one))
+     Complex
+     (..complex r.zero r.positive_one))
 
 (the .public (not_a_number? complex)
-  (-> Complex
-      Bit)
-  (or (r.not_a_number? (its :real complex))
-      (r.not_a_number? (its :imaginary complex))))
+     (-> Complex
+         Bit)
+     (and/or (r.not_a_number? (its :real complex))
+             (r.not_a_number? (its :imaginary complex))))
 
 (the .public (= param input)
-  (-> Complex Complex
-      Bit)
-  (and (r.= (its :real param)
-            (its :real input))
-       (r.= (its :imaginary param)
-            (its :imaginary input))))
+     (-> Complex Complex
+         Bit)
+     (and (r.= (its :real param)
+               (its :real input))
+          (r.= (its :imaginary param)
+               (its :imaginary input))))
 
 (template.with [<name> <op>]
-  [(the .public (<name> param input)
-     (-> Complex Complex
-         Complex)
-     [:real (<op> (its :real param)
-                  (its :real input))
-      :imaginary (<op> (its :imaginary param)
-                       (its :imaginary input))])]
+               [(the .public (<name> param input)
+                     (-> Complex Complex
+                         Complex)
+                     [:real (<op> (its :real param)
+                                  (its :real input))
+                      :imaginary (<op> (its :imaginary param)
+                                       (its :imaginary input))])]
 
-  [[+ r.+]
-   [- r.-]])
+               [[+ r.+]
+                [- r.-]])
 
 (the .public equality
-  (Equality Complex)
-  (implementation
-   (the = ..=)))
+     (Equality Complex)
+     (implementation
+      (the = ..=)))
 
 (template.with [<name> <transform>]
-  [(the .public <name>
-     (-> Complex
-         Complex)
-     (|>> (revised :real <transform>)
-          (revised :imaginary <transform>)))]
+               [(the .public <name>
+                     (-> Complex
+                         Complex)
+                     (|>> (revised :real <transform>)
+                          (revised :imaginary <transform>)))]
 
-  [[opposite r.opposite]
-   [signum r.signum]])
+               [[opposite r.opposite]
+                [signum r.signum]])
 
 (the .public conjugate
-  (-> Complex
-      Complex)
-  (revised :imaginary r.opposite))
+     (-> Complex
+         Complex)
+     (revised :imaginary r.opposite))
 
 (the .public (x' param input)
-  (-> Real Complex
-      Complex)
-  [:real (r.x param
-              (its :real input))
-   :imaginary (r.x param
-                   (its :imaginary input))])
+     (-> Real Complex
+         Complex)
+     [:real (r.x param
+                 (its :real input))
+      :imaginary (r.x param
+                      (its :imaginary input))])
 
 (the .public (x param input)
-  (-> Complex Complex
-      Complex)
-  [:real (r.- (r.x (its :imaginary param)
-                   (its :imaginary input))
-              (r.x (its :real param)
-                   (its :real input)))
-   :imaginary (r.+ (r.x (its :real param)
-                        (its :imaginary input))
-                   (r.x (its :imaginary param)
-                        (its :real input)))])
+     (-> Complex Complex
+         Complex)
+     [:real (r.- (r.x (its :imaginary param)
+                      (its :imaginary input))
+                 (r.x (its :real param)
+                      (its :real input)))
+      :imaginary (r.+ (r.x (its :real param)
+                           (its :imaginary input))
+                      (r.x (its :imaginary param)
+                           (its :real input)))])
 
 (the .public (/ param input)
-  (-> Complex Complex
-      Complex)
-  (with "/[0]" param
-    (if (r.< (r.absolute /:imaginary)
-             (r.absolute /:real))
-        (let [quot (r./ /:imaginary /:real)
-              denom (|> /:real (r.x quot) (r.+ /:imaginary))]
-          [..:real (|> (its ..:real input) (r.x quot) (r.+ (its ..:imaginary input)) (r./ denom))
-           ..:imaginary (|> (its ..:imaginary input) (r.x quot) (r.- (its ..:real input)) (r./ denom))])
-        (let [quot (r./ /:real /:imaginary)
-              denom (|> /:imaginary (r.x quot) (r.+ /:real))]
-          [..:real (|> (its ..:imaginary input) (r.x quot) (r.+ (its ..:real input)) (r./ denom))
-           ..:imaginary (|> (its ..:imaginary input) (r.- (r.x quot (its ..:real input))) (r./ denom))]))))
+     (-> Complex Complex
+         Complex)
+     (with "/[0]" param
+           (if (r.< (r.absolute /:imaginary)
+                    (r.absolute /:real))
+               (let [quot (r./ /:imaginary /:real)
+                     denom (|> /:real (r.x quot) (r.+ /:imaginary))]
+                    [..:real (|> (its ..:real input) (r.x quot) (r.+ (its ..:imaginary input)) (r./ denom))
+                     ..:imaginary (|> (its ..:imaginary input) (r.x quot) (r.- (its ..:real input)) (r./ denom))])
+               (let [quot (r./ /:real /:imaginary)
+                     denom (|> /:imaginary (r.x quot) (r.+ /:real))]
+                    [..:real (|> (its ..:imaginary input) (r.x quot) (r.+ (its ..:real input)) (r./ denom))
+                     ..:imaginary (|> (its ..:imaginary input) (r.- (r.x quot (its ..:real input))) (r./ denom))]))))
 
 (the .public (/' param subject)
-  (-> Real Complex
-      Complex)
-  (with "/[0]" subject
-    [..:real (r./ param /:real)
-     ..:imaginary (r./ param /:imaginary)]))
+     (-> Real Complex
+         Complex)
+     (with "/[0]" subject
+           [..:real (r./ param /:real)
+            ..:imaginary (r./ param /:imaginary)]))
 
 (the .public (% param input)
-  (-> Complex Complex
-      Complex)
-  (let [scaled (/ param input)
-        quotient (|> scaled
-                     (revised :real r.floor)
-                     (revised :imaginary r.floor))]
-    (- (x quotient param)
-       input)))
+     (-> Complex Complex
+         Complex)
+     (let [scaled (/ param input)
+           quotient (|> scaled
+                        (revised :real r.floor)
+                        (revised :imaginary r.floor))]
+          (- (x quotient param)
+             input)))
 
 (the .public (cos subject)
-  (-> Complex
-      Complex)
-  (with "/[0]" subject
-    [..:real (r.x (hyperbola.co_sine /:imaginary)
-                  (circle.cos /:real))
-     ..:imaginary (r.opposite (r.x (hyperbola.sine /:imaginary)
-                                   (circle.sin /:real)))]))
+     (-> Complex
+         Complex)
+     (with "/[0]" subject
+           [..:real (r.x (hyperbola.co_sine /:imaginary)
+                         (circle.cos /:real))
+            ..:imaginary (r.opposite (r.x (hyperbola.sine /:imaginary)
+                                          (circle.sin /:real)))]))
 
 (the .public (cosh subject)
-  (-> Complex
-      Complex)
-  (with "/[0]" subject
-    [..:real (r.x (circle.cos /:imaginary)
-                  (hyperbola.co_sine /:real))
-     ..:imaginary (r.x (circle.sin /:imaginary)
-                       (hyperbola.sine /:real))]))
+     (-> Complex
+         Complex)
+     (with "/[0]" subject
+           [..:real (r.x (circle.cos /:imaginary)
+                         (hyperbola.co_sine /:real))
+            ..:imaginary (r.x (circle.sin /:imaginary)
+                              (hyperbola.sine /:real))]))
 
 (the .public (sin subject)
-  (-> Complex
-      Complex)
-  (with "/[0]" subject
-    [..:real (r.x (hyperbola.co_sine /:imaginary)
-                  (circle.sin /:real))
-     ..:imaginary (r.x (hyperbola.sine /:imaginary)
-                       (circle.cos /:real))]))
+     (-> Complex
+         Complex)
+     (with "/[0]" subject
+           [..:real (r.x (hyperbola.co_sine /:imaginary)
+                         (circle.sin /:real))
+            ..:imaginary (r.x (hyperbola.sine /:imaginary)
+                              (circle.cos /:real))]))
 
 (the .public (sinh subject)
-  (-> Complex
-      Complex)
-  (with "/[0]" subject
-    [..:real (r.x (circle.cos /:imaginary)
-                  (hyperbola.sine /:real))
-     ..:imaginary (r.x (circle.sin /:imaginary)
-                       (hyperbola.co_sine /:real))]))
+     (-> Complex
+         Complex)
+     (with "/[0]" subject
+           [..:real (r.x (circle.cos /:imaginary)
+                         (hyperbola.sine /:real))
+            ..:imaginary (r.x (circle.sin /:imaginary)
+                              (hyperbola.co_sine /:real))]))
 
 (the .public (tan subject)
-  (-> Complex
-      Complex)
-  (<| (with "/[0]" subject)
-      (let [r2 (r.x +2.0 /:real)
-            i2 (r.x +2.0 /:imaginary)
-            d (r.+ (circle.cos r2) (hyperbola.co_sine i2))])
-      [..:real (r./ d (circle.sin r2))
-       ..:imaginary (r./ d (hyperbola.sine i2))]))
+     (-> Complex
+         Complex)
+     (<| (with "/[0]" subject)
+         (let [r2 (r.x +2.0 /:real)
+               i2 (r.x +2.0 /:imaginary)
+               d (r.+ (circle.cos r2) (hyperbola.co_sine i2))])
+         [..:real (r./ d (circle.sin r2))
+          ..:imaginary (r./ d (hyperbola.sine i2))]))
 
 (the .public (tanh subject)
-  (-> Complex
-      Complex)
-  (<| (with "/[0]" subject)
-      (let [r2 (r.x +2.0 /:real)
-            i2 (r.x +2.0 /:imaginary)
-            d (r.+ (hyperbola.co_sine r2) (circle.cos i2))])
-      [..:real (r./ d (hyperbola.sine r2))
-       ..:imaginary (r./ d (circle.sin i2))]))
+     (-> Complex
+         Complex)
+     (<| (with "/[0]" subject)
+         (let [r2 (r.x +2.0 /:real)
+               i2 (r.x +2.0 /:imaginary)
+               d (r.+ (hyperbola.co_sine r2) (circle.cos i2))])
+         [..:real (r./ d (hyperbola.sine r2))
+          ..:imaginary (r./ d (circle.sin i2))]))
 
 (the .public (absolute subject)
-  (-> Complex
-      Real)
-  (with "/[0]" subject
-    (if (r.< (r.absolute /:imaginary)
-             (r.absolute /:real))
-        (if (r.= r.zero /:imaginary)
-            (r.absolute /:real)
-            (let [q (r./ /:imaginary /:real)]
-              (r.x (r.^ +0.5 (r.+ r.positive_one (r.x q q)))
-                   (r.absolute /:imaginary))))
-        (if (r.= r.zero /:real)
-            (r.absolute /:imaginary)
-            (let [q (r./ /:real /:imaginary)]
-              (r.x (r.^ +0.5 (r.+ r.positive_one (r.x q q)))
-                   (r.absolute /:real)))))))
+     (-> Complex
+         Real)
+     (with "/[0]" subject
+           (if (r.< (r.absolute /:imaginary)
+                    (r.absolute /:real))
+               (if (r.= r.zero /:imaginary)
+                   (r.absolute /:real)
+                   (let [q (r./ /:imaginary /:real)]
+                        (r.x (r.^ +0.5 (r.+ r.positive_one (r.x q q)))
+                             (r.absolute /:imaginary))))
+               (if (r.= r.zero /:real)
+                   (r.absolute /:imaginary)
+                   (let [q (r./ /:real /:imaginary)]
+                        (r.x (r.^ +0.5 (r.+ r.positive_one (r.x q q)))
+                             (r.absolute /:real)))))))
 
 (the .public (exp subject)
-  (-> Complex
-      Complex)
-  (<| (with "/[0]" subject)
-      (let [r_exp (r.exp /:real)])
-      [..:real (r.x r_exp (circle.cos /:imaginary))
-       ..:imaginary (r.x r_exp (circle.sin /:imaginary))]))
+     (-> Complex
+         Complex)
+     (<| (with "/[0]" subject)
+         (let [r_exp (r.exp /:real)])
+         [..:real (r.x r_exp (circle.cos /:imaginary))
+          ..:imaginary (r.x r_exp (circle.sin /:imaginary))]))
 
 (the .public (log subject)
-  (-> Complex
-      Complex)
-  (with "/[0]" subject
-    [..:real (|> subject ..absolute r.log)
-     ..:imaginary (circle.atan_2 /:real /:imaginary)]))
+     (-> Complex
+         Complex)
+     (with "/[0]" subject
+           [..:real (|> subject ..absolute r.log)
+            ..:imaginary (circle.atan_2 /:real /:imaginary)]))
 
 (template.with [<name> <type> <op>]
-  [(the .public (<name> param input)
-     (-> <type> Complex
-         Complex)
-     (|> input log (<op> param) exp))]
+               [(the .public (<name> param input)
+                     (-> <type> Complex
+                         Complex)
+                     (|> input log (<op> param) exp))]
 
-  [[^  Complex ..x]
-   [^' Real ..x']])
+               [[^  Complex ..x]
+                [^' Real ..x']])
 
 (the (with_sign sign magnitude)
-  (-> Real Real
-      Real)
-  (r.x (r.signum sign) magnitude))
+     (-> Real Real
+         Real)
+     (r.x (r.signum sign) magnitude))
 
 (the .public (root_2 input)
-  (-> Complex
-      Complex)
-  (<| (with "/[0]" input)
-      (let [t (|> input ..absolute (r.+ (r.absolute /:real)) (r./ +2.0) (r.^ +0.5))])
-      (if (r.< r.zero /:real)
-          [..:real (r./ (r.x +2.0 t)
-                        (r.absolute /:imaginary))
-           ..:imaginary (r.x t (..with_sign /:imaginary r.positive_one))]
-          [..:real t
-           ..:imaginary (r./ (r.x +2.0 t)
-                             /:imaginary)])))
+     (-> Complex
+         Complex)
+     (<| (with "/[0]" input)
+         (let [t (|> input ..absolute (r.+ (r.absolute /:real)) (r./ +2.0) (r.^ +0.5))])
+         (if (r.< r.zero /:real)
+             [..:real (r./ (r.x +2.0 t)
+                           (r.absolute /:imaginary))
+              ..:imaginary (r.x t (..with_sign /:imaginary r.positive_one))]
+             [..:real t
+              ..:imaginary (r./ (r.x +2.0 t)
+                                /:imaginary)])))
 
 (the (root_2-1z input)
-  (-> Complex
-      Complex)
-  (|> (complex r.positive_one) (- (x input input)) ..root_2))
+     (-> Complex
+         Complex)
+     (|> (complex r.positive_one) (- (x input input)) ..root_2))
 
 (the .public (reciprocal it)
-  (-> Complex
-      Complex)
-  (with "/[0]" it
-    (if (r.< (r.absolute /:imaginary)
-             (r.absolute /:real))
-        (let [q (r./ /:imaginary /:real)
-              scale (r./ (|> /:real (r.x q) (r.+ /:imaginary))
-                         r.positive_one)]
-          [..:real (r.x q scale)
-           ..:imaginary (r.opposite scale)])
-        (let [q (r./ /:real /:imaginary)
-              scale (r./ (|> /:imaginary (r.x q) (r.+ /:real))
-                         r.positive_one)]
-          [..:real scale
-           ..:imaginary (|> scale r.opposite (r.x q))]))))
+     (-> Complex
+         Complex)
+     (with "/[0]" it
+           (if (r.< (r.absolute /:imaginary)
+                    (r.absolute /:real))
+               (let [q (r./ /:imaginary /:real)
+                     scale (r./ (|> /:real (r.x q) (r.+ /:imaginary))
+                                r.positive_one)]
+                    [..:real (r.x q scale)
+                     ..:imaginary (r.opposite scale)])
+               (let [q (r./ /:real /:imaginary)
+                     scale (r./ (|> /:imaginary (r.x q) (r.+ /:real))
+                                r.positive_one)]
+                    [..:real scale
+                     ..:imaginary (|> scale r.opposite (r.x q))]))))
 
 (the .public (acos input)
-  (-> Complex
-      Complex)
-  (|> input
-      (..+ (|> input ..root_2-1z (..x ..i)))
-      ..log
-      (..x (..opposite ..i))))
+     (-> Complex
+         Complex)
+     (|> input
+         (..+ (|> input ..root_2-1z (..x ..i)))
+         ..log
+         (..x (..opposite ..i))))
 
 (the .public (asin input)
-  (-> Complex
-      Complex)
-  (|> input
-      ..root_2-1z
-      (..+ (..x ..i input))
-      ..log
-      (..x (..opposite ..i))))
+     (-> Complex
+         Complex)
+     (|> input
+         ..root_2-1z
+         (..+ (..x ..i input))
+         ..log
+         (..x (..opposite ..i))))
 
 (the .public (atan input)
-  (-> Complex
-      Complex)
-  (|> input
-      (..+ ..i)
-      (../ (..- input ..i))
-      ..log
-      (..x (../ (..complex +2.0) ..i))))
+     (-> Complex
+         Complex)
+     (|> input
+         (..+ ..i)
+         (../ (..- input ..i))
+         ..log
+         (..x (../ (..complex +2.0) ..i))))
 
 (the .public (argument it)
-  (-> Complex
-      Real)
-  (with "/[0]" it
-    (circle.atan_2 /:real /:imaginary)))
+     (-> Complex
+         Real)
+     (with "/[0]" it
+           (circle.atan_2 /:real /:imaginary)))
 
 (the .public (roots nth input)
-  (-> Natural Complex
-      (List Complex))
-  (when nth
-    0 (list)
-    _ (let [r_nth (|> nth .integer integer.real)
-            nth_root_of_absolute (|> input ..absolute (r.^ (r./ r_nth r.positive_one)))
-            nth_phi (|> input ..argument (r./ r_nth))
-            slice (r./ r_nth circle.tau)]
-        (|> (list.domain nth)
-            (list:each (function (_ nth')
-                         (let [inner (|> nth' .integer integer.real
-                                         (r.x slice)
-                                         (r.+ nth_phi))
-                               real (r.x nth_root_of_absolute
-                                         (circle.cos inner))
-                               imaginary (r.x nth_root_of_absolute
-                                              (circle.sin inner))]
-                           [..:real real
-                            ..:imaginary imaginary])))))))
+     (-> Natural Complex
+         (List Complex))
+     (when nth
+           0 (list)
+           _ (let [r_nth (|> nth .integer integer.real)
+                   nth_root_of_absolute (|> input ..absolute (r.^ (r./ r_nth r.positive_one)))
+                   nth_phi (|> input ..argument (r./ r_nth))
+                   slice (r./ r_nth circle.tau)]
+                  (|> (list.domain nth)
+                      (list:each (function (_ nth')
+                                           (let [inner (|> nth' .integer integer.real
+                                                           (r.x slice)
+                                                           (r.+ nth_phi))
+                                                 real (r.x nth_root_of_absolute
+                                                           (circle.cos inner))
+                                                 imaginary (r.x nth_root_of_absolute
+                                                                (circle.sin inner))]
+                                                [..:real real
+                                                 ..:imaginary imaginary])))))))
 
 (the .public (approximately? margin_of_error standard value)
-  (-> Real Complex Complex
-      Bit)
-  (and (r.approximately? margin_of_error (its ..:real standard)
-                         (its ..:real value))
-       (r.approximately? margin_of_error (its ..:imaginary standard)
-                         (its ..:imaginary value))))
+     (-> Real Complex Complex
+         Bit)
+     (and (r.approximately? margin_of_error (its ..:real standard)
+                            (its ..:real value))
+          (r.approximately? margin_of_error (its ..:imaginary standard)
+                            (its ..:imaginary value))))
 
 (the .public text
-  (Format Text Complex)
-  (implementation
-   (the (as it)
-     (.text_composite# (by r.base_10 as (its ..:real it))
-                       " "
-                       (by r.base_10 as (its ..:imaginary it))
-                       "i"))
-   (the (of it)
-     (when (text.split_by " " it)
-       {.:Some [real imaginary]}
-       (monad.let try.monad
-         [real (by r.base_10 of real)
-          imaginary (by r.base_10 of (text.replaced_once "i" "" imaginary))]
-         (pure [:real real
-                :imaginary imaginary]))
+     (Format Text Complex)
+     (implementation
+      (the (as it)
+           (.text_composite# (by r.base_10 as (its ..:real it))
+                             " "
+                             (by r.base_10 as (its ..:imaginary it))
+                             "i"))
+      (the (of it)
+           (when (text.split_by " " it)
+                 {.:Some [real imaginary]}
+                 (monad.let try.monad
+                            [real (by r.base_10 of real)
+                             imaginary (by r.base_10 of (text.replaced_once "i" "" imaginary))]
+                            (pure [:real real
+                                   :imaginary imaginary]))
 
-       {.:None}
-       (monad.let try.monad
-         [real (by r.base_10 of it)]
-         (pure [:real real
-                :imaginary r.zero]))))))
+                 {.:None}
+                 (monad.let try.monad
+                            [real (by r.base_10 of it)]
+                            (pure [:real real
+                                   :imaginary r.zero]))))))
 
 ... https://en.wikipedia.org/wiki/Polar_coordinate_system
 (the (square it)
-  (-> Real
-      Real)
-  (r.x it it))
+     (-> Real
+         Real)
+     (r.x it it))
 
 (the .public (magnitude it)
-  (-> Complex
-      Real)
-  (r.root_2 (r.+ (square (its :real it))
-                 (square (its :imaginary it)))))
+     (-> Complex
+         Real)
+     (r.root_2 (r.+ (square (its :real it))
+                    (square (its :imaginary it)))))
 
 (the .public (phase it)
-  (-> Complex
-      Real)
-  (circle.atan_2 (its :real it)
-                 (its :imaginary it)))
+     (-> Complex
+         Real)
+     (circle.atan_2 (its :real it)
+                    (its :imaginary it)))
 
 (the .public (polar magnitude phase)
-  (-> Real Real
-      Complex)
-  [:real (r.x magnitude (circle.cos phase))
-   :imaginary (r.x magnitude (circle.sin phase))])
+     (-> Real Real
+         Complex)
+     [:real (r.x magnitude (circle.cos phase))
+      :imaginary (r.x magnitude (circle.sin phase))])
 
 ... https://en.wikipedia.org/wiki/Number#Classification
 (alias [C]

@@ -450,7 +450,7 @@ Called by `imenu--generic-function'."
 							   (control//flow (or* "when" "exec" "let" "loop"
 												   "if" "unless"))
 							   (control//pattern-matching (or* "open"))
-							   (control//logic (or* "and" "or"))
+							   (control//logic (or* "and" "and/or"))
 							   (control//contract (or* "pre" "post"))
 							   (control//polymorphism (or* "method"))
 							   ;; Type

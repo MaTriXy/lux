@@ -17,6 +17,8 @@
     [number
      ["[0]" /64 (.only)
       ["n" natural]]]]
+   [function
+    [predicate (.only Predicate)]]
    ["[0]" target]]]
  [/
   ["[0]" character (.only Character)]])
@@ -93,8 +95,8 @@
                       (of (++ offset') output')))))
 
 (the .public (starts_with? prefix x)
-     (-> Text Text
-         Bit)
+     (-> Text
+         (Predicate Text))
      (when (index prefix x)
            {.:Some 0}
            true
@@ -103,8 +105,8 @@
            false))
 
 (the .public (ends_with? postfix x)
-     (-> Text Text
-         Bit)
+     (-> Text
+         (Predicate Text))
      (when (last_index postfix x)
            {.:Some n}
            (n.= (size x)
@@ -113,15 +115,15 @@
            _
            false))
 
-(the .public (enclosed_by? boundary value)
-     (-> Text Text
-         Bit)
+(the .public (inside?' boundary value)
+     (-> Text
+         (Predicate Text))
      (and (starts_with? boundary value)
           (ends_with? boundary value)))
 
 (the .public (contains? sub text)
-     (-> Text Text
-         Bit)
+     (-> Text
+         (Predicate Text))
      (when (.text_index# 0 sub text)
            {.:Some _}
            true
@@ -139,19 +141,19 @@
          (Change Text))
      (.text_composite# subject param))
 
-(the .public (enclosed [left right] content)
+(the .public (inside [left right] content)
      (-> [Text Text]
          (Change Text))
      (.text_composite# left content right))
 
-(the .public (enclosed' boundary content)
+(the .public (inside' boundary content)
      (-> Text
          (Change Text))
-     (enclosed [boundary boundary] content))
+     (inside [boundary boundary] content))
 
-(the .public (enclosed? [left right] it)
-     (-> [Text Text] Text
-         Bit)
+(the .public (inside? [left right] it)
+     (-> [Text Text]
+         (Predicate Text))
      (and (starts_with? left it)
           (ends_with? right it)))
 
@@ -167,7 +169,7 @@
 
 (the .public as_text
      (Injection Text)
-     (..enclosed' ..double_quote))
+     (..inside' ..double_quote))
 
 (the .public (clip offset size input)
      (-> Index Natural Text
@@ -374,8 +376,7 @@
                        ..empty)))
 
 (the .public (empty? text)
-     (-> Text
-         Bit)
+     (Predicate Text)
      (when text
            ..empty true
            _  false))
@@ -385,8 +386,7 @@
      " ")
 
 (the .public (space? character)
-     (-> Character
-         Bit)
+     (Predicate Character)
      (<| (_expansion:let [<options> (with_template [<character>]
                                                    [(.character (,, (static <character>)))
                                                     true]

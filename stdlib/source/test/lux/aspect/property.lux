@@ -22,81 +22,81 @@
 (the .public (specification it
                             equality_of_context equality_of_focus
                             random_context random_focus)
-  (for_any (_ focus context)
-    (-> (/.Property context focus)
-        (Equality context) (Equality focus)
-        (Random context) (Random focus)
-        Test))
-  (monad.let [! random.monad]
-    [expected_context random_context
-     expected_focus random_focus
-     other_focus random_focus]
-    (<| (_.for [/.Property /.property])
-        (all _.and
-             (_.coverage [/.has]
-               (let [later_writes_overwrite_earlier_writes!
-                     (by equality_of_context =
-                         (/.has it expected_focus expected_context)
-                         (/.has it expected_focus (/.has it other_focus expected_context)))]
-                 later_writes_overwrite_earlier_writes!))
-             (_.coverage [/.its]
-               (let [can_focus!
-                     (by equality_of_focus =
-                         expected_focus
-                         (/.its it (/.has it expected_focus expected_context)))
+     (for_any (_ focus context)
+              (-> (/.Property context focus)
+                  (Equality context) (Equality focus)
+                  (Random context) (Random focus)
+                  Test))
+     (monad.let [! random.monad]
+                [expected_context random_context
+                 expected_focus random_focus
+                 other_focus random_focus]
+                (<| (_.for [/.Property /.property])
+                    (all _.and
+                         (_.coverage [/.has]
+                                     (let [later_writes_overwrite_earlier_writes!
+                                           (by equality_of_context =
+                                               (/.has it expected_focus expected_context)
+                                               (/.has it expected_focus (/.has it other_focus expected_context)))]
+                                          later_writes_overwrite_earlier_writes!))
+                         (_.coverage [/.its]
+                                     (let [can_focus!
+                                           (by equality_of_focus =
+                                               expected_focus
+                                               (/.its it (/.has it expected_focus expected_context)))
 
-                     can_only_change_the_focus!
-                     (by equality_of_context =
-                         expected_context
-                         (/.has it (/.its it expected_context) expected_context))]
-                 (and can_focus!
-                      can_only_change_the_focus!)))
-             ))))
+                                           can_only_change_the_focus!
+                                           (by equality_of_context =
+                                               expected_context
+                                               (/.has it (/.its it expected_context) expected_context))]
+                                          (and can_focus!
+                                               can_only_change_the_focus!)))
+                         ))))
 
 (the sign
-  (/.Property Integer Bit)
-  (/.property (integer.>= +0)
-              (function (has [sign mantissa])
-                ((is (Change Integer)
-                     (if sign
-                         function.identity
-                         integer.opposite))
-                 (integer.absolute mantissa)))))
+     (/.Property Integer Bit)
+     (/.property (integer.>= +0)
+                 (function (has [sign mantissa])
+                           ((is (Change Integer)
+                                (if sign
+                                    function.identity
+                                    integer.opposite))
+                            (integer.absolute mantissa)))))
 
 (the left
-  (for_any (_ left right)
-    (/.Property [left right] left))
-  (/.property pair.left
-              (function (has [left [_ right]])
-                [left right])))
+     (for_any (_ left right)
+              (/.Property [left right] left))
+     (/.property pair.left
+                 (function (has [left [_ right]])
+                           [left right])))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (monad.let [! random.monad]
-        [expected random.integer
-         other random.natural
-         .let [expected' (++ expected)]])
-      (all _.and
-           (_.coverage [/.revised]
-             (let [is_exception! (or (integer.= +0 expected)
-                                     (integer.= (by integer.interval minimum) expected))
-                   
-                   opposite (/.revised ..sign not)]
-               (or is_exception!
-                   (and (not (integer.= expected (opposite expected)))
-                        (integer.= expected (opposite (opposite expected)))))))
-           (_.coverage [/.composite]
-             (bit.= (/.its ..sign expected)
-                    (/.its (/.composite ..left ..sign) [expected other])))
-           (_.coverage [/.identity]
-             (and (identical? expected (/.its /.identity expected))
-                  (identical? expected' (/.has /.identity expected' expected))))
-           (_.coverage [/.Aspect
-                        /.as_aspect /.of_aspect]
-             (let [left' (|> left /.as_aspect /.of_aspect)]
-               (and (identical? (/.its ..left [expected other])
-                                (/.its left' [expected other]))
-                    (identical? (/.its ..left (/.has ..left expected' [expected other]))
-                                (/.its left' (/.has left' expected' [expected other]))))))
-           )))
+     Test
+     (<| (_.covering /._)
+         (monad.let [! random.monad]
+                    [expected random.integer
+                     other random.natural
+                     .let [expected' (++ expected)]])
+         (all _.and
+              (_.coverage [/.revised]
+                          (let [is_exception! (and/or (integer.= +0 expected)
+                                                      (integer.= (by integer.interval minimum) expected))
+                                
+                                opposite (/.revised ..sign not)]
+                               (and/or is_exception!
+                                       (and (not (integer.= expected (opposite expected)))
+                                            (integer.= expected (opposite (opposite expected)))))))
+              (_.coverage [/.composite]
+                          (bit.= (/.its ..sign expected)
+                                 (/.its (/.composite ..left ..sign) [expected other])))
+              (_.coverage [/.identity]
+                          (and (identical? expected (/.its /.identity expected))
+                               (identical? expected' (/.has /.identity expected' expected))))
+              (_.coverage [/.Aspect
+                           /.as_aspect /.of_aspect]
+                          (let [left' (|> left /.as_aspect /.of_aspect)]
+                               (and (identical? (/.its ..left [expected other])
+                                                (/.its left' [expected other]))
+                                    (identical? (/.its ..left (/.has ..left expected' [expected other]))
+                                                (/.its left' (/.has left' expected' [expected other]))))))
+              )))

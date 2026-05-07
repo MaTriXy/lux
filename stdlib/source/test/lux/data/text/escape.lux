@@ -36,131 +36,131 @@
      ["[1]" set]]]]])
 
 (the (range maximum minimum)
-  (-> Character Character
-      (Random Character))
-  (let [range (n.- minimum maximum)]
-    (by random.monad each
-        (|>> (n.% range) (n.+ minimum))
-        random.natural)))
+     (-> Character Character
+         (Random Character))
+     (let [range (n.- minimum maximum)]
+          (by random.monad each
+              (|>> (n.% range) (n.+ minimum))
+              random.natural)))
 
 (the under_range
-  (Random Character)
-  (..range (debug.private /.ascii_minimum) 0))
+     (Random Character)
+     (..range (debug.private /.ascii_minimum) 0))
 
 (the over_range
-  (Random Character)
-  (..range (number.base_16 "FFFF") (++ (debug.private /.ascii_maximum))))
+     (Random Character)
+     (..range (number.base_16 "FFFF") (++ (debug.private /.ascii_maximum))))
 
 (the in_range
-  (Random Character)
-  (..range (++ (debug.private /.ascii_maximum)) (debug.private /.ascii_minimum)))
+     (Random Character)
+     (..range (++ (debug.private /.ascii_maximum)) (debug.private /.ascii_minimum)))
 
 (the ascii_range
-  (Random Character)
-  (..range (++ (debug.private /.ascii_maximum)) 0))
+     (Random Character)
+     (..range (++ (debug.private /.ascii_maximum)) 0))
 
 (the valid_sigils
-  (Set Character)
-  (<| (set.of_list n.hash)
-      (list (debug.private /.\0_sigil)
-            (debug.private /.\a_sigil)
-            (debug.private /.\b_sigil)
-            (debug.private /.\t_sigil)
-            (debug.private /.\n_sigil)
-            (debug.private /.\v_sigil)
-            (debug.private /.\f_sigil)
-            (debug.private /.\r_sigil)
-            (debug.private /.\''_sigil)
-            (debug.private /.\\_sigil)
-            (debug.private /.\u_sigil))))
+     (Set Character)
+     (<| (set.of_list n.hash)
+         (list (debug.private /.\0_sigil)
+               (debug.private /.\a_sigil)
+               (debug.private /.\b_sigil)
+               (debug.private /.\t_sigil)
+               (debug.private /.\n_sigil)
+               (debug.private /.\v_sigil)
+               (debug.private /.\f_sigil)
+               (debug.private /.\r_sigil)
+               (debug.private /.\''_sigil)
+               (debug.private /.\\_sigil)
+               (debug.private /.\u_sigil))))
 
 (syntax.the (static_sample [])
-  (monad.let meta.monad
-    [seed meta.seed
-     .let [[_ expected] (|> (random.ascii 10)
-                            (random.only (|>> (text.contains? text.\0) not))
-                            (is (Random Text))
-                            (random.value random.pcg_32
-                                          [random.:increase seed
-                                           random.:seed seed]))]]
-    (pure (list (code.text expected)))))
+            (monad.let meta.monad
+                       [seed meta.seed
+                        .let [[_ expected] (|> (random.ascii 10)
+                                               (random.only (|>> (text.contains? text.\0) not))
+                                               (is (Random Text))
+                                               (random.value random.pcg_32
+                                                             [random.:increase seed
+                                                              random.:seed seed]))]]
+                       (pure (list (code.text expected)))))
 
 (syntax.the (static_escaped [un_escaped <code>.text])
-  (pure (list (code.text (/.escaped un_escaped)))))
+            (pure (list (code.text (/.escaped un_escaped)))))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (all _.and
-           (monad.let random.monad
-             [ascii ..ascii_range]
-             (_.coverage [/.escapable?]
-               (`` (if (or (,, (template.with [<character>]
-                                 [(n.= (debug.private <character>) ascii)]
-                                 
-                                 [[/.\0] [/.\a] [/.\b] [/.\t]
-                                  [/.\n] [/.\v] [/.\f] [/.\r]
-                                  [/.\''] [/.\\]])))
-                       (/.escapable? ascii)
-                       (bit.= (/.escapable? ascii)
-                              (or (n.< (debug.private /.ascii_minimum) ascii)
-                                  (n.> (debug.private /.ascii_maximum) ascii)))))))
-           (monad.let random.monad
-             [left (random.character unicode.character)
-              right (random.character unicode.character)]
-             (_.coverage [/.escaped /.un_escaped]
-               (let [expected (text (text.of_character left) (text.of_character right))]
-                 (if (or (/.escapable? left)
-                         (/.escapable? right))
-                     (let [escaped (/.escaped expected)]
-                       (when (/.un_escaped escaped)
-                         {try.:Success un_escaped}
-                         (and (not (text.= escaped expected))
-                              (text.= un_escaped expected))
-                         
-                         {try.:Failure error}
-                         false))
-                     (text.= expected (/.escaped expected))))))
-           (monad.let [! random.monad]
-             [dummy (|> (random.character unicode.character)
-                        (by ! each text.of_character))]
-             (_.coverage [/.dangling_escape]
-               (when (/.un_escaped (text (/.escaped dummy) "\"))
-                 {try.:Success _}
-                 false
+     Test
+     (<| (_.covering /._)
+         (all _.and
+              (monad.let random.monad
+                         [ascii ..ascii_range]
+                         (_.coverage [/.escapable?]
+                                     (`` (if (and/or (,, (template.with [<character>]
+                                                                        [(n.= (debug.private <character>) ascii)]
+                                                                        
+                                                                        [[/.\0] [/.\a] [/.\b] [/.\t]
+                                                                         [/.\n] [/.\v] [/.\f] [/.\r]
+                                                                         [/.\''] [/.\\]])))
+                                             (/.escapable? ascii)
+                                             (bit.= (/.escapable? ascii)
+                                                    (and/or (n.< (debug.private /.ascii_minimum) ascii)
+                                                            (n.> (debug.private /.ascii_maximum) ascii)))))))
+              (monad.let random.monad
+                         [left (random.character unicode.character)
+                          right (random.character unicode.character)]
+                         (_.coverage [/.escaped /.un_escaped]
+                                     (let [expected (text (text.of_character left) (text.of_character right))]
+                                          (if (and/or (/.escapable? left)
+                                                      (/.escapable? right))
+                                              (let [escaped (/.escaped expected)]
+                                                   (when (/.un_escaped escaped)
+                                                         {try.:Success un_escaped}
+                                                         (and (not (text.= escaped expected))
+                                                              (text.= un_escaped expected))
+                                                         
+                                                         {try.:Failure error}
+                                                         false))
+                                              (text.= expected (/.escaped expected))))))
+              (monad.let [! random.monad]
+                         [dummy (|> (random.character unicode.character)
+                                    (by ! each text.of_character))]
+                         (_.coverage [/.dangling_escape]
+                                     (when (/.un_escaped (text (/.escaped dummy) "\"))
+                                           {try.:Success _}
+                                           false
 
-                 {try.:Failure error}
-                 (exception.is? /.dangling_escape error))))
-           (monad.let [! random.monad]
-             [dummy (|> (random.character unicode.character)
-                        (random.only (|>> (set.member? ..valid_sigils) not))
-                        (by ! each text.of_character))]
-             (_.coverage [/.invalid_escape]
-               (when (/.un_escaped (text "\" dummy))
-                 {try.:Success _}
-                 false
+                                           {try.:Failure error}
+                                           (exception.is? /.dangling_escape error))))
+              (monad.let [! random.monad]
+                         [dummy (|> (random.character unicode.character)
+                                    (random.only (|>> (set.member? ..valid_sigils) not))
+                                    (by ! each text.of_character))]
+                         (_.coverage [/.invalid_escape]
+                                     (when (/.un_escaped (text "\" dummy))
+                                           {try.:Success _}
+                                           false
 
-                 {try.:Failure error}
-                 (exception.is? /.invalid_escape error))))
-           (monad.let [! random.monad]
-             [too_short (|> (random.character unicode.character)
-                            (by ! each (n.% (number.base_16 "1000"))))
-              code (|> (random.unicode 4)
-                       (random.only (function (_ code)
-                                      (when (by n.base_16 of code)
-                                        {try.:Failure error} true
-                                        {try.:Success _} false))))]
-             (_.coverage [/.invalid_unicode_escape]
-               (template.let [(!invalid <code>)
-                              [(when (/.un_escaped (text "\u" <code>))
-                                 {try.:Success _}
-                                 false
+                                           {try.:Failure error}
+                                           (exception.is? /.invalid_escape error))))
+              (monad.let [! random.monad]
+                         [too_short (|> (random.character unicode.character)
+                                        (by ! each (n.% (number.base_16 "1000"))))
+                          code (|> (random.unicode 4)
+                                   (random.only (function (_ code)
+                                                          (when (by n.base_16 of code)
+                                                                {try.:Failure error} true
+                                                                {try.:Success _} false))))]
+                         (_.coverage [/.invalid_unicode_escape]
+                                     (template.let [(!invalid <code>)
+                                                    [(when (/.un_escaped (text "\u" <code>))
+                                                           {try.:Success _}
+                                                           false
 
-                                 {try.:Failure error}
-                                 (exception.is? /.invalid_unicode_escape error))]]
-                 (and (!invalid (by n.base_16 as too_short))
-                      (!invalid code)))))
-           (_.coverage [/.literal]
-             (expansion.let [<example> (..static_sample)]
-               (text.= <example> (`` (/.literal (,, (..static_escaped <example>)))))))
-           )))
+                                                           {try.:Failure error}
+                                                           (exception.is? /.invalid_unicode_escape error))]]
+                                                   (and (!invalid (by n.base_16 as too_short))
+                                                        (!invalid code)))))
+              (_.coverage [/.literal]
+                          (expansion.let [<example> (..static_sample)]
+                                         (text.= <example> (`` (/.literal (,, (..static_escaped <example>)))))))
+              )))

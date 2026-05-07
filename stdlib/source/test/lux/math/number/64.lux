@@ -37,342 +37,342 @@
   ["[1][0]" rational]])
 
 (the bit
-  Test
-  (<| (monad.let [! random.monad]
-        [pattern random.natural
-         idx (by ! each (n.% /.width) random.natural)])
-      (_.for [/.Address])
-      (all _.and
-           (_.coverage [/.one? /.one]
-             (if (/.one? idx pattern)
-                 (/.= pattern (/.one idx pattern))
-                 (not (/.= pattern (/.one idx pattern)))))
-           (_.coverage [/.zero? /.zero]
-             (if (/.zero? idx pattern)
-                 (/.= pattern (/.zero idx pattern))
-                 (not (/.= pattern (/.zero idx pattern)))))
-           (_.coverage [/.flipped]
-             (/.= (/.flipped idx pattern)
-                  (if (/.one? idx pattern)
-                      (/.zero idx pattern)
-                      (/.one idx pattern))))
-           (_.coverage [/.bit]
-             (bit.= (/.zero? idx pattern)
-                    (/.= /.false (/.and (/.bit idx) pattern))))
-           )))
+     Test
+     (<| (monad.let [! random.monad]
+                    [pattern random.natural
+                     idx (by ! each (n.% /.width) random.natural)])
+         (_.for [/.Address])
+         (all _.and
+              (_.coverage [/.one? /.one]
+                          (if (/.one? idx pattern)
+                              (/.= pattern (/.one idx pattern))
+                              (not (/.= pattern (/.one idx pattern)))))
+              (_.coverage [/.zero? /.zero]
+                          (if (/.zero? idx pattern)
+                              (/.= pattern (/.zero idx pattern))
+                              (not (/.= pattern (/.zero idx pattern)))))
+              (_.coverage [/.flipped]
+                          (/.= (/.flipped idx pattern)
+                               (if (/.one? idx pattern)
+                                   (/.zero idx pattern)
+                                   (/.one idx pattern))))
+              (_.coverage [/.bit]
+                          (bit.= (/.zero? idx pattern)
+                                 (/.= /.false (/.and (/.bit idx) pattern))))
+              )))
 
 (the shift
-  Test
-  (<| (monad.let [! random.monad]
-        [pattern random.natural])
-      (_.for [/.Shift])
-      (all _.and
-           (_.coverage [/.shift /.opposite]
-             (n.= /.width
-                  (n.+ (/.shift pattern)
-                       (/.opposite pattern))))
-           (monad.let !
-             [idx (by ! each (|>> (n.% (-- /.width)) ++) random.natural)]
-             (_.coverage [/.<< /.>>
-                          /.left_shifted /.right_shifted]
-               (let [nullity!
-                     (and (/.= pattern (/.<< 0 pattern))
-                          (/.= pattern (/.>> 0 pattern)))
+     Test
+     (<| (monad.let [! random.monad]
+                    [pattern random.natural])
+         (_.for [/.Shift])
+         (all _.and
+              (_.coverage [/.shift /.opposite]
+                          (n.= /.width
+                               (n.+ (/.shift pattern)
+                                    (/.opposite pattern))))
+              (monad.let !
+                         [idx (by ! each (|>> (n.% (-- /.width)) ++) random.natural)]
+                         (_.coverage [/.<< /.>>
+                                      /.left_shifted /.right_shifted]
+                                     (let [nullity!
+                                           (and (/.= pattern (/.<< 0 pattern))
+                                                (/.= pattern (/.>> 0 pattern)))
 
-                     idempotency!
-                     (and (/.= pattern (/.<< /.width pattern))
-                          (/.= pattern (/.>> /.width pattern)))
+                                           idempotency!
+                                           (and (/.= pattern (/.<< /.width pattern))
+                                                (/.= pattern (/.>> /.width pattern)))
 
-                     movement!
-                     (let [shift (n.- idx /.width)]
-                       (/.= (/.and (/.mask idx) pattern)
-                            (|> pattern
-                                (/.<< shift)
-                                (/.>> shift))))]
-                 (and nullity!
-                      idempotency!
-                      movement!
-                      (identical? /.<< /.left_shifted)
-                      (identical? /.>> /.right_shifted)))))
-           )))
+                                           movement!
+                                           (let [shift (n.- idx /.width)]
+                                                (/.= (/.and (/.mask idx) pattern)
+                                                     (|> pattern
+                                                         (/.<< shift)
+                                                         (/.>> shift))))]
+                                          (and nullity!
+                                               idempotency!
+                                               movement!
+                                               (identical? /.<< /.left_shifted)
+                                               (identical? /.>> /.right_shifted)))))
+              )))
 
 (the mask
-  Test
-  (<| (_.for [/.Mask])
-      (monad.let [! random.monad]
-        [pattern random.natural
-         idx (by ! each (n.% /.width) random.natural)
-         signed random.integer]
-        (all _.and
-             (_.coverage [/.sign]
-               (bit.= (/.= (.i64 0) (/.and /.sign signed))
-                      (i.positive? signed)))
-             (_.coverage [/.mask]
-               (let [mask (/.mask idx)
-                     idempotency! (/.= (/.and mask pattern)
-                                       (/.and mask (/.and mask pattern)))
+     Test
+     (<| (_.for [/.Mask])
+         (monad.let [! random.monad]
+                    [pattern random.natural
+                     idx (by ! each (n.% /.width) random.natural)
+                     signed random.integer]
+                    (all _.and
+                         (_.coverage [/.sign]
+                                     (bit.= (/.= (.i64 0) (/.and /.sign signed))
+                                            (i.positive? signed)))
+                         (_.coverage [/.mask]
+                                     (let [mask (/.mask idx)
+                                           idempotency! (/.= (/.and mask pattern)
+                                                             (/.and mask (/.and mask pattern)))
 
-                     limit (++ (.natural mask))
-                     limit! (if (n.< limit pattern)
-                                (/.= pattern (/.and mask pattern))
-                                (n.< limit (/.and mask pattern)))
+                                           limit (++ (.natural mask))
+                                           limit! (if (n.< limit pattern)
+                                                      (/.= pattern (/.and mask pattern))
+                                                      (n.< limit (/.and mask pattern)))
 
-                     empty! (/.= /.false (/.mask 0))
-                     full! (/.= /.true (/.mask /.width))]
-                 (and idempotency!
-                      limit!
+                                           empty! (/.= /.false (/.mask 0))
+                                           full! (/.= /.true (/.mask /.width))]
+                                          (and idempotency!
+                                               limit!
 
-                      empty!
-                      full!)))
-             (monad.let !
-               [size (by ! each (n.% /.width) random.natural)
-                .let [spare (n.- size /.width)]
-                offset (by ! each (n.% spare) random.natural)]
-               (_.coverage [/.region]
-                 (when size
-                   0 (/.= /.false (/.region offset size))
-                   _ (/.= (|> pattern
-                              (comment "NNNNYYYYNNNN")
-                              (/.>> offset)
-                              (comment "____NNNNYYYY")
-                              (/.<< spare)
-                              (comment "YYYY________")
-                              (/.>> spare)
-                              (comment "________YYYY")
-                              (/.<< offset)
-                              (comment "____YYYY____"))
-                          (/.and (/.region offset size) pattern)))))
-             ))))
+                                               empty!
+                                               full!)))
+                         (monad.let !
+                                    [size (by ! each (n.% /.width) random.natural)
+                                     .let [spare (n.- size /.width)]
+                                     offset (by ! each (n.% spare) random.natural)]
+                                    (_.coverage [/.region]
+                                                (when size
+                                                      0 (/.= /.false (/.region offset size))
+                                                      _ (/.= (|> pattern
+                                                                 (comment "NNNNYYYYNNNN")
+                                                                 (/.>> offset)
+                                                                 (comment "____NNNNYYYY")
+                                                                 (/.<< spare)
+                                                                 (comment "YYYY________")
+                                                                 (/.>> spare)
+                                                                 (comment "________YYYY")
+                                                                 (/.<< offset)
+                                                                 (comment "____YYYY____"))
+                                                             (/.and (/.region offset size) pattern)))))
+                         ))))
 
 (the signature
-  Test
-  (all _.and
-       (_.for [/.equality /.=]
-              (static.when (identical? /.equality /.=)
-                (equalityT.spec /.equality random.i64)))
-       (_.for [/.hash]
-              (hashT.spec /.hash random.i64))
-       (_.for [/.disjunction]
-              (monoidT.spec n.equality /.disjunction random.natural))
-       (_.for [/.conjunction]
-              (monoidT.spec n.equality /.conjunction random.natural))
-       ))
+     Test
+     (all _.and
+          (_.for [/.equality /.=]
+                 (static.when (identical? /.equality /.=)
+                              (equalityT.spec /.equality random.i64)))
+          (_.for [/.hash]
+                 (hashT.spec /.hash random.i64))
+          (_.for [/.disjunction]
+                 (monoidT.spec n.equality /.disjunction random.natural))
+          (_.for [/.conjunction]
+                 (monoidT.spec n.equality /.conjunction random.natural))
+          ))
 
 (the test_for_extension
-  Test
-  (monad.let random.monad
-    [this random.i64
-     that random.i64
-     else random.i64]
-    (all _.and
-         (_.coverage [.i64_or#]
-           (and (exec
-                  !.identity_of_i64_or
-                  (.i64_=# (.i64_or# (!.all_false) this)
-                           this))
-                (exec
-                  !.idempotence_of_i64_or
-                  (.i64_=# (.i64_or# this this)
-                           this))
-                (exec
-                  !.commutativity_of_i64_or
-                  (.i64_=# (.i64_or# this that)
-                           (.i64_or# that this)))
-                (exec
-                  !.associativity_of_i64_or
-                  (.i64_=# (.i64_or# this (.i64_or# that else))
-                           (.i64_or# (.i64_or# this that) else)))
-                (exec
-                  !.annihilation_of_i64_or
-                  (.i64_=# (.i64_or# (!.all_true) this)
-                           (!.all_true)))))
-         (_.coverage [.i64_and#]
-           (and (exec
-                  !.identity_of_i64_and
-                  (.i64_=# (.i64_and# (!.all_true) this)
-                           this))
-                (exec
-                  !.idempotence_of_i64_and
-                  (.i64_=# (.i64_and# this this)
-                           this))
-                (exec
-                  !.commutativity_of_i64_and
-                  (.i64_=# (.i64_and# this that)
-                           (.i64_and# that this)))
-                (exec
-                  !.associativity_of_i64_and
-                  (.i64_=# (.i64_and# this (.i64_and# that else))
-                           (.i64_and# (.i64_and# this that) else)))
-                (exec
-                  !.annihilation_of_i64_and
-                  (.i64_=# (.i64_and# (!.all_false) this)
-                           (!.all_false)))))
-         (_.coverage [.i64_xor#]
-           (and (exec
-                  !.identity_of_i64_xor
-                  (.i64_=# (.i64_xor# (!.all_false) this)
-                           this))
-                (exec
-                  !.commutativity_of_i64_xor
-                  (.i64_=# (.i64_xor# this that)
-                           (.i64_xor# that this)))
-                (exec
-                  !.associativity_of_i64_xor
-                  (.i64_=# (.i64_xor# this (.i64_xor# that else))
-                           (.i64_xor# (.i64_xor# this that) else)))
-                (exec
-                  !.non_idempotence_of_i64_xor
-                  (.i64_=# (.i64_xor# that that)
-                           (!.all_false)))))
-         (_.coverage [.i64_=#]
-           (and (exec
-                  !.reflexivity_of_i64_=
-                  (.i64_=# this this))
-                (exec
-                  !.symmetry_of_i64_=
-                  (bit.= (.i64_=# this that)
-                         (.i64_=# that this)))))
-         )))
+     Test
+     (monad.let random.monad
+                [this random.i64
+                 that random.i64
+                 else random.i64]
+                (all _.and
+                     (_.coverage [.i64_or#]
+                                 (and (exec
+                                       !.identity_of_i64_or
+                                       (.i64_=# (.i64_or# (!.all_false) this)
+                                                this))
+                                      (exec
+                                       !.idempotence_of_i64_or
+                                       (.i64_=# (.i64_or# this this)
+                                                this))
+                                      (exec
+                                       !.commutativity_of_i64_or
+                                       (.i64_=# (.i64_or# this that)
+                                                (.i64_or# that this)))
+                                      (exec
+                                       !.associativity_of_i64_or
+                                       (.i64_=# (.i64_or# this (.i64_or# that else))
+                                                (.i64_or# (.i64_or# this that) else)))
+                                      (exec
+                                       !.annihilation_of_i64_or
+                                       (.i64_=# (.i64_or# (!.all_true) this)
+                                                (!.all_true)))))
+                     (_.coverage [.i64_and#]
+                                 (and (exec
+                                       !.identity_of_i64_and
+                                       (.i64_=# (.i64_and# (!.all_true) this)
+                                                this))
+                                      (exec
+                                       !.idempotence_of_i64_and
+                                       (.i64_=# (.i64_and# this this)
+                                                this))
+                                      (exec
+                                       !.commutativity_of_i64_and
+                                       (.i64_=# (.i64_and# this that)
+                                                (.i64_and# that this)))
+                                      (exec
+                                       !.associativity_of_i64_and
+                                       (.i64_=# (.i64_and# this (.i64_and# that else))
+                                                (.i64_and# (.i64_and# this that) else)))
+                                      (exec
+                                       !.annihilation_of_i64_and
+                                       (.i64_=# (.i64_and# (!.all_false) this)
+                                                (!.all_false)))))
+                     (_.coverage [.i64_xor#]
+                                 (and (exec
+                                       !.identity_of_i64_xor
+                                       (.i64_=# (.i64_xor# (!.all_false) this)
+                                                this))
+                                      (exec
+                                       !.commutativity_of_i64_xor
+                                       (.i64_=# (.i64_xor# this that)
+                                                (.i64_xor# that this)))
+                                      (exec
+                                       !.associativity_of_i64_xor
+                                       (.i64_=# (.i64_xor# this (.i64_xor# that else))
+                                                (.i64_xor# (.i64_xor# this that) else)))
+                                      (exec
+                                       !.non_idempotence_of_i64_xor
+                                       (.i64_=# (.i64_xor# that that)
+                                                (!.all_false)))))
+                     (_.coverage [.i64_=#]
+                                 (and (exec
+                                       !.reflexivity_of_i64_=
+                                       (.i64_=# this this))
+                                      (exec
+                                       !.symmetry_of_i64_=
+                                       (bit.= (.i64_=# this that)
+                                              (.i64_=# that this)))))
+                     )))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (_.for [.I64])
-      (monad.let [! random.monad]
-        [pattern random.natural
-         idx (by ! each (n.% /.width) random.natural)
+     Test
+     (<| (_.covering /._)
+         (_.for [.I64])
+         (monad.let [! random.monad]
+                    [pattern random.natural
+                     idx (by ! each (n.% /.width) random.natural)
 
-         left random.natural
-         right random.natural
+                     left random.natural
+                     right random.natural
 
-         this random.i64
-         that random.i64
-         else random.i64]
-        (all _.and
-             (_.coverage [/.Number]
-               (identical? .I64 /.Number))
+                     this random.i64
+                     that random.i64
+                     else random.i64]
+                    (all _.and
+                         (_.coverage [/.Number]
+                                     (identical? .I64 /.Number))
 
-             ..test_for_extension
-             
-             (_.coverage [/.width /.bits_per_byte /.bytes_per_i64]
-               (and (n.= /.bytes_per_i64
-                         (n./ /.bits_per_byte /.width))
-                    (n.= /.bits_per_byte
-                         (n./ /.bytes_per_i64 /.width))))
-             (_.by_proof [/.false]
-                         [!.false])
-             (_.by_proof [/.true]
-                         [!.true])
-             (_.by_proof [/.or]
-                         [!.identity_of_or
-                          !.idempotence_of_or
-                          !.commutativity_of_or
-                          !.associativity_of_or
-                          !.annihilation_of_or])
-             (_.by_proof [/.and]
-                         [!.identity_of_and
-                          !.idempotence_of_and
-                          !.commutativity_of_and
-                          !.associativity_of_and
-                          !.annihilation_of_and])
-             (_.by_proof [/.not]
-                         [!.double_negation])
-             (_.by_proof [/.xor]
-                         [!.identity_of_xor
-                          !.commutativity_of_xor
-                          !.associativity_of_xor
-                          !.non_idempotence_of_xor
-                          !.complementation_of_xor])
-             (_.coverage [/.ones]
-               (let [zero&one!
-                     (if (/.one? idx pattern)
-                         (n.= (-- (/.ones pattern)) (/.ones (/.zero idx pattern)))
-                         (n.= (++ (/.ones pattern)) (/.ones (/.one idx pattern))))
+                         ..test_for_extension
+                         
+                         (_.coverage [/.width /.bits_per_byte /.bytes_per_i64]
+                                     (and (n.= /.bytes_per_i64
+                                               (n./ /.bits_per_byte /.width))
+                                          (n.= /.bits_per_byte
+                                               (n./ /.bytes_per_i64 /.width))))
+                         (_.by_proof [/.false]
+                                     [!.false])
+                         (_.by_proof [/.true]
+                                     [!.true])
+                         (_.by_proof [/.and/or]
+                                     [!.identity_of_or
+                                      !.idempotence_of_or
+                                      !.commutativity_of_or
+                                      !.associativity_of_or
+                                      !.annihilation_of_or])
+                         (_.by_proof [/.and]
+                                     [!.identity_of_and
+                                      !.idempotence_of_and
+                                      !.commutativity_of_and
+                                      !.associativity_of_and
+                                      !.annihilation_of_and])
+                         (_.by_proof [/.not]
+                                     [!.double_negation])
+                         (_.by_proof [/.xor]
+                                     [!.identity_of_xor
+                                      !.commutativity_of_xor
+                                      !.associativity_of_xor
+                                      !.non_idempotence_of_xor
+                                      !.complementation_of_xor])
+                         (_.coverage [/.ones]
+                                     (let [zero&one!
+                                           (if (/.one? idx pattern)
+                                               (n.= (-- (/.ones pattern)) (/.ones (/.zero idx pattern)))
+                                               (n.= (++ (/.ones pattern)) (/.ones (/.one idx pattern))))
 
-                     complementarity!
-                     (n.= /.width
-                          (n.+ (/.ones pattern)
-                               (/.ones (/.not pattern))))]
-                 (and zero&one!
-                      complementarity!)))
-             (_.coverage [/.Rotation
-                          /.left_rotated /.right_rotated]
-               (let [false!
-                     (and (/.= /.false (/.left_rotated idx /.false))
-                          (/.= /.false (/.right_rotated idx /.false)))
+                                           complementarity!
+                                           (n.= /.width
+                                                (n.+ (/.ones pattern)
+                                                     (/.ones (/.not pattern))))]
+                                          (and zero&one!
+                                               complementarity!)))
+                         (_.coverage [/.Rotation
+                                      /.left_rotated /.right_rotated]
+                                     (let [false!
+                                           (and (/.= /.false (/.left_rotated idx /.false))
+                                                (/.= /.false (/.right_rotated idx /.false)))
 
-                     true!
-                     (and (/.= /.true (/.left_rotated idx /.true))
-                          (/.= /.true (/.right_rotated idx /.true)))
+                                           true!
+                                           (and (/.= /.true (/.left_rotated idx /.true))
+                                                (/.= /.true (/.right_rotated idx /.true)))
 
-                     inverse!
-                     (and (|> pattern
-                              (/.left_rotated idx)
-                              (/.right_rotated idx)
-                              (/.= pattern))
-                          (|> pattern
-                              (/.right_rotated idx)
-                              (/.left_rotated idx)
-                              (/.= pattern)))
+                                           inverse!
+                                           (and (|> pattern
+                                                    (/.left_rotated idx)
+                                                    (/.right_rotated idx)
+                                                    (/.= pattern))
+                                                (|> pattern
+                                                    (/.right_rotated idx)
+                                                    (/.left_rotated idx)
+                                                    (/.= pattern)))
 
-                     nullity!
-                     (and (|> pattern
-                              (/.left_rotated 0)
-                              (/.= pattern))
-                          (|> pattern
-                              (/.right_rotated 0)
-                              (/.= pattern)))
+                                           nullity!
+                                           (and (|> pattern
+                                                    (/.left_rotated 0)
+                                                    (/.= pattern))
+                                                (|> pattern
+                                                    (/.right_rotated 0)
+                                                    (/.= pattern)))
 
-                     futility!
-                     (and (|> pattern
-                              (/.left_rotated /.width)
-                              (/.= pattern))
-                          (|> pattern
-                              (/.right_rotated /.width)
-                              (/.= pattern)))]
-                 (and false!
-                      true!
-                      inverse!
-                      nullity!
-                      futility!)))
-             (_.coverage [/.in_reverse]
-               (and (|> pattern /.in_reverse /.in_reverse (/.= pattern))
-                    (or (|> pattern /.in_reverse (/.= pattern) not)
-                        (let [high (/.and (number.base_16 "FFFFFFFF00000000")
-                                          pattern)
-                              low (/.and (number.base_16 "00000000FFFFFFFF")
-                                         pattern)]
-                          (/.= (/.in_reverse high)
-                               low)))))
-             (_.coverage [/.decrement /.less /.previous /.before]
-               (and (identical? .-- /.decrement)
-                    (identical? .-- /.less)
-                    (identical? .-- /.previous)
-                    (identical? .-- /.before)))
-             (_.coverage [/.increment /.more /.next /.after]
-               (and (identical? .++ /.increment)
-                    (identical? .++ /.more)
-                    (identical? .++ /.next)
-                    (identical? .++ /.after)))
-             (_.coverage [/.highest_bit]
-               (and (|> 0
-                        /.highest_bit
-                        (/.= /.width))
-                    (|> 1
-                        (/.<< idx)
-                        /.highest_bit
-                        (/.= idx))))
-             
-             ..bit
-             ..shift
-             ..mask
-             ..signature
+                                           futility!
+                                           (and (|> pattern
+                                                    (/.left_rotated /.width)
+                                                    (/.= pattern))
+                                                (|> pattern
+                                                    (/.right_rotated /.width)
+                                                    (/.= pattern)))]
+                                          (and false!
+                                               true!
+                                               inverse!
+                                               nullity!
+                                               futility!)))
+                         (_.coverage [/.in_reverse]
+                                     (and (|> pattern /.in_reverse /.in_reverse (/.= pattern))
+                                          (and/or (|> pattern /.in_reverse (/.= pattern) not)
+                                                  (let [high (/.and (number.base_16 "FFFFFFFF00000000")
+                                                                    pattern)
+                                                        low (/.and (number.base_16 "00000000FFFFFFFF")
+                                                                   pattern)]
+                                                       (/.= (/.in_reverse high)
+                                                            low)))))
+                         (_.coverage [/.decrement /.less /.previous /.before]
+                                     (and (identical? .-- /.decrement)
+                                          (identical? .-- /.less)
+                                          (identical? .-- /.previous)
+                                          (identical? .-- /.before)))
+                         (_.coverage [/.increment /.more /.next /.after]
+                                     (and (identical? .++ /.increment)
+                                          (identical? .++ /.more)
+                                          (identical? .++ /.next)
+                                          (identical? .++ /.after)))
+                         (_.coverage [/.highest_bit]
+                                     (and (|> 0
+                                              /.highest_bit
+                                              (/.= /.width))
+                                          (|> 1
+                                              (/.<< idx)
+                                              /.highest_bit
+                                              (/.= idx))))
+                         
+                         ..bit
+                         ..shift
+                         ..mask
+                         ..signature
 
-             /natural.test
-             /integer.test
-             /revolution.test
-             /real.test
-             /fraction.test
-             /complex.test
-             /rational.test
-             ))))
+                         /natural.test
+                         /integer.test
+                         /revolution.test
+                         /real.test
+                         /fraction.test
+                         /complex.test
+                         /rational.test
+                         ))))

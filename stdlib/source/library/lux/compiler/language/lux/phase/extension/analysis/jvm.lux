@@ -575,18 +575,18 @@
                (analysis.except ..non_parameter objectT)
                
                {.:Nominal name parameters}
-               (`` (if (or (,, (template.with [<type>]
-                                              [(text.= (..reflection <type>) name)]
+               (`` (if (and/or (,, (template.with [<type>]
+                                                  [(text.= (..reflection <type>) name)]
 
-                                              [[jvm.boolean]
-                                               [jvm.byte]
-                                               [jvm.short]
-                                               [jvm.int]
-                                               [jvm.long]
-                                               [jvm.float]
-                                               [jvm.double]
-                                               [jvm.char]]))
-                           (text.starts_with? descriptor.array_prefix name))
+                                                  [[jvm.boolean]
+                                                   [jvm.byte]
+                                                   [jvm.short]
+                                                   [jvm.int]
+                                                   [jvm.long]
+                                                   [jvm.float]
+                                                   [jvm.double]
+                                                   [jvm.char]]))
+                               (text.starts_with? descriptor.array_prefix name))
                        (analysis.except ..non_parameter objectT)
 
                        (phase:pure (jvm.class (list) name))))
@@ -991,11 +991,11 @@
                              can_cast? (is (Operation Bit)
                                            (`` (if (,, (template.with [<primitive> <object>]
                                                                       [(let [=primitive (reflection.reflection <primitive>)]
-                                                                            (or (and (text.= =primitive from_name)
-                                                                                     (or (text.= <object> to_name)
-                                                                                         (text.= =primitive to_name)))
-                                                                                (and (text.= <object> from_name)
-                                                                                     (text.= =primitive to_name))))
+                                                                            (and/or (and (text.= =primitive from_name)
+                                                                                         (and/or (text.= <object> to_name)
+                                                                                                 (text.= =primitive to_name)))
+                                                                                    (and (text.= <object> from_name)
+                                                                                         (text.= =primitive to_name))))
                                                                        (pure true)]
 
                                                                       [[reflection.boolean box.boolean]
@@ -1232,8 +1232,8 @@
                                           true)
                        same_special? (when method_style
                                            {:Special}
-                                           (not (or (ffi.of_boolean (java/lang/reflect/Modifier:isInterface [(java/lang/Class:getModifiers [] class)]))
-                                                    (ffi.of_boolean (java/lang/reflect/Modifier:isAbstract [modifiers]))))
+                                           (not (and/or (ffi.of_boolean (java/lang/reflect/Modifier:isInterface [(java/lang/Class:getModifiers [] class)]))
+                                                        (ffi.of_boolean (java/lang/reflect/Modifier:isAbstract [modifiers]))))
 
                                            _
                                            true)
@@ -1806,8 +1806,8 @@
                      (|> class
                          <methods>
                          (list.only (|>> (java/lang/reflect/Method:getModifiers [])
-                                         (predicate.or (|>> [] java/lang/reflect/Modifier:isPublic ffi.of_boolean)
-                                                       (|>> [] java/lang/reflect/Modifier:isProtected ffi.of_boolean))))
+                                         (predicate.and/or (|>> [] java/lang/reflect/Modifier:isPublic ffi.of_boolean)
+                                                           (|>> [] java/lang/reflect/Modifier:isProtected ffi.of_boolean))))
                          <only>
                          (list.each' try.monad
                                      (function (_ method)

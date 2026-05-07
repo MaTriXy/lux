@@ -37,224 +37,224 @@
   ["[0]" / (.open monad)]])
 
 (the signatures
-  Test
-  (monad.let [! random.monad]
-    [size (by ! each (n.% 100) random.natural)]
-    (all _.and
-         (_.for [/.equality]
-                (equalityT.spec (/.equality n.equality) (/.random size random.natural)))
-         (_.for [/.monoid]
-                (monoidT.spec (/.equality n.equality) /.monoid (/.random size random.natural)))
-         (_.for [/.mix]
-                (mixT.spec /:pure /.equality /.mix))
-         (_.for [/.functor]
-                (functorT.spec /:pure /.equality /.functor))
-         (_.for [/.monad]
-                (monadT.spec /:pure /.equality /.monad))
-         )))
+     Test
+     (monad.let [! random.monad]
+                [size (by ! each (n.% 100) random.natural)]
+                (all _.and
+                     (_.for [/.equality]
+                            (equalityT.spec (/.equality n.equality) (/.random size random.natural)))
+                     (_.for [/.monoid]
+                            (monoidT.spec (/.equality n.equality) /.monoid (/.random size random.natural)))
+                     (_.for [/.mix]
+                            (mixT.spec /:pure /.equality /.mix))
+                     (_.for [/.functor]
+                            (functorT.spec /:pure /.equality /.functor))
+                     (_.for [/.monad]
+                            (monadT.spec /:pure /.equality /.monad))
+                     )))
 
 (the whole
-  Test
-  (<| (with "/:[0]" (/.equality n.equality))
-      (monad.let [! random.monad]
-        [size (by ! each (n.% 100) random.natural)
-         sample (random.set n.hash size random.natural)
-         .let [sample (|> sample set.as_list /.of_list)]])
-      (all _.and
-           (_.coverage [/.size]
-             (n.= size (/.size sample)))
-           (_.coverage [/.empty?]
-             (bit.= (/.empty? sample) (n.= 0 (/.size sample))))
-           (_.coverage [/.empty]
-             (/.empty? /.empty))
-           (_.coverage [/.as_list /.of_list]
-             (|> sample
-                 /.as_list
-                 /.of_list
-                 (/:= sample)))
-           (_.coverage [/.as_array /.of_array]
-             (|> sample
-                 /.as_array
-                 /.of_array
-                 (/:= sample)))
-           (_.coverage [/.in_reverse]
-             (or (n.< 2 (/.size sample))
-                 (let [not_same!
-                       (not (/:= sample
-                                 (/.in_reverse sample)))
+     Test
+     (<| (with "/:[0]" (/.equality n.equality))
+         (monad.let [! random.monad]
+                    [size (by ! each (n.% 100) random.natural)
+                     sample (random.set n.hash size random.natural)
+                     .let [sample (|> sample set.as_list /.of_list)]])
+         (all _.and
+              (_.coverage [/.size]
+                          (n.= size (/.size sample)))
+              (_.coverage [/.empty?]
+                          (bit.= (/.empty? sample) (n.= 0 (/.size sample))))
+              (_.coverage [/.empty]
+                          (/.empty? /.empty))
+              (_.coverage [/.as_list /.of_list]
+                          (|> sample
+                              /.as_list
+                              /.of_list
+                              (/:= sample)))
+              (_.coverage [/.as_array /.of_array]
+                          (|> sample
+                              /.as_array
+                              /.of_array
+                              (/:= sample)))
+              (_.coverage [/.in_reverse]
+                          (and/or (n.< 2 (/.size sample))
+                                  (let [not_same!
+                                        (not (/:= sample
+                                                  (/.in_reverse sample)))
 
-                       self_symmetry!
-                       (/:= sample
-                            (/.in_reverse (/.in_reverse sample)))]
-                   (and not_same!
-                        self_symmetry!))))
-           (_.coverage [/.every? /.any?]
-             (if (/.every? n.even? sample)
-                 (not (/.any? (predicate.complement n.even?) sample))
-                 (/.any? (predicate.complement n.even?) sample)))
-           )))
+                                        self_symmetry!
+                                        (/:= sample
+                                             (/.in_reverse (/.in_reverse sample)))]
+                                       (and not_same!
+                                            self_symmetry!))))
+              (_.coverage [/.every? /.any?]
+                          (if (/.every? n.even? sample)
+                              (not (/.any? (predicate.complement n.even?) sample))
+                              (/.any? (predicate.complement n.even?) sample)))
+              )))
 
 (the index_based
-  Test
-  (monad.let [! random.monad]
-    [size (by ! each (|>> (n.% 100) ++) random.natural)]
-    (all _.and
-         (monad.let !
-           [good_index (|> random.natural (by ! each (n.% size)))
-            .let [bad_index (n.+ size good_index)]
-            sample (random.set n.hash size random.natural)
-            non_member (random.only (|>> (set.member? sample) not)
-                                    random.natural)
-            .let [sample (|> sample set.as_list /.of_list)]]
-           (all _.and
-                (_.coverage [/.item]
-                  (when (/.item good_index sample)
-                    {try.:Success member}
-                    (/.member? n.equality sample member)
-                    
-                    {try.:Failure error}
-                    false))
-                (_.coverage [/.has]
-                  (<| (try.else false)
-                      (monad.let try.monad
-                        [sample (/.has good_index non_member sample)
-                         actual (/.item good_index sample)]
-                        (pure (identical? non_member actual)))))
-                (_.coverage [/.revised]
-                  (<| (try.else false)
-                      (monad.let try.monad
-                        [sample (/.has good_index non_member sample)
-                         sample (/.revised good_index ++ sample)
-                         actual (/.item good_index sample)]
-                        (pure (n.= (++ non_member) actual)))))
-                (_.coverage [/.within_bounds?]
-                  (and (/.within_bounds? sample good_index)
-                       (not (/.within_bounds? sample bad_index))))
-                (_.coverage [/.index_out_of_bounds]
-                  (let [fails! (is (for_any (_ a)
-                                     (-> (Try a)
-                                         Bit))
-                                   (function (_ situation)
-                                     (when situation
-                                       {try.:Success member}
-                                       false
-                                       
-                                       {try.:Failure error}
-                                       (exception.is? /.index_out_of_bounds error))))]
-                    (and (fails! (/.item bad_index sample))
-                         (fails! (/.has bad_index non_member sample))
-                         (fails! (/.revised bad_index ++ sample)))))
-                ))
-         )))
+     Test
+     (monad.let [! random.monad]
+                [size (by ! each (|>> (n.% 100) ++) random.natural)]
+                (all _.and
+                     (monad.let !
+                                [good_index (|> random.natural (by ! each (n.% size)))
+                                 .let [bad_index (n.+ size good_index)]
+                                 sample (random.set n.hash size random.natural)
+                                 non_member (random.only (|>> (set.member? sample) not)
+                                                         random.natural)
+                                 .let [sample (|> sample set.as_list /.of_list)]]
+                                (all _.and
+                                     (_.coverage [/.item]
+                                                 (when (/.item good_index sample)
+                                                       {try.:Success member}
+                                                       (/.member? n.equality sample member)
+                                                       
+                                                       {try.:Failure error}
+                                                       false))
+                                     (_.coverage [/.has]
+                                                 (<| (try.else false)
+                                                     (monad.let try.monad
+                                                                [sample (/.has good_index non_member sample)
+                                                                 actual (/.item good_index sample)]
+                                                                (pure (identical? non_member actual)))))
+                                     (_.coverage [/.revised]
+                                                 (<| (try.else false)
+                                                     (monad.let try.monad
+                                                                [sample (/.has good_index non_member sample)
+                                                                 sample (/.revised good_index ++ sample)
+                                                                 actual (/.item good_index sample)]
+                                                                (pure (n.= (++ non_member) actual)))))
+                                     (_.coverage [/.within_bounds?]
+                                                 (and (/.within_bounds? sample good_index)
+                                                      (not (/.within_bounds? sample bad_index))))
+                                     (_.coverage [/.index_out_of_bounds]
+                                                 (let [fails! (is (for_any (_ a)
+                                                                           (-> (Try a)
+                                                                               Bit))
+                                                                  (function (_ situation)
+                                                                            (when situation
+                                                                                  {try.:Success member}
+                                                                                  false
+                                                                                  
+                                                                                  {try.:Failure error}
+                                                                                  (exception.is? /.index_out_of_bounds error))))]
+                                                      (and (fails! (/.item bad_index sample))
+                                                           (fails! (/.has bad_index non_member sample))
+                                                           (fails! (/.revised bad_index ++ sample)))))
+                                     ))
+                     )))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (_.for [/.Sequence
-              /.:level /.:size /.:root /.:tail])
-      (monad.let [! random.monad]
-        [size (by ! each (|>> (n.% 100) ++) random.natural)]
-        (all _.and
-             ..signatures
-             ..whole
-             ..index_based
+     Test
+     (<| (_.covering /._)
+         (_.for [/.Sequence
+                 /.:level /.:size /.:root /.:tail])
+         (monad.let [! random.monad]
+                    [size (by ! each (|>> (n.% 100) ++) random.natural)]
+                    (all _.and
+                         ..signatures
+                         ..whole
+                         ..index_based
 
-             (<| (with "/:[0]" (/.equality n.equality))
-                 (monad.let !
-                   [sample (random.set n.hash size random.natural)
-                    non_member (random.only (|>> (set.member? sample) not)
-                                            random.natural)
-                    .let [sample (|> sample set.as_list /.of_list)]])
-                 (all _.and
-                      (monad.let !
-                        [value/0 random.natural
-                         value/1 random.natural
-                         value/2 random.natural]
-                        (_.coverage [/.new]
-                          (/:= (/.of_list (list value/0 value/1 value/2))
-                               (/.new value/0 value/1 value/2))))
-                      (_.coverage [/.member?]
-                        (and (list.every? (/.member? n.equality sample)
-                                          (/.as_list sample))
-                             (not (/.member? n.equality sample non_member))))
-                      (_.coverage [/.suffix]
-                        (let [added (/.suffix non_member sample)
+                         (<| (with "/:[0]" (/.equality n.equality))
+                             (monad.let !
+                                        [sample (random.set n.hash size random.natural)
+                                         non_member (random.only (|>> (set.member? sample) not)
+                                                                 random.natural)
+                                         .let [sample (|> sample set.as_list /.of_list)]])
+                             (all _.and
+                                  (monad.let !
+                                             [value/0 random.natural
+                                              value/1 random.natural
+                                              value/2 random.natural]
+                                             (_.coverage [/.new]
+                                                         (/:= (/.of_list (list value/0 value/1 value/2))
+                                                              (/.new value/0 value/1 value/2))))
+                                  (_.coverage [/.member?]
+                                              (and (list.every? (/.member? n.equality sample)
+                                                                (/.as_list sample))
+                                                   (not (/.member? n.equality sample non_member))))
+                                  (_.coverage [/.suffix]
+                                              (let [added (/.suffix non_member sample)
 
-                              size_increases!
-                              (n.= (++ (/.size sample))
-                                   (/.size added))
+                                                    size_increases!
+                                                    (n.= (++ (/.size sample))
+                                                         (/.size added))
 
-                              is_a_member!
-                              (/.member? n.equality added non_member)]
-                          (and size_increases!
-                               is_a_member!)))
-                      (_.coverage [/.prefix]
-                        (if (/.empty? sample)
-                            (/.empty? (/.prefix sample))
-                            (let [expected_size!
-                                  (n.= (-- (/.size sample))
-                                       (/.size (/.prefix sample)))
+                                                    is_a_member!
+                                                    (/.member? n.equality added non_member)]
+                                                   (and size_increases!
+                                                        is_a_member!)))
+                                  (_.coverage [/.prefix]
+                                              (if (/.empty? sample)
+                                                  (/.empty? (/.prefix sample))
+                                                  (let [expected_size!
+                                                        (n.= (-- (/.size sample))
+                                                             (/.size (/.prefix sample)))
 
-                                  symmetry!
-                                  (|> sample
-                                      (/.suffix non_member)
-                                      /.prefix
-                                      (/:= sample))]
-                              (and expected_size!
-                                   symmetry!))))
-                      (_.coverage [/.only]
-                        (let [positives (/.only n.even? sample)
-                              negatives (/.only (predicate.complement n.even?) sample)]
-                          (and (/.every? n.even? positives)
-                               (not (/.any? n.even? negatives))
+                                                        symmetry!
+                                                        (|> sample
+                                                            (/.suffix non_member)
+                                                            /.prefix
+                                                            (/:= sample))]
+                                                       (and expected_size!
+                                                            symmetry!))))
+                                  (_.coverage [/.only]
+                                              (let [positives (/.only n.even? sample)
+                                                    negatives (/.only (predicate.complement n.even?) sample)]
+                                                   (and (/.every? n.even? positives)
+                                                        (not (/.any? n.even? negatives))
 
-                               (n.= (/.size sample)
-                                    (n.+ (/.size positives)
-                                         (/.size negatives))))))
-                      (_.coverage [/.all]
-                        (let [positives (/.all (function (_ it)
-                                                 (if (n.even? it)
-                                                     {.:Some it}
-                                                     {.:None}))
-                                               sample)
-                              negatives (/.all (function (_ it)
-                                                 (if (not (n.even? it))
-                                                     {.:Some it}
-                                                     {.:None}))
-                                               sample)]
-                          (and (/.every? n.even? positives)
-                               (not (/.any? n.even? negatives))
+                                                        (n.= (/.size sample)
+                                                             (n.+ (/.size positives)
+                                                                  (/.size negatives))))))
+                                  (_.coverage [/.all]
+                                              (let [positives (/.all (function (_ it)
+                                                                               (if (n.even? it)
+                                                                                   {.:Some it}
+                                                                                   {.:None}))
+                                                                     sample)
+                                                    negatives (/.all (function (_ it)
+                                                                               (if (not (n.even? it))
+                                                                                   {.:Some it}
+                                                                                   {.:None}))
+                                                                     sample)]
+                                                   (and (/.every? n.even? positives)
+                                                        (not (/.any? n.even? negatives))
 
-                               (n.= (/.size sample)
-                                    (n.+ (/.size positives)
-                                         (/.size negatives))))))
-                      (_.coverage [/.one]
-                        (<| (with "/:[0]" /.functor)
-                            (let [choice (is (-> Natural (Maybe Text))
-                                             (function (_ value)
-                                               (if (n.even? value)
-                                                   {.:Some (by n.base_10 as value)}
-                                                   {.:None})))])
-                            (when [(|> sample
-                                       (/.only n.even?)
-                                       (/:each (by n.base_10 as))
-                                       (/.item 0))
-                                   (/.one choice sample)]
-                              [{try.:Success expected} {try.:Success actual}]
-                              (text.= expected actual)
+                                                        (n.= (/.size sample)
+                                                             (n.+ (/.size positives)
+                                                                  (/.size negatives))))))
+                                  (_.coverage [/.one]
+                                              (<| (with "/:[0]" /.functor)
+                                                  (let [choice (is (-> Natural (Maybe Text))
+                                                                   (function (_ value)
+                                                                             (if (n.even? value)
+                                                                                 {.:Some (by n.base_10 as value)}
+                                                                                 {.:None})))])
+                                                  (when [(|> sample
+                                                             (/.only n.even?)
+                                                             (/:each (by n.base_10 as))
+                                                             (/.item 0))
+                                                         (/.one choice sample)]
+                                                        [{try.:Success expected} {try.:Success actual}]
+                                                        (text.= expected actual)
 
-                              [{try.:Failure _} {try.:Failure _}]
-                              true
+                                                        [{try.:Failure _} {try.:Failure _}]
+                                                        true
 
-                              _
-                              false)))
-                      (monad.let !
-                        [.let [equality (/.equality n.equality)
-                               random (/.random 2 random.natural)]
-                         expected random
-                         actual (random.only (|>> (by equality = expected) not)
-                                             random)]
-                        (_.coverage [/.random]
-                          (not (by equality = expected actual))))
-                      ))
-             ))))
+                                                        _
+                                                        false)))
+                                  (monad.let !
+                                             [.let [equality (/.equality n.equality)
+                                                    random (/.random 2 random.natural)]
+                                              expected random
+                                              actual (random.only (|>> (by equality = expected) not)
+                                                                  random)]
+                                             (_.coverage [/.random]
+                                                         (not (by equality = expected actual))))
+                                  ))
+                         ))))

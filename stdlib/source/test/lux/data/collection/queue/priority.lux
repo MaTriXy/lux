@@ -20,79 +20,79 @@
   ["[0]" / (.only Queue)]])
 
 (the .public (random size)
-  (-> Natural (Random (Queue Natural)))
-  (monad.let [! random.monad]
-    [inputs (random.list size random.natural)]
-    (list.mix' ! (function (_ head tail)
-                   (monad.let !
-                     [priority random.natural]
-                     (pure (/.end priority head tail))))
-               inputs
-               /.empty)))
+     (-> Natural (Random (Queue Natural)))
+     (monad.let [! random.monad]
+                [inputs (random.list size random.natural)]
+                (list.mix' ! (function (_ head tail)
+                                       (monad.let !
+                                                  [priority random.natural]
+                                                  (pure (/.end priority head tail))))
+                           inputs
+                           /.empty)))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (_.for [/.Queue])
-      (monad.let [! random.monad]
-        [size (by ! each (n.% 100) random.natural)
-         sample (..random size)
-         non_member_priority random.natural
-         non_member (random.only (|>> (/.member? n.equality sample) not)
-                                 random.natural)
+     Test
+     (<| (_.covering /._)
+         (_.for [/.Queue])
+         (monad.let [! random.monad]
+                    [size (by ! each (n.% 100) random.natural)
+                     sample (..random size)
+                     non_member_priority random.natural
+                     non_member (random.only (|>> (/.member? n.equality sample) not)
+                                             random.natural)
 
-         max_member random.natural
-         min_member random.natural]
-        (all _.and
-             (_.coverage [/.size]
-               (n.= size (/.size sample)))
-             (_.coverage [/.empty?]
-               (bit.= (n.= 0 (/.size sample))
-                      (/.empty? sample)))
-             (_.coverage [/.empty]
-               (/.empty? /.empty))
-             (_.coverage [/.front]
-               (when (/.front sample)
-                 {.:Some first}
-                 (n.> 0 (/.size sample))
-                 
-                 {.:None}
-                 (/.empty? sample)))
-             (_.coverage [/.member?]
-               (when (/.front sample)
-                 {.:Some first}
-                 (/.member? n.equality sample first)
-                 
-                 {.:None}
-                 (/.empty? sample)))
-             (_.coverage [/.end]
-               (let [sample+ (/.end non_member_priority non_member sample)]
-                 (and (not (/.member? n.equality sample non_member))
-                      (n.= (++ (/.size sample))
-                           (/.size sample+))
-                      (/.member? n.equality sample+ non_member))))
-             (_.coverage [/.next]
-               (let [sample- (/.next sample)]
-                 (or (and (/.empty? sample)
-                          (/.empty? sample-))
-                     (n.= (-- (/.size sample))
-                          (/.size sample-)))))
-             (_.for [/.Priority]
+                     max_member random.natural
+                     min_member random.natural]
                     (all _.and
-                         (_.coverage [/.maximum]
-                           (|> /.empty
-                               (/.end /.minimum min_member)
-                               (/.end /.maximum max_member)
-                               /.front
-                               (maybe:each (n.= max_member))
-                               (maybe.else false)))
-                         (_.coverage [/.minimum]
-                           (|> /.empty
-                               (/.end /.maximum max_member)
-                               (/.end /.minimum min_member)
-                               /.next
-                               /.front
-                               (maybe:each (n.= min_member))
-                               (maybe.else false)))
-                         ))
-             ))))
+                         (_.coverage [/.size]
+                                     (n.= size (/.size sample)))
+                         (_.coverage [/.empty?]
+                                     (bit.= (n.= 0 (/.size sample))
+                                            (/.empty? sample)))
+                         (_.coverage [/.empty]
+                                     (/.empty? /.empty))
+                         (_.coverage [/.front]
+                                     (when (/.front sample)
+                                           {.:Some first}
+                                           (n.> 0 (/.size sample))
+                                           
+                                           {.:None}
+                                           (/.empty? sample)))
+                         (_.coverage [/.member?]
+                                     (when (/.front sample)
+                                           {.:Some first}
+                                           (/.member? n.equality sample first)
+                                           
+                                           {.:None}
+                                           (/.empty? sample)))
+                         (_.coverage [/.end]
+                                     (let [sample+ (/.end non_member_priority non_member sample)]
+                                          (and (not (/.member? n.equality sample non_member))
+                                               (n.= (++ (/.size sample))
+                                                    (/.size sample+))
+                                               (/.member? n.equality sample+ non_member))))
+                         (_.coverage [/.next]
+                                     (let [sample- (/.next sample)]
+                                          (and/or (and (/.empty? sample)
+                                                       (/.empty? sample-))
+                                                  (n.= (-- (/.size sample))
+                                                       (/.size sample-)))))
+                         (_.for [/.Priority]
+                                (all _.and
+                                     (_.coverage [/.maximum]
+                                                 (|> /.empty
+                                                     (/.end /.minimum min_member)
+                                                     (/.end /.maximum max_member)
+                                                     /.front
+                                                     (maybe:each (n.= max_member))
+                                                     (maybe.else false)))
+                                     (_.coverage [/.minimum]
+                                                 (|> /.empty
+                                                     (/.end /.maximum max_member)
+                                                     (/.end /.minimum min_member)
+                                                     /.next
+                                                     /.front
+                                                     (maybe:each (n.= min_member))
+                                                     (maybe.else false)))
+                                     ))
+                         ))))

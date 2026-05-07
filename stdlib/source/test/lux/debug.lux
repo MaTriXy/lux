@@ -52,345 +52,345 @@
   ["[1][0]" type]])
 
 (the can_represent_simple_types
-  (Random Bit)
-  (monad.let random.monad
-    [sample_bit random.bit
-     sample_integer random.integer
-     sample_real random.real
-     sample_text (random.upper_cased 10)
-     sample_natural random.natural
-     sample_revolution random.revolution]
-    (pure (`` (and (,, (template.with [<type> <injection> <sample>]
-                                      [(|> (/.representation <type> <sample>)
-                                           (try:each (text.= (<injection> <sample>)))
-                                           (try.else false))]
+     (Random Bit)
+     (monad.let random.monad
+                [sample_bit random.bit
+                 sample_integer random.integer
+                 sample_real random.real
+                 sample_text (random.upper_cased 10)
+                 sample_natural random.natural
+                 sample_revolution random.revolution]
+                (pure (`` (and (,, (template.with [<type> <injection> <sample>]
+                                                  [(|> (/.representation <type> <sample>)
+                                                       (try:each (text.= (<injection> <sample>)))
+                                                       (try.else false))]
 
-                                      [[Bit bit.as_text sample_bit]
-                                       [Natural %.natural sample_natural]
-                                       [Integer %.integer sample_integer]
-                                       [Revolution %.revolution sample_revolution]
-                                       [Real %.real sample_real]
-                                       [Text %.text sample_text]]))
-                   )))))
+                                                  [[Bit bit.as_text sample_bit]
+                                                   [Natural %.natural sample_natural]
+                                                   [Integer %.integer sample_integer]
+                                                   [Revolution %.revolution sample_revolution]
+                                                   [Real %.real sample_real]
+                                                   [Text %.text sample_text]]))
+                               )))))
 
 (the can_represent_structure_types
-  (Random Bit)
-  (monad.let random.monad
-    [sample_bit random.bit
-     sample_integer random.integer
-     sample_real random.real]
-    (pure (`` (and (when (/.representation (type [Bit Integer Real])
-                                           [sample_bit sample_integer sample_real])
-                     {try.:Success actual}
-                     (text.= (text "[" (bit.as_text sample_bit)
-                                   " " (%.integer sample_integer)
-                                   " " (%.real sample_real)
-                                   "]")
-                             actual)
+     (Random Bit)
+     (monad.let random.monad
+                [sample_bit random.bit
+                 sample_integer random.integer
+                 sample_real random.real]
+                (pure (`` (and (when (/.representation (type [Bit Integer Real])
+                                                       [sample_bit sample_integer sample_real])
+                                     {try.:Success actual}
+                                     (text.= (text "[" (bit.as_text sample_bit)
+                                                   " " (%.integer sample_integer)
+                                                   " " (%.real sample_real)
+                                                   "]")
+                                             actual)
 
-                     {try.:Failure error}
-                     false)
-                   (,, (template.with [<lefts> <right?> <value> <injection>]
-                                      [(|> (/.representation (type (Or Bit Integer Real))
-                                                             (is (Or Bit Integer Real)
-                                                                 {<lefts> <right?> <value>}))
-                                           (try:each (text.= (text "{" (%.natural <lefts>)
-                                                                   " " (bit.as_text <right?>)
-                                                                   " " (<injection> <value>) "}")))
-                                           (try.else false))]
+                                     {try.:Failure error}
+                                     false)
+                               (,, (template.with [<lefts> <right?> <value> <injection>]
+                                                  [(|> (/.representation (type (Or Bit Integer Real))
+                                                                         (is (Or Bit Integer Real)
+                                                                             {<lefts> <right?> <value>}))
+                                                       (try:each (text.= (text "{" (%.natural <lefts>)
+                                                                               " " (bit.as_text <right?>)
+                                                                               " " (<injection> <value>) "}")))
+                                                       (try.else false))]
 
-                                      [[0 0b sample_bit bit.as_text]
-                                       [1 0b sample_integer %.integer]
-                                       [1 1b sample_real %.real]]))
-                   )))))
+                                                  [[0 0b sample_bit bit.as_text]
+                                                   [1 0b sample_integer %.integer]
+                                                   [1 1b sample_real %.real]]))
+                               )))))
 
 (the can_represent_complex_types
-  (Random Bit)
-  (monad.let random.monad
-    [sample_fraction $//fraction.random
-     sample_name ($//name.random 5 5)
-     sample_provenance $//provenance.random
-     sample_type ($//type.random 0)
-     sample_code $//code.random]
-    (pure (`` (and (,, (template.with [<type> <injection> <sample>]
-                                      [(|> (/.representation <type> <sample>)
-                                           (try:each (text.= (<injection> <sample>)))
-                                           (try.else false))]
+     (Random Bit)
+     (monad.let random.monad
+                [sample_fraction $//fraction.random
+                 sample_name ($//name.random 5 5)
+                 sample_provenance $//provenance.random
+                 sample_type ($//type.random 0)
+                 sample_code $//code.random]
+                (pure (`` (and (,, (template.with [<type> <injection> <sample>]
+                                                  [(|> (/.representation <type> <sample>)
+                                                       (try:each (text.= (<injection> <sample>)))
+                                                       (try.else false))]
 
-                                      [[Fraction fraction.as_text sample_fraction]
-                                       [Name name.as_text sample_name]
-                                       [Provenance provenance.as_text sample_provenance]
-                                       [Code code.as_text sample_code]
-                                       [Type type.as_text sample_type]]))
-                   )))))
+                                                  [[Fraction fraction.as_text sample_fraction]
+                                                   [Name name.as_text sample_name]
+                                                   [Provenance provenance.as_text sample_provenance]
+                                                   [Code code.as_text sample_code]
+                                                   [Type type.as_text sample_type]]))
+                               )))))
 
 (the representation
-  Test
-  (monad.let random.monad
-    [sample_bit random.bit
-     sample_natural random.natural
-     sample_integer random.integer
-     sample_real random.real
+     Test
+     (monad.let random.monad
+                [sample_bit random.bit
+                 sample_natural random.natural
+                 sample_integer random.integer
+                 sample_real random.real
 
-     can_represent_simple_types! ..can_represent_simple_types
-     can_represent_structure_types! ..can_represent_structure_types
-     can_represent_complex_types! ..can_represent_complex_types]
-    (all _.and
-         (_.coverage [/.representation]
-           (`` (and can_represent_simple_types!
-                    can_represent_structure_types!
-                    can_represent_complex_types!
-                    
-                    (|> (/.representation .Any sample_real)
-                        (try:each (text.= "[]"))
-                        (try.else false))
-                    (|> (/.representation (type (List Natural)) (is (List Natural) (list sample_natural)))
-                        (try:each (text.= (list.as_text %.natural (list sample_natural))))
-                        (try.else false))
-                    (,, (template.with [<sample>]
-                                       [(|> (/.representation (type (Maybe Natural)) (is (Maybe Natural) <sample>))
-                                            (try:each (text.= (%.maybe %.natural <sample>)))
-                                            (try.else false))]
-                                       
-                                       [[{.:Some sample_natural}]
-                                        [{.:None}]]))
-                    )))
-         (_.coverage [/.cannot_represent_value]
-           (when (/.representation (-> Natural Natural) (|>>))
-             {try.:Success representation}
-             false
+                 can_represent_simple_types! ..can_represent_simple_types
+                 can_represent_structure_types! ..can_represent_structure_types
+                 can_represent_complex_types! ..can_represent_complex_types]
+                (all _.and
+                     (_.coverage [/.representation]
+                                 (`` (and can_represent_simple_types!
+                                          can_represent_structure_types!
+                                          can_represent_complex_types!
+                                          
+                                          (|> (/.representation .Any sample_real)
+                                              (try:each (text.= "[]"))
+                                              (try.else false))
+                                          (|> (/.representation (type (List Natural)) (is (List Natural) (list sample_natural)))
+                                              (try:each (text.= (list.as_text %.natural (list sample_natural))))
+                                              (try.else false))
+                                          (,, (template.with [<sample>]
+                                                             [(|> (/.representation (type (Maybe Natural)) (is (Maybe Natural) <sample>))
+                                                                  (try:each (text.= (%.maybe %.natural <sample>)))
+                                                                  (try.else false))]
+                                                             
+                                                             [[{.:Some sample_natural}]
+                                                              [{.:None}]]))
+                                          )))
+                     (_.coverage [/.cannot_represent_value]
+                                 (when (/.representation (-> Natural Natural) (|>>))
+                                       {try.:Success representation}
+                                       false
 
-             {try.:Failure error}
-             (exception.is? /.cannot_represent_value error)))
-         )))
+                                       {try.:Failure error}
+                                       (exception.is? /.cannot_represent_value error)))
+                     )))
 
 (the inspection
-  Test
-  (monad.let random.monad
-    [sample_bit random.bit
-     sample_integer random.integer
-     sample_real random.real
-     sample_text (random.upper_cased 10)]
-    (_.coverage [/.inspection]
-      (`` (and (,, (template.with [<injection> <sample>]
-                                  [(text.= (<injection> <sample>) (/.inspection <sample>))]
+     Test
+     (monad.let random.monad
+                [sample_bit random.bit
+                 sample_integer random.integer
+                 sample_real random.real
+                 sample_text (random.upper_cased 10)]
+                (_.coverage [/.inspection]
+                            (`` (and (,, (template.with [<injection> <sample>]
+                                                        [(text.= (<injection> <sample>) (/.inspection <sample>))]
 
-                                  [[bit.as_text sample_bit]
-                                   [%.integer sample_integer]
-                                   [%.real sample_real]
-                                   [%.text sample_text]]))
-               (text.= (|> (list sample_bit sample_integer sample_real sample_text)
-                           (is (List Any))
-                           (list:each /.inspection)
-                           (text.interposed " ")
-                           (text.enclosed ["[" "]"]))
-                       (/.inspection [sample_bit sample_integer sample_real sample_text]))
-               )))))
+                                                        [[bit.as_text sample_bit]
+                                                         [%.integer sample_integer]
+                                                         [%.real sample_real]
+                                                         [%.text sample_text]]))
+                                     (text.= (|> (list sample_bit sample_integer sample_real sample_text)
+                                                 (is (List Any))
+                                                 (list:each /.inspection)
+                                                 (text.interposed " ")
+                                                 (text.inside ["[" "]"]))
+                                             (/.inspection [sample_bit sample_integer sample_real sample_text]))
+                                     )))))
 
 (syntax.the (macro_error [macro ?list.any])
-  (function (_ compiler)
-    (when ((expansion.complete macro) compiler)
-      {try.:Failure error}
-      {try.:Success [compiler (list (code.text error))]}
-      
-      {try.:Success _}
-      {try.:Failure "OOPS!"})))
+            (function (_ compiler)
+                      (when ((expansion.complete macro) compiler)
+                            {try.:Failure error}
+                            {try.:Success [compiler (list (code.text error))]}
+                            
+                            {try.:Success _}
+                            {try.:Failure "OOPS!"})))
 
 (every My_Text
-  Text)
+       Text)
 
 (target.if target.jvm
            (these (ffi.the java/lang/String)
 
                   (ffi.the java/io/ByteArrayOutputStream
-                    (new [])
-                    (toString [] java/lang/String))
+                           (new [])
+                           (toString [] java/lang/String))
 
                   (ffi.the java/io/OutputStream)
 
                   (ffi.the java/io/PrintStream
-                    (new [java/io/OutputStream]))
+                           (new [java/io/OutputStream]))
 
                   (ffi.the java/lang/System
-                    ("static" out java/io/PrintStream)
-                    ("static" setOut [java/io/PrintStream] void))
+                           ("static" out java/io/PrintStream)
+                           ("static" setOut [java/io/PrintStream] void))
 
                   (the system_output
-                    java/io/PrintStream
-                    (io.value (java/lang/System:out))))
+                       java/io/PrintStream
+                       (io.value (java/lang/System:out))))
 
            target.js
            (these (ffi.the console
-                    ("static" log (-> Text Any))))
+                           ("static" log (-> Text Any))))
 
            target.python
            (these (ffi.the io/StringIO
-                    (new [])
-                    (getvalue [] Text))
+                           (new [])
+                           (getvalue [] Text))
 
                   (ffi.the sys
-                    ("static" stdout io/StringIO)))
+                           ("static" stdout io/StringIO)))
 
            (these))
 
 (the with_out
-  (template.macro (_ ,body)
-    [(target.if target.jvm
-                (ffi.synchronized ..system_output
-                  (let [buffer (java/io/ByteArrayOutputStream:new [])
-                        _ (java/lang/System:setOut [(java/io/PrintStream:new [buffer])])
-                        output ,body
-                        _ (java/lang/System:setOut [..system_output])]
-                    [(ffi.of_string (java/io/ByteArrayOutputStream:toString [] buffer))
-                     output]))
+     (template.macro (_ ,body)
+                     [(target.if target.jvm
+                                 (ffi.synchronized ..system_output
+                                                   (let [buffer (java/io/ByteArrayOutputStream:new [])
+                                                         _ (java/lang/System:setOut [(java/io/PrintStream:new [buffer])])
+                                                         output ,body
+                                                         _ (java/lang/System:setOut [..system_output])]
+                                                        [(ffi.of_string (java/io/ByteArrayOutputStream:toString [] buffer))
+                                                         output]))
 
-                target.js
-                (let [old (io.value (console:log))
-                      buffer (atom.atom "")
-                      _ (io.value (console:log (function (_ it)
-                                                 (io.value (atom.write! (text it text.\n) buffer)))))
-                      output ,body
-                      _ (io.value (console:log old))]
-                  [(io.value (atom.read! buffer))
-                   output])
+                                 target.js
+                                 (let [old (io.value (console:log))
+                                       buffer (atom.atom "")
+                                       _ (io.value (console:log (function (_ it)
+                                                                          (io.value (atom.write! (text it text.\n) buffer)))))
+                                       output ,body
+                                       _ (io.value (console:log old))]
+                                      [(io.value (atom.read! buffer))
+                                       output])
 
-                target.python
-                (let [old (io.value (sys:stdout))
-                      buffer (io/StringIO:new [])
-                      _ (io.value (sys:stdout buffer))
-                      output ,body
-                      _ (io.value (sys:stdout old))]
-                  [(io/StringIO:getvalue [] buffer)
-                   output])
+                                 target.python
+                                 (let [old (io.value (sys:stdout))
+                                       buffer (io/StringIO:new [])
+                                       _ (io.value (sys:stdout buffer))
+                                       output ,body
+                                       _ (io.value (sys:stdout old))]
+                                      [(io/StringIO:getvalue [] buffer)
+                                       output])
 
-                target.lua
-                [""
-                 ,body]
+                                 target.lua
+                                 [""
+                                  ,body]
 
-                target.ruby
-                [""
-                 ,body])]))
+                                 target.ruby
+                                 [""
+                                  ,body])]))
 
 (the success?
-  (for_any (_ it)
-    (-> (try.Try it)
-        Bit))
-  (|>> (match? {try.:Success _})))
+     (for_any (_ it)
+              (-> (try.Try it)
+                  Bit))
+     (|>> (match? {try.:Success _})))
 
 (the (failure? it)
-  (for_any (_ it)
-    (-> (try.Try it)
-        Bit))
-  (when it
-    {try.:Failure it}
-    (exception.is? /.not_of_type it)
+     (for_any (_ it)
+              (-> (try.Try it)
+                  Bit))
+     (when it
+           {try.:Failure it}
+           (exception.is? /.not_of_type it)
 
-    else
-    false))
+           else
+           false))
 
 (the cast
-  Test
-  (<| (monad.let random.monad
-        [sample_bit random.bit
-         sample_natural random.natural
-         sample_integer random.integer
-         sample_revolution random.revolution
-         sample_real random.real
-         sample_text (random.unicode 1)])
-      (_.for [/.not_of_type])
-      (all _.and
-           (_.coverage [/.bit]
-             (and (success? (/.bit sample_bit))
-                  
-                  (failure? (/.bit sample_natural))
-                  (failure? (/.bit sample_real))
-                  (failure? (/.bit sample_text))))
-           (_.coverage [/.i64]
-             (and (success? (/.i64 sample_natural))
-                  (success? (/.i64 sample_integer))
-                  (success? (/.i64 sample_revolution))
+     Test
+     (<| (monad.let random.monad
+                    [sample_bit random.bit
+                     sample_natural random.natural
+                     sample_integer random.integer
+                     sample_revolution random.revolution
+                     sample_real random.real
+                     sample_text (random.unicode 1)])
+         (_.for [/.not_of_type])
+         (all _.and
+              (_.coverage [/.bit]
+                          (and (success? (/.bit sample_bit))
+                               
+                               (failure? (/.bit sample_natural))
+                               (failure? (/.bit sample_real))
+                               (failure? (/.bit sample_text))))
+              (_.coverage [/.i64]
+                          (and (success? (/.i64 sample_natural))
+                               (success? (/.i64 sample_integer))
+                               (success? (/.i64 sample_revolution))
 
-                  (failure? (/.i64 sample_bit))
-                  (failure? (/.i64 sample_real))
-                  (failure? (/.i64 sample_text))))
-           (_.coverage [/.real]
-             (and (success? (/.real sample_real))
+                               (failure? (/.i64 sample_bit))
+                               (failure? (/.i64 sample_real))
+                               (failure? (/.i64 sample_text))))
+              (_.coverage [/.real]
+                          (and (success? (/.real sample_real))
 
-                  (failure? (/.real sample_bit))
-                  (failure? (/.real sample_natural))
-                  (failure? (/.real sample_text))))
-           (_.coverage [/.text]
-             (and (success? (/.text sample_text))
+                               (failure? (/.real sample_bit))
+                               (failure? (/.real sample_natural))
+                               (failure? (/.real sample_text))))
+              (_.coverage [/.text]
+                          (and (success? (/.text sample_text))
 
-                  (failure? (/.text sample_bit))
-                  (failure? (/.text sample_natural))
-                  (failure? (/.text sample_real))))
-           (_.coverage [/.variant]
-             (and (success? (/.variant (is (Either Real Real) {.:Left sample_real})))
-                  (success? (/.variant (is (Either Real Real) {.:Right sample_real})))
+                               (failure? (/.text sample_bit))
+                               (failure? (/.text sample_natural))
+                               (failure? (/.text sample_real))))
+              (_.coverage [/.variant]
+                          (and (success? (/.variant (is (Either Real Real) {.:Left sample_real})))
+                               (success? (/.variant (is (Either Real Real) {.:Right sample_real})))
 
-                  (failure? (/.variant sample_bit))
-                  (failure? (/.variant sample_natural))
-                  (failure? (/.variant sample_real))
-                  (failure? (/.variant sample_text))
-                  (failure? (/.variant [sample_real sample_real]))))
-           (_.coverage [/.tuple]
-             (and (success? (/.tuple [sample_real sample_real]))
+                               (failure? (/.variant sample_bit))
+                               (failure? (/.variant sample_natural))
+                               (failure? (/.variant sample_real))
+                               (failure? (/.variant sample_text))
+                               (failure? (/.variant [sample_real sample_real]))))
+              (_.coverage [/.tuple]
+                          (and (success? (/.tuple [sample_real sample_real]))
 
-                  (failure? (/.tuple sample_bit))
-                  (failure? (/.tuple sample_natural))
-                  (failure? (/.tuple sample_real))
-                  (failure? (/.tuple sample_text))
-                  (failure? (/.tuple (is (Either Real Real) {.:Left sample_real})))
-                  (failure? (/.tuple (is (Either Real Real) {.:Right sample_real})))))
-           )))
+                               (failure? (/.tuple sample_bit))
+                               (failure? (/.tuple sample_natural))
+                               (failure? (/.tuple sample_real))
+                               (failure? (/.tuple sample_text))
+                               (failure? (/.tuple (is (Either Real Real) {.:Left sample_real})))
+                               (failure? (/.tuple (is (Either Real Real) {.:Right sample_real})))))
+              )))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (monad.let random.monad
-        [expected_message (random.lower_cased 5)]
-        (all _.and
-             ..inspection
-             ..representation
-             ..cast
-             
-             (_.coverage [/.hole /.type_hole]
-               (let [error (is My_Text (..macro_error (/.hole)))]
-                 (and (exception.is? /.type_hole error)
-                      (text.contains? (type.as_text My_Text) error))))
-             (monad.let random.monad
-               [foo (random.upper_cased 10)
-                bar random.natural
-                baz random.bit]
-               (_.coverage [/.here]
-                 (expansion.let [<no_parameters> (target.if target.js
-                                                            (,, (these))
-                                                            (,, (these (/.here))))]
-                   (`` (exec
-                         <no_parameters>
-                         (/.here foo
-                                 [bar %.natural])
-                         true)))))
-             (_.coverage [/.unknown_local_binding]
-               (exception.is? /.unknown_local_binding
-                              (..macro_error (/.here yolo))))
-             (_.coverage [/.private]
-               (exec
-                 (is (/.private /.Inspector)
-                     /.inspection)
-                 true))
-             (_.coverage [/.log!]
-               (let [[actual_message _] (with_out
-                                         (/.log! expected_message))]
-                 (text.= (text expected_message text.\n)
-                         actual_message)))
-             (_.coverage [/.also]
-               (with (try.equality text.equality)
-                     (|> (is (Array Text)
-                             (array.empty 1))
-                         (/.also (|>> (array.has! 0 expected_message)
-                                      io.io))
-                         (array.item 0)
-                         (= {try.:Success expected_message}))))
-             ))))
+     Test
+     (<| (_.covering /._)
+         (monad.let random.monad
+                    [expected_message (random.lower_cased 5)]
+                    (all _.and
+                         ..inspection
+                         ..representation
+                         ..cast
+                         
+                         (_.coverage [/.hole /.type_hole]
+                                     (let [error (is My_Text (..macro_error (/.hole)))]
+                                          (and (exception.is? /.type_hole error)
+                                               (text.contains? (type.as_text My_Text) error))))
+                         (monad.let random.monad
+                                    [foo (random.upper_cased 10)
+                                     bar random.natural
+                                     baz random.bit]
+                                    (_.coverage [/.here]
+                                                (expansion.let [<no_parameters> (target.if target.js
+                                                                                           (,, (these))
+                                                                                           (,, (these (/.here))))]
+                                                               (`` (exec
+                                                                    <no_parameters>
+                                                                    (/.here foo
+                                                                            [bar %.natural])
+                                                                    true)))))
+                         (_.coverage [/.unknown_local_binding]
+                                     (exception.is? /.unknown_local_binding
+                                                    (..macro_error (/.here yolo))))
+                         (_.coverage [/.private]
+                                     (exec
+                                      (is (/.private /.Inspector)
+                                          /.inspection)
+                                      true))
+                         (_.coverage [/.log!]
+                                     (let [[actual_message _] (with_out
+                                                               (/.log! expected_message))]
+                                          (text.= (text expected_message text.\n)
+                                                  actual_message)))
+                         (_.coverage [/.also]
+                                     (with (try.equality text.equality)
+                                           (|> (is (Array Text)
+                                                   (array.empty 1))
+                                               (/.also (|>> (array.has! 0 expected_message)
+                                                            io.io))
+                                               (array.item 0)
+                                               (= {try.:Success expected_message}))))
+                         ))))

@@ -41,402 +41,402 @@
     ["@[0]" type]]]])
 
 (the (type_var id env)
-  (-> Natural Type_Context
-      (Meta Type))
-  (when (list.item id (its .:for_all env))
-    {try.:Success {.:Some type}}
-    (when type
-      {.:Variable .general id'}
-      (meta.failure (text "Unbound type-var " (%.natural id)))
+     (-> Natural Type_Context
+         (Meta Type))
+     (when (list.item id (its .:for_all env))
+           {try.:Success {.:Some type}}
+           (when type
+                 {.:Variable .general id'}
+                 (meta.failure (text "Unbound type-var " (%.natural id)))
 
-      else
-      (by meta.monad pure type))
+                 else
+                 (by meta.monad pure type))
 
-    {try.:Success {.:None}}
-    (meta.failure (text "Unbound type-var " (%.natural id)))
+           {try.:Success {.:None}}
+           (meta.failure (text "Unbound type-var " (%.natural id)))
 
-    {try.:Failure _}
-    (meta.failure (text "Unknown type-var " (%.natural id)))))
+           {try.:Failure _}
+           (meta.failure (text "Unknown type-var " (%.natural id)))))
 
 (the (implicit_type var_name)
-  (-> Name
-      (Meta Type))
-  (monad.let meta.monad
-    [raw_type (binding.type var_name)
-     compiler meta.compiler_state]
-    (when raw_type
-      {.:Variable .general id}
-      (type_var id (its .:type_context compiler))
+     (-> Name
+         (Meta Type))
+     (monad.let meta.monad
+                [raw_type (binding.type var_name)
+                 compiler meta.compiler_state]
+                (when raw_type
+                      {.:Variable .general id}
+                      (type_var id (its .:type_context compiler))
 
-      _
-      (pure raw_type))))
+                      _
+                      (pure raw_type))))
 
 (the (member_type idx sig_type)
-  (-> Natural Type
-      (Check Type))
-  (when sig_type
-    {.:Named _ sig_type'}
-    (member_type idx sig_type')
+     (-> Natural Type
+         (Check Type))
+     (when sig_type
+           {.:Named _ sig_type'}
+           (member_type idx sig_type')
 
-    {.:Reification arg func}
-    (when (type.reified (list arg) func)
-      {.:None}
-      (check.failure (text "Cannot reify type " (type.as_text func) " to type " (type.as_text arg)))
+           {.:Reification arg func}
+           (when (type.reified (list arg) func)
+                 {.:None}
+                 (check.failure (text "Cannot reify type " (type.as_text func) " to type " (type.as_text arg)))
 
-      {.:Some sig_type'}
-      (member_type idx sig_type'))
+                 {.:Some sig_type'}
+                 (member_type idx sig_type'))
 
-    (type.Product left right)
-    (if (n.= 0 idx)
-        (by check.monad pure left)
-        (member_type (-- idx) right))
+           (type.Product left right)
+           (if (n.= 0 idx)
+               (by check.monad pure left)
+               (member_type (-- idx) right))
 
-    _
-    (if (n.= 0 idx)
-        (by check.monad pure sig_type)
-        (check.failure (text "Cannot find member type " (%.natural idx) " for " (type.as_text sig_type))))))
+           _
+           (if (n.= 0 idx)
+               (by check.monad pure sig_type)
+               (check.failure (text "Cannot find member type " (%.natural idx) " for " (type.as_text sig_type))))))
 
 (the (member_name member)
-  (-> Name
-      (Meta Name))
-  (when member
-    ["" simple_name]
-    (meta.either (monad.let meta.monad
-                   [member (binding.normal member)
-                    _ (label.slot member)]
-                   (pure member))
-                 (monad.let [! meta.monad]
-                   [[this_module_name _] module.current
-                    imp_mods (import.all this_module_name)
-                    every_slot (list.each' ! label.every_slot imp_mods)
-                    .let [every_slot (|> every_slot
-                                         list:conjoint
-                                         (list:each pair.left)
-                                         list:conjoint)
-                          candidates (list.only (|>> pair.right (text.= simple_name))
-                                                every_slot)]]
-                   (when candidates
-                     (list)
-                     (meta.failure (text "Unknown slot: " (name.as_text member)))
-                     
-                     (list winner)
-                     (pure winner)
-                     
-                     _
-                     (meta.failure (text "Too many candidate slots: " (list.as_text name.as_text candidates))))))
+     (-> Name
+         (Meta Name))
+     (when member
+           ["" simple_name]
+           (meta.either (monad.let meta.monad
+                                   [member (binding.normal member)
+                                    _ (label.slot member)]
+                                   (pure member))
+                        (monad.let [! meta.monad]
+                                   [[this_module_name _] module.current
+                                    imp_mods (import.all this_module_name)
+                                    every_slot (list.each' ! label.every_slot imp_mods)
+                                    .let [every_slot (|> every_slot
+                                                         list:conjoint
+                                                         (list:each pair.left)
+                                                         list:conjoint)
+                                          candidates (list.only (|>> pair.right (text.= simple_name))
+                                                                every_slot)]]
+                                   (when candidates
+                                         (list)
+                                         (meta.failure (text "Unknown slot: " (name.as_text member)))
+                                         
+                                         (list winner)
+                                         (pure winner)
+                                         
+                                         _
+                                         (meta.failure (text "Too many candidate slots: " (list.as_text name.as_text candidates))))))
 
-    _
-    (by meta.monad pure member)))
+           _
+           (by meta.monad pure member)))
 
 (the (implicit_member member)
-  (-> Name
-      (Meta [Natural Type]))
-  (monad.let meta.monad
-    [member (member_name member)
-     [lefts,right? sig_type] (label.slot member)]
-    (when lefts,right?
-      {.:Some [lefts right? family]}
-      (pure [(if right?
-                 (++ lefts)
-                 lefts)
-             sig_type])
-      
-      {.:None}
-      (pure [0 sig_type]))))
+     (-> Name
+         (Meta [Natural Type]))
+     (monad.let meta.monad
+                [member (member_name member)
+                 [lefts,right? sig_type] (label.slot member)]
+                (when lefts,right?
+                      {.:Some [lefts right? family]}
+                      (pure [(if right?
+                                 (++ lefts)
+                                 lefts)
+                             sig_type])
+                      
+                      {.:None}
+                      (pure [0 sig_type]))))
 
 (the (compatible_type? interface candidate)
-  (-> Type Type
-      Bit)
-  (expansion.let [<found?> (type.= interface candidate)]
-    (<| (or <found?>)
+     (-> Type Type
+         Bit)
+     (expansion.let [<found?> (type.= interface candidate)]
+                    (<| (and/or <found?>)
 
-        (let [[parameters candidate] (type.flat_univ_q candidate)])
-        (or <found?>)
+                        (let [[parameters candidate] (type.flat_univ_q candidate)])
+                        (and/or <found?>)
 
-        (let [[inputs candidate] (type.flat_function candidate)])
-        (or <found?>)
+                        (let [[inputs candidate] (type.flat_function candidate)])
+                        (and/or <found?>)
 
-        (let [[candidate parameters] (type.flat_reification candidate)])
-        (or <found?>)
-        
-        (let [candidate (type.de_aliased candidate)])
-        <found?>)))
+                        (let [[candidate parameters] (type.flat_reification candidate)])
+                        (and/or <found?>)
+                        
+                        (let [candidate (type.de_aliased candidate)])
+                        <found?>)))
 
 (the (available_definitions sig_type source_module target_module constants)
-  (-> Type Text Text (property.List [Bit Definition])
-      (List [Name Type]))
-  (list.all (function (_ [name [exported? [def_type def_value]]])
-              (if (and (or (text.= target_module source_module)
-                           exported?)
-                       (compatible_type? sig_type def_type))
-                  {.:Some [[source_module name] def_type]}
-                  {.:None}))
-            constants))
+     (-> Type Text Text (property.List [Bit Definition])
+         (List [Name Type]))
+     (list.all (function (_ [name [exported? [def_type def_value]]])
+                         (if (and (and/or (text.= target_module source_module)
+                                          exported?)
+                                  (compatible_type? sig_type def_type))
+                             {.:Some [[source_module name] def_type]}
+                             {.:None}))
+               constants))
 
 (the (local_env sig_type)
-  (-> Type
-      (Meta (List [Name Type])))
-  (monad.let meta.monad
-    [local_batches local.all
-     .let [total_locals (list.mix (function (_ [name type] table)
-                                    (try.else table (dictionary.has' name type table)))
-                                  (|> local_batches
-                                      (view.of list.stack)
-                                      list:conjoint)
-                                  (is (Dictionary Text Type)
-                                      (dictionary.empty text.hash)))]]
-    (pure (|> total_locals
-              dictionary.entries
-              (list.all (function (_ [name type])
-                          (if (compatible_type? sig_type type)
-                              {.:Some [["" name] type]}
-                              {.:None})))))))
+     (-> Type
+         (Meta (List [Name Type])))
+     (monad.let meta.monad
+                [local_batches local.all
+                 .let [total_locals (list.mix (function (_ [name type] table)
+                                                        (try.else table (dictionary.has' name type table)))
+                                              (|> local_batches
+                                                  (view.of list.stack)
+                                                  list:conjoint)
+                                              (is (Dictionary Text Type)
+                                                  (dictionary.empty text.hash)))]]
+                (pure (|> total_locals
+                          dictionary.entries
+                          (list.all (function (_ [name type])
+                                              (if (compatible_type? sig_type type)
+                                                  {.:Some [["" name] type]}
+                                                  {.:None})))))))
 
 (the (local_structs sig_type)
-  (-> Type
-      (Meta (List [Name Type])))
-  (monad.let [! meta.monad]
-    [[this_module_name _] module.current
-     definitions (binding.resolved_globals this_module_name)]
-    (pure (available_definitions sig_type this_module_name this_module_name definitions))))
+     (-> Type
+         (Meta (List [Name Type])))
+     (monad.let [! meta.monad]
+                [[this_module_name _] module.current
+                 definitions (binding.resolved_globals this_module_name)]
+                (pure (available_definitions sig_type this_module_name this_module_name definitions))))
 
 (the (imported_structs sig_type)
-  (-> Type
-      (Meta (List [Name Type])))
-  (monad.let [! meta.monad]
-    [[this_module_name _] module.current
-     imported_modules (import.all this_module_name)
-     accessible_definitions (list.each' ! binding.resolved_globals imported_modules)]
-    (pure (|> (list.zipped_2 imported_modules
-                             accessible_definitions)
-              (list:each (function (_ [imported_module definitions])
-                           (available_definitions sig_type imported_module this_module_name definitions)))
-              list:conjoint))))
+     (-> Type
+         (Meta (List [Name Type])))
+     (monad.let [! meta.monad]
+                [[this_module_name _] module.current
+                 imported_modules (import.all this_module_name)
+                 accessible_definitions (list.each' ! binding.resolved_globals imported_modules)]
+                (pure (|> (list.zipped_2 imported_modules
+                                         accessible_definitions)
+                          (list:each (function (_ [imported_module definitions])
+                                               (available_definitions sig_type imported_module this_module_name definitions)))
+                          list:conjoint))))
 
 (the (on_argument arg func)
-  (-> Type Type
-      (Check Type))
-  (when func
-    {.:Named _ func'}
-    (on_argument arg func')
+     (-> Type Type
+         (Check Type))
+     (when func
+           {.:Named _ func'}
+           (on_argument arg func')
 
-    {.:Quantification .universal _}
-    (monad.let check.monad
-      [[id var] check.var]
-      (|> func
-          (type.reified (list var))
-          maybe.trusted
-          (on_argument arg)))
+           {.:Quantification .universal _}
+           (monad.let check.monad
+                      [[id var] check.var]
+                      (|> func
+                          (type.reified (list var))
+                          maybe.trusted
+                          (on_argument arg)))
 
-    (type.Function input output)
-    (monad.let check.monad
-      [_ (check.check input arg)]
-      (pure output))
+           (type.Function input output)
+           (monad.let check.monad
+                      [_ (check.check input arg)]
+                      (pure output))
 
-    _
-    (check.failure (text "Invalid function type: " (type.as_text func)))))
+           _
+           (check.failure (text "Invalid function type: " (type.as_text func)))))
 
 (the (concrete_type type)
-  (-> Type
-      (Check [(List Natural) Type]))
-  (when type
-    {.:Quantification .universal _}
-    (monad.let check.monad
-      [[id var] check.var
-       [ids final_output] (concrete_type (maybe.trusted (type.reified (list var) type)))]
-      (pure [(list:composite (list id) ids)
-             final_output]))
-    
-    _
-    (by check.monad pure [(list) type])))
+     (-> Type
+         (Check [(List Natural) Type]))
+     (when type
+           {.:Quantification .universal _}
+           (monad.let check.monad
+                      [[id var] check.var
+                       [ids final_output] (concrete_type (maybe.trusted (type.reified (list var) type)))]
+                      (pure [(list:composite (list id) ids)
+                             final_output]))
+           
+           _
+           (by check.monad pure [(list) type])))
 
 (the (ensure_function_application! member_type input_types expected_output)
-  (-> Type (List Type) Type
-      (Check []))
-  (monad.let check.monad
-    [actual_output (list.mix' check.monad ..on_argument input_types member_type)]
-    (check.check expected_output actual_output)))
+     (-> Type (List Type) Type
+         (Check []))
+     (monad.let check.monad
+                [actual_output (list.mix' check.monad ..on_argument input_types member_type)]
+                (check.check expected_output actual_output)))
 
 (every Instance
-  (Rec Instance
-    (Record
-     [:constructor Name
-      :dependencies (List Instance)])))
+       (Rec Instance
+            (Record
+             [:constructor Name
+              :dependencies (List Instance)])))
 
 (the (candidate_provision provision context dep alts)
-  (-> (-> Lux Type_Context Type (Check Instance))
-      Type_Context Type (List [Name Type])
-      (Meta (List Instance)))
-  (monad.let meta.monad
-    [compiler meta.compiler_state]
-    (when (|> alts
-              (list:each (function (_ [alt_name alt_type])
-                           (when (check.value context
-                                              (monad.let [! check.monad]
-                                                [[tvars alt_type] (concrete_type alt_type)
-                                                 .let [[deps alt_type] (type.flat_function alt_type)]
-                                                 _ (check.check dep alt_type)
-                                                 context' check.context]
-                                                (list.each' ! (provision compiler context')
-                                                            deps)))
-                             {.:Left error}
-                             (list)
+     (-> (-> Lux Type_Context Type (Check Instance))
+         Type_Context Type (List [Name Type])
+         (Meta (List Instance)))
+     (monad.let meta.monad
+                [compiler meta.compiler_state]
+                (when (|> alts
+                          (list:each (function (_ [alt_name alt_type])
+                                               (when (check.value context
+                                                                  (monad.let [! check.monad]
+                                                                             [[tvars alt_type] (concrete_type alt_type)
+                                                                              .let [[deps alt_type] (type.flat_function alt_type)]
+                                                                              _ (check.check dep alt_type)
+                                                                              context' check.context]
+                                                                             (list.each' ! (provision compiler context')
+                                                                                         deps)))
+                                                     {.:Left error}
+                                                     (list)
 
-                             {.:Right =deps}
-                             (list [alt_name =deps]))))
-              list:conjoint)
-      (list)
-      (meta.failure (text "No candidates for provisioning: " (type.as_text dep)))
+                                                     {.:Right =deps}
+                                                     (list [alt_name =deps]))))
+                          list:conjoint)
+                      (list)
+                      (meta.failure (text "No candidates for provisioning: " (type.as_text dep)))
 
-      found
-      (pure found))))
+                      found
+                      (pure found))))
 
 (the (provision sig_type compiler context dep)
-  (-> Type Lux Type_Context Type
-      (Check Instance))
-  (when (meta.value compiler
-                    (all meta.either
-                         (monad.let meta.monad [alts (..local_env sig_type)] (..candidate_provision (provision sig_type) context dep alts))
-                         (monad.let meta.monad [alts (..local_structs sig_type)] (..candidate_provision (provision sig_type) context dep alts))
-                         (monad.let meta.monad [alts (..imported_structs sig_type)] (..candidate_provision (provision sig_type) context dep alts))))
-    {.:Left error}
-    (check.failure error)
+     (-> Type Lux Type_Context Type
+         (Check Instance))
+     (when (meta.value compiler
+                       (all meta.either
+                            (monad.let meta.monad [alts (..local_env sig_type)] (..candidate_provision (provision sig_type) context dep alts))
+                            (monad.let meta.monad [alts (..local_structs sig_type)] (..candidate_provision (provision sig_type) context dep alts))
+                            (monad.let meta.monad [alts (..imported_structs sig_type)] (..candidate_provision (provision sig_type) context dep alts))))
+           {.:Left error}
+           (check.failure error)
 
-    {.:Right candidates}
-    (when candidates
-      (list)
-      (check.failure (text "No candidates for provisioning: " (type.as_text dep)))
+           {.:Right candidates}
+           (when candidates
+                 (list)
+                 (check.failure (text "No candidates for provisioning: " (type.as_text dep)))
 
-      (list winner)
-      (by check.monad pure winner)
+                 (list winner)
+                 (by check.monad pure winner)
 
-      too_many!
-      (check.failure (text "Too many candidates for provisioning: " (type.as_text dep) " --- " (list.as_text (|>> pair.left name.as_text) candidates))))
-    ))
+                 too_many!
+                 (check.failure (text "Too many candidates for provisioning: " (type.as_text dep) " --- " (list.as_text (|>> pair.left name.as_text) candidates))))
+           ))
 
 (the (candidate_alternatives sig_type member_idx input_types output_type alts)
-  (-> Type Natural (List Type) Type (List [Name Type])
-      (Meta (List Instance)))
-  (monad.let meta.monad
-    [compiler meta.compiler_state
-     context meta.type_context]
-    (when (list.all (function (_ [alt_name alt_type])
-                      (when (<| (check.value context)
-                                (monad.let [! check.monad]
-                                  [[tvars alt_type] (concrete_type alt_type)
-                                   .let [[deps alt_type] (type.flat_function alt_type)]
-                                   _ (check.check alt_type sig_type)
-                                   member_type (member_type member_idx alt_type)
-                                   _ (ensure_function_application! member_type input_types output_type)
-                                   context' check.context]
-                                  (list.each' ! (provision sig_type compiler context')
-                                              deps)))
-                        {.:Left error}
-                        {.:None}
+     (-> Type Natural (List Type) Type (List [Name Type])
+         (Meta (List Instance)))
+     (monad.let meta.monad
+                [compiler meta.compiler_state
+                 context meta.type_context]
+                (when (list.all (function (_ [alt_name alt_type])
+                                          (when (<| (check.value context)
+                                                    (monad.let [! check.monad]
+                                                               [[tvars alt_type] (concrete_type alt_type)
+                                                                .let [[deps alt_type] (type.flat_function alt_type)]
+                                                                _ (check.check alt_type sig_type)
+                                                                member_type (member_type member_idx alt_type)
+                                                                _ (ensure_function_application! member_type input_types output_type)
+                                                                context' check.context]
+                                                               (list.each' ! (provision sig_type compiler context')
+                                                                           deps)))
+                                                {.:Left error}
+                                                {.:None}
 
-                        {.:Right =deps}
-                        {.:Some [alt_name =deps]}))
-                    alts)
-      (list)
-      (meta.failure (text "No alternatives for " (type.as_text (type.function input_types output_type))))
+                                                {.:Right =deps}
+                                                {.:Some [alt_name =deps]}))
+                                alts)
+                      (list)
+                      (meta.failure (text "No alternatives for " (type.as_text (type.function input_types output_type))))
 
-      found
-      (pure found))))
+                      found
+                      (pure found))))
 
 (the (alternatives sig_type member_idx input_types output_type)
-  (-> Type Natural (List Type) Type
-      (Meta (List Instance)))
-  (let [test (candidate_alternatives sig_type member_idx input_types output_type)]
-    (all meta.either
-         (monad.let meta.monad [alts (..local_env sig_type)] (test alts))
-         (monad.let meta.monad [alts (..local_structs sig_type)] (test alts))
-         (monad.let meta.monad [alts (..imported_structs sig_type)] (test alts)))))
+     (-> Type Natural (List Type) Type
+         (Meta (List Instance)))
+     (let [test (candidate_alternatives sig_type member_idx input_types output_type)]
+          (all meta.either
+               (monad.let meta.monad [alts (..local_env sig_type)] (test alts))
+               (monad.let meta.monad [alts (..local_structs sig_type)] (test alts))
+               (monad.let meta.monad [alts (..imported_structs sig_type)] (test alts)))))
 
 (the (var? input)
-  (-> Code
-      Bit)
-  (when input
-    {.:Name _ _}
-    1b
+     (-> Code
+         Bit)
+     (when input
+           {.:Name _ _}
+           1b
 
-    _
-    false))
+           _
+           false))
 
 (the (pair_list [l r])
-  (for_any (_ it)
-    (-> [it it]
-        (List it)))
-  (list l r))
+     (for_any (_ it)
+              (-> [it it]
+                  (List it)))
+     (list l r))
 
 (the (instance$ [constructor dependencies])
-  (-> Instance
-      Code)
-  (when dependencies
-    (list)
-    (code.name constructor)
+     (-> Instance
+         Code)
+     (when dependencies
+           (list)
+           (code.name constructor)
 
-    _
-    (` ((, (code.name constructor)) (,* (list:each instance$ dependencies))))))
+           _
+           (` ((, (code.name constructor)) (,* (list:each instance$ dependencies))))))
 
 (syntax.the .public (any [member <code>.name
                           args (<>.or (<>.some <code>.name)
                                       (<>.some ?list.any))])
-  (when args
-    {.:Left args}
-    (monad.let [! meta.monad]
-      [[member_idx sig_type] (..implicit_member member)
-       input_types (list.each' ! ..implicit_type args)
-       output_type meta.expected_type
-       chosen_ones (alternatives sig_type member_idx input_types output_type)]
-      (when chosen_ones
-        (list)
-        (meta.failure (text "No implementation could be found for member: " (name.as_text member)))
+            (when args
+                  {.:Left args}
+                  (monad.let [! meta.monad]
+                             [[member_idx sig_type] (..implicit_member member)
+                              input_types (list.each' ! ..implicit_type args)
+                              output_type meta.expected_type
+                              chosen_ones (alternatives sig_type member_idx input_types output_type)]
+                             (when chosen_ones
+                                   (list)
+                                   (meta.failure (text "No implementation could be found for member: " (name.as_text member)))
 
-        (list chosen)
-        (pure (list (` (.by (, (instance$ chosen))
-                            (, (code.local (pair.right member)))
-                            (,* (list:each code.name args))))))
+                                   (list chosen)
+                                   (pure (list (` (.by (, (instance$ chosen))
+                                                       (, (code.local (pair.right member)))
+                                                       (,* (list:each code.name args))))))
 
-        _
-        (meta.failure (text "Too many implementations available: "
-                            (|> chosen_ones
-                                (list:each (|>> pair.left name.as_text))
-                                (text.interposed ", "))
-                            " --- for type: " (type.as_text sig_type)))))
+                                   _
+                                   (meta.failure (text "Too many implementations available: "
+                                                       (|> chosen_ones
+                                                           (list:each (|>> pair.left name.as_text))
+                                                           (text.interposed ", "))
+                                                       " --- for type: " (type.as_text sig_type)))))
 
-    {.:Right args}
-    (monad.let [! meta.monad]
-      [labels (|> (macro.name "'parameter")
-                  (list.repeated (list.size args))
-                  (list.complete !))]
-      (pure (list (` (let [(,* (|> args
-                                   (list.zipped_2 labels)
-                                   (list:each ..pair_list)
-                                   list:conjoint))]
-                       (..any (, (code.name member)) (,* labels)))))))
-    ))
+                  {.:Right args}
+                  (monad.let [! meta.monad]
+                             [labels (|> (macro.name "'parameter")
+                                         (list.repeated (list.size args))
+                                         (list.complete !))]
+                             (pure (list (` (let [(,* (|> args
+                                                          (list.zipped_2 labels)
+                                                          (list:each ..pair_list)
+                                                          list:conjoint))]
+                                                 (..any (, (code.name member)) (,* labels)))))))
+                  ))
 
 (the (implicit_bindings amount)
-  (-> Natural
-      (Meta (List Code)))
-  (|> (macro.name "'implicit")
-      (list.repeated amount)
-      (list.complete meta.monad)))
+     (-> Natural
+         (Meta (List Code)))
+     (|> (macro.name "'implicit")
+         (list.repeated amount)
+         (list.complete meta.monad)))
 
 (syntax.the .public (with [implementations (<code>.tuple (<>.many ?list.any))
                            body ?list.any])
-  (monad.let meta.monad
-    ['implicit+ (implicit_bindings (list.size implementations))]
-    (pure (list (` (let [(,* (|> (list.zipped_2 'implicit+ implementations)
-                                 (list:each (function (_ ['implicit implementation])
-                                              (list 'implicit implementation)))
-                                 list:conjoint))]
-                     (, body)))))))
+            (monad.let meta.monad
+                       ['implicit+ (implicit_bindings (list.size implementations))]
+                       (pure (list (` (let [(,* (|> (list.zipped_2 'implicit+ implementations)
+                                                    (list:each (function (_ ['implicit implementation])
+                                                                         (list 'implicit implementation)))
+                                                    list:conjoint))]
+                                           (, body)))))))
 
 (syntax.the .public (implicitly [implementations (<>.many ?list.any)])
-  (monad.let meta.monad
-    ['implicit+ (implicit_bindings (list.size implementations))]
-    (pure (|> (list.zipped_2 'implicit+ implementations)
-              (list:each (function (_ ['implicit implementation])
-                           (` (the .private (, 'implicit)
-                                (, implementation)))))))))
+            (monad.let meta.monad
+                       ['implicit+ (implicit_bindings (list.size implementations))]
+                       (pure (|> (list.zipped_2 'implicit+ implementations)
+                                 (list:each (function (_ ['implicit implementation])
+                                                      (` (the .private (, 'implicit)
+                                                              (, implementation)))))))))

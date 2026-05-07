@@ -20,156 +20,156 @@
     ["[0]" template]]]])
 
 (the mask
-  /64.Mask
-  (/64.mask 8))
+     /64.Mask
+     (/64.mask 8))
 
 (the .public limit
-  Natural
-  (++ (natural ..mask)))
+     Natural
+     (++ (natural ..mask)))
 
 (every .public Value
-  Natural)
+       Natural)
 
 (template.with [<name> <value>]
-  [(the .public <name>
-     Value
-     <value>)]
+               [(the .public <name>
+                     Value
+                     <value>)]
 
-  [[least 0]
-   [most (-- limit)]])
+               [[least 0]
+                [most (-- limit)]])
 
 (the .public (value? it)
-  (Predicate Natural)
-  (not (or (n.< ..least it)
-           (n.> ..most it))))
+     (Predicate Natural)
+     (not (and/or (n.< ..least it)
+                  (n.> ..most it))))
 
 (the .public value
-  (-> Natural
-      Value)
-  (/64.and ..mask))
+     (-> Natural
+         Value)
+     (/64.and ..mask))
 
 (every .public RGB
-  Natural)
+       Natural)
 
 (template.with [<section> <name>]
-  [(the .public <name>
-     (-> RGB
-         Value)
-     (let [shift (n.x 8 <section>)]
-       (|>> (/64.>> shift)
-            (/64.and ..mask))))]
+               [(the .public <name>
+                     (-> RGB
+                         Value)
+                     (let [shift (n.x 8 <section>)]
+                          (|>> (/64.>> shift)
+                               (/64.and ..mask))))]
 
-  [[2 red]
-   [1 green]
-   [0 blue]])
+               [[2 red]
+                [1 green]
+                [0 blue]])
 
 (the .public (rgb red green blue)
-  (-> Natural Natural Natural
-      RGB)
-  (`` (all /64.or
-           (,, (template.with [<section> <name>]
-                 [(/64.<< (n.x 8 <section>) (value <name>))]
+     (-> Natural Natural Natural
+         RGB)
+     (`` (all /64.and/or
+              (,, (template.with [<section> <name>]
+                                 [(/64.<< (n.x 8 <section>) (value <name>))]
 
-                 [[2 red]
-                  [1 green]
-                  [0 blue]]))
-           )))
+                                 [[2 red]
+                                  [1 green]
+                                  [0 blue]]))
+              )))
 
 (the .public hash
-  (Hash RGB)
-  n.hash)
+     (Hash RGB)
+     n.hash)
 
 (the .public equality
-  (Equality RGB)
-  (by ..hash equality))
+     (Equality RGB)
+     (by ..hash equality))
 
 (alias [=]
        ..equality)
 
 (the (opposite_intensity value)
-  (-> Value
-      Value)
-  (|> ..most
-      (n.- value)))
+     (-> Value
+         Value)
+     (|> ..most
+         (n.- value)))
 
 (the .public (complement it)
-  (-> RGB
-      RGB)
-  (`` (rgb (,, (template.with [<slot>]
-                 [(|> it
-                      <slot>
-                      opposite_intensity)]
+     (-> RGB
+         RGB)
+     (`` (rgb (,, (template.with [<slot>]
+                                 [(|> it
+                                      <slot>
+                                      opposite_intensity)]
 
-                 [[red]
-                  [green]
-                  [blue]])))))
+                                 [[red]
+                                  [green]
+                                  [blue]])))))
 
 (template.with [<color> <value>]
-  [(the .public <color>
-     RGB
-     (rgb <value> <value> <value>))]
+               [(the .public <color>
+                     RGB
+                     (rgb <value> <value> <value>))]
 
-  [[black ..least]
-   [white ..most]])
+               [[black ..least]
+                [white ..most]])
 
 (template.with [<identity> <composite> <monoid>]
-  [(the .public <monoid>
-     (Monoid RGB)
-     (implementation
-      (the identity
-        <identity>)
+               [(the .public <monoid>
+                     (Monoid RGB)
+                     (implementation
+                      (the identity
+                           <identity>)
 
-      (the (composite left right)
-        (`` (rgb (,, (template.with [<slot>]
-                       [(<composite> (<slot> left)
-                                     (<slot> right))]
+                      (the (composite left right)
+                           (`` (rgb (,, (template.with [<slot>]
+                                                       [(<composite> (<slot> left)
+                                                                     (<slot> right))]
 
-                       [[red]
-                        [green]
-                        [blue]])))))))]
+                                                       [[red]
+                                                        [green]
+                                                        [blue]])))))))]
 
-  [[..black n.major addition]
-   [..white n.minor subtraction]])
+               [[..black n.major addition]
+                [..white n.minor subtraction]])
 
 (the (ratio it)
-  (Change Real)
-  (if (r.> +1.0 it)
-      (r.% +1.0 it)
+     (Change Real)
+     (if (r.> +1.0 it)
+         (r.% +1.0 it)
 
-      (r.< +0.0 it)
-      (|> it (r.% +1.0) (r.+ +1.0))
+         (r.< +0.0 it)
+         (|> it (r.% +1.0) (r.+ +1.0))
 
-      it))
+         it))
 
 (the .public (interpolated end ratio start)
-  (-> RGB Real RGB
-      RGB)
-  (let [dS (..ratio ratio)
-        dE (|> +1.0 (r.- dS))
-        interpolated' (is (-> Natural Natural
-                              Natural)
-                          (function (_ end start)
-                            (|> (|> start .integer i.real (r.x dS))
-                                (r.+ (|> end .integer i.real (r.x dE)))
-                                r.integer
-                                .natural)))]
-    (..rgb (interpolated' (red end) (red start))
-           (interpolated' (green end) (green start))
-           (interpolated' (blue end) (blue start)))))
+     (-> RGB Real RGB
+         RGB)
+     (let [dS (..ratio ratio)
+           dE (|> +1.0 (r.- dS))
+           interpolated' (is (-> Natural Natural
+                                 Natural)
+                             (function (_ end start)
+                                       (|> (|> start .integer i.real (r.x dS))
+                                           (r.+ (|> end .integer i.real (r.x dE)))
+                                           r.integer
+                                           .natural)))]
+          (..rgb (interpolated' (red end) (red start))
+                 (interpolated' (green end) (green start))
+                 (interpolated' (blue end) (blue start)))))
 
 (template.with [<name> <target>]
-  [(the .public <name>
-     (-> Real
-         (Change RGB))
-     (..interpolated <target>))]
+               [(the .public <name>
+                     (-> Real
+                         (Change RGB))
+                     (..interpolated <target>))]
 
-  [[darker   ..black]
-   [brighter ..white]])
+               [[darker   ..black]
+                [brighter ..white]])
 
 (the .public (as_text it)
-  (text.Injection RGB)
-  (text "rgb"
-        "(" (%.natural (red it))
-        "," (%.natural (green it))
-        "," (%.natural (blue it))
-        ")"))
+     (text.Injection RGB)
+     (text "rgb"
+           "(" (%.natural (red it))
+           "," (%.natural (green it))
+           "," (%.natural (blue it))
+           ")"))

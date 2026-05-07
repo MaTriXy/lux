@@ -27,93 +27,93 @@
   ["[0]" /]])
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (_.for [meta.eval])
-      (`` (all _.and
-               (,, (template.with [<static> <random> <=> <+> <tag>]
-                                  [(_.coverage [<static> <random>]
-                                     (expansion.let [<left> (<random>)
-                                                     <right> (<random>)
-                                                     <l+r> (<static> (<+> <left> <right>))]
-                                       (when (' <l+r>)
-                                         {<tag> _ l+r}
-                                         (<=> l+r (<+> <left> <right>))
+     Test
+     (<| (_.covering /._)
+         (_.for [meta.eval])
+         (`` (all _.and
+                  (,, (template.with [<static> <random> <=> <+> <tag>]
+                                     [(_.coverage [<static> <random>]
+                                                  (expansion.let [<left> (<random>)
+                                                                  <right> (<random>)
+                                                                  <l+r> (<static> (<+> <left> <right>))]
+                                                                 (when (' <l+r>)
+                                                                       {<tag> _ l+r}
+                                                                       (<=> l+r (<+> <left> <right>))
 
-                                         _
-                                         false)))]
+                                                                       _
+                                                                       false)))]
 
-                                  [[/.bit /.random_bit bit.= and .:Bit]
-                                   [/.natural /.random_natural n.= n.+ .:Natural]
-                                   [/.integer /.random_integer i.= i.+ .:Integer]
-                                   [/.revolution /.random_revolution r.= r.+ .:Revolution]]))
-               (_.coverage [/.real /.random_real]
-                 (expansion.let [<left> (/.random_real)
-                                 <right> (/.random_real)
-                                 <l+r> (/.real (real.+ <left> <right>))]
-                   (when (' <l+r>)
-                     {.:Real _ l+r}
-                     (or (real.= l+r (real.+ <left> <right>))
-                         (and (real.not_a_number? l+r)
-                              (real.not_a_number? (real.+ <left> <right>))
-                              (or (real.not_a_number? <left>)
-                                  (real.not_a_number? <right>))))
+                                     [[/.bit /.random_bit bit.= and .:Bit]
+                                      [/.natural /.random_natural n.= n.+ .:Natural]
+                                      [/.integer /.random_integer i.= i.+ .:Integer]
+                                      [/.revolution /.random_revolution r.= r.+ .:Revolution]]))
+                  (_.coverage [/.real /.random_real]
+                              (expansion.let [<left> (/.random_real)
+                                              <right> (/.random_real)
+                                              <l+r> (/.real (real.+ <left> <right>))]
+                                             (when (' <l+r>)
+                                                   {.:Real _ l+r}
+                                                   (and/or (real.= l+r (real.+ <left> <right>))
+                                                           (and (real.not_a_number? l+r)
+                                                                (real.not_a_number? (real.+ <left> <right>))
+                                                                (and/or (real.not_a_number? <left>)
+                                                                        (real.not_a_number? <right>))))
 
-                     _
-                     false)))
-               (_.coverage [/.text /.random]
-                 (expansion.let [<left> (/.random code.text (random.alpha_numeric 1))
-                                 <right> (/.random code.text (random.alpha_numeric 1))
-                                 <l+r> (/.text (text <left> <right>))]
-                   (when (' <l+r>)
-                     {.:Text _ l+r}
-                     (text.= l+r (text <left> <right>))
+                                                   _
+                                                   false)))
+                  (_.coverage [/.text /.random]
+                              (expansion.let [<left> (/.random code.text (random.alpha_numeric 1))
+                                              <right> (/.random code.text (random.alpha_numeric 1))
+                                              <l+r> (/.text (text <left> <right>))]
+                                             (when (' <l+r>)
+                                                   {.:Text _ l+r}
+                                                   (text.= l+r (text <left> <right>))
 
-                     _
-                     false)))
-               (_.coverage [/.randoms]
-                 (expansion.let [<amount> (/.random code.natural
-                                                    (random:each (|>> (n.% 10) ++) random.natural))
-                                 l/* (/.randoms code.natural (random.list <amount> random.natural))]
-                   (and (n.= <amount> (list.size (list l/*)))
-                        (n.= (list.mix n.+ (list l/*) 0)
-                             (all n.+ l/*)))))
-               (_.coverage [/.literal]
-                 (expansion.let [<left> (/.random code.text (random.alpha_numeric 1))
-                                 <right> (/.random code.text (random.alpha_numeric 1))
-                                 <l+r> (/.literal code.text (text <left> <right>))]
-                   (when (' <l+r>)
-                     {.:Text _ l+r}
-                     (text.= l+r (text <left> <right>))
+                                                   _
+                                                   false)))
+                  (_.coverage [/.randoms]
+                              (expansion.let [<amount> (/.random code.natural
+                                                                 (random:each (|>> (n.% 10) ++) random.natural))
+                                              l/* (/.randoms code.natural (random.list <amount> random.natural))]
+                                             (and (n.= <amount> (list.size (list l/*)))
+                                                  (n.= (list.mix n.+ (list l/*) 0)
+                                                       (all n.+ l/*)))))
+                  (_.coverage [/.literal]
+                              (expansion.let [<left> (/.random code.text (random.alpha_numeric 1))
+                                              <right> (/.random code.text (random.alpha_numeric 1))
+                                              <l+r> (/.literal code.text (text <left> <right>))]
+                                             (when (' <l+r>)
+                                                   {.:Text _ l+r}
+                                                   (text.= l+r (text <left> <right>))
 
-                     _
-                     false)))
-               (_.coverage [/.literals]
-                 (expansion.let [l/0 (/.random_natural)
-                                 l/1 (/.random_natural)
-                                 l/2 (/.random_natural)
-                                 l/* (/.literals code.natural (list l/0 l/1 l/2))]
-                   (n.= (all n.+ l/0 l/1 l/2)
-                        (all n.+ l/*))))
-               (_.coverage [/.if]
-                 (expansion.let [<?> (/.random_bit)
-                                 <then> (/.random_natural)
-                                 <else> (/.random_natural)]
-                   (n.= (if <?> <then> <else>)
-                        (/.if <?> <then> <else>))))
-               (_.coverage [/.when]
-                 (expansion.let [<0> (/.random_natural)
-                                 <1> (/.random_natural)
-                                 <2> (/.random_natural)]
-                   (and (n.= (all n.+ <0> <1>)
-                             (`` (all n.+ <0> <1> (,, (/.when false <2>)))))
-                        (n.= (all n.+ <0> <1> <2>)
-                             (`` (all n.+ <0> <1> (,, (/.when true <2>))))))))
-               (_.coverage [/.seed]
-                 (not (n.= (/.seed)
-                           (/.seed))))
-               (_.coverage [/.expansion]
-                 (expansion.let [,expected (/.random_natural)]
-                   (n.= ,expected
-                        (/.expansion (meta:pure (list (code.natural ,expected)))))))
-               ))))
+                                                   _
+                                                   false)))
+                  (_.coverage [/.literals]
+                              (expansion.let [l/0 (/.random_natural)
+                                              l/1 (/.random_natural)
+                                              l/2 (/.random_natural)
+                                              l/* (/.literals code.natural (list l/0 l/1 l/2))]
+                                             (n.= (all n.+ l/0 l/1 l/2)
+                                                  (all n.+ l/*))))
+                  (_.coverage [/.if]
+                              (expansion.let [<?> (/.random_bit)
+                                              <then> (/.random_natural)
+                                              <else> (/.random_natural)]
+                                             (n.= (if <?> <then> <else>)
+                                                  (/.if <?> <then> <else>))))
+                  (_.coverage [/.when]
+                              (expansion.let [<0> (/.random_natural)
+                                              <1> (/.random_natural)
+                                              <2> (/.random_natural)]
+                                             (and (n.= (all n.+ <0> <1>)
+                                                       (`` (all n.+ <0> <1> (,, (/.when false <2>)))))
+                                                  (n.= (all n.+ <0> <1> <2>)
+                                                       (`` (all n.+ <0> <1> (,, (/.when true <2>))))))))
+                  (_.coverage [/.seed]
+                              (not (n.= (/.seed)
+                                        (/.seed))))
+                  (_.coverage [/.expansion]
+                              (expansion.let [,expected (/.random_natural)]
+                                             (n.= ,expected
+                                                  (/.expansion (meta:pure (list (code.natural ,expected)))))))
+                  ))))

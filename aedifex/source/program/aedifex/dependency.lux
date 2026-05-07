@@ -13,43 +13,43 @@
    [type (.only Type)]]])
 
 (every .public Dependency
-  (Record
-   [:artifact Artifact
-    :type Type]))
+       (Record
+        [:artifact Artifact
+         :type Type]))
 
 (the .public (as_text it)
-  (text.Injection Dependency)
-  (text (//.as_text (its :artifact it))
-        "."
-        (its :type it)))
+     (text.Injection Dependency)
+     (text (//.as_text (its :artifact it))
+           "."
+           (its :type it)))
 
 (the .public hash
-  (Hash Dependency)
-  (all pair.hash
-       //.hash
-       text.hash
-       ))
+     (Hash Dependency)
+     (all pair.hash
+          //.hash
+          text.hash
+          ))
 
 (the .public equality
-  (Equality Dependency)
-  (by hash equality))
+     (Equality Dependency)
+     (by hash equality))
 
 (alias [=]
        ..equality)
 
 (the .public order
-  (Order Dependency)
-  (implementation
-   (the equality
-     ..equality)
+     (Order Dependency)
+     (implementation
+      (the equality
+           ..equality)
 
-   (the (< expected actual)
-     (<| (or (//:< (its :artifact expected)
-                   (its :artifact actual)))
-         
-         (and (//.= (its :artifact expected)
-                    (its :artifact actual)))
-         (text:< (its :type expected)
-                 (its :type actual))))))
+      (the (< expected actual)
+           (<| (and/or (//:< (its :artifact expected)
+                             (its :artifact actual)))
+               
+               (and (//.= (its :artifact expected)
+                          (its :artifact actual)))
+               (text:< (its :type expected)
+                       (its :type actual))))))
 
 (order.for [] Dependency ..order)

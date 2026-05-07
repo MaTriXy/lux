@@ -24,56 +24,56 @@
      ["[0]" currency]]]]])
 
 (the .public random
-  (Random /.Rate)
-  (monad.let [! random.monad]
-    [.let [maximum 100]
-     it (by ! each (n.% (++ maximum))
-            random.natural)
-     gain? random.bit
-     .let [it (r./ (n.real maximum)
-                   (n.real it))]]
-    (pure (if gain?
-              (r.+ it /.break_even)
-              (r.- it /.break_even)))))
+     (Random /.Rate)
+     (monad.let [! random.monad]
+                [.let [maximum 100]
+                 it (by ! each (n.% (++ maximum))
+                        random.natural)
+                 gain? random.bit
+                 .let [it (r./ (n.real maximum)
+                               (n.real it))]]
+                (pure (if gain?
+                          (r.+ it /.break_even)
+                          (r.- it /.break_even)))))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (monad.let [! random.monad]
-        [left ..random
-         right ..random
+     Test
+     (<| (_.covering /._)
+         (monad.let [! random.monad]
+                    [left ..random
+                     right ..random
 
-         money (by ! each (|>> (n.% 1,000) ++) random.natural)])
-      (_.for [/.Rate])
-      (all _.and
-           (_.for [/.monoid /.break_even /.compound]
-                  (monoidT.spec (r.approximately? +0.000000000000001)
-                                /.monoid
-                                ..random))
-           
-           (_.coverage [/.as_text]
-             (let [same_value!
-                   (r.approximately? +0.009 left right)
+                     money (by ! each (|>> (n.% 1,000) ++) random.natural)])
+         (_.for [/.Rate])
+         (all _.and
+              (_.for [/.monoid /.break_even /.compound]
+                     (monoidT.spec (r.approximately? +0.000000000000001)
+                                   /.monoid
+                                   ..random))
+              
+              (_.coverage [/.as_text]
+                          (let [same_value!
+                                (r.approximately? +0.009 left right)
 
-                   same_representation!
-                   (text.= (/.as_text left) (/.as_text right))]
-               (bit.= same_value!
-                      same_representation!)))
-           (_.coverage [/.loss? /.gain? /.break_even?]
-             (or (and (/.loss? left)
-                      (not (/.gain? left))
-                      (not (/.break_even? left)))
-                 (and (not (/.loss? left))
-                      (/.gain? left)
-                      (not (/.break_even? left)))
-                 (and (not (/.loss? left))
-                      (not (/.gain? left))
-                      (/.break_even? left))))
-           (_.coverage [/.rate]
-             (and (/.loss? (/.rate (money.money currency.usd money)
-                                   (money.money currency.usd (-- money))))
-                  (/.gain? (/.rate (money.money currency.usd money)
-                                   (money.money currency.usd (++ money))))
-                  (/.break_even? (/.rate (money.money currency.usd money)
-                                         (money.money currency.usd money)))))
-           )))
+                                same_representation!
+                                (text.= (/.as_text left) (/.as_text right))]
+                               (bit.= same_value!
+                                      same_representation!)))
+              (_.coverage [/.loss? /.gain? /.break_even?]
+                          (and/or (and (/.loss? left)
+                                       (not (/.gain? left))
+                                       (not (/.break_even? left)))
+                                  (and (not (/.loss? left))
+                                       (/.gain? left)
+                                       (not (/.break_even? left)))
+                                  (and (not (/.loss? left))
+                                       (not (/.gain? left))
+                                       (/.break_even? left))))
+              (_.coverage [/.rate]
+                          (and (/.loss? (/.rate (money.money currency.usd money)
+                                                (money.money currency.usd (-- money))))
+                               (/.gain? (/.rate (money.money currency.usd money)
+                                                (money.money currency.usd (++ money))))
+                               (/.break_even? (/.rate (money.money currency.usd money)
+                                                      (money.money currency.usd money)))))
+              )))

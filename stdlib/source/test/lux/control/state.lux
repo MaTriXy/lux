@@ -22,109 +22,109 @@
  ["!" \\theorem])
 
 (the (with_conditions [state output] computation)
-  (-> [Natural Natural] (State Natural Natural) Bit)
-  (|> computation
-      (/.value state)
-      pair.right
-      (n.= output)))
+     (-> [Natural Natural] (State Natural Natural) Bit)
+     (|> computation
+         (/.value state)
+         pair.right
+         (n.= output)))
 
 (the basics
-  Test
-  (<| (monad.let random.monad
-        [state random.natural
-         value random.natural])
-      (_.for [/.State])
-      (all _.and
-           (comment (_.by_proof [/.value]
-                                [!.value])
-                    (_.by_proof [/.state]
-                                [!.state])
-                    (_.by_proof [/.as]
-                                [!.as
-                                 !.identity_of_as])
-                    (_.by_proof [/.put]
-                                [!.put])
-                    (_.by_proof [/.update]
-                                [!.update])
-                    (_.coverage [/.local]
-                      (with_conditions [state (n.x value state)]
-                                       (/.local (n.x value)
-                                                /.state))))
-           )))
+     Test
+     (<| (monad.let random.monad
+                    [state random.natural
+                     value random.natural])
+         (_.for [/.State])
+         (all _.and
+              (comment (_.by_proof [/.value]
+                                   [!.value])
+                       (_.by_proof [/.state]
+                                   [!.state])
+                       (_.by_proof [/.as]
+                                   [!.as
+                                    !.identity_of_as])
+                       (_.by_proof [/.put]
+                                   [!.put])
+                       (_.by_proof [/.update]
+                                   [!.update])
+                       (_.coverage [/.local]
+                                   (with_conditions [state (n.x value state)]
+                                                    (/.local (n.x value)
+                                                             /.state))))
+              )))
 
 (the (injection value)
-  (for_any (_ s)
-    (Injection (State s)))
-  (function (_ state)
-    [state value]))
+     (for_any (_ s)
+              (Injection (State s)))
+     (function (_ state)
+               [state value]))
 
 (the (comparison init)
-  (for_any (_ s)
-    (-> s
-        (Comparison (State s))))
-  (function (_ == left right)
-    (== (pair.right (/.value init left))
-        (pair.right (/.value init right)))))
+     (for_any (_ s)
+              (-> s
+                  (Comparison (State s))))
+     (function (_ == left right)
+               (== (pair.right (/.value init left))
+                   (pair.right (/.value init right)))))
 
 (the structures
-  Test
-  (monad.let random.monad
-    [state random.natural]
-    (all _.and
-         (comment (_.by_proof [/.functor]
-                              [!.functor])
-                  (_.for [/.monad]
-                         (monadT.spec ..injection (..comparison state) /.monad)))
-         )))
+     Test
+     (monad.let random.monad
+                [state random.natural]
+                (all _.and
+                     (comment (_.by_proof [/.functor]
+                                          [!.functor])
+                              (_.for [/.monad]
+                                     (monadT.spec ..injection (..comparison state) /.monad)))
+                     )))
 
 (the loops
-  Test
-  (monad.let [! random.monad]
-    [limit (|> random.natural (by ! each (n.% 10)))
-     .let [condition (monad.let /.monad
-                       [state /.state]
-                       (pure (n.< limit state)))]]
-    (all _.and
-         (_.coverage [/.while]
-           (|> (/.while condition (/.update ++))
-               (/.value 0)
-               (pipe.let [state' output']
-                 (n.= limit state'))))
-         (_.coverage [/.do_while]
-           (|> (/.do_while condition (/.update ++))
-               (/.value 0)
-               (pipe.let [state' output']
-                 (or (n.= limit state')
-                     (and (n.= 0 limit)
-                          (n.= 1 state'))))))
-         )))
+     Test
+     (monad.let [! random.monad]
+                [limit (|> random.natural (by ! each (n.% 10)))
+                 .let [condition (monad.let /.monad
+                                            [state /.state]
+                                            (pure (n.< limit state)))]]
+                (all _.and
+                     (_.coverage [/.while]
+                                 (|> (/.while condition (/.update ++))
+                                     (/.value 0)
+                                     (pipe.let [state' output']
+                                               (n.= limit state'))))
+                     (_.coverage [/.do_while]
+                                 (|> (/.do_while condition (/.update ++))
+                                     (/.value 0)
+                                     (pipe.let [state' output']
+                                               (and/or (n.= limit state')
+                                                       (and (n.= 0 limit)
+                                                            (n.= 1 state'))))))
+                     )))
 
 (the monad_transformer
-  Test
-  (monad.let random.monad
-    [state random.natural
-     left random.natural
-     right random.natural]
-    (with "io:[0]" io.monad
-          (_.coverage [/.With /.with /.lifted /.value']
-            (|> (is (/.With Natural io.IO Natural)
-                    (monad.let (/.with io.monad)
-                      [a (/.lifted io.monad (io:pure left))
-                       b (pure right)]
-                      (pure (n.+ a b))))
-                (/.value' state)
-                io.value
-                (pipe.let [state' output']
-                  (and (n.= state state')
-                       (n.= (n.+ left right) output')))))
-          )))
+     Test
+     (monad.let random.monad
+                [state random.natural
+                 left random.natural
+                 right random.natural]
+                (with "io:[0]" io.monad
+                      (_.coverage [/.With /.with /.lifted /.value']
+                                  (|> (is (/.With Natural io.IO Natural)
+                                          (monad.let (/.with io.monad)
+                                                     [a (/.lifted io.monad (io:pure left))
+                                                      b (pure right)]
+                                                     (pure (n.+ a b))))
+                                      (/.value' state)
+                                      io.value
+                                      (pipe.let [state' output']
+                                                (and (n.= state state')
+                                                     (n.= (n.+ left right) output')))))
+                      )))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (all _.and
-           ..basics
-           ..structures
-           ..loops
-           ..monad_transformer
-           )))
+     Test
+     (<| (_.covering /._)
+         (all _.and
+              ..basics
+              ..structures
+              ..loops
+              ..monad_transformer
+              )))

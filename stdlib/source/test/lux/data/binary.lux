@@ -65,587 +65,587 @@
    ["[0]" \\projection]]])
 
 (the !expect
-  (template.macro (_ <expectation> <computation>)
-    [(when <computation>
-       <expectation>
-       true
+     (template.macro (_ <expectation> <computation>)
+                     [(when <computation>
+                            <expectation>
+                            true
 
-       _
-       false)]))
+                            _
+                            false)]))
 
 (the segment_size 10)
 
 (the (utf8_conversion_does_not_alter? value)
-  (Predicate Text)
-  (|> value
-      (by utf8.binary as)
-      (by utf8.binary of)
-      (pipe.when
-        {try.:Success converted}
-        (text.= value converted)
-        
-        {try.:Failure error}
-        false)))
+     (Predicate Text)
+     (|> value
+         (by utf8.binary as)
+         (by utf8.binary of)
+         (pipe.when
+          {try.:Success converted}
+          (text.= value converted)
+          
+          {try.:Failure error}
+          false)))
 
 (the random_text
-  (Random Text)
-  (random.only ..utf8_conversion_does_not_alter?
-               (random.unicode ..segment_size)))
+     (Random Text)
+     (random.only ..utf8_conversion_does_not_alter?
+                  (random.unicode ..segment_size)))
 
 (the random_name
-  (Random Name)
-  (random.and ..random_text ..random_text))
+     (Random Name)
+     (random.and ..random_text ..random_text))
 
 (the provenance_equality
-  (Equality Provenance)
-  (implementation
-   (the (= [expected_module expected_line expected_column]
-           [sample_module sample_line sample_column])
-     (and (text.= expected_module sample_module)
-          (n.= expected_line sample_line)
-          (n.= expected_column sample_column)))))
+     (Equality Provenance)
+     (implementation
+      (the (= [expected_module expected_line expected_column]
+              [sample_module sample_line sample_column])
+           (and (text.= expected_module sample_module)
+                (n.= expected_line sample_line)
+                (n.= expected_column sample_column)))))
 
 (the random_provenance
-  (Random Provenance)
-  (all random.and
-       ..random_text
-       random.natural
-       random.natural))
+     (Random Provenance)
+     (all random.and
+          ..random_text
+          random.natural
+          random.natural))
 
 (the random_code
-  (Random Code)
-  (random.rec
-   (function (_ code)
-     (let [random_composite (is (Random (List Code))
-                                (monad.let [! random.monad]
-                                  [size (by ! each (n.% 2) random.natural)]
-                                  (random.list size code)))]
-       (is (Random Code)
-           (all random.or
-                (random.and ..random_provenance random.bit)
-                (random.and ..random_provenance random.natural)
-                (random.and ..random_provenance random.integer)
-                (random.and ..random_provenance random.revolution)
-                (random.and ..random_provenance random.unit_real)
-                (random.and ..random_provenance ..random_text)
-                (random.and ..random_provenance ..random_name)
-                (random.and ..random_provenance random_composite)
-                (random.and ..random_provenance random_composite)
-                (random.and ..random_provenance random_composite)
-                ))))))
+     (Random Code)
+     (random.rec
+      (function (_ code)
+                (let [random_composite (is (Random (List Code))
+                                           (monad.let [! random.monad]
+                                                      [size (by ! each (n.% 2) random.natural)]
+                                                      (random.list size code)))]
+                     (is (Random Code)
+                         (all random.or
+                              (random.and ..random_provenance random.bit)
+                              (random.and ..random_provenance random.natural)
+                              (random.and ..random_provenance random.integer)
+                              (random.and ..random_provenance random.revolution)
+                              (random.and ..random_provenance random.unit_real)
+                              (random.and ..random_provenance ..random_text)
+                              (random.and ..random_provenance ..random_name)
+                              (random.and ..random_provenance random_composite)
+                              (random.and ..random_provenance random_composite)
+                              (random.and ..random_provenance random_composite)
+                              ))))))
 
 (the random_type
-  (Random Type)
-  (with "[0]" random.monad
-        (all random.either
-             (pure .Natural)
-             (pure .Stack)
-             (pure .Code)
-             (pure .Type))))
+     (Random Type)
+     (with "[0]" random.monad
+           (all random.either
+                (pure .Natural)
+                (pure .Stack)
+                (pure .Code)
+                (pure .Type))))
 
 (the size
-  Test
-  (<| (_.for [\\projection.Size])
-      (`` (all _.and
-               (,, (template.with [<size> <projection> <injection>]
-                                  [(monad.let [! random.monad]
-                                     [expected (by ! each (/64.and (/64.mask <size>))
-                                                   random.natural)]
-                                     (_.coverage [<size> <projection> <injection>]
-                                       (|> (\\injection.value <injection> expected)
-                                           (\\projection.value <projection>)
-                                           (!expect (^.multi {try.:Success actual}
-                                                             (n.= (.natural expected)
-                                                                  (.natural actual)))))))]
+     Test
+     (<| (_.for [\\projection.Size])
+         (`` (all _.and
+                  (,, (template.with [<size> <projection> <injection>]
+                                     [(monad.let [! random.monad]
+                                                 [expected (by ! each (/64.and (/64.mask <size>))
+                                                               random.natural)]
+                                                 (_.coverage [<size> <projection> <injection>]
+                                                             (|> (\\injection.value <injection> expected)
+                                                                 (\\projection.value <projection>)
+                                                                 (!expect (^.multi {try.:Success actual}
+                                                                                   (n.= (.natural expected)
+                                                                                        (.natural actual)))))))]
 
-                                  [[\\projection.size_08 \\projection.bits_08 \\injection.bits_08]
-                                   [\\projection.size_16 \\projection.bits_16 \\injection.bits_16]
-                                   [\\projection.size_32 \\projection.bits_32 \\injection.bits_32]
-                                   [\\projection.size_64 \\projection.bits_64 \\injection.bits_64]]))))))
+                                     [[\\projection.size_08 \\projection.bits_08 \\injection.bits_08]
+                                      [\\projection.size_16 \\projection.bits_16 \\injection.bits_16]
+                                      [\\projection.size_32 \\projection.bits_32 \\injection.bits_32]
+                                      [\\projection.size_64 \\projection.bits_64 \\injection.bits_64]]))))))
 
 (the binary
-  Test
-  (`` (all _.and
-           (,, (template.with [<projection> <injection>]
-                              [(monad.let [! random.monad]
-                                 [expected (by ! each (by utf8.binary as) (random.ascii ..segment_size))]
-                                 (_.coverage [<projection> <injection>]
-                                   (|> (\\injection.value <injection> expected)
-                                       (\\projection.value <projection>)
-                                       (!expect (^.multi {try.:Success actual}
-                                                         (by /.equality = expected actual))))))]
+     Test
+     (`` (all _.and
+              (,, (template.with [<projection> <injection>]
+                                 [(monad.let [! random.monad]
+                                             [expected (by ! each (by utf8.binary as) (random.ascii ..segment_size))]
+                                             (_.coverage [<projection> <injection>]
+                                                         (|> (\\injection.value <injection> expected)
+                                                             (\\projection.value <projection>)
+                                                             (!expect (^.multi {try.:Success actual}
+                                                                               (by /.equality = expected actual))))))]
 
-                              [[\\projection.binary_08 \\injection.binary_08]
-                               [\\projection.binary_16 \\injection.binary_16]
-                               [\\projection.binary_32 \\injection.binary_32]
-                               [\\projection.binary_64 \\injection.binary_64]])))))
+                                 [[\\projection.binary_08 \\injection.binary_08]
+                                  [\\projection.binary_16 \\injection.binary_16]
+                                  [\\projection.binary_32 \\injection.binary_32]
+                                  [\\projection.binary_64 \\injection.binary_64]])))))
 
 (the utf8
-  Test
-  (`` (all _.and
-           (,, (template.with [<projection> <injection>]
-                              [(monad.let [! random.monad]
-                                 [expected (random.ascii ..segment_size)]
-                                 (_.coverage [<projection> <injection>]
-                                   (|> (\\injection.value <injection> expected)
-                                       (\\projection.value <projection>)
-                                       (!expect (^.multi {try.:Success actual}
-                                                         (by text.equality = expected actual))))))]
+     Test
+     (`` (all _.and
+              (,, (template.with [<projection> <injection>]
+                                 [(monad.let [! random.monad]
+                                             [expected (random.ascii ..segment_size)]
+                                             (_.coverage [<projection> <injection>]
+                                                         (|> (\\injection.value <injection> expected)
+                                                             (\\projection.value <projection>)
+                                                             (!expect (^.multi {try.:Success actual}
+                                                                               (by text.equality = expected actual))))))]
 
-                              [[\\projection.utf8_08 \\injection.utf8_08]
-                               [\\projection.utf8_16 \\injection.utf8_16]
-                               [\\projection.utf8_32 \\injection.utf8_32]
-                               [\\projection.utf8_64 \\injection.utf8_64]
-                               [\\projection.text \\injection.text]])))))
+                                 [[\\projection.utf8_08 \\injection.utf8_08]
+                                  [\\projection.utf8_16 \\injection.utf8_16]
+                                  [\\projection.utf8_32 \\injection.utf8_32]
+                                  [\\projection.utf8_64 \\injection.utf8_64]
+                                  [\\projection.text \\injection.text]])))))
 
 (the sequence
-  Test
-  (`` (all _.and
-           (,, (template.with [<projection> <injection>]
-                              [(monad.let [! random.monad]
-                                 [expected (sequence.random ..segment_size random.natural)]
-                                 (_.coverage [<projection> <injection>]
-                                   (|> expected
-                                       (\\injection.value (<injection> \\injection.natural))
-                                       (\\projection.value (<projection> \\projection.natural))
-                                       (!expect (^.multi {try.:Success actual}
-                                                         (by (sequence.equality n.equality) = expected actual))))))]
+     Test
+     (`` (all _.and
+              (,, (template.with [<projection> <injection>]
+                                 [(monad.let [! random.monad]
+                                             [expected (sequence.random ..segment_size random.natural)]
+                                             (_.coverage [<projection> <injection>]
+                                                         (|> expected
+                                                             (\\injection.value (<injection> \\injection.natural))
+                                                             (\\projection.value (<projection> \\projection.natural))
+                                                             (!expect (^.multi {try.:Success actual}
+                                                                               (by (sequence.equality n.equality) = expected actual))))))]
 
-                              [[\\projection.sequence_08 \\injection.sequence_08]
-                               [\\projection.sequence_16 \\injection.sequence_16]
-                               [\\projection.sequence_32 \\injection.sequence_32]
-                               [\\projection.sequence_64 \\injection.sequence_64]])))))
+                                 [[\\projection.sequence_08 \\injection.sequence_08]
+                                  [\\projection.sequence_16 \\injection.sequence_16]
+                                  [\\projection.sequence_32 \\injection.sequence_32]
+                                  [\\projection.sequence_64 \\injection.sequence_64]])))))
 
 (the simple
-  Test
-  (`` (all _.and
-           (,, (template.with [<projection> <injection> <random> <equality>]
-                              [(monad.let [! random.monad]
-                                 [expected <random>]
-                                 (_.coverage [<projection> <injection>]
-                                   (|> expected
-                                       (\\injection.value <injection>)
-                                       (\\projection.value <projection>)
-                                       (!expect (^.multi {try.:Success actual}
-                                                         (by <equality> = expected actual))))))]
+     Test
+     (`` (all _.and
+              (,, (template.with [<projection> <injection> <random> <equality>]
+                                 [(monad.let [! random.monad]
+                                             [expected <random>]
+                                             (_.coverage [<projection> <injection>]
+                                                         (|> expected
+                                                             (\\injection.value <injection>)
+                                                             (\\projection.value <projection>)
+                                                             (!expect (^.multi {try.:Success actual}
+                                                                               (by <equality> = expected actual))))))]
 
-                              [[\\projection.bit \\injection.bit random.bit bit.equality]
-                               [\\projection.natural \\injection.natural random.natural n.equality]
-                               [\\projection.integer \\injection.integer random.integer integer.equality]
-                               [\\projection.revolution \\injection.revolution random.revolution revolution.equality]
-                               [\\projection.instant \\injection.instant instant.random instant.equality]
-                               [\\projection.duration \\injection.duration duration.random duration.equality]]))
-           (monad.let [! random.monad]
-             [expected random.real]
-             (_.coverage [\\projection.real \\injection.real]
-               (|> expected
-                   (\\injection.value \\injection.real)
-                   (\\projection.value \\projection.real)
-                   (!expect (^.multi {try.:Success actual}
-                                     (or (by real.equality = expected actual)
-                                         (and (real.not_a_number? expected)
-                                              (real.not_a_number? actual))))))))
-           )))
+                                 [[\\projection.bit \\injection.bit random.bit bit.equality]
+                                  [\\projection.natural \\injection.natural random.natural n.equality]
+                                  [\\projection.integer \\injection.integer random.integer integer.equality]
+                                  [\\projection.revolution \\injection.revolution random.revolution revolution.equality]
+                                  [\\projection.instant \\injection.instant instant.random instant.equality]
+                                  [\\projection.duration \\injection.duration duration.random duration.equality]]))
+              (monad.let [! random.monad]
+                         [expected random.real]
+                         (_.coverage [\\projection.real \\injection.real]
+                                     (|> expected
+                                         (\\injection.value \\injection.real)
+                                         (\\projection.value \\projection.real)
+                                         (!expect (^.multi {try.:Success actual}
+                                                           (and/or (by real.equality = expected actual)
+                                                                   (and (real.not_a_number? expected)
+                                                                        (real.not_a_number? actual))))))))
+              )))
 
 (the complex
-  Test
-  (`` (all _.and
-           (,, (template.with [<projection> <injection> <random> <equality>]
-                              [(monad.let [! random.monad]
-                                 [expected <random>]
-                                 (_.coverage [<projection> <injection>]
-                                   (|> expected
-                                       (\\injection.value <injection>)
-                                       (\\projection.value <projection>)
-                                       (!expect (^.multi {try.:Success actual}
-                                                         (by <equality> = expected actual))))))]
+     Test
+     (`` (all _.and
+              (,, (template.with [<projection> <injection> <random> <equality>]
+                                 [(monad.let [! random.monad]
+                                             [expected <random>]
+                                             (_.coverage [<projection> <injection>]
+                                                         (|> expected
+                                                             (\\injection.value <injection>)
+                                                             (\\projection.value <projection>)
+                                                             (!expect (^.multi {try.:Success actual}
+                                                                               (by <equality> = expected actual))))))]
 
-                              [[\\projection.provenance \\injection.provenance random_provenance provenance_equality]
-                               [\\projection.code \\injection.code random_code code.equality]
-                               [\\projection.type \\injection.type random_type type.equality]]))
-           (,, (template.with [<projection_coverage> <projection> <coverage_injection> <injection> <random> <equality>]
-                              [(monad.let [! random.monad]
-                                 [expected <random>]
-                                 (_.coverage [<projection_coverage> <coverage_injection>]
-                                   (|> expected
-                                       (\\injection.value <injection>)
-                                       (\\projection.value <projection>)
-                                       (!expect (^.multi {try.:Success actual}
-                                                         (by <equality> = expected actual))))))]
+                                 [[\\projection.provenance \\injection.provenance random_provenance provenance_equality]
+                                  [\\projection.code \\injection.code random_code code.equality]
+                                  [\\projection.type \\injection.type random_type type.equality]]))
+              (,, (template.with [<projection_coverage> <projection> <coverage_injection> <injection> <random> <equality>]
+                                 [(monad.let [! random.monad]
+                                             [expected <random>]
+                                             (_.coverage [<projection_coverage> <coverage_injection>]
+                                                         (|> expected
+                                                             (\\injection.value <injection>)
+                                                             (\\projection.value <projection>)
+                                                             (!expect (^.multi {try.:Success actual}
+                                                                               (by <equality> = expected actual))))))]
 
-                              [[\\projection.maybe (\\projection.maybe \\projection.natural) \\injection.maybe (\\injection.maybe \\injection.natural) (random.maybe random.natural) (maybe.equality n.equality)]
-                               [\\projection.stack (\\projection.stack \\projection.natural) \\injection.stack (\\injection.stack \\injection.natural) (random.stack ..segment_size random.natural) (stack.equality n.equality)]
-                               [\\projection.list (\\projection.list \\projection.natural) \\injection.list (\\injection.list \\injection.natural) (random.list ..segment_size random.natural) (list.equality n.equality)]
-                               [\\projection.set (\\projection.set n.hash \\projection.natural) \\injection.set (\\injection.set \\injection.natural) (random.set n.hash ..segment_size random.natural) set.equality]
-                               [\\projection.name \\projection.name \\injection.name \\injection.name ..random_name name.equality]]))
-           (monad.let [! random.monad]
-             [expected (by ! each (list.repeated ..segment_size) random.natural)]
-             (_.coverage [\\projection.set_elements_are_not_unique]
-               (|> expected
-                   (\\injection.value (\\injection.list \\injection.natural))
-                   (\\projection.value (\\projection.set n.hash \\projection.natural))
-                   (!expect (^.multi {try.:Failure error}
-                                     (exception.is? \\projection.set_elements_are_not_unique error))))))
-           (monad.let [! random.monad]
-             [expected (random.or random.bit random.natural)]
-             (_.coverage [\\projection.or \\injection.or]
-               (|> expected
-                   (\\injection.value (\\injection.or \\injection.bit \\injection.natural))
-                   (\\projection.value (is (\\projection.Projection (Either Bit Natural))
-                                           (\\projection.or \\projection.bit \\projection.natural)))
-                   (!expect (^.multi {try.:Success actual}
-                                     (by (case.equality bit.equality n.equality) =
-                                         expected
-                                         actual))))))
-           (monad.let [! random.monad]
-             [expected (random.stack ..segment_size random.natural)]
-             (_.coverage [\\projection.rec \\injection.rec \\injection.and \\injection.any]
-               (|> expected
-                   (\\injection.value (\\injection.rec (|>> (\\injection.and \\injection.natural)
-                                                            (\\injection.or \\injection.any))))
-                   (\\projection.value (is (\\projection.Projection (Stack Natural))
-                                           (\\projection.rec
-                                            (function (_ of)
-                                              (\\projection.or \\projection.any
-                                                               (<>.and \\projection.natural
-                                                                       of))))))
-                   (!expect (^.multi {try.:Success actual}
-                                     (by (stack.equality n.equality) =
-                                         expected
-                                         actual))))))
-           )))
+                                 [[\\projection.maybe (\\projection.maybe \\projection.natural) \\injection.maybe (\\injection.maybe \\injection.natural) (random.maybe random.natural) (maybe.equality n.equality)]
+                                  [\\projection.stack (\\projection.stack \\projection.natural) \\injection.stack (\\injection.stack \\injection.natural) (random.stack ..segment_size random.natural) (stack.equality n.equality)]
+                                  [\\projection.list (\\projection.list \\projection.natural) \\injection.list (\\injection.list \\injection.natural) (random.list ..segment_size random.natural) (list.equality n.equality)]
+                                  [\\projection.set (\\projection.set n.hash \\projection.natural) \\injection.set (\\injection.set \\injection.natural) (random.set n.hash ..segment_size random.natural) set.equality]
+                                  [\\projection.name \\projection.name \\injection.name \\injection.name ..random_name name.equality]]))
+              (monad.let [! random.monad]
+                         [expected (by ! each (list.repeated ..segment_size) random.natural)]
+                         (_.coverage [\\projection.set_elements_are_not_unique]
+                                     (|> expected
+                                         (\\injection.value (\\injection.list \\injection.natural))
+                                         (\\projection.value (\\projection.set n.hash \\projection.natural))
+                                         (!expect (^.multi {try.:Failure error}
+                                                           (exception.is? \\projection.set_elements_are_not_unique error))))))
+              (monad.let [! random.monad]
+                         [expected (random.or random.bit random.natural)]
+                         (_.coverage [\\projection.or \\injection.or]
+                                     (|> expected
+                                         (\\injection.value (\\injection.or \\injection.bit \\injection.natural))
+                                         (\\projection.value (is (\\projection.Projection (Either Bit Natural))
+                                                                 (\\projection.or \\projection.bit \\projection.natural)))
+                                         (!expect (^.multi {try.:Success actual}
+                                                           (by (case.equality bit.equality n.equality) =
+                                                               expected
+                                                               actual))))))
+              (monad.let [! random.monad]
+                         [expected (random.stack ..segment_size random.natural)]
+                         (_.coverage [\\projection.rec \\injection.rec \\injection.and \\injection.any]
+                                     (|> expected
+                                         (\\injection.value (\\injection.rec (|>> (\\injection.and \\injection.natural)
+                                                                                  (\\injection.or \\injection.any))))
+                                         (\\projection.value (is (\\projection.Projection (Stack Natural))
+                                                                 (\\projection.rec
+                                                                  (function (_ of)
+                                                                            (\\projection.or \\projection.any
+                                                                                             (<>.and \\projection.natural
+                                                                                                     of))))))
+                                         (!expect (^.multi {try.:Success actual}
+                                                           (by (stack.equality n.equality) =
+                                                               expected
+                                                               actual))))))
+              )))
 
 (the \\projection
-  Test
-  (<| (_.covering \\projection._)
-      (_.for [\\projection.Projection])
-      (`` (all _.and
-               (_.coverage [\\projection.value \\projection.any
-                            \\injection.no_op \\injection.instance]
-                 (|> (\\injection.instance \\injection.no_op)
-                     (\\projection.value \\projection.any)
-                     (!expect {try.:Success _})))
-               (monad.let [! random.monad]
-                 [data (by ! each (by utf8.binary as) (random.ascii ..segment_size))]
-                 (_.coverage [\\projection.binary_was_not_fully_read]
-                   (|> data
-                       (\\projection.value \\projection.any)
-                       (!expect (^.multi {try.:Failure error}
-                                         (exception.is? \\projection.binary_was_not_fully_read error))))))
-               (monad.let [! random.monad]
-                 [expected (by ! each (by utf8.binary as) (random.ascii ..segment_size))]
-                 (_.coverage [\\projection.segment \\injection.segment \\injection.value]
-                   (|> expected
-                       (\\injection.value (\\injection.segment ..segment_size))
-                       (\\projection.value (\\projection.segment ..segment_size))
-                       (!expect (^.multi {try.:Success actual}
-                                         (by /.equality = expected actual))))))
-               (monad.let [! random.monad]
-                 [data (by ! each (by utf8.binary as) (random.ascii ..segment_size))]
-                 (_.coverage [\\projection.end?]
-                   (|> data
-                       (\\projection.value (monad.let <>.monad
-                                             [pre \\projection.end?
-                                              _ (\\projection.segment ..segment_size)
-                                              post \\projection.end?]
-                                             (pure (and (not pre)
-                                                        post))))
-                       (!expect {try.:Success .true}))))
-               (monad.let [! random.monad]
-                 [to_read (by ! each (n.% (++ ..segment_size)) random.natural)
-                  data (by ! each (by utf8.binary as) (random.ascii ..segment_size))]
-                 (_.coverage [\\projection.Offset \\projection.offset]
-                   (|> data
-                       (\\projection.value (monad.let <>.monad
-                                             [start \\projection.offset
-                                              _ (\\projection.segment to_read)
-                                              offset \\projection.offset
-                                              _ (\\projection.segment (n.- to_read ..segment_size))
-                                              nothing_left \\projection.offset]
-                                             (pure (and (n.= 0 start)
-                                                        (n.= to_read offset)
-                                                        (n.= ..segment_size nothing_left)))))
-                       (!expect {try.:Success .true}))))
-               (monad.let [! random.monad]
-                 [to_read (by ! each (n.% (++ ..segment_size)) random.natural)
-                  data (by ! each (by utf8.binary as) (random.ascii ..segment_size))]
-                 (_.coverage [\\projection.remaining]
-                   (|> data
-                       (\\projection.value (monad.let <>.monad
-                                             [_ (\\projection.segment to_read)
-                                              remaining \\projection.remaining
-                                              _ (\\projection.segment (n.- to_read ..segment_size))
-                                              nothing_left \\projection.remaining]
-                                             (pure (and (n.= ..segment_size
-                                                             (n.+ to_read remaining))
-                                                        (n.= 0 nothing_left)))))
-                       (!expect {try.:Success .true}))))
-               ..size
-               ..binary
-               ..utf8
-               ..sequence
-               ..simple
-               ..complex
-               ))))
+     Test
+     (<| (_.covering \\projection._)
+         (_.for [\\projection.Projection])
+         (`` (all _.and
+                  (_.coverage [\\projection.value \\projection.any
+                               \\injection.no_op \\injection.instance]
+                              (|> (\\injection.instance \\injection.no_op)
+                                  (\\projection.value \\projection.any)
+                                  (!expect {try.:Success _})))
+                  (monad.let [! random.monad]
+                             [data (by ! each (by utf8.binary as) (random.ascii ..segment_size))]
+                             (_.coverage [\\projection.binary_was_not_fully_read]
+                                         (|> data
+                                             (\\projection.value \\projection.any)
+                                             (!expect (^.multi {try.:Failure error}
+                                                               (exception.is? \\projection.binary_was_not_fully_read error))))))
+                  (monad.let [! random.monad]
+                             [expected (by ! each (by utf8.binary as) (random.ascii ..segment_size))]
+                             (_.coverage [\\projection.segment \\injection.segment \\injection.value]
+                                         (|> expected
+                                             (\\injection.value (\\injection.segment ..segment_size))
+                                             (\\projection.value (\\projection.segment ..segment_size))
+                                             (!expect (^.multi {try.:Success actual}
+                                                               (by /.equality = expected actual))))))
+                  (monad.let [! random.monad]
+                             [data (by ! each (by utf8.binary as) (random.ascii ..segment_size))]
+                             (_.coverage [\\projection.end?]
+                                         (|> data
+                                             (\\projection.value (monad.let <>.monad
+                                                                            [pre \\projection.end?
+                                                                             _ (\\projection.segment ..segment_size)
+                                                                             post \\projection.end?]
+                                                                            (pure (and (not pre)
+                                                                                       post))))
+                                             (!expect {try.:Success .true}))))
+                  (monad.let [! random.monad]
+                             [to_read (by ! each (n.% (++ ..segment_size)) random.natural)
+                              data (by ! each (by utf8.binary as) (random.ascii ..segment_size))]
+                             (_.coverage [\\projection.Offset \\projection.offset]
+                                         (|> data
+                                             (\\projection.value (monad.let <>.monad
+                                                                            [start \\projection.offset
+                                                                             _ (\\projection.segment to_read)
+                                                                             offset \\projection.offset
+                                                                             _ (\\projection.segment (n.- to_read ..segment_size))
+                                                                             nothing_left \\projection.offset]
+                                                                            (pure (and (n.= 0 start)
+                                                                                       (n.= to_read offset)
+                                                                                       (n.= ..segment_size nothing_left)))))
+                                             (!expect {try.:Success .true}))))
+                  (monad.let [! random.monad]
+                             [to_read (by ! each (n.% (++ ..segment_size)) random.natural)
+                              data (by ! each (by utf8.binary as) (random.ascii ..segment_size))]
+                             (_.coverage [\\projection.remaining]
+                                         (|> data
+                                             (\\projection.value (monad.let <>.monad
+                                                                            [_ (\\projection.segment to_read)
+                                                                             remaining \\projection.remaining
+                                                                             _ (\\projection.segment (n.- to_read ..segment_size))
+                                                                             nothing_left \\projection.remaining]
+                                                                            (pure (and (n.= ..segment_size
+                                                                                            (n.+ to_read remaining))
+                                                                                       (n.= 0 nothing_left)))))
+                                             (!expect {try.:Success .true}))))
+                  ..size
+                  ..binary
+                  ..utf8
+                  ..sequence
+                  ..simple
+                  ..complex
+                  ))))
 
 (the equality
-  (Equality \\injection.Specification)
-  (implementation
-   (the (= expected actual)
-     (/.= (\\injection.instance expected)
-          (\\injection.instance actual)))))
+     (Equality \\injection.Specification)
+     (implementation
+      (the (= expected actual)
+           (/.= (\\injection.instance expected)
+                (\\injection.instance actual)))))
 
 (the random_specification
-  (Random \\injection.Specification)
-  (by random.monad each \\injection.natural random.natural))
+     (Random \\injection.Specification)
+     (by random.monad each \\injection.natural random.natural))
 
 (the \\injection
-  Test
-  (<| (_.covering \\injection._)
-      (_.for [\\injection.Mutation \\injection.Specification \\injection.Injection])
-      (all _.and
-           (_.for [\\injection.monoid]
-                  (monoidT.spec ..equality \\injection.monoid ..random_specification))
-           )))
+     Test
+     (<| (_.covering \\injection._)
+         (_.for [\\injection.Mutation \\injection.Specification \\injection.Injection])
+         (all _.and
+              (_.for [\\injection.monoid]
+                     (monoidT.spec ..equality \\injection.monoid ..random_specification))
+              )))
 
 (the (succeed it)
-  (-> (Try Bit) Bit)
-  (when it
-    {try.:Failure _}
-    false
+     (-> (Try Bit) Bit)
+     (when it
+           {try.:Failure _}
+           false
 
-    {try.:Success output}
-    output))
+           {try.:Success output}
+           output))
 
 (the .public (random size)
-  (-> Natural (Random /.Binary))
-  (let [output (/.empty size)]
-    (loop (of [idx 0])
-      (if (n.< size idx)
-          (monad.let random.monad
-            [byte random.natural]
-            (exec (try.trusted (/.has_08! idx byte output))
-              (of (++ idx))))
-          (by random.monad pure output)))))
+     (-> Natural (Random /.Binary))
+     (let [output (/.empty size)]
+          (loop (of [idx 0])
+                (if (n.< size idx)
+                    (monad.let random.monad
+                               [byte random.natural]
+                               (exec (try.trusted (/.has_08! idx byte output))
+                                     (of (++ idx))))
+                    (by random.monad pure output)))))
 
 (the (throws? exception try)
-  (for_any (_ exception it)
-    (-> (Exception exception)
-        (Predicate (Try it))))
-  (when try
-    {try.:Failure error}
-    (exception.is? exception error)
+     (for_any (_ exception it)
+              (-> (Exception exception)
+                  (Predicate (Try it))))
+     (when try
+           {try.:Failure error}
+           (exception.is? exception error)
 
-    {try.:Success _}
-    false))
+           {try.:Success _}
+           false))
 
 (the (throws?' expected try)
-  (for_any (_ it)
-    (-> Error
-        (Predicate (Try it))))
-  (when try
-    {try.:Failure error}
-    (identical? expected error)
+     (for_any (_ it)
+              (-> Error
+                  (Predicate (Try it))))
+     (when try
+           {try.:Failure error}
+           (identical? expected error)
 
-    {try.:Success _}
-    false))
+           {try.:Success _}
+           false))
 
 (the (binary_io power read write value)
-  (-> Natural (-> Natural /.Binary (Try Natural)) (-> Natural Natural /.Binary (Try Any)) Natural Bit)
-  (let [bytes (/64.<< power 1)
-        binary (/.empty bytes)
-        cap (when bytes
-              8 (-- 0)
-              _ (|> 1 (/64.<< (n.x 8 bytes)) --))
-        capped_value (/64.and cap value)]
-    (and (..succeed
-          (monad.let try.monad
-            [pre (read 0 binary)
-             _ (write 0 value binary)
-             post (read 0 binary)]
-            (pure (and (n.= 0 pre)
-                       (n.= capped_value post)))))
-         (throws?' error.not_valid (read 1 binary))
-         (throws?' error.not_valid (write 1 value binary)))))
+     (-> Natural (-> Natural /.Binary (Try Natural)) (-> Natural Natural /.Binary (Try Any)) Natural Bit)
+     (let [bytes (/64.<< power 1)
+           binary (/.empty bytes)
+           cap (when bytes
+                     8 (-- 0)
+                     _ (|> 1 (/64.<< (n.x 8 bytes)) --))
+           capped_value (/64.and cap value)]
+          (and (..succeed
+                (monad.let try.monad
+                           [pre (read 0 binary)
+                            _ (write 0 value binary)
+                            post (read 0 binary)]
+                           (pure (and (n.= 0 pre)
+                                      (n.= capped_value post)))))
+               (throws?' error.not_valid (read 1 binary))
+               (throws?' error.not_valid (write 1 value binary)))))
 
 (the (as_stack it)
-  (-> /.Binary
-      (Stack Natural))
-  (/.mix (function (_ head tail)
-           {.:Top head tail})
-         it
-         (stack)))
+     (-> /.Binary
+         (Stack Natural))
+     (/.mix (function (_ head tail)
+                      {.:Top head tail})
+            it
+            (stack)))
 
 (the test|unsafe
-  Test
-  (<| (_.covering !._)
-      (_.for [!.Binary])
-      (monad.let [! random.monad]
-        [.let [gen_size (|> random.natural (by ! each (|>> (n.% 100) (n.major 8))))]
-         size gen_size
-         sample (..random size)
-         value random.natural
-         .let [gen_idx (|> random.natural (by ! each (n.% size)))]
-         offset gen_idx
-         length (by ! each (n.% (n.- offset size)) random.natural)]
-        (`` (all _.and
-                 (_.for [!.=]
-                        (equalityT.spec (function (_ left right)
-                                          (!.= left right))
-                                        (..random size)))
-                 (_.coverage [!.empty]
-                   (!.= (!.empty size) (!.empty size)))
-                 (_.coverage [!.size]
-                   (|> (!.empty size) !.size (n.= size)))
-                 (,, (template.with [<power> <bytes/?> <has/?>]
-                                    [(_.coverage [<bytes/?> <has/?>]
-                                       (let [bytes (/64.<< <power> 1)
-                                             binary (!.empty bytes)
-                                             cap (when bytes
-                                                   8 (-- 0)
-                                                   _ (|> 1 (/64.<< (n.x 8 bytes)) --))
-                                             capped_value (/64.and cap value)
-                                             
-                                             pre (<bytes/?> 0 binary)
-                                             _ (<has/?> 0 value binary)
-                                             post (<bytes/?> 0 binary)]
-                                         (and (n.= 0 pre)
-                                              (n.= capped_value post))))]
+     Test
+     (<| (_.covering !._)
+         (_.for [!.Binary])
+         (monad.let [! random.monad]
+                    [.let [gen_size (|> random.natural (by ! each (|>> (n.% 100) (n.major 8))))]
+                     size gen_size
+                     sample (..random size)
+                     value random.natural
+                     .let [gen_idx (|> random.natural (by ! each (n.% size)))]
+                     offset gen_idx
+                     length (by ! each (n.% (n.- offset size)) random.natural)]
+                    (`` (all _.and
+                             (_.for [!.=]
+                                    (equalityT.spec (function (_ left right)
+                                                              (!.= left right))
+                                                    (..random size)))
+                             (_.coverage [!.empty]
+                                         (!.= (!.empty size) (!.empty size)))
+                             (_.coverage [!.size]
+                                         (|> (!.empty size) !.size (n.= size)))
+                             (,, (template.with [<power> <bytes/?> <has/?>]
+                                                [(_.coverage [<bytes/?> <has/?>]
+                                                             (let [bytes (/64.<< <power> 1)
+                                                                   binary (!.empty bytes)
+                                                                   cap (when bytes
+                                                                             8 (-- 0)
+                                                                             _ (|> 1 (/64.<< (n.x 8 bytes)) --))
+                                                                   capped_value (/64.and cap value)
+                                                                   
+                                                                   pre (<bytes/?> 0 binary)
+                                                                   _ (<has/?> 0 value binary)
+                                                                   post (<bytes/?> 0 binary)]
+                                                                  (and (n.= 0 pre)
+                                                                       (n.= capped_value post))))]
 
-                                    [[0 !.bits_08 !.has_08!]
-                                     [1 !.bits_16 !.has_16!]
-                                     [2 !.bits_32 !.has_32!]
-                                     [3 !.bits_64 !.has_64!]]))
-                 (_.coverage [!.slice]
-                   (let [random_slice (!.slice offset length sample)
-                         idxs (is (Stack Natural)
-                                  (when length
-                                    0 (stack)
-                                    _ (view.as list.stack (enum.range n.enum 0 (-- length)))))
-                         reader (function (_ binary idx)
-                                  (!.bits_08 idx binary))]
-                     (and (n.= length (!.size random_slice))
-                          (by (stack.equality n.equality) =
-                              (stack:each (|>> (n.+ offset) (reader sample)) idxs)
-                              (stack:each (reader random_slice) idxs)))))
-                 (_.coverage [!.copy!]
-                   (and (let [it (!.copy! size 0 sample 0 (!.empty size))]
-                          (and (not (identical? sample it))
-                               (!.= sample it)))
-                        (let [sample/0 (!.bits_08 0 sample)
-                              copy (!.copy! 1 0 sample 0 (!.empty 2))
-                              copy/0 (!.bits_08 0 copy)
-                              copy/1 (!.bits_08 1 copy)]
-                          (and (n.= sample/0 copy/0)
-                               (n.= 0 copy/1)))))
-                 )))))
+                                                [[0 !.bits_08 !.has_08!]
+                                                 [1 !.bits_16 !.has_16!]
+                                                 [2 !.bits_32 !.has_32!]
+                                                 [3 !.bits_64 !.has_64!]]))
+                             (_.coverage [!.slice]
+                                         (let [random_slice (!.slice offset length sample)
+                                               idxs (is (Stack Natural)
+                                                        (when length
+                                                              0 (stack)
+                                                              _ (view.as list.stack (enum.range n.enum 0 (-- length)))))
+                                               reader (function (_ binary idx)
+                                                                (!.bits_08 idx binary))]
+                                              (and (n.= length (!.size random_slice))
+                                                   (by (stack.equality n.equality) =
+                                                       (stack:each (|>> (n.+ offset) (reader sample)) idxs)
+                                                       (stack:each (reader random_slice) idxs)))))
+                             (_.coverage [!.copy!]
+                                         (and (let [it (!.copy! size 0 sample 0 (!.empty size))]
+                                                   (and (not (identical? sample it))
+                                                        (!.= sample it)))
+                                              (let [sample/0 (!.bits_08 0 sample)
+                                                    copy (!.copy! 1 0 sample 0 (!.empty 2))
+                                                    copy/0 (!.bits_08 0 copy)
+                                                    copy/1 (!.bits_08 1 copy)]
+                                                   (and (n.= sample/0 copy/0)
+                                                        (n.= 0 copy/1)))))
+                             )))))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (_.for [/.Binary])
-      (monad.let [! random.monad]
-        [.let [gen_size (|> random.natural (by ! each (|>> (n.% 100) (n.major 8))))]
-         size gen_size
-         sample (..random size)
-         value random.natural
-         .let [gen_idx (|> random.natural (by ! each (n.% size)))]
-         offset (by ! each (n.major 1) gen_idx)
-         length (by ! each (n.% (n.- offset size)) random.natural)]
-        (all _.and
-             (_.for [/.equality /.=]
-                    (static.when (identical? /.equality /.=)
-                      (equalityT.spec /.equality (..random size))))
-             (_.for [/.hash]
-                    (hashT.spec /.hash (..random size)))
-             (_.for [/.monoid]
-                    (monoidT.spec /.equality /.monoid (..random size)))
-             (_.coverage [/.mix]
-               (n.= (stack.mix n.+ (..as_stack sample) 0)
-                    (/.mix n.+ sample 0)))
-             
-             (_.coverage [/.empty]
-               (by /.equality =
-                   (/.empty size)
-                   (/.empty size)))
-             (_.coverage [/.size]
-               (|> (/.empty size) /.size (n.= size)))
-             (all _.and
-                  (_.coverage [/.Index !.Index]
-                    (type/check.< !.Index /.Index))
-                  (_.coverage [/.limit]
-                    (identical? array.limit /.limit))
-                  (_.coverage [/.bits_08 /.has_08!]
-                    (..binary_io 0 /.bits_08 /.has_08! value))
-                  (_.coverage [/.bits_16 /.has_16!]
-                    (..binary_io 1 /.bits_16 /.has_16! value))
-                  (_.coverage [/.bits_32 /.has_32!]
-                    (..binary_io 2 /.bits_32 /.has_32! value))
-                  (_.coverage [/.bits_64 /.has_64!]
-                    (..binary_io 3 /.bits_64 /.has_64! value)))
-             (_.coverage [/.slice]
-               (let [random_slice (try.trusted (/.slice offset length sample))
-                     idxs (is (Stack Natural)
-                              (when length
-                                0 (stack)
-                                _ (view.as list.stack (enum.range n.enum 0 (-- length)))))
-                     reader (function (_ binary idx)
-                              (/.bits_08 idx binary))]
-                 (and (n.= length (/.size random_slice))
-                      (when [(stack.each' try.monad (|>> (n.+ offset) (reader sample)) idxs)
-                             (stack.each' try.monad (reader random_slice) idxs)]
-                        [{try.:Success binary_vals} {try.:Success slice_vals}]
-                        (by (stack.equality n.equality) = binary_vals slice_vals)
+     Test
+     (<| (_.covering /._)
+         (_.for [/.Binary])
+         (monad.let [! random.monad]
+                    [.let [gen_size (|> random.natural (by ! each (|>> (n.% 100) (n.major 8))))]
+                     size gen_size
+                     sample (..random size)
+                     value random.natural
+                     .let [gen_idx (|> random.natural (by ! each (n.% size)))]
+                     offset (by ! each (n.major 1) gen_idx)
+                     length (by ! each (n.% (n.- offset size)) random.natural)]
+                    (all _.and
+                         (_.for [/.equality /.=]
+                                (static.when (identical? /.equality /.=)
+                                             (equalityT.spec /.equality (..random size))))
+                         (_.for [/.hash]
+                                (hashT.spec /.hash (..random size)))
+                         (_.for [/.monoid]
+                                (monoidT.spec /.equality /.monoid (..random size)))
+                         (_.coverage [/.mix]
+                                     (n.= (stack.mix n.+ (..as_stack sample) 0)
+                                          (/.mix n.+ sample 0)))
+                         
+                         (_.coverage [/.empty]
+                                     (by /.equality =
+                                         (/.empty size)
+                                         (/.empty size)))
+                         (_.coverage [/.size]
+                                     (|> (/.empty size) /.size (n.= size)))
+                         (all _.and
+                              (_.coverage [/.Index !.Index]
+                                          (type/check.< !.Index /.Index))
+                              (_.coverage [/.limit]
+                                          (identical? array.limit /.limit))
+                              (_.coverage [/.bits_08 /.has_08!]
+                                          (..binary_io 0 /.bits_08 /.has_08! value))
+                              (_.coverage [/.bits_16 /.has_16!]
+                                          (..binary_io 1 /.bits_16 /.has_16! value))
+                              (_.coverage [/.bits_32 /.has_32!]
+                                          (..binary_io 2 /.bits_32 /.has_32! value))
+                              (_.coverage [/.bits_64 /.has_64!]
+                                          (..binary_io 3 /.bits_64 /.has_64! value)))
+                         (_.coverage [/.slice]
+                                     (let [random_slice (try.trusted (/.slice offset length sample))
+                                           idxs (is (Stack Natural)
+                                                    (when length
+                                                          0 (stack)
+                                                          _ (view.as list.stack (enum.range n.enum 0 (-- length)))))
+                                           reader (function (_ binary idx)
+                                                            (/.bits_08 idx binary))]
+                                          (and (n.= length (/.size random_slice))
+                                               (when [(stack.each' try.monad (|>> (n.+ offset) (reader sample)) idxs)
+                                                      (stack.each' try.monad (reader random_slice) idxs)]
+                                                     [{try.:Success binary_vals} {try.:Success slice_vals}]
+                                                     (by (stack.equality n.equality) = binary_vals slice_vals)
 
-                        _
-                        false))))
-             (_.coverage [/.slice_out_of_bounds]
-               (and (throws? /.slice_out_of_bounds (/.slice size size sample))
-                    (let [verdict (throws? /.slice_out_of_bounds (/.slice offset size sample))]
-                      (when offset
-                        0 (not verdict)
-                        _ verdict))))
-             (_.coverage [/.after]
-               (and (by /.equality = sample (/.after 0 sample))
-                    (by /.equality = (/.empty 0) (/.after size sample))
-                    (n.= (n.- offset size) (/.size (/.after offset sample)))
-                    (when (stack.in_reverse (..as_stack sample))
-                      {.:Empty}
-                      false
+                                                     _
+                                                     false))))
+                         (_.coverage [/.slice_out_of_bounds]
+                                     (and (throws? /.slice_out_of_bounds (/.slice size size sample))
+                                          (let [verdict (throws? /.slice_out_of_bounds (/.slice offset size sample))]
+                                               (when offset
+                                                     0 (not verdict)
+                                                     _ verdict))))
+                         (_.coverage [/.after]
+                                     (and (by /.equality = sample (/.after 0 sample))
+                                          (by /.equality = (/.empty 0) (/.after size sample))
+                                          (n.= (n.- offset size) (/.size (/.after offset sample)))
+                                          (when (stack.in_reverse (..as_stack sample))
+                                                {.:Empty}
+                                                false
 
-                      {.:Top head tail}
-                      (n.= (stack.mix n.+ tail 0)
-                           (/.mix n.+ (/.after 1 sample) 0)))))
-             (_.coverage [/.copy!]
-               (and (when (/.copy! size 0 sample 0 (/.empty size))
-                      {try.:Success output}
-                      (and (not (identical? sample output))
-                           (by /.equality = sample output))
+                                                {.:Top head tail}
+                                                (n.= (stack.mix n.+ tail 0)
+                                                     (/.mix n.+ (/.after 1 sample) 0)))))
+                         (_.coverage [/.copy!]
+                                     (and (when (/.copy! size 0 sample 0 (/.empty size))
+                                                {try.:Success output}
+                                                (and (not (identical? sample output))
+                                                     (by /.equality = sample output))
 
-                      {try.:Failure _}
-                      false)
-                    (succeed
-                     (monad.let try.monad
-                       [sample/0 (/.bits_08 0 sample)
-                        copy (/.copy! 1 0 sample 0 (/.empty 2))
-                        copy/0 (/.bits_08 0 copy)
-                        copy/1 (/.bits_08 1 copy)]
-                       (pure (and (n.= sample/0 copy/0)
-                                  (n.= 0 copy/1)))))))
-             (_.coverage [/.cannot_copy]
-               (and (not (throws? /.cannot_copy
-                                  (/.copy! size 0 sample 0 (/.empty size))))
-                    (throws? /.cannot_copy
-                             (/.copy! (n.+ offset size) 0 sample 0 (/.empty size)))
-                    (throws? /.cannot_copy
-                             (/.copy! size offset sample 0 (/.empty size)))
-                    (throws? /.cannot_copy
-                             (/.copy! size 0 sample offset (/.empty size)))))
-             (_.coverage [/.copy]
-               (/.= sample
-                    (/.copy sample)))
+                                                {try.:Failure _}
+                                                false)
+                                          (succeed
+                                           (monad.let try.monad
+                                                      [sample/0 (/.bits_08 0 sample)
+                                                       copy (/.copy! 1 0 sample 0 (/.empty 2))
+                                                       copy/0 (/.bits_08 0 copy)
+                                                       copy/1 (/.bits_08 1 copy)]
+                                                      (pure (and (n.= sample/0 copy/0)
+                                                                 (n.= 0 copy/1)))))))
+                         (_.coverage [/.cannot_copy]
+                                     (and (not (throws? /.cannot_copy
+                                                        (/.copy! size 0 sample 0 (/.empty size))))
+                                          (throws? /.cannot_copy
+                                                   (/.copy! (n.+ offset size) 0 sample 0 (/.empty size)))
+                                          (throws? /.cannot_copy
+                                                   (/.copy! size offset sample 0 (/.empty size)))
+                                          (throws? /.cannot_copy
+                                                   (/.copy! size 0 sample offset (/.empty size)))))
+                         (_.coverage [/.copy]
+                                     (/.= sample
+                                          (/.copy sample)))
 
-             ..test|unsafe
-             ..\\injection
-             ..\\projection
-             ))))
+                         ..test|unsafe
+                         ..\\injection
+                         ..\\projection
+                         ))))

@@ -26,93 +26,93 @@
  ["!" \\theorem])
 
 (the (multiple? factor)
-  (-> Natural (/.Predicate Natural))
-  (when factor
-    0 (function.constant false)
-    _ (|>> (n.% factor) (n.= 0))))
+     (-> Natural (/.Predicate Natural))
+     (when factor
+           0 (function.constant false)
+           _ (|>> (n.% factor) (n.= 0))))
 
 (the .public test
-  Test
-  (<| (_.covering /._)
-      (monad.let [! random.monad]
-        [sample random.natural
-         samples (random.stack 10 random.natural)
-         .let [equality (is (Equality (/.Predicate Natural))
-                            (implementation
-                             (the (= left right)
-                               (bit.= (left sample)
-                                      (right sample)))))]])
-      (_.for [/.Predicate])
-      (all _.and
-           (_.for [/.functor]
-                  (contravariantT.spec equality (multiple? 2) /.functor))
-           (let [generator (is (Random (/.Predicate Natural))
-                               (|> random.natural
-                                   (random.only (|>> (n.= 0) not))
-                                   (by ! each multiple?)))]
-             (all _.and
-                  (_.for [/.union]
-                         (monoidT.spec equality /.union generator))
-                  (_.for [/.intersection]
-                         (monoidT.spec equality /.intersection generator))))
-           
-           (_.by_proof [/.none]
-                       [!.none])
-           (_.by_proof [/.all]
-                       [!.all])
-           (_.by_proof [/.or]
-                       [!.or_none
-                        !.<_or_left
-                        !.<_or_right])
-           (_.by_proof [/.and]
-                       [!.and_all
-                        !.<_and_left
-                        !.<_and_right])
-           (_.by_proof [/.complement /.not]
-                       [!.double_negation
-                        !.not_none
-                        !.not_all])
-           (_.by_proof [/.difference /.-]
-                       [!.difference_of_none
-                        !.difference_of_all
-                        !.difference_of_self])
-           (_.coverage [/.rec]
-             (let [even? (multiple? 2)
-                   any_even? (is (/.Predicate (Stack Natural))
-                                 (/.rec (function (_ again)
-                                          (function (_ values)
-                                            (when values
-                                              {.:Empty}
-                                              false
+     Test
+     (<| (_.covering /._)
+         (monad.let [! random.monad]
+                    [sample random.natural
+                     samples (random.stack 10 random.natural)
+                     .let [equality (is (Equality (/.Predicate Natural))
+                                        (implementation
+                                         (the (= left right)
+                                              (bit.= (left sample)
+                                                     (right sample)))))]])
+         (_.for [/.Predicate])
+         (all _.and
+              (_.for [/.functor]
+                     (contravariantT.spec equality (multiple? 2) /.functor))
+              (let [generator (is (Random (/.Predicate Natural))
+                                  (|> random.natural
+                                      (random.only (|>> (n.= 0) not))
+                                      (by ! each multiple?)))]
+                   (all _.and
+                        (_.for [/.union]
+                               (monoidT.spec equality /.union generator))
+                        (_.for [/.intersection]
+                               (monoidT.spec equality /.intersection generator))))
+              
+              (_.by_proof [/.none]
+                          [!.none])
+              (_.by_proof [/.all]
+                          [!.all])
+              (_.by_proof [/.and/or]
+                          [!.or_none
+                           !.<_or_left
+                           !.<_or_right])
+              (_.by_proof [/.and]
+                          [!.and_all
+                           !.<_and_left
+                           !.<_and_right])
+              (_.by_proof [/.complement /.not]
+                          [!.double_negation
+                           !.not_none
+                           !.not_all])
+              (_.by_proof [/.difference /.-]
+                          [!.difference_of_none
+                           !.difference_of_all
+                           !.difference_of_self])
+              (_.coverage [/.rec]
+                          (let [even? (multiple? 2)
+                                any_even? (is (/.Predicate (Stack Natural))
+                                              (/.rec (function (_ again)
+                                                               (function (_ values)
+                                                                         (when values
+                                                                               {.:Empty}
+                                                                               false
 
-                                              {.:Top head tail}
-                                              (or (even? head)
-                                                  (again tail)))))))]
-               (bit.= (stack.any? even? samples)
-                      (any_even? samples))))
-           (monad.let [! random.monad]
-             [expected random.natural
-              .let [not_expected (++ expected)]]
-             (_.coverage [/.if]
-               (and (identical? expected (/.if []
-                                               /.all
-                                               expected
-                                               
-                                               /.none
-                                               not_expected
-                                               
-                                               not_expected))
-                    (identical? expected (/.if []
-                                               /.none
-                                               not_expected
-                                               
-                                               /.all
-                                               expected
-                                               
-                                               not_expected))
-                    (identical? expected (/.if []
-                                               /.none
-                                               not_expected
-                                               
-                                               expected)))))
-           )))
+                                                                               {.:Top head tail}
+                                                                               (and/or (even? head)
+                                                                                       (again tail)))))))]
+                               (bit.= (stack.any? even? samples)
+                                      (any_even? samples))))
+              (monad.let [! random.monad]
+                         [expected random.natural
+                          .let [not_expected (++ expected)]]
+                         (_.coverage [/.if]
+                                     (and (identical? expected (/.if []
+                                                                     /.all
+                                                                     expected
+                                                                     
+                                                                     /.none
+                                                                     not_expected
+                                                                     
+                                                                     not_expected))
+                                          (identical? expected (/.if []
+                                                                     /.none
+                                                                     not_expected
+                                                                     
+                                                                     /.all
+                                                                     expected
+                                                                     
+                                                                     not_expected))
+                                          (identical? expected (/.if []
+                                                                     /.none
+                                                                     not_expected
+                                                                     
+                                                                     expected)))))
+              )))

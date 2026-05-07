@@ -20,77 +20,77 @@
  ["[0]" ///])
 
 (every .public Name
-  Text)
+       Text)
 
 (the with_template (.in_module# .prelude with_template))
 (the type_variable (.in_module# .prelude type_variable))
 
 (`` (the (clean_type type)
-      (-> Type
-          (Meta Type))
-      (when type
-        {.:Variable .general var}
-        (function (_ lux)
-          (when (|> lux
-                    (its [.:type_context .:for_all])
-                    (type_variable var))
-            (,, (with_template [<pattern>]
-                  [<pattern>
-                   {try.:Success [lux type]}]
+         (-> Type
+             (Meta Type))
+         (when type
+               {.:Variable .general var}
+               (function (_ lux)
+                         (when (|> lux
+                                   (its [.:type_context .:for_all])
+                                   (type_variable var))
+                               (,, (with_template [<pattern>]
+                                                  [<pattern>
+                                                   {try.:Success [lux type]}]
 
-                  [[{.:None}]
-                   [{.:Some {.:Variable .general _}}]]))
-            
+                                                  [[{.:None}]
+                                                   [{.:Some {.:Variable .general _}}]]))
+                               
 
-            {.:Some type'}
-            {try.:Success [lux type']}))
+                               {.:Some type'}
+                               {try.:Success [lux type']}))
 
-        _
-        (by ///.monad pure type))))
+               _
+               (by ///.monad pure type))))
 
 (the (on_either f x1 x2)
-  (for_any (_ input output)
-    (-> (-> input (Maybe output)) input input
-        (Maybe output)))
-  (when (f x1)
-    {.:None}
-    (f x2)
-    
-    some
-    some))
+     (for_any (_ input output)
+              (-> (-> input (Maybe output)) input input
+                  (Maybe output)))
+     (when (f x1)
+           {.:None}
+           (f x2)
+           
+           some
+           some))
 
 (the .public (type name)
-  (-> Name
-      (Meta Type))
-  (function (_ lux)
-    (let [test (is (-> [Name [Type Any]] Bit)
-                   (|>> pair.left
-                        (text.= name)))]
-      (when (monad.let maybe.monad
-              [scope (stack.example (function (_ env)
-                                      (.or (list.any? test (is (property.List [Type Any])
-                                                               (its [.:locals .:mappings] env)))
-                                           (list.any? test (is (property.List [Type Any])
-                                                               (its [.:captured .:mappings] env)))))
-                                    (its .:scopes lux))
-               [_ [type _]] (on_either (list.example test)
-                                       (is (property.List [Type Any])
-                                           (its [.:locals .:mappings] scope))
-                                       (is (property.List [Type Any])
-                                           (its [.:captured .:mappings] scope)))]
-              (pure type))
-        {.:Some type}
-        ((clean_type type) lux)
+     (-> Name
+         (Meta Type))
+     (function (_ lux)
+               (let [test (is (-> [Name [Type Any]] Bit)
+                              (|>> pair.left
+                                   (text.= name)))]
+                    (when (monad.let maybe.monad
+                                     [scope (stack.example (function (_ env)
+                                                                     (.and/or (list.any? test (is (property.List [Type Any])
+                                                                                                  (its [.:locals .:mappings] env)))
+                                                                              (list.any? test (is (property.List [Type Any])
+                                                                                                  (its [.:captured .:mappings] env)))))
+                                                           (its .:scopes lux))
+                                      [_ [type _]] (on_either (list.example test)
+                                                              (is (property.List [Type Any])
+                                                                  (its [.:locals .:mappings] scope))
+                                                              (is (property.List [Type Any])
+                                                                  (its [.:captured .:mappings] scope)))]
+                                     (pure type))
+                          {.:Some type}
+                          ((clean_type type) lux)
 
-        {.:None}
-        {try.:Failure (text "Unknown variable: " name)}))))
+                          {.:None}
+                          {try.:Failure (text "Unknown variable: " name)}))))
 
 (the .public all
-  (Meta (Stack (property.List Type)))
-  (function (_ lux)
-    {try.:Success [lux
-                   (|> lux
-                       (its .:scopes)
-                       (stack:each (|>> (its [.:locals .:mappings])
-                                        (list:each (function (_ [name [type _]])
-                                                     [name type])))))]}))
+     (Meta (Stack (property.List Type)))
+     (function (_ lux)
+               {try.:Success [lux
+                              (|> lux
+                                  (its .:scopes)
+                                  (stack:each (|>> (its [.:locals .:mappings])
+                                                   (list:each (function (_ [name [type _]])
+                                                                        [name type])))))]}))

@@ -19,126 +19,126 @@
     ["[0]" nominal]]]])
 
 (every .public Priority
-  Natural)
+       Natural)
 
 (the .public maximum
-  Priority
-  n:maximum)
+     Priority
+     n:maximum)
 
 (the .public minimum
-  Priority
-  n:minimum)
+     Priority
+     n:minimum)
 
 (the builder
-  (tree.builder n.maximum))
+     (tree.builder n.maximum))
 
 (the :@:
-  (by_example [@]
-    (is (tree.Builder @ Priority)
-        ..builder)
-    @))
+     (by_example [@]
+                 (is (tree.Builder @ Priority)
+                     ..builder)
+                 @))
 
 (nominal.every .public (Queue it)
-  (Maybe (Tree :@: Priority it))
+               (Maybe (Tree :@: Priority it))
 
-  (the .public empty
-    Queue
-    (|> {.:None}
-        nominal.of
-        (as (-> (Queue Any) Queue))))
+               (the .public empty
+                    Queue
+                    (|> {.:None}
+                        nominal.of
+                        (as (-> (Queue Any) Queue))))
 
-  (the .public (front queue)
-    (for_any (_ it)
-      (-> (Queue it)
-          (Maybe it)))
-    (<| (try.of_maybe error.empty)
-        (monad.let maybe.monad
-          [tree (nominal.as queue)]
-          (tree.one (n.= (tree.tag tree))
-                    tree))))
+               (the .public (front queue)
+                    (for_any (_ it)
+                             (-> (Queue it)
+                                 (Maybe it)))
+                    (<| (try.of_maybe error.empty)
+                        (monad.let maybe.monad
+                                   [tree (nominal.as queue)]
+                                   (tree.one (n.= (tree.tag tree))
+                                             tree))))
 
-  (the .public (size queue)
-    (for_any (_ it)
-      (-> (Queue it)
-          Natural))
-    (when (nominal.as queue)
-      {.:None}
-      0
+               (the .public (size queue)
+                    (for_any (_ it)
+                             (-> (Queue it)
+                                 Natural))
+                    (when (nominal.as queue)
+                          {.:None}
+                          0
 
-      {.:Some tree}
-      (loop (of [node tree])
-        (when (tree.root node)
-          {0b _}
-          1
+                          {.:Some tree}
+                          (loop (of [node tree])
+                                (when (tree.root node)
+                                      {0b _}
+                                      1
 
-          {1b [left right]}
-          (n.+ (of left) (of right))))))
+                                      {1b [left right]}
+                                      (n.+ (of left) (of right))))))
 
-  (the .public (member? equality queue member)
-    (for_any (_ it)
-      (-> (Equality it) (Queue it) it
-          Bit))
-    (when (nominal.as queue)
-      {.:None}
-      false
+               (the .public (member? equality queue member)
+                    (for_any (_ it)
+                             (-> (Equality it) (Queue it) it
+                                 Bit))
+                    (when (nominal.as queue)
+                          {.:None}
+                          false
 
-      {.:Some tree}
-      (loop (of [node tree])
-        (when (tree.root node)
-          {0b reference}
-          (by equality = reference member)
+                          {.:Some tree}
+                          (loop (of [node tree])
+                                (when (tree.root node)
+                                      {0b reference}
+                                      (by equality = reference member)
 
-          {1b [left right]}
-          (or (of left)
-              (of right))))))
+                                      {1b [left right]}
+                                      (and/or (of left)
+                                              (of right))))))
 
-  (the .public (next queue)
-    (for_any (_ it)
-      (-> (Queue it)
-          (Queue it)))
-    (nominal.of
-     (monad.let maybe.monad
-       [tree (nominal.as queue)
-        .let [highest_priority (tree.tag tree)]]
-       (loop (of [node tree])
-         (when (tree.root node)
-           {0b reference}
-           (if (n.= highest_priority (tree.tag node))
-               {.:None}
-               {.:Some node})
+               (the .public (next queue)
+                    (for_any (_ it)
+                             (-> (Queue it)
+                                 (Queue it)))
+                    (nominal.of
+                     (monad.let maybe.monad
+                                [tree (nominal.as queue)
+                                 .let [highest_priority (tree.tag tree)]]
+                                (loop (of [node tree])
+                                      (when (tree.root node)
+                                            {0b reference}
+                                            (if (n.= highest_priority (tree.tag node))
+                                                {.:None}
+                                                {.:Some node})
 
-           {1b left right}
-           (if (n.= highest_priority (tree.tag left))
-               (when (of left)
-                 {.:None}
-                 {.:Some right}
+                                            {1b left right}
+                                            (if (n.= highest_priority (tree.tag left))
+                                                (when (of left)
+                                                      {.:None}
+                                                      {.:Some right}
 
-                 {.:Some =left}
-                 {.:Some (by ..builder branch =left right)})
-               (when (of right)
-                 {.:None}
-                 {.:Some left}
+                                                      {.:Some =left}
+                                                      {.:Some (by ..builder branch =left right)})
+                                                (when (of right)
+                                                      {.:None}
+                                                      {.:Some left}
 
-                 {.:Some =right}
-                 {.:Some (by ..builder branch left =right)})))))))
+                                                      {.:Some =right}
+                                                      {.:Some (by ..builder branch left =right)})))))))
 
-  (the .public (end priority value queue)
-    (for_any (_ it)
-      (-> Priority it (Queue it)
-          (Queue it)))
-    (let [addition (by ..builder leaf priority value)]
-      (nominal.of
-       (when (nominal.as queue)
-         {.:None}
-         {.:Some addition}
+               (the .public (end priority value queue)
+                    (for_any (_ it)
+                             (-> Priority it (Queue it)
+                                 (Queue it)))
+                    (let [addition (by ..builder leaf priority value)]
+                         (nominal.of
+                          (when (nominal.as queue)
+                                {.:None}
+                                {.:Some addition}
 
-         {.:Some tree}
-         {.:Some (by ..builder branch tree addition)}))))
-  )
+                                {.:Some tree}
+                                {.:Some (by ..builder branch tree addition)}))))
+               )
 
 (the .public empty?
-  (for_any (_ it)
-    (-> (Queue it)
-        Bit))
-  (|>> ..size
-       (n.= 0)))
+     (for_any (_ it)
+              (-> (Queue it)
+                  Bit))
+     (|>> ..size
+          (n.= 0)))
